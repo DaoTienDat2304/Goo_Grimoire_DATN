@@ -1,0 +1,52 @@
+
+AmaneKanata.png
+size: 2004,2004
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+star
+  rotate: false
+  xy: 2, 2
+  size: 2000, 2000
+  orig: 2000, 2000
+  offset: 0, 0
+  index: -1
+
+AmaneKanata2.png
+size: 2004,2004
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+hair
+  rotate: false
+  xy: 2, 2
+  size: 2000, 2000
+  orig: 2000, 2000
+  offset: 0, 0
+  index: -1
+
+AmaneKanata3.png
+size: 2004,2004
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+head
+  rotate: false
+  xy: 2, 2
+  size: 2000, 2000
+  orig: 2000, 2000
+  offset: 0, 0
+  index: -1
+
+AmaneKanata4.png
+size: 2004,2004
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+slime
+  rotate: false
+  xy: 2, 2
+  size: 2000, 2000
+  orig: 2000, 2000
+  offset: 0, 0
+  index: -1

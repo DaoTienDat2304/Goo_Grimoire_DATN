@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1b33df3d20fb0846843ff2ea69b0fe7, type: 3}
+  m_Name: 2
+  m_EditorClassIdentifier: 
+  achievementID: 2
+  achievementName: 
+  title: Breed 2
+  description: Breed 5 time
+  type: 0
+  targetValue: 5
+  sprite: {fileID: -7267909970408104506, guid: ea67adae8b82bc7429e702ebaf55ec1c, type: 3}
+  currencyReward:
+    currencyReward:
+      rewards:
+      - type: 1
+        amount: 10
+    giveRewardOnUnlock: 1
+    showNotification: 1

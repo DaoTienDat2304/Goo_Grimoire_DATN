@@ -1,0 +1,25 @@
+fileFormatVersion: 2
+guid: eae339b36a01a254f89c378f1c2d251e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - breedingPanel: {instanceID: 0}
+  - slimeCollectionPanel: {instanceID: 0}
+  - breedingProgressPanel: {instanceID: 0}
+  - slimeGridParent: {instanceID: 0}
+  - slimeSlotPrefab: {instanceID: 0}
+  - breedButton: {instanceID: 0}
+  - cancelButton: {instanceID: 0}
+  - breedingProgressBar: {instanceID: 0}
+  - breedingStatusText: {instanceID: 0}
+  - selectedSlimesText: {instanceID: 0}
+  - collectionGridParent: {instanceID: 0}
+  - collectionSlotPrefab: {instanceID: 0}
+  - totalSlimesText: {instanceID: 0}
+  - generationText: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

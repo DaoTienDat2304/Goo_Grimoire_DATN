@@ -1,0 +1,33 @@
+
+skeleton.png
+size: 1924,1227
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+bệ
+  rotate: false
+  xy: 2, 1084
+  size: 545, 141
+  orig: 591, 591
+  offset: 23, 214
+  index: -1
+gooooo
+  rotate: false
+  xy: 2, 2
+  size: 1920, 1080
+  orig: 1920, 1080
+  offset: 0, 0
+  index: -1
+
+skeleton2.png
+size: 2004,2004
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+slime1
+  rotate: false
+  xy: 2, 2
+  size: 2000, 2000
+  orig: 2000, 2000
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,41 @@
+
+Hutao.png
+size: 1660,516
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+hutao1
+  rotate: false
+  xy: 516, 2
+  size: 512, 512
+  orig: 512, 512
+  offset: 0, 0
+  index: -1
+hutao2
+  rotate: false
+  xy: 1030, 2
+  size: 512, 512
+  orig: 512, 512
+  offset: 0, 0
+  index: -1
+hutao3
+  rotate: true
+  xy: 1544, 286
+  size: 228, 114
+  orig: 512, 512
+  offset: 142, 133
+  index: -1
+hutao4
+  rotate: true
+  xy: 1544, 59
+  size: 225, 92
+  orig: 512, 512
+  offset: 145, 156
+  index: -1
+hutao5
+  rotate: false
+  xy: 2, 2
+  size: 512, 512
+  orig: 512, 512
+  offset: 0, 0
+  index: -1

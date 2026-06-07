@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
+  m_Name: Test_GroupHeal
+  m_EditorClassIdentifier: 
+  skillName: "Test: H\u1ED3i Nh\xF3m"
+  type: 0
+  description: "H\u1ED3i 15% HP t\u1ED1i \u0111a cho to\xE0n \u0111\u1ED9i."
+  icon: {fileID: 0}
+  cooldown: 4
+  effects:
+  - effect: {fileID: 11400000, guid: 2aa5de6b8eaf02a4bbed2220457c81e9, type: 2}
+    value: 0.15
+    duration: 0
+    applyChance: 100

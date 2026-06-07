@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16243286132a34439ea51ec59ea3814, type: 3}
+  m_Name: 1st child
+  m_EditorClassIdentifier: 
+  questID: 1
+  questName: 1st child
+  description: breed 1
+  slimeRequirement: 3
+  questreq: 
+  currencyReward:
+    rewards:
+    - type: 1
+      amount: 5
+  reward:
+    rewardType: Gems
+    amount: 5
+    description: 
+  rewardIcon: {fileID: 21300000, guid: 17d54204fee209d498a0dbbadf68aca9, type: 3}
+  state: 2
+  slimeGoal: 4
+  curSlime: 3

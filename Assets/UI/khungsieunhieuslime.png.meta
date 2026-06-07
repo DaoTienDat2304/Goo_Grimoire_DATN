@@ -1,0 +1,767 @@
+fileFormatVersion: 2
+guid: abf8619b6f2793049a6b46f6958d1ae2
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8431765447972211489
+    second: khungsieunhieuslime_0
+  - first:
+      213: 8312230867505999162
+    second: khungsieunhieuslime_1
+  - first:
+      213: -2850029568849220130
+    second: khungsieunhieuslime_2
+  - first:
+      213: 8818669298855626480
+    second: khungsieunhieuslime_3
+  - first:
+      213: 9056284234325584775
+    second: khungsieunhieuslime_4
+  - first:
+      213: 3513502985824031782
+    second: khungsieunhieuslime_5
+  - first:
+      213: -1671574727076296839
+    second: khungsieunhieuslime_6
+  - first:
+      213: 2093531859798717734
+    second: khungsieunhieuslime_7
+  - first:
+      213: -4070046754215117627
+    second: khungsieunhieuslime_8
+  - first:
+      213: 4835578202509567911
+    second: khungsieunhieuslime_9
+  - first:
+      213: 6807129928861231744
+    second: khungsieunhieuslime_10
+  - first:
+      213: -3940811327542716252
+    second: khungsieunhieuslime_11
+  - first:
+      213: -7263243430764372002
+    second: khungsieunhieuslime_12
+  - first:
+      213: -3290267885072541490
+    second: khungsieunhieuslime_13
+  - first:
+      213: -7214751178669334615
+    second: khungsieunhieuslime_14
+  - first:
+      213: -1150791502599220590
+    second: khungsieunhieuslime_15
+  - first:
+      213: 3173206069976896180
+    second: khungsieunhieuslime_16
+  - first:
+      213: 4574276297249234825
+    second: khungsieunhieuslime_17
+  - first:
+      213: 9196339347948129024
+    second: khungsieunhieuslime_18
+  - first:
+      213: 7674979167729018233
+    second: khungsieunhieuslime_19
+  - first:
+      213: -8959563213820994777
+    second: khungsieunhieuslime_20
+  - first:
+      213: 3008215379522247198
+    second: khungsieunhieuslime_21
+  - first:
+      213: -8298660851654928004
+    second: khungsieunhieuslime_22
+  - first:
+      213: 4041508398617463682
+    second: khungsieunhieuslime_23
+  - first:
+      213: -3606930813108941262
+    second: khungsieunhieuslime_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: khungsieunhieuslime_0
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 830
+        width: 165
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12bcbc36006a30570800000000000000
+      internalID: 8431765447972211489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_1
+      rect:
+        serializedVersion: 2
+        x: 1083
+        y: 830
+        width: 165
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3d6bb41fe9fa5370800000000000000
+      internalID: 8312230867505999162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_2
+      rect:
+        serializedVersion: 2
+        x: 1283
+        y: 830
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edde16d0539a278d0800000000000000
+      internalID: -2850029568849220130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_3
+      rect:
+        serializedVersion: 2
+        x: 1484
+        y: 830
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f6cee50105326a70800000000000000
+      internalID: 8818669298855626480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_4
+      rect:
+        serializedVersion: 2
+        x: 1684
+        y: 830
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78b62f367826ead70800000000000000
+      internalID: 9056284234325584775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_5
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 644
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 624d05ba95872c030800000000000000
+      internalID: 3513502985824031782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_6
+      rect:
+        serializedVersion: 2
+        x: 1082
+        y: 644
+        width: 165
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 977c81164af5dc8e0800000000000000
+      internalID: -1671574727076296839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_7
+      rect:
+        serializedVersion: 2
+        x: 1282
+        y: 644
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 625f34d6228bd0d10800000000000000
+      internalID: 2093531859798717734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_8
+      rect:
+        serializedVersion: 2
+        x: 1483
+        y: 644
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ccb6c38a0a4487c0800000000000000
+      internalID: -4070046754215117627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_9
+      rect:
+        serializedVersion: 2
+        x: 1683
+        y: 644
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a7643451cc6b1340800000000000000
+      internalID: 4835578202509567911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_10
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 457
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08a24b5ca98c77e50800000000000000
+      internalID: 6807129928861231744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_11
+      rect:
+        serializedVersion: 2
+        x: 1082
+        y: 457
+        width: 165
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a81bf61afc6f49c0800000000000000
+      internalID: -3940811327542716252
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_12
+      rect:
+        serializedVersion: 2
+        x: 1282
+        y: 457
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edf99100596c33b90800000000000000
+      internalID: -7263243430764372002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_13
+      rect:
+        serializedVersion: 2
+        x: 1483
+        y: 457
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec810668ace9652d0800000000000000
+      internalID: -3290267885072541490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_14
+      rect:
+        serializedVersion: 2
+        x: 1683
+        y: 457
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9af5594470e00eb90800000000000000
+      internalID: -7214751178669334615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_15
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 271
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 292190db9319700f0800000000000000
+      internalID: -1150791502599220590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_16
+      rect:
+        serializedVersion: 2
+        x: 1082
+        y: 271
+        width: 165
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b21618bb1e790c20800000000000000
+      internalID: 3173206069976896180
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_17
+      rect:
+        serializedVersion: 2
+        x: 1282
+        y: 271
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98f970a8e081b7f30800000000000000
+      internalID: 4574276297249234825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_18
+      rect:
+        serializedVersion: 2
+        x: 1483
+        y: 271
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00b4564a9e5ff9f70800000000000000
+      internalID: 9196339347948129024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_19
+      rect:
+        serializedVersion: 2
+        x: 1683
+        y: 271
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 975e207a3e0038a60800000000000000
+      internalID: 7674979167729018233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_20
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 82
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72bda811abc39a380800000000000000
+      internalID: -8959563213820994777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_21
+      rect:
+        serializedVersion: 2
+        x: 1082
+        y: 82
+        width: 165
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1a5a4013f35fb920800000000000000
+      internalID: 3008215379522247198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_22
+      rect:
+        serializedVersion: 2
+        x: 1282
+        y: 82
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c79daa17ceb35dc80800000000000000
+      internalID: -8298660851654928004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_23
+      rect:
+        serializedVersion: 2
+        x: 1483
+        y: 82
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28b0a58c972561830800000000000000
+      internalID: 4041508398617463682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khungsieunhieuslime_24
+      rect:
+        serializedVersion: 2
+        x: 1683
+        y: 82
+        width: 164
+        height: 165
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23e0b3b298b91fdc0800000000000000
+      internalID: -3606930813108941262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      khungsieunhieuslime_0: 8431765447972211489
+      khungsieunhieuslime_1: 8312230867505999162
+      khungsieunhieuslime_10: 6807129928861231744
+      khungsieunhieuslime_11: -3940811327542716252
+      khungsieunhieuslime_12: -7263243430764372002
+      khungsieunhieuslime_13: -3290267885072541490
+      khungsieunhieuslime_14: -7214751178669334615
+      khungsieunhieuslime_15: -1150791502599220590
+      khungsieunhieuslime_16: 3173206069976896180
+      khungsieunhieuslime_17: 4574276297249234825
+      khungsieunhieuslime_18: 9196339347948129024
+      khungsieunhieuslime_19: 7674979167729018233
+      khungsieunhieuslime_2: -2850029568849220130
+      khungsieunhieuslime_20: -8959563213820994777
+      khungsieunhieuslime_21: 3008215379522247198
+      khungsieunhieuslime_22: -8298660851654928004
+      khungsieunhieuslime_23: 4041508398617463682
+      khungsieunhieuslime_24: -3606930813108941262
+      khungsieunhieuslime_3: 8818669298855626480
+      khungsieunhieuslime_4: 9056284234325584775
+      khungsieunhieuslime_5: 3513502985824031782
+      khungsieunhieuslime_6: -1671574727076296839
+      khungsieunhieuslime_7: 2093531859798717734
+      khungsieunhieuslime_8: -4070046754215117627
+      khungsieunhieuslime_9: 4835578202509567911
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

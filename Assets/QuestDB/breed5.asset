@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16243286132a34439ea51ec59ea3814, type: 3}
+  m_Name: breed5
+  m_EditorClassIdentifier: 
+  questID: 8
+  questName: Breed 5
+  description: Breed 30 time
+  slimeRequirement: 0
+  questreq: 
+  currencyReward:
+    rewards:
+    - type: 0
+      amount: 500
+  reward:
+    rewardType: Coin
+    amount: 500
+    description: 
+  rewardIcon: {fileID: 0}
+  state: 2
+  slimeGoal: 30
+  curSlime: 7

@@ -1,0 +1,13 @@
+
+BlueSlime.png
+size: 2004,2004
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+slime1
+  rotate: false
+  xy: 2, 2
+  size: 2000, 2000
+  orig: 2000, 2000
+  offset: 0, 0
+  index: -1

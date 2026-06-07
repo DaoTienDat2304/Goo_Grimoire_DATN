@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a293d08929745fb43bb58aa357756a02, type: 3}
+  m_Name: timrQ3
+  m_EditorClassIdentifier: 
+  questID: 7
+  questName: Play time 2
+  description: Play for 5 hour
+  slimeRequirement: 0
+  questreq: 
+  currencyReward:
+    rewards:
+    - type: 0
+      amount: 9999
+  reward:
+    rewardType: Coin
+    amount: 9999
+    description: 
+  rewardIcon: {fileID: 0}
+  state: 2
+  required: 18000
+  current: 8.957504

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b676b1ca49d060439d76230a367f8bd, type: 3}
+  m_Name: MushroomHead
+  m_EditorClassIdentifier: 
+  traitName: Mushroom Head
+  type: 1
+  rarity: 2
+  unlocked: 0
+  dropRate: 50
+  sprite: {fileID: -8225573426974839239, guid: 838135f0daf8a22499fa40b742b4a1ee, type: 3}
+  animationAsset: {fileID: 0}
+  animationName: animation
+  HPRange: {x: 1, y: 10}
+  attackRange: {x: 1, y: 10}
+  defenseRange: {x: 1, y: 10}
+  speedRange: {x: 1, y: 10}
+  evadeRange: {x: 1, y: 10}
+  skill: {fileID: 0}

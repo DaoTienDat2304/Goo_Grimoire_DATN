@@ -1,0 +1,314 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e34e09644b7d754b9c09ccb30c4a898, type: 3}
+  m_Name: Team
+  m_EditorClassIdentifier: 
+  team:
+  - slimeName: Purplr Fur Helmet Knife
+    generation: 0
+    breedingCooldown: 0
+    canBreed: 1
+    parents: []
+    happiness: 100
+    experience: 0
+    isPicked: 1
+    id: 1
+    body:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 8b336888577601946a74480d0c87d35a, type: 2}
+      Rarity: 2
+      HP: 8
+      attack: 10
+      defense: 10
+      speed: 7
+      evade: 1
+      TraitType: 0
+      traitname: PurpleFur
+      skill:
+        baseSkill: {fileID: 11400000, guid: 0cb929fff6e06a54ebf9fce345b0148c, type: 2}
+        currentCooldown: 0
+        power: 2.1
+    armor:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 3c30896dacaff0c4891431aa75ef9fbd, type: 2}
+      Rarity: 1
+      HP: 4
+      attack: 10
+      defense: 6
+      speed: 6
+      evade: 2
+      TraitType: 1
+      traitname: Helmet
+      skill:
+        baseSkill: {fileID: 11400000, guid: 20b4fa2101df10b428ad5141f86f39fa, type: 2}
+        currentCooldown: 0
+        power: 1.8000001
+    weapon:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 7d890049e297818458eafb5f78b1bcd3, type: 2}
+      Rarity: 2
+      HP: 2
+      attack: 14
+      defense: 10
+      speed: 8
+      evade: 14
+      TraitType: 2
+      traitname: Knife
+      skill:
+        baseSkill: {fileID: 0}
+        currentCooldown: 0
+        power: 0
+    totalHP: 14
+    totalAttack: 34
+    totalDefense: 26
+    totalSpeed: 21
+    totalEvade: 17
+  - slimeName: angry
+    generation: 0
+    breedingCooldown: 0
+    canBreed: 1
+    parents: []
+    happiness: 100
+    experience: 0
+    isPicked: 1
+    id: 2
+    body:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 2f6f0ec2709469e4cb8d5261406d69c3, type: 2}
+      Rarity: 1
+      HP: 8
+      attack: 11
+      defense: 5
+      speed: 8
+      evade: 12
+      TraitType: 0
+      traitname: EvilSlime
+      skill:
+        baseSkill: {fileID: 11400000, guid: 0cb929fff6e06a54ebf9fce345b0148c, type: 2}
+        currentCooldown: 0
+        power: 1.8000001
+    armor:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 3c30896dacaff0c4891431aa75ef9fbd, type: 2}
+      Rarity: 1
+      HP: 3
+      attack: 11
+      defense: 10
+      speed: 10
+      evade: 8
+      TraitType: 1
+      traitname: Helmet
+      skill:
+        baseSkill: {fileID: 11400000, guid: 20b4fa2101df10b428ad5141f86f39fa, type: 2}
+        currentCooldown: 0
+        power: 1.8000001
+    weapon:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+      Rarity: 0
+      HP: 3
+      attack: 2
+      defense: 1
+      speed: 5
+      evade: 7
+      TraitType: 2
+      traitname: EmptyHand
+      skill:
+        baseSkill: {fileID: 0}
+        currentCooldown: 0
+        power: 0
+    totalHP: 14
+    totalAttack: 24
+    totalDefense: 16
+    totalSpeed: 23
+    totalEvade: 27
+  - slimeName: Slime_19
+    generation: 20
+    breedingCooldown: 0
+    canBreed: 1
+    parents:
+    - Slime_18
+    - Slime_21
+    happiness: 100
+    experience: 0
+    isPicked: 1
+    id: 11
+    body:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 990c0aecbeddced4bb6a9c865b864cb3, type: 2}
+      Rarity: 3
+      HP: 4
+      attack: 14
+      defense: 3
+      speed: 5
+      evade: 10
+      TraitType: 0
+      traitname: PinkyFur
+      skill:
+        baseSkill: {fileID: 11400000, guid: 0cb929fff6e06a54ebf9fce345b0148c, type: 2}
+        currentCooldown: 0
+        power: 2.4
+    armor:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 3c30896dacaff0c4891431aa75ef9fbd, type: 2}
+      Rarity: 1
+      HP: 8
+      attack: 2
+      defense: 6
+      speed: 1
+      evade: 10
+      TraitType: 1
+      traitname: Helmet
+      skill:
+        baseSkill: {fileID: 11400000, guid: 20b4fa2101df10b428ad5141f86f39fa, type: 2}
+        currentCooldown: 0
+        power: 1.8000001
+    weapon:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 4655ab2923dbdd84c9ceed86195be0a0, type: 2}
+      Rarity: 2
+      HP: 10
+      attack: 11
+      defense: 14
+      speed: 7
+      evade: 6
+      TraitType: 2
+      traitname: Lolipop
+      skill:
+        baseSkill: {fileID: 0}
+        currentCooldown: 0
+        power: 0
+    totalHP: 22
+    totalAttack: 27
+    totalDefense: 23
+    totalSpeed: 13
+    totalEvade: 26
+  - slimeName: 
+    generation: 0
+    breedingCooldown: 0
+    canBreed: 1
+    parents: []
+    happiness: 100
+    experience: 0
+    isPicked: 1
+    id: 12
+    body:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+      Rarity: 7
+      HP: 158
+      attack: 420
+      defense: 1664
+      speed: 222
+      evade: 520
+      TraitType: 0
+      traitname: Kazuha
+      skill:
+        baseSkill: {fileID: 11400000, guid: 0cb929fff6e06a54ebf9fce345b0148c, type: 2}
+        currentCooldown: 0
+        power: 3
+    armor:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+      Rarity: 0
+      HP: 2
+      attack: 4
+      defense: 1
+      speed: 3
+      evade: 8
+      TraitType: 1
+      traitname: Empty
+      skill:
+        baseSkill: {fileID: 0}
+        currentCooldown: 0
+        power: 0
+    weapon:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+      Rarity: 0
+      HP: 6
+      attack: 6
+      defense: 6
+      speed: 6
+      evade: 10
+      TraitType: 2
+      traitname: EmptyHand
+      skill:
+        baseSkill: {fileID: 0}
+        currentCooldown: 0
+        power: 0
+    totalHP: 166
+    totalAttack: 430
+    totalDefense: 1671
+    totalSpeed: 231
+    totalEvade: 538
+  - slimeName: Slime_21
+    generation: 19
+    breedingCooldown: 0
+    canBreed: 1
+    parents:
+    - Slime_20
+    - Slime_19
+    happiness: 100
+    experience: 0
+    isPicked: 1
+    id: 10
+    body:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 561588790dd302440b7d1059da0dce78, type: 2}
+      Rarity: 3
+      HP: 2
+      attack: 8
+      defense: 8
+      speed: 2
+      evade: 10
+      TraitType: 0
+      traitname: HotchocolateSlime
+      skill:
+        baseSkill: {fileID: 11400000, guid: 0cb929fff6e06a54ebf9fce345b0148c, type: 2}
+        currentCooldown: 0
+        power: 2.4
+    armor:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 23c2a39ac0824eb40a395b3cf3fde8b1, type: 2}
+      Rarity: 2
+      HP: 10
+      attack: 13
+      defense: 4
+      speed: 10
+      evade: 3
+      TraitType: 1
+      traitname: Witchhat
+      skill:
+        baseSkill: {fileID: 0}
+        currentCooldown: 0
+        power: 0
+    weapon:
+      allTraits: []
+      baseTrait: {fileID: 11400000, guid: 1ab02eacce47f10479aba307ecad91c6, type: 2}
+      Rarity: 3
+      HP: 6
+      attack: 11
+      defense: 3
+      speed: 6
+      evade: 10
+      TraitType: 2
+      traitname: Sword
+      skill:
+        baseSkill: {fileID: 11400000, guid: 12eb891fc69e5934bb66c46d043c7862, type: 2}
+        currentCooldown: 0
+        power: 2.4
+    totalHP: 18
+    totalAttack: 32
+    totalDefense: 15
+    totalSpeed: 18
+    totalEvade: 23

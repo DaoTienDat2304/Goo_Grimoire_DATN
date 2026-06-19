@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class Aiming : MonoBehaviour
@@ -42,8 +41,10 @@ public class Aiming : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        MobileInput.TryGetAimPointer(out var pointerPosition, out bool pointerPressed, out bool pointerHeld, out bool pointerReleased);
+
         spriteFacesRight = (lineRenderer.GetPosition(0).x > lineRenderer.GetPosition(1).x);
-        if (Mouse.current.leftButton.wasPressedThisFrame && aimingarea.isWithinArea())
+        if (pointerPressed && aimingarea.isWithinArea(pointerPosition))
         {
             // Trong travel scene thì không cần check marshmallow
             bool isTravel = IsTravelScene();
@@ -61,13 +62,13 @@ public class Aiming : MonoBehaviour
                 Debug.LogWarning("Không đủ Marshmallow để ném catcher!");
             }
         }
-        if (Mouse.current.leftButton.isPressed && clickedWithinArea)
+        if (pointerHeld && clickedWithinArea)
         {
-            DrawLine();
+            DrawLine(pointerPosition);
             CatcherRotation();
             spawnedCatcher.transform.SetParent(this.transform);
         }
-        if (Mouse.current.leftButton.wasReleasedThisFrame)
+        if (pointerReleased)
         {
             clickedWithinArea = false;
 
@@ -109,10 +110,11 @@ public class Aiming : MonoBehaviour
             lineRenderer.enabled = false; // tắt hẳn line khi thả chuột
         }
     }
-    private void DrawLine()
+    private void DrawLine(Vector2 screenPosition)
     {
-        
-        Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        if (Camera.main == null) return;
+
+        Vector3 touchPosition = Camera.main.ScreenToWorldPoint(screenPosition);
         aimingLinePosition = startPosition.position + Vector3.ClampMagnitude(touchPosition - startPosition.position, maxLength);
         SetLine(aimingLinePosition);
     }

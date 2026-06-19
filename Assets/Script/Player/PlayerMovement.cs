@@ -20,6 +20,8 @@ public class PlayerMovement : MonoBehaviour
     public KeyCode runKey = KeyCode.LeftShift;     // Phím chạy (Shift)
     public KeyCode sitKey = KeyCode.LeftControl;   // Phím ngồi (Ctrl)
     public float sitTransitionTime = 0.3f;         // Thời gian chuyển sang trạng thái ngồi
+    public float mobileJoystickRadius = 120f;
+    [Range(0.5f, 1f)] public float mobileRunThreshold = 0.82f;
 
     [Header("Detection Ranges for Slimes")]
     public float sittingDetectionRange = 2f;   // 2 ô khi ngồi
@@ -75,10 +77,7 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleInput()
     {
-        // Lấy input di chuyển
-        movement.x = Input.GetAxisRaw("Horizontal"); // A/D hoặc Left/Right arrows
-        movement.y = Input.GetAxisRaw("Vertical");   // W/S hoặc Up/Down arrows
-        movement = movement.normalized;
+        movement = MobileInput.GetMovementVector(mobileJoystickRadius);
 
         // Reset sit timer nếu có input di chuyển
         if (movement.magnitude > 0)
@@ -129,7 +128,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Kiểm tra trạng thái chạy
-        if (Input.GetKey(runKey) && IsMoving)
+        if ((Input.GetKey(runKey) || MobileInput.IsMobileRunInput(mobileJoystickRadius, mobileRunThreshold)) && IsMoving)
         {
             currentState = PlayerMovementState.Running;
             if (movement.y > 0 && movement.x == 0)

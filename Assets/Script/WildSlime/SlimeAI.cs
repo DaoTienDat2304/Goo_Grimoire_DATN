@@ -45,6 +45,14 @@ public class SlimeAI : MonoBehaviour
     public float stuckSpeedThreshold = 0.5f; // Nếu tốc độ thực < ngưỡng này → coi như kẹt
     public float stuckCheckTime = 0.2f;      // Kiểm tra kẹt sau thời gian này
 
+    [Header("Rarity Intelligence")]
+    public bool scaleBehaviorByRarity = true;
+    [Range(0f, 1f)] public float rarityIntelligence = 0f;
+    public float maxPredictionTime = 0.45f;
+    public float rareDetectionBonus = 3f;
+    public float rareSpeedBonus = 3f;
+    public float rareObstacleRangeBonus = 2f;
+
     [Header("References")]
     public Transform player;                 // Reference đến player
     public Rigidbody2D rb;
@@ -76,6 +84,7 @@ public class SlimeAI : MonoBehaviour
     private float panicTimeLeft;
     private Vector2 desiredVelocity; // Vận tốc sẽ áp dụng ở FixedUpdate (ổn định physics)
     private float stuckTimer = 0f;
+    private bool rarityProfileApplied = false;
 
     void Start()
     {
@@ -97,6 +106,8 @@ public class SlimeAI : MonoBehaviour
         currentAngle = Random.Range(0f, 360f);
         if (player != null) lastPlayerPosition = player.position; // tránh vận tốc player bị sai frame đầu
 
+        ApplyRarityProfile();
+
         // Bắt đầu với di chuyển ngẫu nhiên
         if (enableRandomMovement)
         {
@@ -106,13 +117,12 @@ public class SlimeAI : MonoBehaviour
         {
             isMoving = true;
         }
-        normalSpeed += wildSlimeTraits.tamingDifficulty - 3;
-        fleeSpeed += wildSlimeTraits.tamingDifficulty - 3;
     }
 
     void Update()
     {
         if (player == null) return;
+        if (!rarityProfileApplied) ApplyRarityProfile();
 
         // Lưu vị trí player trước đó để tính toán vận tốc
         Vector3 currentPlayerPos = player.position;
@@ -207,8 +217,7 @@ public class SlimeAI : MonoBehaviour
                 if (stuckTimer >= stuckCheckTime)
                 {
                     // Tìm hướng thoáng nhất ưu tiên tránh player và bứt ra
-                    Vector3 away = (transform.position - player.position);
-                    Vector3 best = GetBestEscapeDirection(away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection());
+                    Vector3 best = GetSmartEscapeDirection(0.15f);
                     desiredVelocity = best * Mathf.Max(fleeSpeed, panicBurstSpeed * 0.8f);
                     stuckTimer = 0f;
                 }
@@ -240,15 +249,10 @@ public class SlimeAI : MonoBehaviour
 
     void ContinueFleeing()
     {
-        // Luôn chạy TRÁNH xa player mỗi frame để không bị đuổi kịp hoặc chạy song song về phía player
-        Vector3 away = (transform.position - player.position);
-        Vector3 desired = away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection();
-
-        // Tránh obstacles nhưng vẫn ưu tiên tránh player
-        desired = AvoidObstacles(desired);
+        Vector3 desired = GetSmartEscapeDirection(0.1f);
 
         // Di chuyển với tốc độ cao
-        rb.linearVelocity = desired * fleeSpeed;
+        desiredVelocity = desired * fleeSpeed;
 
         // Dừng khi đã cách player đủ xa (ổn định hơn đo khoảng cách đã đi)
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
@@ -385,7 +389,7 @@ public class SlimeAI : MonoBehaviour
         lastPlayerPosition = player.position;
 
         // Chọn hướng tránh né ngẫu nhiên
-        Vector3 directionToPlayer = (player.position - transform.position).normalized;
+        Vector3 directionToPlayer = (GetThreatPosition() - transform.position).normalized;
         Vector3 evasionDirection = Quaternion.Euler(0, 0, Random.Range(-90f, 90f)) * -directionToPlayer;
         fleeTarget = transform.position + evasionDirection * fleeDistance;
     }
@@ -395,11 +399,11 @@ public class SlimeAI : MonoBehaviour
         evasionTimeLeft -= Time.deltaTime;
 
         // Hướng ưu tiên: tránh xa player; vẫn pha trộn nhẹ với mục tiêu né hiện tại để tự nhiên hơn
-        Vector3 away = (transform.position - player.position);
+        Vector3 away = (transform.position - GetThreatPosition());
         Vector3 toTempTarget = (fleeTarget - transform.position);
         Vector3 directionToTarget = ((away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection()) * 0.8f
                                     + (toTempTarget.sqrMagnitude > 0.001f ? toTempTarget.normalized : Vector3.zero) * 0.2f).normalized;
-        directionToTarget = AvoidObstacles(directionToTarget);
+        directionToTarget = GetSmartEscapeDirection(0.2f, directionToTarget);
 
         // Thêm thay đổi hướng ngẫu nhiên để khó bắt
         if (Random.value < directionChangeChance * 2f * Time.deltaTime)
@@ -438,13 +442,13 @@ public class SlimeAI : MonoBehaviour
     void ContinueChaoticMode()
     {
         // Di chuyển với tốc độ hỗn loạn nhưng vẫn ưu tiên tránh player
-        Vector3 away = (transform.position - player.position);
+        Vector3 away = (transform.position - GetThreatPosition());
         Vector3 baseDir = (fleeTarget - transform.position).sqrMagnitude > 0.001f
             ? (fleeTarget - transform.position).normalized
             : GetRandomDirection();
         Vector3 directionToTarget = ((away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection()) * 0.7f
                                     + baseDir * 0.3f).normalized;
-        directionToTarget = AvoidObstacles(directionToTarget);
+        directionToTarget = GetSmartEscapeDirection(0.35f, directionToTarget);
 
         // Thay đổi hướng liên tục và ngẫu nhiên
         if (Random.value < directionChangeChance * 3f * Time.deltaTime)
@@ -609,8 +613,7 @@ public class SlimeAI : MonoBehaviour
 
         panicTimeLeft = panicBurstDuration;
 
-        Vector3 away = (transform.position - player.position);
-        Vector3 best = GetBestEscapeDirection(away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection());
+        Vector3 best = GetSmartEscapeDirection(0.05f);
         desiredVelocity = best * panicBurstSpeed;
     }
 
@@ -618,9 +621,7 @@ public class SlimeAI : MonoBehaviour
     {
         panicTimeLeft -= Time.deltaTime;
 
-        Vector3 away = (transform.position - player.position);
-        Vector3 best = GetBestEscapeDirection(away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection());
-        Vector3 dir = AvoidObstacles(best);
+        Vector3 dir = GetSmartEscapeDirection(0.05f);
         desiredVelocity = dir * panicBurstSpeed;
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
@@ -655,6 +656,152 @@ public class SlimeAI : MonoBehaviour
             }
         }
         return bestDir.normalized;
+    }
+
+    void ApplyRarityProfile()
+    {
+        if (rarityProfileApplied)
+            return;
+
+        if (!scaleBehaviorByRarity)
+        {
+            rarityProfileApplied = true;
+            return;
+        }
+
+        if (wildSlimeTraits != null && wildSlimeTraits.tamingDifficulty <= 0f && !HasTraitData())
+            return;
+
+        float score = GetRarityScore();
+        rarityIntelligence = score;
+
+        float difficultyBonus = 0f;
+        if (wildSlimeTraits != null && wildSlimeTraits.tamingDifficulty > 0f)
+            difficultyBonus = Mathf.Max(0f, wildSlimeTraits.tamingDifficulty - 3f) * 0.35f;
+
+        detectionRange += rareDetectionBonus * score;
+        safeDistance += rareDetectionBonus * 0.8f * score;
+        fleeDistance += rareDetectionBonus * score;
+
+        normalSpeed += rareSpeedBonus * 0.25f * score + difficultyBonus;
+        wanderSpeed += rareSpeedBonus * 0.2f * score;
+        fleeSpeed += rareSpeedBonus * score + difficultyBonus;
+        evasionSpeed += rareSpeedBonus * 0.8f * score;
+        panicBurstSpeed += rareSpeedBonus * score;
+        chaosSpeed += rareSpeedBonus * 0.6f * score;
+
+        directionChangeChance = Mathf.Clamp01(directionChangeChance + score * 0.25f);
+        speedVariation = Mathf.Clamp(speedVariation + score * 0.15f, 0f, 0.75f);
+        angleVariation += score * 35f;
+        obstacleDetectionRange += rareObstacleRangeBonus * score;
+        avoidanceForce += score;
+
+        // Rare slime should look alert, not twitch randomly forever.
+        chaosChance = Mathf.Lerp(chaosChance, 0.15f, score);
+        wanderTimer = Mathf.Lerp(wanderTimer, 0.75f, score);
+        idleTimer = Mathf.Lerp(idleTimer, 0.08f, score);
+
+        rarityProfileApplied = true;
+    }
+
+    bool HasTraitData()
+    {
+        if (wildSlimeTraits == null || wildSlimeTraits.newSlime == null || wildSlimeTraits.newSlime.wildSlimeTraits == null)
+            return false;
+
+        foreach (var trait in wildSlimeTraits.newSlime.wildSlimeTraits)
+        {
+            if (trait != null)
+                return true;
+        }
+
+        return false;
+    }
+
+    float GetRarityScore()
+    {
+        if (wildSlimeTraits == null)
+            return Mathf.Clamp01(rarityIntelligence);
+
+        float score = 0f;
+        int count = 0;
+
+        if (wildSlimeTraits.newSlime != null && wildSlimeTraits.newSlime.wildSlimeTraits != null)
+        {
+            foreach (var trait in wildSlimeTraits.newSlime.wildSlimeTraits)
+            {
+                if (trait == null) continue;
+                score += RarityToScore(trait.rarity);
+                count++;
+            }
+        }
+
+        if (count == 0 && wildSlimeTraits.tamingDifficulty > 0f)
+            return Mathf.Clamp01((wildSlimeTraits.tamingDifficulty - 3f) / 5f);
+
+        return count > 0 ? Mathf.Clamp01(score / count) : Mathf.Clamp01(rarityIntelligence);
+    }
+
+    float RarityToScore(Rarity rarity)
+    {
+        switch (rarity)
+        {
+            case Rarity.Common: return 0f;
+            case Rarity.Uncommon: return 0.15f;
+            case Rarity.Rare: return 0.3f;
+            case Rarity.SuperRare: return 0.45f;
+            case Rarity.UltraRare: return 0.6f;
+            case Rarity.Legendary: return 0.78f;
+            case Rarity.Mythic: return 0.9f;
+            case Rarity.Secret: return 1f;
+            default: return 0f;
+        }
+    }
+
+    Vector3 GetThreatPosition()
+    {
+        if (player == null)
+            return transform.position;
+
+        Vector3 playerVelocity = Time.deltaTime > 0f
+            ? (player.position - lastPlayerPosition) / Time.deltaTime
+            : Vector3.zero;
+
+        float predictionTime = Mathf.Lerp(0f, maxPredictionTime, rarityIntelligence);
+        return player.position + playerVelocity * predictionTime;
+    }
+
+    Vector3 GetSmartEscapeDirection(float randomWeight, Vector3? preferredDirection = null)
+    {
+        Vector3 threat = GetThreatPosition();
+        Vector3 away = transform.position - threat;
+        Vector3 baseDirection = away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection();
+
+        if (preferredDirection.HasValue && preferredDirection.Value.sqrMagnitude > 0.001f)
+            baseDirection = Vector3.Slerp(baseDirection, preferredDirection.Value.normalized, 0.35f);
+
+        Vector3 playerVelocity = Time.deltaTime > 0f
+            ? (player.position - lastPlayerPosition) / Time.deltaTime
+            : Vector3.zero;
+
+        if (playerVelocity.sqrMagnitude > 0.01f)
+        {
+            Vector3 lateral = Vector3.Cross(Vector3.forward, playerVelocity.normalized);
+            if (Vector3.Dot(lateral, baseDirection) < 0f) lateral = -lateral;
+            baseDirection = Vector3.Slerp(baseDirection, lateral, 0.25f * rarityIntelligence).normalized;
+        }
+
+        Vector3 homeVector = startPosition - transform.position;
+        if (homeVector.magnitude > circleRadius * 0.9f)
+            baseDirection = Vector3.Slerp(baseDirection, homeVector.normalized, 0.3f + 0.25f * rarityIntelligence).normalized;
+
+        if (randomWeight > 0f)
+        {
+            Vector3 random = GetRandomDirection();
+            baseDirection = Vector3.Slerp(baseDirection, random, randomWeight * (1f - rarityIntelligence * 0.55f)).normalized;
+        }
+
+        return GetBestEscapeDirection(baseDirection);
     }
 
     void OnDrawGizmosSelected()

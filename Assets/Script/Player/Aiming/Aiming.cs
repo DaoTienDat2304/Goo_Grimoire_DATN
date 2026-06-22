@@ -42,9 +42,10 @@ public class Aiming : MonoBehaviour
     void Update()
     {
         MobileInput.TryGetAimPointer(out var pointerPosition, out bool pointerPressed, out bool pointerHeld, out bool pointerReleased);
+        bool isVirtualThrowButton = MobileInput.LastAimPointerFromVirtualButton;
 
         spriteFacesRight = (lineRenderer.GetPosition(0).x > lineRenderer.GetPosition(1).x);
-        if (pointerPressed && aimingarea.isWithinArea(pointerPosition))
+        if (pointerPressed && (isVirtualThrowButton || aimingarea.isWithinArea(pointerPosition)))
         {
             // Trong travel scene thì không cần check marshmallow
             bool isTravel = IsTravelScene();

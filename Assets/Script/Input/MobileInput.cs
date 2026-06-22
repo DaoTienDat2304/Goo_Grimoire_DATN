@@ -15,8 +15,20 @@ public static class MobileInput
     private const float DefaultJoystickRadius = 120f;
     private const float SwipeThreshold = 45f;
 
+    public static Vector2 VirtualJoystickVector { get; set; }
+    public static bool IsVirtualJoystickActive { get; set; }
+
+    public static Vector2 VirtualAimPointerPosition { get; set; }
+    public static bool VirtualAimPressed { get; set; }
+    public static bool VirtualAimHeld { get; set; }
+    public static bool VirtualAimReleased { get; set; }
+    public static bool LastAimPointerFromVirtualButton { get; private set; }
+
     public static Vector2 GetMovementVector(float joystickRadius = DefaultJoystickRadius)
     {
+        if (IsVirtualJoystickActive)
+            return Vector2.ClampMagnitude(VirtualJoystickVector, 1f);
+
         Vector2 keyboard = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         if (keyboard.sqrMagnitude > 0.001f)
             return Vector2.ClampMagnitude(keyboard, 1f);
@@ -30,7 +42,7 @@ public static class MobileInput
                 continue;
 
             Vector2 current = touch.position.ReadValue();
-            if (current.x > Screen.width * 0.45f)
+            if (current.x > Screen.width * 0.45f || current.y > Screen.height * 0.72f)
                 continue;
 
             Vector2 start = touch.startPosition.ReadValue();
@@ -51,33 +63,23 @@ public static class MobileInput
 
     public static bool TryGetAimPointer(out Vector2 screenPosition, out bool pressed, out bool held, out bool released)
     {
+        if (VirtualAimPressed || VirtualAimHeld || VirtualAimReleased)
+        {
+            screenPosition = VirtualAimPointerPosition;
+            pressed = VirtualAimPressed;
+            held = VirtualAimHeld;
+            released = VirtualAimReleased;
+            VirtualAimPressed = false;
+            VirtualAimReleased = false;
+            LastAimPointerFromVirtualButton = true;
+            return true;
+        }
+
+        LastAimPointerFromVirtualButton = false;
         screenPosition = Vector2.zero;
         pressed = false;
         held = false;
         released = false;
-
-        if (Touchscreen.current != null)
-        {
-            foreach (var touch in Touchscreen.current.touches)
-            {
-                Vector2 position = touch.position.ReadValue();
-                bool isPressed = touch.press.isPressed;
-                bool started = touch.press.wasPressedThisFrame;
-                bool ended = touch.press.wasReleasedThisFrame;
-
-                if (!isPressed && !started && !ended)
-                    continue;
-
-                if (position.x < Screen.width * 0.45f)
-                    continue;
-
-                screenPosition = position;
-                pressed = started;
-                held = isPressed;
-                released = ended;
-                return true;
-            }
-        }
 
         if (Mouse.current == null)
             return false;

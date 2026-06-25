@@ -100,7 +100,7 @@ public class PlayerMovement : MonoBehaviour
         {
             currentState = PlayerMovementState.Sitting;
             isSitting = true;
-            idle.gameObject.SetActive(true);
+            GetIdle().gameObject.SetActive(true);
             backIdle.gameObject.SetActive(false);
             running.gameObject.SetActive(false);
             return;
@@ -174,6 +174,11 @@ public class PlayerMovement : MonoBehaviour
 
         isSitting = false;
     }
+
+    // Replace the static method with an instance method to access the 'idle' field correctly.
+    private SkeletonAnimation GetIdle()
+    {
+        return idle;     }
 
     void UpdateSpriteFlip()
     {

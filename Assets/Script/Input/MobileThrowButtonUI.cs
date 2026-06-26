@@ -209,6 +209,11 @@ public class MobileThrowButtonUI : MonoBehaviour, IPointerDownHandler, IDragHand
         activePointerId = int.MinValue;
     }
 
+    public void CancelInput()
+    {
+        ResetInput();
+    }
+
     private void MoveButtonToFinger(PointerEventData eventData)
     {
         CacheRects();

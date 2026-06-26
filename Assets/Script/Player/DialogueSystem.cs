@@ -337,7 +337,7 @@ public class DialogueSystem : MonoBehaviour
     void Update()
     {
         // Có thể thêm input để tiếp tục dialogue
-        if (IsDialogueActive() && Input.GetKeyDown(KeyCode.Space))
+        if (IsDialogueActive() && IsContinueInputDown())
         {
             ContinueDialogue();
         }
@@ -356,6 +356,35 @@ public class DialogueSystem : MonoBehaviour
             tutorial.SetActive(true);
             c++;
         }
+    }
+
+    private bool IsContinueInputDown()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+            return true;
+
+        if (!MobileInput.TryGetPrimaryTap(out var tapPosition, false))
+            return false;
+
+        if (IsTapInsideButton(continueButton, tapPosition) || IsTapInsideButton(skipButton, tapPosition))
+            return false;
+
+        return IsTapInsideDialoguePanel(tapPosition);
+    }
+
+    private bool IsTapInsideDialoguePanel(Vector2 screenPosition)
+    {
+        var rect = dialoguePanel != null ? dialoguePanel.transform as RectTransform : null;
+        return rect != null && RectTransformUtility.RectangleContainsScreenPoint(rect, screenPosition);
+    }
+
+    private bool IsTapInsideButton(Button button, Vector2 screenPosition)
+    {
+        if (button == null)
+            return false;
+
+        var rect = button.transform as RectTransform;
+        return rect != null && RectTransformUtility.RectangleContainsScreenPoint(rect, screenPosition);
     }
 }
 

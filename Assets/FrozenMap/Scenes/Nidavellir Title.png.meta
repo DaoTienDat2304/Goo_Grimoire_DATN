@@ -117,6 +117,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -309,7 +322,15 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Nidavellir Title_0: 4047502971933419722
+      Nidavellir Title_1: 9210054549291000113
+      Nidavellir Title_2: -2305541204424017064
+      Nidavellir Title_3: -4532073532206378143
+      Nidavellir Title_4: 6796408676656601083
+      Nidavellir Title_5: 4824444573559919531
+      Nidavellir Title_6: 8618303579648623726
+      Nidavellir Title_7: 3388570317012190712
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

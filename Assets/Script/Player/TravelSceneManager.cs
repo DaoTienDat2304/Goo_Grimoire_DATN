@@ -254,7 +254,7 @@ public class TravelSceneManager : MonoBehaviour
     void Update()
     {
         // Input handling
-        if (Input.GetKeyDown(KeyCode.Space) && allowPlayerMovement && isSceneActive)
+        if (IsMoveToNextInputDown() && allowPlayerMovement && isSceneActive)
         {
             MoveToNextTarget();
         }
@@ -268,6 +268,12 @@ public class TravelSceneManager : MonoBehaviour
             int currentIndex = SceneManager.GetActiveScene().buildIndex;
             StartCoroutine(SceneLoader.LoadSceneWithLoadingCoroutine(currentIndex + 1));
         }
+    }
+
+    private bool IsMoveToNextInputDown()
+    {
+        return Input.GetKeyDown(KeyCode.Space)
+            || MobileInput.TryGetPrimaryTap(out _, true);
     }
     
     void OnDestroy()

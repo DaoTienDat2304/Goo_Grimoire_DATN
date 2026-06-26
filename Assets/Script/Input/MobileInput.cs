@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public enum MobileDirection
@@ -14,6 +15,7 @@ public static class MobileInput
 {
     private const float DefaultJoystickRadius = 120f;
     private const float SwipeThreshold = 45f;
+    private static MobileDirection queuedDirection = MobileDirection.None;
 
     public static Vector2 VirtualJoystickVector { get; set; }
     public static bool IsVirtualJoystickActive { get; set; }
@@ -92,9 +94,43 @@ public static class MobileInput
         return pressed || held || released;
     }
 
+    public static bool TryGetPrimaryTap(out Vector2 screenPosition, bool ignoreUi = true)
+    {
+        screenPosition = Vector2.zero;
+
+        if (Touchscreen.current != null)
+        {
+            foreach (var touch in Touchscreen.current.touches)
+            {
+                if (!touch.press.wasPressedThisFrame)
+                    continue;
+
+                screenPosition = touch.position.ReadValue();
+                int touchId = touch.touchId.ReadValue();
+                if (ignoreUi && IsPointerOverUi(touchId))
+                    return false;
+
+                return true;
+            }
+        }
+
+        if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame)
+            return false;
+
+        screenPosition = Mouse.current.position.ReadValue();
+        return !ignoreUi || !IsPointerOverUi();
+    }
+
     public static bool TryGetDirectionDown(out MobileDirection direction)
     {
         direction = MobileDirection.None;
+
+        if (queuedDirection != MobileDirection.None)
+        {
+            var value = queuedDirection;
+            queuedDirection = MobileDirection.None;
+            return SetDirection(value, out direction);
+        }
 
         if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
             return SetDirection(MobileDirection.Right, out direction);
@@ -128,10 +164,39 @@ public static class MobileInput
         return false;
     }
 
+    public static void QueueDirection(MobileDirection direction)
+    {
+        if (direction != MobileDirection.None)
+            queuedDirection = direction;
+    }
+
+    public static void ResetVirtualControls()
+    {
+        queuedDirection = MobileDirection.None;
+        VirtualJoystickVector = Vector2.zero;
+        IsVirtualJoystickActive = false;
+        VirtualAimPointerPosition = Vector2.zero;
+        VirtualAimPressed = false;
+        VirtualAimHeld = false;
+        VirtualAimReleased = false;
+        VirtualAimDragVector = Vector2.zero;
+        LastAimPointerFromVirtualButton = false;
+    }
+
     private static bool SetDirection(MobileDirection value, out MobileDirection direction)
     {
         direction = value;
         return value != MobileDirection.None;
+    }
+
+    private static bool IsPointerOverUi(int pointerId = -1)
+    {
+        if (EventSystem.current == null)
+            return false;
+
+        return pointerId >= 0
+            ? EventSystem.current.IsPointerOverGameObject(pointerId)
+            : EventSystem.current.IsPointerOverGameObject();
     }
 
     private static MobileDirection VectorToDirection(Vector2 vector)

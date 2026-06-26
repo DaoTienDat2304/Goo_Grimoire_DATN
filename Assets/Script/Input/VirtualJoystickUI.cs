@@ -9,6 +9,7 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
     private const string ResourcesPrefabPath = "UI/MobileControlsCanvas";
     private const float ReferenceWidth = 1920f;
     private const float ReferenceHeight = 1080f;
+    private const int MobileControlsSortingOrder = -10;
     private const float LeftControlWidthRatio = 0.45f;
     private const float LowerControlHeightRatio = 0.72f;
     private static readonly string[] DefaultActiveSceneNames = { "adventureSence", "Map2" };
@@ -51,18 +52,27 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
     {
         EnsureEventSystem();
 
-        if (FindAnyObjectByType<VirtualJoystickUI>() != null)
+        var existingJoystick = FindAnyObjectByType<VirtualJoystickUI>();
+        if (existingJoystick != null)
+        {
+            var existingCanvas = existingJoystick.GetComponentInParent<Canvas>();
+            if (existingCanvas != null)
+            {
+                ConfigureControlsCanvas(existingCanvas);
+                EnsureEventBlocker(existingCanvas.gameObject);
+            }
             return;
+        }
 
         if (TryCreateControlsFromPrefab())
             return;
 
         var canvasObject = new GameObject("MobileControlsCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         DontDestroyOnLoad(canvasObject);
+        EnsureEventBlocker(canvasObject);
 
         var canvas = canvasObject.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 500;
+        ConfigureControlsCanvas(canvas);
 
         var scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -88,7 +98,23 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
         GameObject instance = Instantiate(prefab);
         instance.name = prefab.name;
         DontDestroyOnLoad(instance);
+        var canvas = instance.GetComponent<Canvas>();
+        if (canvas != null)
+            ConfigureControlsCanvas(canvas);
+        EnsureEventBlocker(instance);
         return true;
+    }
+
+    private static void ConfigureControlsCanvas(Canvas canvas)
+    {
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = MobileControlsSortingOrder;
+    }
+
+    private static void EnsureEventBlocker(GameObject controlsCanvas)
+    {
+        if (controlsCanvas.GetComponent<MobileControlsEventBlocker>() == null)
+            controlsCanvas.AddComponent<MobileControlsEventBlocker>();
     }
 
     private static void EnsureEventSystem()
@@ -269,6 +295,11 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
         if (eventData.pointerId != activePointerId)
             return;
 
+        ResetInput();
+    }
+
+    public void CancelInput()
+    {
         ResetInput();
     }
 

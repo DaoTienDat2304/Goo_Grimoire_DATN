@@ -3,40 +3,65 @@ using System.Collections.Generic;
 
 public class SlimeSpawner : MonoBehaviour
 {
+    public enum SpawnAreaShape
+    {
+        Circle,
+        Rectangle
+    }
+
     [Header("Spawn Settings")]
-    [SerializeField] private GameObject slimePrefab; // Prefab của slime
-    [SerializeField] private Transform player; // Reference đến player
-    [SerializeField] private float spawnRadius = 50f; // Bán kính spawn (50 đơn vị)
-    [SerializeField] private int minSlimeCount = 5; // Số slime tối thiểu
-    [SerializeField] private int maxSlimeCount = 10; // Số slime tối đa
-    [SerializeField] private float movementThreshold = 100f; // Khoảng cách di chuyển để spawn mới (100 đơn vị)
+    [SerializeField] private GameObject slimePrefab;
+    [SerializeField] private Transform player;
+    [SerializeField] private float spawnRadius = 50f;
+    [SerializeField] private int minSlimeCount = 5;
+    [SerializeField] private int maxSlimeCount = 10;
+    [SerializeField] private float movementThreshold = 100f;
+
+    [Header("Zone Mode")]
+    [SerializeField] private bool useSpawnerAsZoneCenter = true;
+    [SerializeField] private bool respawnWhenPlayerMoves = false;
+    [SerializeField] private bool limitMaxDistanceFromPlayer = false;
+    [SerializeField] private bool passZoneToSlimeAI = true;
+    [SerializeField] private SpawnAreaShape spawnAreaShape = SpawnAreaShape.Circle;
+    [SerializeField] private Vector2 spawnAreaSize = new Vector2(80f, 45f);
 
     [Header("Spawn Position Settings")]
-    [SerializeField] private float minDistanceFromPlayer = 10f; // Khoảng cách tối thiểu từ player
-    [SerializeField] private float maxDistanceFromPlayer = 50f; // Khoảng cách tối đa từ player
-    [SerializeField] private int maxSpawnAttempts = 50; // Số lần thử spawn tối đa
+    [SerializeField] private float minDistanceFromPlayer = 10f;
+    [SerializeField] private float maxDistanceFromPlayer = 50f;
+    [SerializeField] private int maxSpawnAttempts = 50;
 
     [Header("Spawn Area")]
-    [SerializeField] private LayerMask obstacleLayerMask = -1; // Layer mask cho obstacles
+    [SerializeField] private LayerMask obstacleLayerMask = -1;
+
+    [Header("Cleanup Settings")]
+    [SerializeField] private Camera gameplayCamera;
+    [SerializeField] private bool preserveCameraVisibleSlimes = true;
+    [SerializeField] private float cameraViewportPadding = 0.08f;
+
+    [Header("Simulation Culling")]
+    [SerializeField] private bool enableSimulationCulling = true;
+    [SerializeField] private float simulationViewportPadding = 0.35f;
+    [SerializeField] private float simulationCullInterval = 0.25f;
+    [SerializeField] private bool disableRenderersOutsideSimulation = false;
 
     [Header("Debug")]
-    [SerializeField] private bool showDebugGizmos = false; // Tắt debug gizmos
+    [SerializeField] private bool showDebugGizmos = false;
     [SerializeField] private Color spawnAreaColor = Color.green;
     [SerializeField] private Color minDistanceColor = Color.yellow;
     [SerializeField] private Color maxDistanceColor = Color.blue;
     [SerializeField] private Color slimePositionColor = Color.red;
-    [SerializeField] private int gizmoSegments = 32; // Số đoạn để vẽ vòng tròn
+    [SerializeField] private int gizmoSegments = 32;
 
-    public List<GameObject> activeSlimes = new List<GameObject>(); // Danh sách slime đang hoạt động
-    private Vector3 lastSpawnPosition; // Vị trí spawn cuối cùng
-    private Vector3 lastPlayerPosition; // Vị trí player cuối cùng
+    public List<GameObject> activeSlimes = new List<GameObject>();
+    private Vector3 lastSpawnPosition;
+    private Vector3 lastPlayerPosition;
 
-    private PlayerMovement playerMovement; // Reference đến PlayerMovement script
+    private PlayerMovement playerMovement;
     public int spawnedSlimeCount = 0;
+    private float simulationCullTimer = 0f;
 
     void Start()
     {
-        // Tự động tìm player nếu chưa được gán
         if (player == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -51,14 +76,16 @@ public class SlimeSpawner : MonoBehaviour
             playerMovement = player.GetComponent<PlayerMovement>();
         }
 
-        // Khởi tạo vị trí ban đầu
         if (player != null)
         {
             lastPlayerPosition = player.position;
             lastSpawnPosition = player.position;
         }
+        else
+        {
+            lastSpawnPosition = GetSpawnCenter();
+        }
 
-        // Spawn slime ban đầu
         SpawnSlimes();
 
         Debug.Log("SlimeSpawner initialized!");
@@ -66,12 +93,12 @@ public class SlimeSpawner : MonoBehaviour
 
     void Update()
     {
-        if (player == null) return;
+        UpdateSlimeSimulationCulling();
 
-        // Tính khoảng cách di chuyển từ lần spawn cuối
+        if (!respawnWhenPlayerMoves || player == null) return;
+
         float distanceMoved = Vector3.Distance(player.position, lastSpawnPosition);
 
-        // Nếu player đã di chuyển đủ xa, spawn slime mới
         if (distanceMoved >= movementThreshold)
         {
             SpawnSlimes();
@@ -81,46 +108,44 @@ public class SlimeSpawner : MonoBehaviour
 
     void SpawnSlimes()
     {
-        // Xóa slime cũ trước
-        ClearOldSlimes();
+        CleanupSlimesForRespawn();
 
-        // Tạo số lượng slime ngẫu nhiên
-        int slimeCount = Random.Range(minSlimeCount, maxSlimeCount + 1);
+        int targetSlimeCount = maxSlimeCount;
+        int slimeCountToSpawn = Mathf.Max(0, targetSlimeCount - activeSlimes.Count);
 
-        Debug.Log($"Spawning {slimeCount} slimes...");
+        Debug.Log($"Keeping {activeSlimes.Count} slimes, spawning {slimeCountToSpawn} more...");
 
-        for (int i = 0; i < slimeCount; i++)
+        for (int i = 0; i < slimeCountToSpawn; i++)
         {
             Vector3 spawnPosition = GetRandomSpawnPosition();
-            if (spawnPosition != Vector3.zero) // Nếu tìm được vị trí hợp lệ
+            if (spawnPosition != Vector3.zero)
             {
                 SpawnSingleSlime(spawnPosition);
             }
         }
 
-        Debug.Log($"Successfully spawned {activeSlimes.Count} slimes");
+        Debug.Log($"Active slimes after spawn: {activeSlimes.Count}");
     }
 
     public Vector3 GetRandomSpawnPosition()
     {
-        int maxAttempts = maxSpawnAttempts; // Số lần thử tối đa
         int attempts = 0;
+        Vector3 spawnCenter = GetSpawnCenter();
 
-        while (attempts < maxAttempts)
+        while (attempts < maxSpawnAttempts)
         {
-            // Tạo vị trí ngẫu nhiên trong vòng tròn
-            Vector2 randomCircle = Random.insideUnitCircle * spawnRadius;
-            Vector3 candidatePosition = player.position + new Vector3(randomCircle.x, randomCircle.y, 0);
+            Vector3 candidatePosition = GetRandomPointInSpawnArea(spawnCenter);
 
-            // Kiểm tra khoảng cách từ player
-            float distanceFromPlayer = Vector3.Distance(candidatePosition, player.position);
-            if (distanceFromPlayer < minDistanceFromPlayer || distanceFromPlayer > maxDistanceFromPlayer)
+            if (player != null)
             {
-                attempts++;
-                continue;
+                float distanceFromPlayer = Vector3.Distance(candidatePosition, player.position);
+                if (distanceFromPlayer < minDistanceFromPlayer || (limitMaxDistanceFromPlayer && distanceFromPlayer > maxDistanceFromPlayer))
+                {
+                    attempts++;
+                    continue;
+                }
             }
 
-            // Kiểm tra có obstacle không
             if (IsPositionValid(candidatePosition))
             {
                 return candidatePosition;
@@ -129,13 +154,12 @@ public class SlimeSpawner : MonoBehaviour
             attempts++;
         }
 
-        Debug.LogWarning("Could not find valid spawn position after " + maxAttempts + " attempts");
-        return Vector3.zero; // Không tìm được vị trí hợp lệ
+        Debug.LogWarning("Could not find valid spawn position after " + maxSpawnAttempts + " attempts");
+        return Vector3.zero;
     }
 
     bool IsPositionValid(Vector3 position)
     {
-        // Kiểm tra có obstacle tại vị trí này không
         Collider2D obstacle = Physics2D.OverlapCircle(position, 1f, obstacleLayerMask);
         return obstacle == null;
     }
@@ -148,36 +172,108 @@ public class SlimeSpawner : MonoBehaviour
             return;
         }
 
-        // Tạo slime mới
         GameObject newSlime = Instantiate(slimePrefab, position, Quaternion.identity);
 
-        // Thêm vào danh sách
         spawnedSlimeCount++;
-        newSlime.GetComponent<WildSlimeTraits>().wildSlimeID = spawnedSlimeCount;
+        WildSlimeTraits traits = newSlime.GetComponent<WildSlimeTraits>();
+        if (traits != null)
+        {
+            traits.wildSlimeID = spawnedSlimeCount;
+        }
+
         activeSlimes.Add(newSlime);
 
-        // Đặt tag Slime nếu chưa có
         if (!newSlime.CompareTag("Slime"))
         {
             newSlime.tag = "Slime";
         }
 
-        // Đảm bảo SlimeAI được setup đúng
         SlimeAI slimeAI = newSlime.GetComponent<SlimeAI>();
         if (slimeAI != null)
         {
-            // SlimeAI sẽ tự động tìm player trong Start()
+            if (passZoneToSlimeAI)
+            {
+                slimeAI.ConfigureTerritory(
+                    GetSpawnCenter(),
+                    GetTerritoryRadius(),
+                    spawnAreaShape == SpawnAreaShape.Rectangle,
+                    GetSafeSpawnAreaSize()
+                );
+            }
+
             Debug.Log($"Slime spawned at {position}");
         }
         else
         {
             Debug.LogWarning("Slime prefab does not have SlimeAI component!");
         }
+
+        ApplySlimeSimulationState(newSlime, ShouldSimulateSlime(newSlime));
+    }
+
+    void CleanupSlimesForRespawn()
+    {
+        activeSlimes.RemoveAll(slime => slime == null);
+
+        if (!preserveCameraVisibleSlimes)
+        {
+            ClearOldSlimes();
+            return;
+        }
+
+        Camera cam = GetGameplayCamera();
+        if (cam == null)
+        {
+            Debug.LogWarning("No gameplay camera found. Keeping existing slimes to avoid clearing visible targets.");
+            return;
+        }
+
+        for (int i = activeSlimes.Count - 1; i >= 0; i--)
+        {
+            GameObject slime = activeSlimes[i];
+            if (slime == null)
+            {
+                activeSlimes.RemoveAt(i);
+                continue;
+            }
+
+            if (IsInsideCameraViewport(slime.transform.position, cam, cameraViewportPadding))
+                continue;
+
+            Destroy(slime);
+            activeSlimes.RemoveAt(i);
+        }
+    }
+
+    Camera GetGameplayCamera()
+    {
+        if (gameplayCamera != null)
+            return gameplayCamera;
+
+        gameplayCamera = Camera.main;
+        return gameplayCamera;
+    }
+
+    bool IsVisibleToCamera(Vector3 worldPosition, Camera cam)
+    {
+        return IsInsideCameraViewport(worldPosition, cam, cameraViewportPadding);
+    }
+
+    bool IsInsideCameraViewport(Vector3 worldPosition, Camera cam, float padding)
+    {
+        Vector3 viewportPoint = cam.WorldToViewportPoint(worldPosition);
+        if (viewportPoint.z < 0f)
+            return false;
+
+        padding = Mathf.Max(0f, padding);
+        return viewportPoint.x >= -padding
+            && viewportPoint.x <= 1f + padding
+            && viewportPoint.y >= -padding
+            && viewportPoint.y <= 1f + padding;
     }
 
     void ClearOldSlimes()
     {
-        // Xóa tất cả slime cũ
         foreach (GameObject slime in activeSlimes)
         {
             if (slime != null)
@@ -186,25 +282,21 @@ public class SlimeSpawner : MonoBehaviour
             }
         }
 
-        // Xóa danh sách
         activeSlimes.Clear();
 
         Debug.Log("Cleared old slimes");
     }
 
-    // Method để spawn thủ công (có thể gọi từ script khác)
     public void ForceSpawnSlimes()
     {
         SpawnSlimes();
     }
 
-    // Method để xóa tất cả slime (có thể gọi từ script khác)
     public void ClearAllSlimes()
     {
         ClearOldSlimes();
     }
 
-    // Method để thay đổi cài đặt spawn
     public void UpdateSpawnSettings(int minCount, int maxCount, float radius, float threshold)
     {
         minSlimeCount = minCount;
@@ -213,24 +305,29 @@ public class SlimeSpawner : MonoBehaviour
         movementThreshold = threshold;
     }
 
-    // Debug - vẽ spawn area
     void OnDrawGizmos()
     {
-        if (!showDebugGizmos || player == null) return;
+        if (!showDebugGizmos) return;
 
-        // Vẽ vòng tròn spawn area (xanh lá)
+        Vector3 spawnCenter = GetSpawnCenter();
         Gizmos.color = spawnAreaColor;
-        DrawWireCircle(player.position, spawnRadius);
+        if (spawnAreaShape == SpawnAreaShape.Rectangle)
+            DrawWireRectangle(spawnCenter, spawnAreaSize);
+        else
+            DrawWireCircle(spawnCenter, spawnRadius);
 
-        // Vẽ vòng tròn khoảng cách tối thiểu (vàng)
-        Gizmos.color = minDistanceColor;
-        DrawWireCircle(player.position, minDistanceFromPlayer);
+        if (player != null)
+        {
+            Gizmos.color = minDistanceColor;
+            DrawWireCircle(player.position, minDistanceFromPlayer);
 
-        // Vẽ vòng tròn khoảng cách tối đa (xanh dương)
-        Gizmos.color = maxDistanceColor;
-        DrawWireCircle(player.position, maxDistanceFromPlayer);
+            if (limitMaxDistanceFromPlayer)
+            {
+                Gizmos.color = maxDistanceColor;
+                DrawWireCircle(player.position, maxDistanceFromPlayer);
+            }
+        }
 
-        // Vẽ vị trí slime hiện tại (đỏ)
         Gizmos.color = slimePositionColor;
         foreach (GameObject slime in activeSlimes)
         {
@@ -241,7 +338,6 @@ public class SlimeSpawner : MonoBehaviour
         }
     }
 
-    // Helper method để vẽ vòng tròn
     void DrawWireCircle(Vector3 center, float radius)
     {
         int segments = gizmoSegments;
@@ -257,8 +353,130 @@ public class SlimeSpawner : MonoBehaviour
         }
     }
 
-    // Public properties để truy cập thông tin
     public int ActiveSlimeCount => activeSlimes.Count;
     public float CurrentSpawnRadius => spawnRadius;
-    public float DistanceToNextSpawn => Vector3.Distance(player.position, lastSpawnPosition);
+    public float DistanceToNextSpawn => player != null ? Vector3.Distance(player.position, lastSpawnPosition) : 0f;
+
+    void UpdateSlimeSimulationCulling()
+    {
+        if (!enableSimulationCulling)
+            return;
+
+        simulationCullTimer -= Time.deltaTime;
+        if (simulationCullTimer > 0f)
+            return;
+
+        simulationCullTimer = Mathf.Max(0.02f, simulationCullInterval);
+        activeSlimes.RemoveAll(slime => slime == null);
+
+        for (int i = 0; i < activeSlimes.Count; i++)
+        {
+            GameObject slime = activeSlimes[i];
+            ApplySlimeSimulationState(slime, ShouldSimulateSlime(slime));
+        }
+    }
+
+    bool ShouldSimulateSlime(GameObject slime)
+    {
+        if (!enableSimulationCulling || slime == null)
+            return true;
+
+        Camera cam = GetGameplayCamera();
+        if (cam == null)
+            return true;
+
+        return IsInsideCameraViewport(slime.transform.position, cam, simulationViewportPadding);
+    }
+
+    void ApplySlimeSimulationState(GameObject slime, bool shouldSimulate)
+    {
+        if (slime == null)
+            return;
+
+        SlimeAI slimeAI = slime.GetComponent<SlimeAI>();
+        if (slimeAI != null && slimeAI.enabled != shouldSimulate)
+            slimeAI.enabled = shouldSimulate;
+
+        Rigidbody2D slimeRb = slime.GetComponent<Rigidbody2D>();
+        if (slimeRb != null)
+        {
+            if (!shouldSimulate)
+                slimeRb.linearVelocity = Vector2.zero;
+
+            if (slimeRb.simulated != shouldSimulate)
+                slimeRb.simulated = shouldSimulate;
+        }
+        else
+        {
+            Collider2D[] colliders = slime.GetComponentsInChildren<Collider2D>(true);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                colliders[i].enabled = shouldSimulate;
+            }
+        }
+
+        if (disableRenderersOutsideSimulation)
+        {
+            Renderer[] renderers = slime.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                renderers[i].enabled = shouldSimulate;
+            }
+        }
+    }
+
+    Vector3 GetRandomPointInSpawnArea(Vector3 center)
+    {
+        if (spawnAreaShape == SpawnAreaShape.Rectangle)
+        {
+            Vector2 halfSize = GetSafeSpawnAreaSize() * 0.5f;
+            return center + new Vector3(
+                Random.Range(-halfSize.x, halfSize.x),
+                Random.Range(-halfSize.y, halfSize.y),
+                0f
+            );
+        }
+
+        Vector2 randomCircle = Random.insideUnitCircle * spawnRadius;
+        return center + new Vector3(randomCircle.x, randomCircle.y, 0f);
+    }
+
+    float GetTerritoryRadius()
+    {
+        if (spawnAreaShape == SpawnAreaShape.Rectangle)
+        {
+            Vector2 halfSize = GetSafeSpawnAreaSize() * 0.5f;
+            return halfSize.magnitude;
+        }
+
+        return spawnRadius;
+    }
+
+    Vector2 GetSafeSpawnAreaSize()
+    {
+        return new Vector2(Mathf.Max(0.1f, spawnAreaSize.x), Mathf.Max(0.1f, spawnAreaSize.y));
+    }
+
+    Vector3 GetSpawnCenter()
+    {
+        if (useSpawnerAsZoneCenter || player == null)
+            return transform.position;
+
+        return player.position;
+    }
+
+    void DrawWireRectangle(Vector3 center, Vector2 size)
+    {
+        Vector2 safeSize = GetSafeSpawnAreaSize();
+        Vector3 halfSize = new Vector3(safeSize.x * 0.5f, safeSize.y * 0.5f, 0f);
+        Vector3 topLeft = center + new Vector3(-halfSize.x, halfSize.y, 0f);
+        Vector3 topRight = center + new Vector3(halfSize.x, halfSize.y, 0f);
+        Vector3 bottomRight = center + new Vector3(halfSize.x, -halfSize.y, 0f);
+        Vector3 bottomLeft = center + new Vector3(-halfSize.x, -halfSize.y, 0f);
+
+        Gizmos.DrawLine(topLeft, topRight);
+        Gizmos.DrawLine(topRight, bottomRight);
+        Gizmos.DrawLine(bottomRight, bottomLeft);
+        Gizmos.DrawLine(bottomLeft, topLeft);
+    }
 }

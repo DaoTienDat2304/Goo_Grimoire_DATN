@@ -3,6 +3,8 @@ using UnityEngine.SceneManagement;
 
 public class Aiming : MonoBehaviour
 {
+    private const float VirtualThrowReleaseThreshold = 12f;
+
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private Transform startPosition;
 
@@ -65,13 +67,26 @@ public class Aiming : MonoBehaviour
         }
         if (pointerHeld && clickedWithinArea)
         {
-            DrawLine(pointerPosition);
+            if (isVirtualThrowButton)
+                DrawVirtualLine(MobileInput.VirtualAimDragVector);
+            else
+                DrawLine(pointerPosition);
+
             CatcherRotation();
             spawnedCatcher.transform.SetParent(this.transform);
         }
         if (pointerReleased)
         {
             clickedWithinArea = false;
+
+            if (spawnedCatcher != null && isVirtualThrowButton && MobileInput.VirtualAimDragVector.magnitude < VirtualThrowReleaseThreshold)
+            {
+                Destroy(spawnedCatcher.gameObject);
+                spawnedCatcher = null;
+                SetLine(startPosition.position);
+                lineRenderer.enabled = false;
+                return;
+            }
 
             if (spawnedCatcher != null) // chỉ bắn khi còn object
             {
@@ -117,6 +132,18 @@ public class Aiming : MonoBehaviour
 
         Vector3 touchPosition = Camera.main.ScreenToWorldPoint(screenPosition);
         aimingLinePosition = startPosition.position + Vector3.ClampMagnitude(touchPosition - startPosition.position, maxLength);
+        SetLine(aimingLinePosition);
+    }
+    private void DrawVirtualLine(Vector2 dragVector)
+    {
+        if (Camera.main == null) return;
+
+        Vector3 startScreen = Camera.main.WorldToScreenPoint(startPosition.position);
+        Vector3 endScreen = startScreen + new Vector3(dragVector.x, dragVector.y, 0f);
+        Vector3 startWorld = Camera.main.ScreenToWorldPoint(startScreen);
+        Vector3 endWorld = Camera.main.ScreenToWorldPoint(endScreen);
+
+        aimingLinePosition = startPosition.position + Vector3.ClampMagnitude(endWorld - startWorld, maxLength);
         SetLine(aimingLinePosition);
     }
     private void SetLine(Vector2 position)

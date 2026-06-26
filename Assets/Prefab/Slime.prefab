@@ -84,6 +84,12 @@ MonoBehaviour:
   circleRadius: 6
   turnSpeed: 5
   fleeDistance: 12
+  safeDistance: 6
+  targetDistanceFromPlayer: 3.5
+  playerRunSpeed: 7
+  panicDistance: 1.2
+  panicBurstSpeed: 10
+  panicBurstDuration: 0.25
   wanderSpeed: 1.2
   wanderTimer: 1.2
   idleTimer: 0.2
@@ -97,6 +103,35 @@ MonoBehaviour:
     m_Bits: 0
   obstacleDetectionRange: 2
   avoidanceForce: 1.5
+  bodyRadius: 0.3
+  stuckSpeedThreshold: 0.5
+  stuckCheckTime: 0.2
+  stuckEscapeSpeedMultiplier: 1.15
+  eightDirectionProbeDistance: 2.4
+  maxDetectionRange: 4.5
+  playerPredictionTime: 0.22
+  homeReturnStrength: 0.35
+  escapeSideStepStrength: 0.35
+  directionSamples: 16
+  velocityAcceleration: 35
+  velocityDeceleration: 45
+  fearMemoryDuration: 1.15
+  minEscapeRunTime: 0.55
+  escapeTargetRefreshTime: 0.45
+  escapeTargetReachDistance: 0.45
+  escapeTargetSideStep: 0.65
+  fearLevel: 0
+  fearGainOnDetect: 0.18
+  fearGainOnPanic: 0.35
+  fearDecayPerSecond: 0.035
+  fearDetectionBonus: 1.25
+  fearTargetDistanceBonus: 1.5
+  fearRunSpeedBonus: 2
+  fearMemoryBonus: 1.2
+  fearChaosBonus: 0.25
+  maxDistanceFromHome: 14
+  hardReturnDistanceFromHome: 18
+  homeLeashStrength: 0.75
   player: {fileID: 0}
   rb: {fileID: 7647228134130130530}
 --- !u!70 &7231952117423328453
@@ -151,10 +186,15 @@ MonoBehaviour:
   allWildTraits: {fileID: 11400000, guid: 31dc0d5690929a54089cd3666f462d4f, type: 2}
   wildSlimes: {fileID: 11400000, guid: 677a4eecd92f6c9408c90b91e7349f58, type: 2}
   newSlime:
+    slimeID: 0
     wildSlimeTraits:
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
+    slimeType: 0
   bodyRender: {fileID: 0}
   armorRender: {fileID: 0}
   weaponRender: {fileID: 0}
+  wildSlimeID: 0
+  taming: {fileID: 0}
+  tamingDifficulty: 0

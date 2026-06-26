@@ -5,21 +5,29 @@ using UnityEngine.UI;
 
 public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
+    private const string EditorPrefabPath = "Assets/UI/prefab/MobileControlsCanvas.prefab";
+    private const string ResourcesPrefabPath = "UI/MobileControlsCanvas";
     private const float ReferenceWidth = 1920f;
     private const float ReferenceHeight = 1080f;
     private const float LeftControlWidthRatio = 0.45f;
     private const float LowerControlHeightRatio = 0.72f;
+    private static readonly string[] DefaultActiveSceneNames = { "adventureSence", "Map2" };
 
     [Header("Scenes")]
-    [SerializeField] private string[] activeSceneNames = { "adventureSence" };
-    [SerializeField] private bool requirePlayerMovement = true;
+    [SerializeField] private string[] activeSceneNames = DefaultActiveSceneNames;
+    [SerializeField] private bool requirePlayerMovement = false;
     [SerializeField] private bool showInEditor = true;
 
-    [Header("Layout 1920x1080")]
-    [SerializeField] private Vector2 fallbackAnchoredPosition = new Vector2(220f, 190f);
+    [Header("Responsive Layout")]
+    [SerializeField] private Vector2 restPositionRatio = new Vector2(0.24f, 0.26f);
+    [SerializeField] private float edgePadding = 24f;
     [SerializeField] private float baseSize = 240f;
     [SerializeField] private float knobSize = 92f;
     [SerializeField] private float handleRange = 86f;
+    [SerializeField] private float inputDeadZone = 12f;
+    [SerializeField] private float movementSensitivity = 1f;
+    [SerializeField] private bool showJoystickAtRest = true;
+    [SerializeField] private bool moveCenterToFirstTouch = true;
 
     [Header("Replaceable UI Images")]
     [SerializeField] private Image movementZoneImage;
@@ -41,7 +49,12 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void EnsureControlsExist()
     {
+        EnsureEventSystem();
+
         if (FindAnyObjectByType<VirtualJoystickUI>() != null)
+            return;
+
+        if (TryCreateControlsFromPrefab())
             return;
 
         var canvasObject = new GameObject("MobileControlsCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -56,9 +69,26 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
         scaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
         scaler.matchWidthOrHeight = 0.5f;
 
-        EnsureEventSystem();
         CreateJoystick(canvasObject.transform);
         MobileThrowButtonUI.Create(canvasObject.transform);
+    }
+
+    private static bool TryCreateControlsFromPrefab()
+    {
+        GameObject prefab = Resources.Load<GameObject>(ResourcesPrefabPath);
+
+#if UNITY_EDITOR
+        if (prefab == null)
+            prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(EditorPrefabPath);
+#endif
+
+        if (prefab == null)
+            return false;
+
+        GameObject instance = Instantiate(prefab);
+        instance.name = prefab.name;
+        DontDestroyOnLoad(instance);
+        return true;
     }
 
     private static void EnsureEventSystem()
@@ -86,12 +116,14 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
         zoneRect.offsetMax = Vector2.zero;
 
         var joystick = zone.GetComponent<VirtualJoystickUI>();
+        joystick.activeSceneNames = DefaultActiveSceneNames;
         joystick.BuildVisuals();
     }
 
     private void Awake()
     {
         root = transform as RectTransform;
+        CacheRects();
         SceneManager.activeSceneChanged += OnActiveSceneChanged;
     }
 
@@ -150,10 +182,10 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
 
         var baseObject = CreateCircle("JoystickBase", root, baseSize, baseColor, out joystickBaseImage);
         baseRect = baseObject.GetComponent<RectTransform>();
-        baseRect.anchorMin = Vector2.zero;
-        baseRect.anchorMax = Vector2.zero;
-        baseRect.anchoredPosition = fallbackAnchoredPosition;
-        baseObject.SetActive(false);
+        baseRect.anchorMin = new Vector2(0.5f, 0.5f);
+        baseRect.anchorMax = new Vector2(0.5f, 0.5f);
+        baseRect.anchoredPosition = GetRestPosition();
+        baseObject.SetActive(showJoystickAtRest);
 
         var ringObject = CreateCircle("JoystickRing", baseRect, baseSize * 0.72f, ringColor, out joystickRingImage);
         joystickRingImage.raycastTarget = false;
@@ -161,6 +193,16 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
         var knobObject = CreateCircle("JoystickKnob", baseRect, knobSize, knobColor, out joystickKnobImage);
         knob = knobObject.GetComponent<RectTransform>();
         joystickKnobImage.raycastTarget = false;
+    }
+
+    private void CacheRects()
+    {
+        if (root == null)
+            root = transform as RectTransform;
+        if (baseRect == null && joystickBaseImage != null)
+            baseRect = joystickBaseImage.rectTransform;
+        if (knob == null && joystickKnobImage != null)
+            knob = joystickKnobImage.rectTransform;
     }
 
     private GameObject CreateCircle(string objectName, Transform parent, float size, Color color, out Image image)
@@ -209,8 +251,9 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
             return;
 
         activePointerId = eventData.pointerId;
-        MoveBaseToFinger(eventData);
-        UpdateInput(eventData);
+        if (moveCenterToFirstTouch)
+            MoveBaseToFinger(eventData);
+        SetInput(Vector2.zero);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -231,6 +274,8 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
 
     private void MoveBaseToFinger(PointerEventData eventData)
     {
+        CacheRects();
+
         if (baseRect == null)
             return;
 
@@ -238,22 +283,33 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
             return;
 
         baseRect.gameObject.SetActive(true);
-        baseRect.anchoredPosition = localPoint;
+        baseRect.anchoredPosition = ClampCenterToZone(localPoint);
         knob.anchoredPosition = Vector2.zero;
     }
 
     private void UpdateInput(PointerEventData eventData)
     {
+        CacheRects();
+
         if (baseRect == null || knob == null)
             return;
 
         if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(baseRect, eventData.position, eventData.pressEventCamera, out var localPoint))
             return;
 
-        Vector2 clamped = Vector2.ClampMagnitude(localPoint, handleRange);
-        knob.anchoredPosition = clamped;
+        if (localPoint.magnitude < inputDeadZone)
+            localPoint = Vector2.zero;
 
-        MobileInput.VirtualJoystickVector = clamped / handleRange;
+        Vector2 clamped = Vector2.ClampMagnitude(localPoint, handleRange);
+        SetInput(clamped);
+    }
+
+    private void SetInput(Vector2 clampedLocalPoint)
+    {
+        if (knob != null)
+            knob.anchoredPosition = clampedLocalPoint;
+
+        MobileInput.VirtualJoystickVector = Vector2.ClampMagnitude((clampedLocalPoint / handleRange) * movementSensitivity, 1f);
         MobileInput.IsVirtualJoystickActive = MobileInput.VirtualJoystickVector.sqrMagnitude > 0.0025f;
     }
 
@@ -261,8 +317,59 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
     {
         activePointerId = int.MinValue;
         if (knob != null) knob.anchoredPosition = Vector2.zero;
-        if (baseRect != null) baseRect.gameObject.SetActive(false);
+        if (baseRect != null)
+        {
+            baseRect.anchoredPosition = GetRestPosition();
+            baseRect.gameObject.SetActive(showJoystickAtRest);
+        }
         MobileInput.VirtualJoystickVector = Vector2.zero;
         MobileInput.IsVirtualJoystickActive = false;
+    }
+
+    private Vector2 GetRestPosition()
+    {
+        CacheRects();
+
+        if (root == null)
+            return Vector2.zero;
+
+        Rect rect = root.rect;
+        var target = new Vector2(
+            rect.xMin + rect.width * restPositionRatio.x,
+            rect.yMin + rect.height * restPositionRatio.y
+        );
+        return ClampCenterToZone(target);
+    }
+
+    private Vector2 ClampCenterToZone(Vector2 localPoint)
+    {
+        CacheRects();
+
+        if (root == null)
+            return localPoint;
+
+        Rect rect = root.rect;
+        float radius = baseSize * 0.5f;
+        float minX = rect.xMin + radius + edgePadding;
+        float maxX = rect.xMax - radius - edgePadding;
+        float minY = rect.yMin + radius + edgePadding;
+        float maxY = rect.yMax - radius - edgePadding;
+
+        if (minX > maxX)
+        {
+            minX = rect.xMin;
+            maxX = rect.xMax;
+        }
+
+        if (minY > maxY)
+        {
+            minY = rect.yMin;
+            maxY = rect.yMax;
+        }
+
+        return new Vector2(
+            Mathf.Clamp(localPoint.x, minX, maxX),
+            Mathf.Clamp(localPoint.y, minY, maxY)
+        );
     }
 }

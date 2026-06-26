@@ -22,6 +22,7 @@ public static class MobileInput
     public static bool VirtualAimPressed { get; set; }
     public static bool VirtualAimHeld { get; set; }
     public static bool VirtualAimReleased { get; set; }
+    public static Vector2 VirtualAimDragVector { get; set; }
     public static bool LastAimPointerFromVirtualButton { get; private set; }
 
     public static Vector2 GetMovementVector(float joystickRadius = DefaultJoystickRadius)

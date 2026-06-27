@@ -83,15 +83,23 @@ public class CloudSaveProvider : MonoBehaviour
             HasCloudSave     = gameJson != null;
         }
 #else
-        // Offline dev mode: đọc local file, bỏ qua verify
-        string localPath = System.IO.Path.Combine(Application.persistentDataPath, "savegame.json");
-        if (System.IO.File.Exists(localPath))
-        {
-            _cachedCloudJson = System.IO.File.ReadAllText(localPath);
-            HasCloudSave     = true;
-        }
         yield return null;
 #endif
+
+        // Fallback: cloud không có save hợp lệ (hoặc đang offline / dev mode) nhưng máy
+        // có save cục bộ (PlayerPrefs) → dùng nó. Nhờ vậy guest/offline vẫn "Continue" được,
+        // không bị coi là game mới và bắt chơi lại tutorial từ đầu.
+        if (!HasCloudSave)
+        {
+            string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
+            string localJson = LocalSaveStore.Load(localId);
+            if (!string.IsNullOrEmpty(localJson))
+            {
+                _cachedCloudJson = localJson;
+                HasCloudSave     = true;
+                Debug.Log("[CloudSave] Không có cloud save — dùng save cục bộ (PlayerPrefs).");
+            }
+        }
 
         CloudCheckDone = true;
         Debug.Log($"[CloudSave] InitCloudCheck xong. HasCloudSave={HasCloudSave}");

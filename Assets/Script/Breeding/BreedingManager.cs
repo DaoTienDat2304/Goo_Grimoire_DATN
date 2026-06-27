@@ -113,7 +113,7 @@ public class BreedingManager : MonoBehaviour
         wildSlimes.tamedSlimes.Clear();
     }
 
-    private void CreateInitialSlimes()
+    public void CreateInitialSlimes()
     {
         // Bảo đảm có SlimeGen nếu cần fallback random
         if (SlimeGen.Instance == null)

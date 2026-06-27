@@ -35,6 +35,15 @@ public class AuthManager : MonoBehaviour
     public string DisplayName   { get; private set; }
     public string Email         { get; private set; }
 
+    /// <summary>
+    /// Khóa dùng cho save CỤC BỘ (PlayerPrefs), ổn định theo máy.
+    /// Guest (đăng nhập ẩn danh) dùng "guest" cố định vì Firebase cấp uid mới mỗi
+    /// phiên đăng nhập ẩn danh — nếu key theo uid thì save cũ không bao giờ khớp,
+    /// khiến lần nào cũng bị coi là game mới. Tài khoản thật (email/google) dùng uid.
+    /// </summary>
+    public string LocalSaveId =>
+        (IsAnonymous || string.IsNullOrEmpty(CurrentUserId)) ? "guest" : CurrentUserId;
+
     // ── Events ───────────────────────────────────────────────
     /// <summary>Login thành công — truyền uid.</summary>
     public Action<string> OnLoginSuccess;

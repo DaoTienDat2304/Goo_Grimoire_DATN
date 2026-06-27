@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Jogar - Highlight_0: -4361099027844264223
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

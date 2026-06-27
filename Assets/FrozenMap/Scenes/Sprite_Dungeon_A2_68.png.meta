@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Sprite_Dungeon_A2_68_0: 8801934695675933647
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

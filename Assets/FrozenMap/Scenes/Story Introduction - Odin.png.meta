@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Story Introduction - Odin_0: 658348103642642681
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

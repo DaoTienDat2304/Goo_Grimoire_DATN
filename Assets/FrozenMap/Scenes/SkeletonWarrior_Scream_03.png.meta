@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      SkeletonWarrior_Scream_03_0: -1787417729658267107
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -184,7 +184,10 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      IceCrystal_Breaking_06_0: 5504676412166350829
+      IceCrystal_Breaking_06_1: -6933462592088199256
+      IceCrystal_Breaking_06_2: 8139745405647898641
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

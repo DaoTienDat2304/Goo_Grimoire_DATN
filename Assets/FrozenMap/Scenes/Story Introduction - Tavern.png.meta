@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Story Introduction - Tavern_0: -5306072409776607303
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

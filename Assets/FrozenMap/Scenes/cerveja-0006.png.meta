@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      cerveja-0006_0: 4138776998719772785
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

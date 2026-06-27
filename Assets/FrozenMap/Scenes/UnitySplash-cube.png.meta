@@ -509,7 +509,23 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      UnitySplash-cube_0: -428823233674573224
+      UnitySplash-cube_1: 4535576114736877323
+      UnitySplash-cube_10: 1247224709913073598
+      UnitySplash-cube_11: -1132484677990993280
+      UnitySplash-cube_12: -6733809548542616559
+      UnitySplash-cube_13: -8171018341638614506
+      UnitySplash-cube_14: -4618587716565119626
+      UnitySplash-cube_15: -7591152296074257157
+      UnitySplash-cube_2: -3856203827310279642
+      UnitySplash-cube_3: -6719859799039758410
+      UnitySplash-cube_4: -2575492480472653673
+      UnitySplash-cube_5: -2523620062161277924
+      UnitySplash-cube_6: -3272405966732120564
+      UnitySplash-cube_7: -3357980815881546480
+      UnitySplash-cube_8: 4354882141547383600
+      UnitySplash-cube_9: -2951262066341696416
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

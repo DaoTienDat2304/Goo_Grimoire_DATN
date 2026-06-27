@@ -205,7 +205,7 @@ public class AuthManager : MonoBehaviour
         {
             RequestIdToken = true,
             // OAuth client_id từ google-services.json → oauth_client[client_type=3].client_id
-            WebClientId = "1082236547825-rjo0ecrr8irbcs2met2qvfrh0bsfo0uc.apps.googleusercontent.com"
+            WebClientId = "588098512233-fkt9odnls27hrla0u31t48lqcr9d72m0.apps.googleusercontent.com"
         };
         SignInWithGoogleMobileAsync();
 #elif UNITY_STANDALONE

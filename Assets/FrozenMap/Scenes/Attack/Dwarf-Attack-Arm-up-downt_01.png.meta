@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Dwarf-Attack-Arm-up-downt_01_0: -6730285449729009060
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

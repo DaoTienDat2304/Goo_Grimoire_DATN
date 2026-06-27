@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Sprite_res_Frozen_decoratives_2_0: 6781272815505461568
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

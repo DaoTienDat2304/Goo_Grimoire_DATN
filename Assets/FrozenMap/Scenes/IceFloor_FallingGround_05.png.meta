@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      IceFloor_FallingGround_05_0: 3152346959072535386
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

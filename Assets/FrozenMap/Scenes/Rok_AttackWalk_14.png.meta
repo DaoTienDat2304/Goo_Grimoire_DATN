@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Rok_AttackWalk_14_0: 8661457773239202304
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Dungeon_A2_76_0: -212105565941667694
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

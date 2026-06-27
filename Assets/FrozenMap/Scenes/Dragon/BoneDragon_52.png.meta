@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      BoneDragon_52_0: -6425576930673110789
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

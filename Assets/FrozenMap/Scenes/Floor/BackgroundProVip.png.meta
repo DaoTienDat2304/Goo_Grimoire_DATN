@@ -484,7 +484,22 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      BackgroundProVip_0: -7590952151614600593
+      BackgroundProVip_1: -4103516450604652000
+      BackgroundProVip_10: 2984043649900474726
+      BackgroundProVip_11: -1614282701702801082
+      BackgroundProVip_12: 8047726509949809722
+      BackgroundProVip_13: -1999740514085790101
+      BackgroundProVip_14: 97518113054975247
+      BackgroundProVip_2: -599249149870603396
+      BackgroundProVip_3: 321454347894853873
+      BackgroundProVip_4: -6695216859560659858
+      BackgroundProVip_5: -5080640661091128649
+      BackgroundProVip_6: -8913643573466664419
+      BackgroundProVip_7: 1286643046625143284
+      BackgroundProVip_8: 5718499179893158332
+      BackgroundProVip_9: -8843662632892657119
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      LoboEscuro_50_0: -1798154415832086419
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

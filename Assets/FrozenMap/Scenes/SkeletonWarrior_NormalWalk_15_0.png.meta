@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      SkeletonWarrior_NormalWalk_15_0_0: -5306363189292863983
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -309,7 +309,15 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Nidavellir Title_0: 4047502971933419722
+      Nidavellir Title_1: 9210054549291000113
+      Nidavellir Title_2: -2305541204424017064
+      Nidavellir Title_3: -4532073532206378143
+      Nidavellir Title_4: 6796408676656601083
+      Nidavellir Title_5: 4824444573559919531
+      Nidavellir Title_6: 8618303579648623726
+      Nidavellir Title_7: 3388570317012190712
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

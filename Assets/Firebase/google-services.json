@@ -1,41 +1,42 @@
 {
   "project_info": {
-    "project_number": "1082236547825",
-    "project_id": "googrimoire",
-    "storage_bucket": "googrimoire.firebasestorage.app"
+    "project_number": "588098512233",
+    "project_id": "googrimoiredatn",
+    "storage_bucket": "googrimoiredatn.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1082236547825:android:32b3366e9d4beb9640ef50",
+        "mobilesdk_app_id": "1:588098512233:android:2365292978041437a7c9f8",
         "android_client_info": {
-          "package_name": "com.ITGuy.GooGrimoire"
+          "package_name": "com.DA.GooGrimoire"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1082236547825-rjo0ecrr8irbcs2met2qvfrh0bsfo0uc.apps.googleusercontent.com",
+          "client_id": "588098512233-edrpamj8rf4dj3qgdho9oie1d32009ni.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.DA.GooGrimoire",
+            "certificate_hash": "3d45e7baf5ce53a0d27dbfa33372bc71bcf2f274"
+          }
+        },
+        {
+          "client_id": "588098512233-fkt9odnls27hrla0u31t48lqcr9d72m0.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB_rUpcl9ZHdPZqVvez-GDIZOSEL_lEuHk"
+          "current_key": "AIzaSyD3kQxIJsnZkShU5XVUksACIT-cCE5BGPs"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1082236547825-rjo0ecrr8irbcs2met2qvfrh0bsfo0uc.apps.googleusercontent.com",
+              "client_id": "588098512233-fkt9odnls27hrla0u31t48lqcr9d72m0.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "1082236547825-t2s3v0erlnv5i4o05hom2s3tc4f3ttob.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.ITGuy.GooGrimoire"
-              }
             }
           ]
         }

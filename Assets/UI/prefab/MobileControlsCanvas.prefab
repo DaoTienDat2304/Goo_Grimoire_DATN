@@ -169,6 +169,7 @@ MonoBehaviour:
   activeSceneNames:
   - adventureSence
   - Map2
+  - Frozen_Map
   requireAiming: 0
   showInEditor: 1
   restPositionRatio: {x: 0.76, y: 0.26}
@@ -502,6 +503,7 @@ MonoBehaviour:
   activeSceneNames:
   - adventureSence
   - Map2
+  - Frozen_Map
   requirePlayerMovement: 0
   showInEditor: 1
   restPositionRatio: {x: 0.24, y: 0.26}

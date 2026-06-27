@@ -12,6 +12,8 @@ public class AdventureBag : MonoBehaviour
     public Sprite slotsprite;
     private bool open = false;
 
+    public bool IsOpen => open;
+
     [Header("Collection UI")]
     public Transform collectionGridParent;
     public GameObject collectionSlotPrefab;

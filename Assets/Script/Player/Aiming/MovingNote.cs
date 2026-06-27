@@ -31,25 +31,25 @@ public class MovingNote : MonoBehaviour
     else this.transform.position += Vector3.right * noteSpeed * TamingManager.difficulty * Time.deltaTime;
     if (isInCheckBar)
     {
-        KeyCode correctKey = KeyCode.None;
+        MobileDirection correctDirection = MobileDirection.None;
         switch (typeID)
         {
             case 1:
-                correctKey = KeyCode.RightArrow;
+                correctDirection = MobileDirection.Right;
                 break;
             case 2:
-                correctKey = KeyCode.UpArrow;
+                correctDirection = MobileDirection.Up;
                 break;
             case 3:
-                correctKey = KeyCode.LeftArrow;
+                correctDirection = MobileDirection.Left;
                 break;
             case 4:
-                correctKey = KeyCode.DownArrow;
+                correctDirection = MobileDirection.Down;
                 break;
         }
-        if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow))
+        if (MobileInput.TryGetDirectionDown(out var pressedDirection))
         {
-            if (Input.GetKeyDown(correctKey))
+            if (pressedDirection == correctDirection)
             {
                 TamingManager.curTamingPoint += tamingScore * 8/TamingManager.difficulty;
                 if (tamingManagerTutorial != null) tamingManagerTutorial.curTamingPoint += 30;

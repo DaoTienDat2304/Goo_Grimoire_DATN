@@ -1,10 +1,13 @@
 using System.Collections;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class tamingManager : MonoBehaviour
 {
+    private const string MobileControlsCanvasName = "MobileControlsCanvas";
+
     public float maxTamingPoint = 100;
     public float curTamingPoint = 30;
     [SerializeField] private Spawner spawner;
@@ -17,7 +20,33 @@ public class tamingManager : MonoBehaviour
     public Image emote;
     public Sprite succeedcatch;
     public Sprite failcatch;
+
+    [Header("Mobile Taming Buttons")]
+    [SerializeField] private Button rightButton;
+    [SerializeField] private Button upButton;
+    [SerializeField] private Button leftButton;
+    [SerializeField] private Button downButton;
+
+    private GameObject mobileControlsCanvas;
+    private bool shouldRestoreMobileControls;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Awake()
+    {
+        AutoFindDirectionButtons();
+        RegisterDirectionButtons();
+    }
+
+    void OnEnable()
+    {
+        HideMobileControlsCanvas();
+    }
+
+    void OnDisable()
+    {
+        RestoreMobileControlsCanvas();
+    }
+
     void Start()
     {
         
@@ -96,6 +125,134 @@ public class tamingManager : MonoBehaviour
     public void hit ()
     {
         emote.gameObject.SetActive(true);
+    }
+
+    public void PressRight()
+    {
+        PressDirection(MobileDirection.Right);
+    }
+
+    public void PressUp()
+    {
+        PressDirection(MobileDirection.Up);
+    }
+
+    public void PressLeft()
+    {
+        PressDirection(MobileDirection.Left);
+    }
+
+    public void PressDown()
+    {
+        PressDirection(MobileDirection.Down);
+    }
+
+    public void PressDirection(MobileDirection direction)
+    {
+        MobileInput.QueueDirection(direction);
+    }
+
+    private void RegisterDirectionButtons()
+    {
+        RegisterDirectionButton(rightButton, PressRight);
+        RegisterDirectionButton(upButton, PressUp);
+        RegisterDirectionButton(leftButton, PressLeft);
+        RegisterDirectionButton(downButton, PressDown);
+    }
+
+    private void RegisterDirectionButton(Button button, UnityEngine.Events.UnityAction action)
+    {
+        if (button == null)
+            return;
+        if (button.onClick.GetPersistentEventCount() > 0)
+            return;
+
+        button.onClick.RemoveListener(action);
+        button.onClick.AddListener(action);
+    }
+
+    private void AutoFindDirectionButtons()
+    {
+        var buttons = GetComponentsInChildren<Button>(true);
+        foreach (var button in buttons)
+        {
+            string buttonName = button.name.ToLowerInvariant();
+            if (rightButton == null && (buttonName.Contains("right") || buttonName.Contains("phai")))
+                rightButton = button;
+            else if (upButton == null && (buttonName.Contains("up") || buttonName.Contains("len")))
+                upButton = button;
+            else if (leftButton == null && (buttonName.Contains("left") || buttonName.Contains("trai")))
+                leftButton = button;
+            else if (downButton == null && (buttonName.Contains("down") || buttonName.Contains("xuong")))
+                downButton = button;
+        }
+
+        if (rightButton != null && upButton != null && leftButton != null && downButton != null)
+            return;
+
+        var unassignedButtons = new List<Button>();
+        foreach (var button in buttons)
+        {
+            if (button == rightButton || button == upButton || button == leftButton || button == downButton)
+                continue;
+            if (button.onClick.GetPersistentEventCount() > 0)
+                continue;
+
+            unassignedButtons.Add(button);
+        }
+
+        if (unassignedButtons.Count < 4)
+            return;
+
+        Button leftMost = null;
+        Button rightMost = null;
+        Button topMost = null;
+        Button bottomMost = null;
+
+        foreach (var button in unassignedButtons)
+        {
+            var rect = button.transform as RectTransform;
+            if (rect == null)
+                continue;
+
+            if (leftMost == null || rect.anchoredPosition.x < ((RectTransform)leftMost.transform).anchoredPosition.x)
+                leftMost = button;
+            if (rightMost == null || rect.anchoredPosition.x > ((RectTransform)rightMost.transform).anchoredPosition.x)
+                rightMost = button;
+            if (topMost == null || rect.anchoredPosition.y > ((RectTransform)topMost.transform).anchoredPosition.y)
+                topMost = button;
+            if (bottomMost == null || rect.anchoredPosition.y < ((RectTransform)bottomMost.transform).anchoredPosition.y)
+                bottomMost = button;
+        }
+
+        if (leftButton == null)
+            leftButton = leftMost;
+        if (rightButton == null)
+            rightButton = rightMost;
+        if (upButton == null)
+            upButton = topMost;
+        if (downButton == null)
+            downButton = bottomMost;
+    }
+
+    private void HideMobileControlsCanvas()
+    {
+        mobileControlsCanvas = GameObject.Find(MobileControlsCanvasName);
+        if (mobileControlsCanvas == null || !mobileControlsCanvas.activeSelf)
+            return;
+
+        shouldRestoreMobileControls = true;
+        mobileControlsCanvas.SetActive(false);
+        MobileInput.ResetVirtualControls();
+    }
+
+    private void RestoreMobileControlsCanvas()
+    {
+        if (!shouldRestoreMobileControls || mobileControlsCanvas == null)
+            return;
+
+        mobileControlsCanvas.SetActive(true);
+        shouldRestoreMobileControls = false;
     }
 
     IEnumerator hitdeactive()

@@ -1,12 +1,13 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class aimingArea : MonoBehaviour
 {
     [SerializeField] private LayerMask aimingLayerMask;
-    public bool isWithinArea()
+    public bool isWithinArea(Vector2 screenPosition)
     {
-        Vector2 worldPosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        if (Camera.main == null) return false;
+
+        Vector2 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
         if (Physics2D.OverlapPoint(worldPosition, aimingLayerMask))
         {
             return true;
@@ -15,5 +16,10 @@ public class aimingArea : MonoBehaviour
         {
             return false;
         }
+    }
+
+    public bool isWithinArea()
+    {
+        return MobileInput.TryGetAimPointer(out var screenPosition, out _, out _, out _) && isWithinArea(screenPosition);
     }
 }

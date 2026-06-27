@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class Aiming : MonoBehaviour
 {
+    private const float VirtualThrowReleaseThreshold = 12f;
+
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private Transform startPosition;
 
@@ -42,8 +43,11 @@ public class Aiming : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        MobileInput.TryGetAimPointer(out var pointerPosition, out bool pointerPressed, out bool pointerHeld, out bool pointerReleased);
+        bool isVirtualThrowButton = MobileInput.LastAimPointerFromVirtualButton;
+
         spriteFacesRight = (lineRenderer.GetPosition(0).x > lineRenderer.GetPosition(1).x);
-        if (Mouse.current.leftButton.wasPressedThisFrame && aimingarea.isWithinArea())
+        if (pointerPressed && (isVirtualThrowButton || aimingarea.isWithinArea(pointerPosition)))
         {
             // Trong travel scene thì không cần check marshmallow
             bool isTravel = IsTravelScene();
@@ -61,15 +65,28 @@ public class Aiming : MonoBehaviour
                 Debug.LogWarning("Không đủ Marshmallow để ném catcher!");
             }
         }
-        if (Mouse.current.leftButton.isPressed && clickedWithinArea)
+        if (pointerHeld && clickedWithinArea)
         {
-            DrawLine();
+            if (isVirtualThrowButton)
+                DrawVirtualLine(MobileInput.VirtualAimDragVector);
+            else
+                DrawLine(pointerPosition);
+
             CatcherRotation();
             spawnedCatcher.transform.SetParent(this.transform);
         }
-        if (Mouse.current.leftButton.wasReleasedThisFrame)
+        if (pointerReleased)
         {
             clickedWithinArea = false;
+
+            if (spawnedCatcher != null && isVirtualThrowButton && MobileInput.VirtualAimDragVector.magnitude < VirtualThrowReleaseThreshold)
+            {
+                Destroy(spawnedCatcher.gameObject);
+                spawnedCatcher = null;
+                SetLine(startPosition.position);
+                lineRenderer.enabled = false;
+                return;
+            }
 
             if (spawnedCatcher != null) // chỉ bắn khi còn object
             {
@@ -109,11 +126,24 @@ public class Aiming : MonoBehaviour
             lineRenderer.enabled = false; // tắt hẳn line khi thả chuột
         }
     }
-    private void DrawLine()
+    private void DrawLine(Vector2 screenPosition)
     {
-        
-        Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        if (Camera.main == null) return;
+
+        Vector3 touchPosition = Camera.main.ScreenToWorldPoint(screenPosition);
         aimingLinePosition = startPosition.position + Vector3.ClampMagnitude(touchPosition - startPosition.position, maxLength);
+        SetLine(aimingLinePosition);
+    }
+    private void DrawVirtualLine(Vector2 dragVector)
+    {
+        if (Camera.main == null) return;
+
+        Vector3 startScreen = Camera.main.WorldToScreenPoint(startPosition.position);
+        Vector3 endScreen = startScreen + new Vector3(dragVector.x, dragVector.y, 0f);
+        Vector3 startWorld = Camera.main.ScreenToWorldPoint(startScreen);
+        Vector3 endWorld = Camera.main.ScreenToWorldPoint(endScreen);
+
+        aimingLinePosition = startPosition.position + Vector3.ClampMagnitude(endWorld - startWorld, maxLength);
         SetLine(aimingLinePosition);
     }
     private void SetLine(Vector2 position)

@@ -18,10 +18,12 @@ public class SlimeAI : MonoBehaviour
     public float turnSpeed = 5f;             // Tốc độ quay (siêu nhanh)
     public float fleeDistance = 12f;         // Khoảng cách chạy trốn (xa hơn)
     public float safeDistance = 6f;          // Khoảng cách an toàn để dừng chạy (luôn > detection)
+    public float targetDistanceFromPlayer = 3.5f; // Khoảng cách slime cố giữ khi chạy khỏi player
+    public float playerRunSpeed = 8f;        // Tốc độ chạy mượt khi phát hiện player
 
     [Header("Panic Escape (Very Close)")]
     public float panicDistance = 1.2f;       // Rất gần → bứt tốc ngay
-    public float panicBurstSpeed = 16f;      // Tốc độ bứt tốc
+    public float panicBurstSpeed = 10f;      // Tốc độ bứt tốc
     public float panicBurstDuration = 0.25f; // Thời gian bứt tốc ngắn
 
     [Header("Random Movement")]
@@ -44,12 +46,46 @@ public class SlimeAI : MonoBehaviour
     [Header("Stuck Handling")]
     public float stuckSpeedThreshold = 0.5f; // Nếu tốc độ thực < ngưỡng này → coi như kẹt
     public float stuckCheckTime = 0.2f;      // Kiểm tra kẹt sau thời gian này
+    public float stuckEscapeSpeedMultiplier = 1.15f;
+    public float eightDirectionProbeDistance = 2.4f;
+    [Header("Smart Movement")]
+    public float maxDetectionRange = 4.5f;
+    public float playerPredictionTime = 0.22f;
+    public float homeReturnStrength = 0.35f;
+    public float escapeSideStepStrength = 0.35f;
+    public int directionSamples = 16;
+    public float velocityAcceleration = 35f;
+    public float velocityDeceleration = 45f;
+    public float fearMemoryDuration = 1.15f;
+    public float minEscapeRunTime = 0.55f;
+    public float escapeTargetRefreshTime = 0.45f;
+    public float escapeTargetReachDistance = 0.45f;
+    public float escapeTargetSideStep = 0.65f;
+    [Header("Fear Learning")]
+    [Range(0f, 1f)] public float fearLevel = 0f;
+    public float fearGainOnDetect = 0.18f;
+    public float fearGainOnPanic = 0.35f;
+    public float fearDecayPerSecond = 0.035f;
+    public float fearDetectionBonus = 1.25f;
+    public float fearTargetDistanceBonus = 1.5f;
+    public float fearRunSpeedBonus = 2f;
+    public float fearMemoryBonus = 1.2f;
+    public float fearChaosBonus = 0.25f;
+    [Header("Home Leash")]
+    public float maxDistanceFromHome = 14f;
+    public float hardReturnDistanceFromHome = 18f;
+    public float homeLeashStrength = 0.75f;
+    public bool useSoftHomeLeashWhileScared = false;
+    public float calmHomePenaltyWeight = 0.25f;
+    public float scaredHomePenaltyWeight = 0.05f;
+
+    [Header("Spawn Zone")]
+    public bool useSpawnZoneTerritory = true;
 
     [Header("References")]
     public Transform player;                 // Reference đến player
     public Rigidbody2D rb;
     private PlayerMovement playerMovement;  // Reference đến PlayerMovement script
-    private WildSlimeTraits wildSlimeTraits;
 
     // State variables
     private bool isFleeing = false;
@@ -76,6 +112,14 @@ public class SlimeAI : MonoBehaviour
     private float panicTimeLeft;
     private Vector2 desiredVelocity; // Vận tốc sẽ áp dụng ở FixedUpdate (ổn định physics)
     private float stuckTimer = 0f;
+    private float fearTimeLeft = 0f;
+    private float escapeRunTime = 0f;
+    private float escapeTargetRefreshLeft = 0f;
+    private bool hasSpawnZoneTerritory = false;
+    private Vector3 spawnZoneCenter;
+    private float spawnZoneRadius;
+    private bool spawnZoneIsRectangle = false;
+    private Vector2 spawnZoneSize;
 
     void Start()
     {
@@ -83,7 +127,6 @@ public class SlimeAI : MonoBehaviour
         if (rb == null) rb = GetComponent<Rigidbody2D>();
         if (player == null) player = GameObject.FindGameObjectWithTag("Player")?.transform;
         if (playerMovement == null) playerMovement = player?.GetComponent<PlayerMovement>();
-        if (wildSlimeTraits == null) wildSlimeTraits = GetComponent<WildSlimeTraits>();
 
         // Cấu hình Rigidbody2D
         if (rb != null)
@@ -106,8 +149,21 @@ public class SlimeAI : MonoBehaviour
         {
             isMoving = true;
         }
-        normalSpeed += wildSlimeTraits.tamingDifficulty - 3;
-        fleeSpeed += wildSlimeTraits.tamingDifficulty - 3;
+        ClampDetectionSettings();
+    }
+
+    public void ConfigureTerritory(Vector3 center, float radius)
+    {
+        ConfigureTerritory(center, radius, false, Vector2.one * radius * 2f);
+    }
+
+    public void ConfigureTerritory(Vector3 center, float radius, bool isRectangle, Vector2 size)
+    {
+        spawnZoneCenter = center;
+        spawnZoneRadius = Mathf.Max(radius, circleRadius);
+        spawnZoneIsRectangle = isRectangle;
+        spawnZoneSize = new Vector2(Mathf.Max(size.x, 0.1f), Mathf.Max(size.y, 0.1f));
+        hasSpawnZoneTerritory = true;
     }
 
     void Update()
@@ -122,10 +178,13 @@ public class SlimeAI : MonoBehaviour
 
         // Tính khoảng cách đến player
         float distanceToPlayer = Vector3.Distance(transform.position, currentPlayerPos);
+        fearTimeLeft = Mathf.Max(0f, fearTimeLeft - Time.deltaTime);
+        DecayFear(distanceToPlayer);
 
         // Xử lý khi rất gần: bật Panic Escape trước
         if (distanceToPlayer <= panicDistance)
         {
+            RefreshFear(fearGainOnPanic);
             if (!isPanicking)
             {
                 StartPanicEscape();
@@ -138,13 +197,14 @@ public class SlimeAI : MonoBehaviour
         // Kiểm tra xem có nên chạy trốn không (ngoài panic)
         else if (distanceToPlayer <= currentDetectionRange)
         {
+            RefreshFear(fearGainOnDetect);
             if (!isFleeing && !isEvading && !isChaotic)
             {
                 // Kiểm tra xem player có đang di chuyển về phía slime không
                 if (IsPlayerApproaching())
                 {
                     // Có cơ hội chuyển sang chế độ hỗn loạn
-                    if (Random.value < chaosChance)
+                    if (Random.value < GetCurrentChaosChance())
                     {
                         StartChaoticMode();
                     }
@@ -175,7 +235,7 @@ public class SlimeAI : MonoBehaviour
         {
             if (isFleeing || isEvading || isChaotic || isPanicking)
             {
-                StopFleeing();
+                ContinueScaredMovement();
             }
             else if (enableRandomMovement)
             {
@@ -194,22 +254,32 @@ public class SlimeAI : MonoBehaviour
     void FixedUpdate()
     {
         if (rb == null) return;
-        rb.linearVelocity = desiredVelocity;
+        float acceleration = desiredVelocity.sqrMagnitude > rb.linearVelocity.sqrMagnitude
+            ? velocityAcceleration
+            : velocityDeceleration;
+        rb.linearVelocity = Vector2.MoveTowards(rb.linearVelocity, desiredVelocity, acceleration * Time.fixedDeltaTime);
 
         // Stuck detection khi đang né/chạy
         bool escaping = isPanicking || isFleeing || isEvading || isChaotic;
         if (escaping)
         {
             float speed = rb.linearVelocity.magnitude;
-            if (speed < stuckSpeedThreshold)
+            bool wantsToMove = desiredVelocity.magnitude > stuckSpeedThreshold;
+            bool blockedAhead = wantsToMove && IsDirectionBlocked(desiredVelocity.normalized, obstacleDetectionRange * 0.75f);
+            if ((wantsToMove && speed < stuckSpeedThreshold) || blockedAhead)
             {
                 stuckTimer += Time.fixedDeltaTime;
                 if (stuckTimer >= stuckCheckTime)
                 {
-                    // Tìm hướng thoáng nhất ưu tiên tránh player và bứt ra
-                    Vector3 away = (transform.position - player.position);
-                    Vector3 best = GetBestEscapeDirection(away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection());
-                    desiredVelocity = best * Mathf.Max(fleeSpeed, panicBurstSpeed * 0.8f);
+                    // Bị kẹt thì quét đủ 8 hướng quanh slime và chọn hướng thoáng nhất để thoát thân.
+                    Vector3 preferred = desiredVelocity.sqrMagnitude > 0.001f
+                        ? ((Vector3)desiredVelocity).normalized
+                        : GetSmartEscapeDirection(0.15f);
+                    Vector3 best = FindEightDirectionEscape(preferred, true);
+                    fleeTarget = ClampPointToHomeRadius(transform.position + best * fleeDistance, hardReturnDistanceFromHome);
+                    escapeTargetRefreshLeft = escapeTargetRefreshTime;
+                    RefreshFear(fearGainOnDetect * 0.5f);
+                    desiredVelocity = best * Mathf.Max(GetPlayerRunSpeed() * stuckEscapeSpeedMultiplier, panicBurstSpeed * 0.8f);
                     stuckTimer = 0f;
                 }
             }
@@ -226,34 +296,34 @@ public class SlimeAI : MonoBehaviour
 
     void StartFleeing()
     {
+        RefreshFear(fearGainOnDetect);
         isFleeing = true;
         isMoving = false;
-
-        // Tính hướng chạy trốn (ngược với player)
-        Vector3 directionToPlayer = (player.position - transform.position).normalized;
-        Vector3 fleeDirection = -directionToPlayer;
+        isWandering = false;
+        isIdle = false;
+        escapeRunTime = 0f;
 
         // Đặt vị trí bắt đầu và target chạy trốn
         fleeStartPosition = transform.position;
-        fleeTarget = transform.position + fleeDirection * fleeDistance;
+        PickNewEscapeTarget(0.35f);
     }
 
     void ContinueFleeing()
     {
-        // Luôn chạy TRÁNH xa player mỗi frame để không bị đuổi kịp hoặc chạy song song về phía player
-        Vector3 away = (transform.position - player.position);
-        Vector3 desired = away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection();
+        escapeRunTime += Time.deltaTime;
+        escapeTargetRefreshLeft -= Time.deltaTime;
 
-        // Tránh obstacles nhưng vẫn ưu tiên tránh player
-        desired = AvoidObstacles(desired);
+        if (escapeTargetRefreshLeft <= 0f || Vector3.Distance(transform.position, fleeTarget) <= escapeTargetReachDistance)
+            PickNewEscapeTarget(0.25f);
+
+        Vector3 desired = GetSmartTargetDirection(fleeTarget, 0.08f);
 
         // Di chuyển với tốc độ cao
-        rb.linearVelocity = desired * fleeSpeed;
+        desiredVelocity = desired * GetPlayerRunSpeed();
 
-        // Dừng khi đã cách player đủ xa (ổn định hơn đo khoảng cách đã đi)
+        // Dừng khi đã cách player đủ xa và hết hoảng, tránh cảm giác bị nam châm đẩy bật.
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        float minSafe = Mathf.Max(GetCurrentDetectionRange() * 1.2f, safeDistance);
-        if (distanceToPlayer >= minSafe)
+        if (CanCalmDown(distanceToPlayer))
         {
             StopFleeing();
         }
@@ -286,7 +356,7 @@ public class SlimeAI : MonoBehaviour
 
         // Chọn điểm ngẫu nhiên trong vùng tròn
         Vector2 randomPoint = Random.insideUnitCircle * circleRadius;
-        wanderTarget = startPosition + new Vector3(randomPoint.x, randomPoint.y, 0);
+        wanderTarget = ClampPointToHomeRadius(startPosition + new Vector3(randomPoint.x, randomPoint.y, 0), hardReturnDistanceFromHome);
         wanderTimeLeft = wanderTimer;
     }
 
@@ -320,8 +390,7 @@ public class SlimeAI : MonoBehaviour
         }
 
         // Di chuyển đến target
-        Vector3 direction = (wanderTarget - transform.position).normalized;
-        direction = AvoidObstacles(direction);
+        Vector3 direction = GetSmartWanderDirection(wanderTarget);
 
         // Thêm thay đổi hướng ngẫu nhiên để khó đoán
         if (Random.value < directionChangeChance * Time.deltaTime)
@@ -376,30 +445,28 @@ public class SlimeAI : MonoBehaviour
 
     void StartEvasion()
     {
+        RefreshFear(fearGainOnDetect);
         isEvading = true;
         isFleeing = false;
         isWandering = false;
         isIdle = false;
+        escapeRunTime = 0f;
 
         evasionTimeLeft = evasionDuration;
         lastPlayerPosition = player.position;
-
-        // Chọn hướng tránh né ngẫu nhiên
-        Vector3 directionToPlayer = (player.position - transform.position).normalized;
-        Vector3 evasionDirection = Quaternion.Euler(0, 0, Random.Range(-90f, 90f)) * -directionToPlayer;
-        fleeTarget = transform.position + evasionDirection * fleeDistance;
+        PickNewEscapeTarget(0.75f);
     }
 
     void ContinueEvasion()
     {
+        escapeRunTime += Time.deltaTime;
         evasionTimeLeft -= Time.deltaTime;
+        escapeTargetRefreshLeft -= Time.deltaTime;
 
-        // Hướng ưu tiên: tránh xa player; vẫn pha trộn nhẹ với mục tiêu né hiện tại để tự nhiên hơn
-        Vector3 away = (transform.position - player.position);
-        Vector3 toTempTarget = (fleeTarget - transform.position);
-        Vector3 directionToTarget = ((away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection()) * 0.8f
-                                    + (toTempTarget.sqrMagnitude > 0.001f ? toTempTarget.normalized : Vector3.zero) * 0.2f).normalized;
-        directionToTarget = AvoidObstacles(directionToTarget);
+        if (escapeTargetRefreshLeft <= 0f || Vector3.Distance(transform.position, fleeTarget) <= escapeTargetReachDistance)
+            PickNewEscapeTarget(0.8f);
+
+        Vector3 directionToTarget = GetSmartTargetDirection(fleeTarget, 0.18f);
 
         // Thêm thay đổi hướng ngẫu nhiên để khó bắt
         if (Random.value < directionChangeChance * 2f * Time.deltaTime)
@@ -408,13 +475,12 @@ public class SlimeAI : MonoBehaviour
         }
 
         // Thêm biến thiên tốc độ ngẫu nhiên
-        float currentSpeed = evasionSpeed * (1f + Random.Range(-speedVariation * 0.5f, speedVariation * 0.5f));
+        float currentSpeed = GetPlayerRunSpeed() * (1f + Random.Range(-speedVariation * 0.5f, speedVariation * 0.5f));
         desiredVelocity = directionToTarget * currentSpeed;
 
         // Dừng nếu đã an toàn hoặc hết thời gian né
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        float minSafe = Mathf.Max(GetCurrentDetectionRange() * 1.2f, safeDistance);
-        if (distanceToPlayer >= minSafe || evasionTimeLeft <= 0)
+        if (CanCalmDown(distanceToPlayer) && evasionTimeLeft <= 0)
         {
             StopFleeing();
         }
@@ -424,43 +490,38 @@ public class SlimeAI : MonoBehaviour
 
     void StartChaoticMode()
     {
+        RefreshFear(fearGainOnDetect);
         isChaotic = true;
         isFleeing = false;
         isEvading = false;
         isWandering = false;
         isIdle = false;
+        escapeRunTime = 0f;
 
-        // Chọn hướng hoàn toàn ngẫu nhiên
-        Vector3 randomDirection = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), 0).normalized;
-        fleeTarget = transform.position + randomDirection * fleeDistance;
+        PickNewEscapeTarget(1f);
     }
 
     void ContinueChaoticMode()
     {
-        // Di chuyển với tốc độ hỗn loạn nhưng vẫn ưu tiên tránh player
-        Vector3 away = (transform.position - player.position);
-        Vector3 baseDir = (fleeTarget - transform.position).sqrMagnitude > 0.001f
-            ? (fleeTarget - transform.position).normalized
-            : GetRandomDirection();
-        Vector3 directionToTarget = ((away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection()) * 0.7f
-                                    + baseDir * 0.3f).normalized;
-        directionToTarget = AvoidObstacles(directionToTarget);
+        escapeRunTime += Time.deltaTime;
+        escapeTargetRefreshLeft -= Time.deltaTime;
+
+        // Di chuyển hỗn loạn nhưng vẫn bám theo một điểm thoát, không đẩy thẳng khỏi player mỗi frame.
+        Vector3 directionToTarget = GetSmartTargetDirection(fleeTarget, 0.32f);
 
         // Thay đổi hướng liên tục và ngẫu nhiên
-        if (Random.value < directionChangeChance * 3f * Time.deltaTime)
+        if (escapeTargetRefreshLeft <= 0f || Random.value < directionChangeChance * 1.5f * Time.deltaTime)
         {
-            Vector3 randomDirection = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), 0).normalized;
-            fleeTarget = transform.position + randomDirection * fleeDistance;
+            PickNewEscapeTarget(1f);
         }
 
         // Biến thiên tốc độ cực mạnh
-        float currentSpeed = chaosSpeed * (1f + Random.Range(-speedVariation * 2f, speedVariation * 2f));
+        float currentSpeed = GetPlayerRunSpeed() * (1f + Random.Range(-speedVariation * 0.8f, speedVariation * 0.8f));
         desiredVelocity = directionToTarget * currentSpeed;
 
         // Dừng khi đã cách player đủ xa (an toàn hơn)
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        float minSafe = Mathf.Max(GetCurrentDetectionRange() * 1.2f, safeDistance);
-        if (distanceToPlayer >= minSafe)
+        if (CanCalmDown(distanceToPlayer))
         {
             StopFleeing();
         }
@@ -486,10 +547,7 @@ public class SlimeAI : MonoBehaviour
         currentAngle += moveDirection * turnSpeed * Time.deltaTime;
 
         // Tính hướng di chuyển
-        Vector3 direction = (circlePosition - transform.position).normalized;
-
-        // Tránh obstacles
-        direction = AvoidObstacles(direction);
+        Vector3 direction = GetSmartWanderDirection(circlePosition);
 
         // Di chuyển
         desiredVelocity = direction * normalSpeed;
@@ -521,9 +579,9 @@ public class SlimeAI : MonoBehaviour
     Vector3 AvoidObstacles(Vector3 desiredDirection)
     {
         // Raycast để phát hiện obstacles
-        RaycastHit2D frontHit = Physics2D.Raycast(transform.position, desiredDirection, obstacleDetectionRange, obstacleLayerMask);
-        RaycastHit2D leftHit = Physics2D.Raycast(transform.position, Quaternion.Euler(0, 0, 30) * desiredDirection, obstacleDetectionRange * 0.7f, obstacleLayerMask);
-        RaycastHit2D rightHit = Physics2D.Raycast(transform.position, Quaternion.Euler(0, 0, -30) * desiredDirection, obstacleDetectionRange * 0.7f, obstacleLayerMask);
+        RaycastHit2D frontHit = Physics2D.CircleCast(transform.position, bodyRadius, desiredDirection, obstacleDetectionRange, obstacleLayerMask);
+        RaycastHit2D leftHit = Physics2D.CircleCast(transform.position, bodyRadius, Quaternion.Euler(0, 0, 30) * desiredDirection, obstacleDetectionRange * 0.7f, obstacleLayerMask);
+        RaycastHit2D rightHit = Physics2D.CircleCast(transform.position, bodyRadius, Quaternion.Euler(0, 0, -30) * desiredDirection, obstacleDetectionRange * 0.7f, obstacleLayerMask);
 
         bool frontBlocked = IsObstacleCollider(frontHit.collider);
         bool leftBlocked = IsObstacleCollider(leftHit.collider);
@@ -531,18 +589,7 @@ public class SlimeAI : MonoBehaviour
 
         if (frontBlocked || leftBlocked || rightBlocked)
         {
-            // Nếu chắn phía trước, thử trượt theo bề mặt để thoát góc kẹt
-            if (frontBlocked && frontHit.collider != null)
-            {
-                Vector2 n = frontHit.normal;
-                Vector2 slide = Vector2.Perpendicular(n);
-                if (Vector2.Dot(slide, (Vector2)desiredDirection) < 0) slide = -slide;
-                return slide.normalized;
-            }
-
-            // Có obstacle, tìm hướng tránh tốt nhất
-            Vector3 bestDirection = FindBestAvoidanceDirection(desiredDirection);
-            return bestDirection;
+            return FindEightDirectionEscape(desiredDirection, isFleeing || isEvading || isChaotic || isPanicking);
         }
 
         return desiredDirection; // Không có obstacle, giữ nguyên hướng
@@ -562,99 +609,425 @@ public class SlimeAI : MonoBehaviour
 
     Vector3 FindBestAvoidanceDirection(Vector3 originalDirection)
     {
-        Vector3 bestDirection = originalDirection;
-        float bestScore = -1f;
-
-        // Thử nhiều hướng khác nhau
-        for (int i = 0; i < 8; i++)
-        {
-            float angle = i * 45f; // Thử mỗi 45 độ
-            Vector3 testDirection = Quaternion.Euler(0, 0, angle) * originalDirection;
-
-            // Kiểm tra hướng này có obstacle không
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, testDirection, obstacleDetectionRange, obstacleLayerMask);
-
-            if (!IsObstacleCollider(hit.collider))
-            {
-                // Hướng này không có obstacle, tính điểm
-                float score = Vector3.Dot(testDirection, originalDirection);
-                if (score > bestScore)
-                {
-                    bestScore = score;
-                    bestDirection = testDirection;
-                }
-            }
-        }
-
-        return bestDirection.normalized;
+        return FindEightDirectionEscape(originalDirection, isFleeing || isEvading || isChaotic || isPanicking);
     }
 
     float GetCurrentDetectionRange()
     {
-        if (!usePlayerStateDetection || playerMovement == null)
-            return detectionRange;
-
-        return playerMovement.CurrentDetectionRange;
+        float range = (!usePlayerStateDetection || playerMovement == null) ? detectionRange : playerMovement.CurrentDetectionRange;
+        return Mathf.Min(range + fearLevel * fearDetectionBonus, maxDetectionRange);
     }
 
     // === PANIC ESCAPE ===
     void StartPanicEscape()
     {
+        RefreshFear(fearGainOnPanic);
         isPanicking = true;
         isFleeing = false;
         isEvading = false;
         isChaotic = false;
         isWandering = false;
         isIdle = false;
+        escapeRunTime = 0f;
 
         panicTimeLeft = panicBurstDuration;
+        PickNewEscapeTarget(0.45f);
 
-        Vector3 away = (transform.position - player.position);
-        Vector3 best = GetBestEscapeDirection(away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection());
-        desiredVelocity = best * panicBurstSpeed;
+        Vector3 best = GetSmartTargetDirection(fleeTarget, 0.03f);
+        desiredVelocity = best * Mathf.Max(GetPlayerRunSpeed(), panicBurstSpeed);
     }
 
     void ContinuePanicEscape()
     {
+        escapeRunTime += Time.deltaTime;
         panicTimeLeft -= Time.deltaTime;
+        escapeTargetRefreshLeft -= Time.deltaTime;
 
-        Vector3 away = (transform.position - player.position);
-        Vector3 best = GetBestEscapeDirection(away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection());
-        Vector3 dir = AvoidObstacles(best);
-        desiredVelocity = dir * panicBurstSpeed;
+        if (escapeTargetRefreshLeft <= 0f || Vector3.Distance(transform.position, fleeTarget) <= escapeTargetReachDistance)
+            PickNewEscapeTarget(0.45f);
+
+        Vector3 dir = GetSmartTargetDirection(fleeTarget, 0.03f);
+        desiredVelocity = dir * Mathf.Max(GetPlayerRunSpeed(), panicBurstSpeed);
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        float minSafe = Mathf.Max(GetCurrentDetectionRange() * 1.2f, safeDistance);
-        if (distanceToPlayer >= minSafe || panicTimeLeft <= 0f)
+        if (panicTimeLeft <= 0f)
+        {
+            isPanicking = false;
+            isFleeing = true;
+            ContinueFleeing();
+        }
+        else if (CanCalmDown(distanceToPlayer))
         {
             StopFleeing();
         }
     }
 
-    // Tìm hướng thoáng nhất, ưu tiên tránh xa player
-    Vector3 GetBestEscapeDirection(Vector3 preferredAway)
+    void ClampDetectionSettings()
     {
+        detectionRange = Mathf.Min(detectionRange, maxDetectionRange);
+        safeDistance = Mathf.Min(safeDistance, maxDetectionRange * 1.35f);
+        targetDistanceFromPlayer = Mathf.Clamp(targetDistanceFromPlayer, detectionRange, maxDetectionRange * 1.5f);
+        playerRunSpeed = Mathf.Max(playerRunSpeed, normalSpeed);
+        velocityAcceleration = Mathf.Max(velocityAcceleration, 1f);
+        velocityDeceleration = Mathf.Max(velocityDeceleration, 1f);
+        fearMemoryDuration = Mathf.Max(fearMemoryDuration, 0f);
+        fearLevel = Mathf.Clamp01(fearLevel);
+        fearGainOnDetect = Mathf.Max(fearGainOnDetect, 0f);
+        fearGainOnPanic = Mathf.Max(fearGainOnPanic, 0f);
+        fearDecayPerSecond = Mathf.Max(fearDecayPerSecond, 0f);
+        fearDetectionBonus = Mathf.Max(fearDetectionBonus, 0f);
+        fearTargetDistanceBonus = Mathf.Max(fearTargetDistanceBonus, 0f);
+        fearRunSpeedBonus = Mathf.Max(fearRunSpeedBonus, 0f);
+        fearMemoryBonus = Mathf.Max(fearMemoryBonus, 0f);
+        fearChaosBonus = Mathf.Max(fearChaosBonus, 0f);
+        maxDistanceFromHome = Mathf.Max(maxDistanceFromHome, circleRadius);
+        hardReturnDistanceFromHome = Mathf.Max(hardReturnDistanceFromHome, maxDistanceFromHome + 0.1f);
+        homeLeashStrength = Mathf.Clamp01(homeLeashStrength);
+        calmHomePenaltyWeight = Mathf.Max(calmHomePenaltyWeight, 0f);
+        scaredHomePenaltyWeight = Mathf.Max(scaredHomePenaltyWeight, 0f);
+        minEscapeRunTime = Mathf.Max(minEscapeRunTime, 0f);
+        escapeTargetRefreshTime = Mathf.Max(escapeTargetRefreshTime, 0.1f);
+        escapeTargetReachDistance = Mathf.Max(escapeTargetReachDistance, 0.1f);
+        escapeTargetSideStep = Mathf.Clamp01(escapeTargetSideStep);
+        panicDistance = Mathf.Min(panicDistance, maxDetectionRange * 0.5f);
+        directionSamples = Mathf.Max(8, directionSamples);
+    }
+
+    void RefreshFear(float gain)
+    {
+        fearLevel = Mathf.Clamp01(fearLevel + gain);
+        fearTimeLeft = GetCurrentFearMemoryDuration();
+    }
+
+    void DecayFear(float distanceToPlayer)
+    {
+        bool activelyScared = isFleeing || isEvading || isChaotic || isPanicking || fearTimeLeft > 0f;
+        if (activelyScared || distanceToPlayer <= GetCurrentDetectionRange())
+            return;
+
+        fearLevel = Mathf.Max(0f, fearLevel - fearDecayPerSecond * Time.deltaTime);
+    }
+
+    void ContinueScaredMovement()
+    {
+        if (fearTimeLeft <= 0f)
+        {
+            StopFleeing();
+            return;
+        }
+
+        if (isPanicking) ContinuePanicEscape();
+        else if (isEvading) ContinueEvasion();
+        else if (isChaotic) ContinueChaoticMode();
+        else ContinueFleeing();
+    }
+
+    bool CanCalmDown(float distanceToPlayer)
+    {
+        return distanceToPlayer >= GetTargetDistanceFromPlayer()
+            && fearTimeLeft <= 0f
+            && escapeRunTime >= GetCurrentMinEscapeRunTime();
+    }
+
+    void PickNewEscapeTarget(float sideWeight)
+    {
+        Vector3 away = transform.position - GetPredictedPlayerPosition();
+        Vector3 awayDirection = away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection();
+        Vector3 sideDirection = Vector3.Cross(Vector3.forward, awayDirection).normalized;
+        if (Random.value < 0.5f) sideDirection = -sideDirection;
+
+        Vector3 escapeDirection = Vector3.Slerp(awayDirection, sideDirection, Mathf.Clamp01(sideWeight * escapeTargetSideStep)).normalized;
+        escapeDirection = Quaternion.Euler(0, 0, Random.Range(-angleVariation * 0.35f, angleVariation * 0.35f)) * escapeDirection;
+
+        fleeTarget = ClampPointToHomeRadius(transform.position + escapeDirection.normalized * fleeDistance, hardReturnDistanceFromHome);
+        escapeTargetRefreshLeft = escapeTargetRefreshTime;
+    }
+
+    float GetTargetDistanceFromPlayer()
+    {
+        float scaredTargetDistance = targetDistanceFromPlayer + fearLevel * fearTargetDistanceBonus;
+        return Mathf.Max(scaredTargetDistance, GetCurrentDetectionRange() * 1.05f);
+    }
+
+    float GetPlayerRunSpeed()
+    {
+        return Mathf.Max(playerRunSpeed + fearLevel * fearRunSpeedBonus, normalSpeed);
+    }
+
+    float GetCurrentFearMemoryDuration()
+    {
+        return fearMemoryDuration + fearLevel * fearMemoryBonus;
+    }
+
+    float GetCurrentMinEscapeRunTime()
+    {
+        return minEscapeRunTime + fearLevel * fearMemoryBonus * 0.35f;
+    }
+
+    float GetCurrentChaosChance()
+    {
+        return Mathf.Clamp01(chaosChance + fearLevel * fearChaosBonus);
+    }
+
+    Vector3 GetPredictedPlayerPosition()
+    {
+        if (player == null) return transform.position;
+        Vector3 playerVelocity = Time.deltaTime > 0f ? (player.position - lastPlayerPosition) / Time.deltaTime : Vector3.zero;
+        return player.position + playerVelocity * playerPredictionTime;
+    }
+
+    Vector3 GetSmartWanderDirection(Vector3 targetPosition)
+    {
+        Vector3 toTarget = targetPosition - transform.position;
+        Vector3 preferred = toTarget.sqrMagnitude > 0.001f ? toTarget.normalized : GetRandomDirection();
+        return FindBestMovementDirection(preferred, false);
+    }
+
+    Vector3 GetSmartEscapeDirection(float randomWeight, Vector3? preferredDirection = null)
+    {
+        Vector3 threat = GetPredictedPlayerPosition();
+        Vector3 away = transform.position - threat;
+        Vector3 preferred = away.sqrMagnitude > 0.001f ? away.normalized : GetRandomDirection();
+
+        if (preferredDirection.HasValue && preferredDirection.Value.sqrMagnitude > 0.001f)
+            preferred = Vector3.Slerp(preferred, preferredDirection.Value.normalized, 0.35f).normalized;
+
+        Vector3 playerVelocity = (player != null && Time.deltaTime > 0f) ? (player.position - lastPlayerPosition) / Time.deltaTime : Vector3.zero;
+        if (playerVelocity.sqrMagnitude > 0.01f)
+        {
+            Vector3 sideStep = Vector3.Cross(Vector3.forward, playerVelocity.normalized);
+            if (Vector3.Dot(sideStep, preferred) < 0f) sideStep = -sideStep;
+            preferred = Vector3.Slerp(preferred, sideStep, escapeSideStepStrength).normalized;
+        }
+
+        if (randomWeight > 0f)
+            preferred = Vector3.Slerp(preferred, GetRandomDirection(), randomWeight).normalized;
+
+        preferred = ApplyHomeLeash(preferred, true);
+        return FindBestMovementDirection(preferred, true);
+    }
+
+    Vector3 GetSmartTargetDirection(Vector3 targetPosition, float randomWeight)
+    {
+        Vector3 toTarget = targetPosition - transform.position;
+        Vector3 preferred = toTarget.sqrMagnitude > 0.001f ? toTarget.normalized : GetSmartEscapeDirection(randomWeight);
+        preferred = ApplyHomeLeash(preferred, true);
+
+        if (randomWeight > 0f)
+            preferred = Vector3.Slerp(preferred, GetRandomDirection(), randomWeight).normalized;
+
+        return FindBestMovementDirection(preferred, true);
+    }
+
+    Vector3 FindBestMovementDirection(Vector3 preferredDirection, bool escaping)
+    {
+        if (preferredDirection.sqrMagnitude <= 0.001f)
+            preferredDirection = GetRandomDirection();
+
+        Vector3 playerPos = player != null ? GetPredictedPlayerPosition() : transform.position;
         float bestScore = -Mathf.Infinity;
-        Vector3 bestDir = preferredAway;
-        // Quét 16 hướng quanh, ưu tiên vùng gần hướng tránh xa
-        int samples = 16;
+        Vector3 bestDirection = preferredDirection.normalized;
+        int samples = Mathf.Max(8, directionSamples);
+        float leashRadius = GetSoftTerritoryRadius();
+
         for (int i = 0; i < samples; i++)
         {
             float angle = (360f / samples) * i;
-            Vector3 dir = Quaternion.Euler(0, 0, angle) * preferredAway;
-            // CircleCast để tính khoảng trống theo bán kính thân
+            Vector3 dir = (Quaternion.Euler(0, 0, angle) * preferredDirection).normalized;
             RaycastHit2D hit = Physics2D.CircleCast(transform.position, bodyRadius, dir, obstacleDetectionRange, obstacleLayerMask);
-            float free = hit.collider == null ? obstacleDetectionRange : hit.distance;
-            float align = Vector3.Dot(dir, preferredAway) * 0.6f; // ưu tiên cùng hướng tránh
-            float openness = (free / obstacleDetectionRange) * 0.4f; // ưu tiên khoảng trống
-            float score = align + openness;
+            bool blockedByObstacle = IsObstacleCollider(hit.collider);
+            float free = blockedByObstacle ? hit.distance : obstacleDetectionRange;
+            float openness = obstacleDetectionRange <= 0f ? 1f : free / obstacleDetectionRange;
+            float align = Vector3.Dot(dir, preferredDirection.normalized);
+
+            Vector3 futurePosition = transform.position + dir * Mathf.Max(0.75f, bodyRadius * 2f);
+            float playerDistanceScore = player == null ? 0f : Mathf.Clamp01(Vector3.Distance(futurePosition, playerPos) / Mathf.Max(maxDetectionRange, 0.1f));
+            float homePenalty = GetTerritoryPenalty(futurePosition);
+
+            float homeWeight = escaping ? scaredHomePenaltyWeight : calmHomePenaltyWeight;
+            float score = align * 0.45f + openness * 0.35f - homePenalty * homeWeight;
+            if (escaping) score += playerDistanceScore * 0.35f;
+            if (blockedByObstacle) score -= 0.75f;
+
             if (score > bestScore)
             {
                 bestScore = score;
-                bestDir = dir;
+                bestDirection = dir;
             }
         }
-        return bestDir.normalized;
+
+        return FindEightDirectionEscape(bestDirection, escaping).normalized;
+    }
+
+    bool IsDirectionBlocked(Vector3 direction, float distance)
+    {
+        if (direction.sqrMagnitude <= 0.001f)
+            return false;
+
+        RaycastHit2D hit = Physics2D.CircleCast(transform.position, bodyRadius, direction.normalized, distance, obstacleLayerMask);
+        return IsObstacleCollider(hit.collider);
+    }
+
+    Vector3 FindEightDirectionEscape(Vector3 preferredDirection, bool escaping)
+    {
+        if (preferredDirection.sqrMagnitude <= 0.001f)
+            preferredDirection = GetRandomDirection();
+
+        Vector3 preferred = preferredDirection.normalized;
+        Vector3 playerPos = player != null ? GetPredictedPlayerPosition() : transform.position;
+        float probeDistance = Mathf.Max(eightDirectionProbeDistance, obstacleDetectionRange, bodyRadius * 2f);
+        float leashRadius = GetSoftTerritoryRadius();
+        float bestScore = -Mathf.Infinity;
+        Vector3 bestDirection = preferred;
+
+        for (int i = 0; i < 8; i++)
+        {
+            float angle = i * 45f;
+            Vector3 dir = new Vector3(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad), 0f);
+            RaycastHit2D hit = Physics2D.CircleCast(transform.position, bodyRadius, dir, probeDistance, obstacleLayerMask);
+            bool blocked = IsObstacleCollider(hit.collider);
+            float freeDistance = blocked ? hit.distance : probeDistance;
+            float openness = probeDistance <= 0f ? 1f : Mathf.Clamp01(freeDistance / probeDistance);
+            float alignment = Vector3.Dot(dir, preferred);
+
+            Vector3 futurePosition = transform.position + dir * Mathf.Max(freeDistance, bodyRadius * 2f);
+            float playerDistanceScore = player == null ? 0f : Mathf.Clamp01(Vector3.Distance(futurePosition, playerPos) / Mathf.Max(maxDetectionRange, 0.1f));
+            float homePenalty = GetTerritoryPenalty(futurePosition);
+
+            float homeWeight = escaping ? scaredHomePenaltyWeight : calmHomePenaltyWeight;
+            float score = openness * 1.2f + alignment * 0.35f - homePenalty * homeWeight;
+            if (escaping)
+                score += playerDistanceScore * 0.65f;
+            if (blocked && freeDistance <= bodyRadius * 1.25f)
+                score -= 1.5f;
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestDirection = dir;
+            }
+        }
+
+        return bestDirection.normalized;
+    }
+
+    Vector3 ApplyHomeLeash(Vector3 preferredDirection, bool escaping)
+    {
+        Vector3 homeVector = GetTerritoryCorrectionVector(transform.position, false);
+        float distanceFromHome = homeVector.magnitude;
+        if (homeVector.sqrMagnitude <= 0.001f)
+            return preferredDirection.normalized;
+
+        Vector3 homeDirection = homeVector.normalized;
+        float softRadius = GetSoftTerritoryRadius();
+        float hardRadius = GetHardTerritoryRadius();
+
+        if (escaping && !useSoftHomeLeashWhileScared && IsInsideHardTerritory(transform.position))
+            return preferredDirection.normalized;
+
+        if (IsInsideSoftTerritory(transform.position))
+            return preferredDirection.normalized;
+
+        float t = Mathf.InverseLerp(softRadius, hardRadius, distanceFromHome);
+        float strength = !IsInsideHardTerritory(transform.position)
+            ? 1f
+            : Mathf.Lerp(homeLeashStrength, 1f, t);
+        return Vector3.Slerp(preferredDirection.normalized, homeDirection, strength).normalized;
+    }
+
+    Vector3 ClampPointToHomeRadius(Vector3 point, float radius)
+    {
+        if (UseRectangleTerritory())
+        {
+            Vector2 halfSize = spawnZoneSize * 0.5f;
+            Vector3 offset = point - spawnZoneCenter;
+            return spawnZoneCenter + new Vector3(
+                Mathf.Clamp(offset.x, -halfSize.x, halfSize.x),
+                Mathf.Clamp(offset.y, -halfSize.y, halfSize.y),
+                offset.z
+            );
+        }
+
+        Vector3 territoryCenter = GetTerritoryCenter();
+        Vector3 fromHome = point - territoryCenter;
+        float leashRadius = GetHardTerritoryRadius();
+        if (fromHome.magnitude <= leashRadius)
+            return point;
+
+        return territoryCenter + fromHome.normalized * leashRadius;
+    }
+
+    Vector3 GetTerritoryCenter()
+    {
+        return useSpawnZoneTerritory && hasSpawnZoneTerritory ? spawnZoneCenter : startPosition;
+    }
+
+    bool UseRectangleTerritory()
+    {
+        return useSpawnZoneTerritory && hasSpawnZoneTerritory && spawnZoneIsRectangle;
+    }
+
+    float GetSoftTerritoryRadius()
+    {
+        return useSpawnZoneTerritory && hasSpawnZoneTerritory
+            ? Mathf.Max(spawnZoneRadius * 0.92f, circleRadius)
+            : Mathf.Max(maxDistanceFromHome, circleRadius);
+    }
+
+    float GetHardTerritoryRadius()
+    {
+        return useSpawnZoneTerritory && hasSpawnZoneTerritory
+            ? Mathf.Max(spawnZoneRadius, circleRadius)
+            : Mathf.Max(hardReturnDistanceFromHome, circleRadius);
+    }
+
+    bool IsInsideSoftTerritory(Vector3 position)
+    {
+        if (!UseRectangleTerritory())
+            return Vector3.Distance(position, GetTerritoryCenter()) <= GetSoftTerritoryRadius();
+
+        Vector2 halfSize = spawnZoneSize * 0.46f;
+        Vector3 offset = position - spawnZoneCenter;
+        return Mathf.Abs(offset.x) <= halfSize.x && Mathf.Abs(offset.y) <= halfSize.y;
+    }
+
+    bool IsInsideHardTerritory(Vector3 position)
+    {
+        if (!UseRectangleTerritory())
+            return Vector3.Distance(position, GetTerritoryCenter()) <= GetHardTerritoryRadius();
+
+        Vector2 halfSize = spawnZoneSize * 0.5f;
+        Vector3 offset = position - spawnZoneCenter;
+        return Mathf.Abs(offset.x) <= halfSize.x && Mathf.Abs(offset.y) <= halfSize.y;
+    }
+
+    Vector3 GetTerritoryCorrectionVector(Vector3 position, bool useSoftBounds)
+    {
+        if (!UseRectangleTerritory())
+            return GetTerritoryCenter() - position;
+
+        Vector2 halfSize = spawnZoneSize * (useSoftBounds ? 0.46f : 0.5f);
+        Vector3 offset = position - spawnZoneCenter;
+        Vector3 closest = spawnZoneCenter + new Vector3(
+            Mathf.Clamp(offset.x, -halfSize.x, halfSize.x),
+            Mathf.Clamp(offset.y, -halfSize.y, halfSize.y),
+            offset.z
+        );
+
+        return closest - position;
+    }
+
+    float GetTerritoryPenalty(Vector3 position)
+    {
+        if (!UseRectangleTerritory())
+        {
+            float leashRadius = GetSoftTerritoryRadius();
+            return Mathf.Clamp01((Vector3.Distance(position, GetTerritoryCenter()) - leashRadius) / Mathf.Max(leashRadius, 0.1f));
+        }
+
+        Vector3 correction = GetTerritoryCorrectionVector(position, true);
+        float maxSide = Mathf.Max(spawnZoneSize.x, spawnZoneSize.y, 0.1f);
+        return Mathf.Clamp01(correction.magnitude / maxSide);
     }
 
     void OnDrawGizmosSelected()

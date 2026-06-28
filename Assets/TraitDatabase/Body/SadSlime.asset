@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b676b1ca49d060439d76230a367f8bd, type: 3}
+  m_Name: SadSlime
+  m_EditorClassIdentifier: 
+  traitName: Sad Slime
+  type: 0
+  rarity: 2
+  unlocked: 0
+  dropRate: 50
+  sprite: {fileID: 21300000, guid: 45173b317d995524fb4f03b405d4a2eb, type: 3}
+  animationAsset: {fileID: 11400000, guid: 6e95b557147d4594eb3d044c086dcab8, type: 2}
+  animationName: animation
+  HPRange: {x: 1, y: 10}
+  attackRange: {x: 1, y: 10}
+  magicAttackRange: {x: 0, y: 0}
+  defenseRange: {x: 1, y: 10}
+  speedRange: {x: 1, y: 10}
+  critRateRange: {x: 0, y: 0}
+  critDMGRange: {x: 0, y: 0}
+  skill: {fileID: 11400000, guid: c39c0da9bc0f23147b8118c70dd075a9, type: 2}

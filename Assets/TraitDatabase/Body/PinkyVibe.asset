@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b676b1ca49d060439d76230a367f8bd, type: 3}
+  m_Name: PinkyVibe
+  m_EditorClassIdentifier: 
+  traitName: Pinky Vibe
+  type: 0
+  rarity: 4
+  unlocked: 1
+  dropRate: 10
+  sprite: {fileID: 21300000, guid: 9900b74f1d1fbde41bd760fef6b0194a, type: 3}
+  animationAsset: {fileID: 11400000, guid: 982caef9953548248b1bfbdd66ef24f6, type: 2}
+  animationName: animation
+  HPRange: {x: 1, y: 10}
+  attackRange: {x: 1, y: 10}
+  magicAttackRange: {x: 0, y: 0}
+  defenseRange: {x: 1, y: 10}
+  speedRange: {x: 1, y: 10}
+  critRateRange: {x: 0, y: 0}
+  critDMGRange: {x: 0, y: 0}
+  skill: {fileID: 11400000, guid: c39c0da9bc0f23147b8118c70dd075a9, type: 2}

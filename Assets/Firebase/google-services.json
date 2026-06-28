@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1082236547825",
+    "project_id": "googrimoire",
+    "storage_bucket": "googrimoire.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1082236547825:android:32b3366e9d4beb9640ef50",
+        "android_client_info": {
+          "package_name": "com.ITGuy.GooGrimoire"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1082236547825-rjo0ecrr8irbcs2met2qvfrh0bsfo0uc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_rUpcl9ZHdPZqVvez-GDIZOSEL_lEuHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1082236547825-rjo0ecrr8irbcs2met2qvfrh0bsfo0uc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1082236547825-t2s3v0erlnv5i4o05hom2s3tc4f3ttob.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ITGuy.GooGrimoire"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

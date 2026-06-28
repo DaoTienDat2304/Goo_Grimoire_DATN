@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91a64fa502df76a44adc09c6bbdbd1c3, type: 3}
+  m_Name: ShopItems-Summer
+  m_EditorClassIdentifier: 
+  items:
+  - itemId: 1
+    itemName: Mashmallow
+    description: Use to tame slime
+    icon: {fileID: -5107242789598853282, guid: 2049397d9632b104d85edd863ff424e7, type: 3}
+    price: 8
+    currencyType: 0
+    resourceGranted: 0
+    resourceAmount: 1
+  - itemId: 2
+    itemName: Mashmallow
+    description: Use to tame slime
+    icon: {fileID: -5107242789598853282, guid: 2049397d9632b104d85edd863ff424e7, type: 3}
+    price: 1
+    currencyType: 1
+    resourceGranted: 0
+    resourceAmount: 2

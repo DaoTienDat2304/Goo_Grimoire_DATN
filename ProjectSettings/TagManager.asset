@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 3
+  tags:
+  - Achievement
+  - Slime
+  - CheckBar
+  - FailBar
+  - Catcher
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - obstacle
+  - Water
+  - UI
+  - Aiming Layer
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Ground
+    uniqueID: 2550027849
+    locked: 0
+  - name: Grass
+    uniqueID: 3304400129
+    locked: 0
+  - name: Player
+    uniqueID: 937286111
+    locked: 0
+  - name: Slime
+    uniqueID: 1010542107
+    locked: 0
+  - name: Tree
+    uniqueID: 2346163041
+    locked: 0
+  - name: Rock
+    uniqueID: 2454734239
+    locked: 0
+  m_RenderingLayers:
+  - Default

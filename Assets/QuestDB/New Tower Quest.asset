@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dfac40908d458f4b9e498498526d4db, type: 3}
+  m_Name: New Tower Quest
+  m_EditorClassIdentifier: 
+  questID: 12
+  questName: Tower time
+  description: "Defeat the 1st floor \xF2f Tower"
+  slimeRequirement: 5
+  questreq: 
+  currencyReward:
+    rewards:
+    - type: 1
+      amount: 10
+  reward:
+    rewardType: Gems
+    amount: 10
+    description: 
+  rewardIcon: {fileID: 0}
+  state: 0
+  towerDatabase: {fileID: 11400000, guid: 21a08e23be9bb2b44bce95dfa50332d6, type: 2}
+  targetFloor: 1

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fca048ca6871efc409a5f5ea13e05ace, type: 3}
+  m_Name: WildSlimes
+  m_EditorClassIdentifier: 
+  slimes:
+  - slimeID: 1
+    wildSlimeTraits:
+    - {fileID: 11400000, guid: 55ca2b786ef25a54fa6de1c29804f7e5, type: 2}
+    - {fileID: 11400000, guid: 3c30896dacaff0c4891431aa75ef9fbd, type: 2}
+    - {fileID: 11400000, guid: 1ab02eacce47f10479aba307ecad91c6, type: 2}
+  - slimeID: 2
+    wildSlimeTraits:
+    - {fileID: 11400000, guid: 561588790dd302440b7d1059da0dce78, type: 2}
+    - {fileID: 11400000, guid: bd4c330e07c58a24696bfba562ea3133, type: 2}
+    - {fileID: 11400000, guid: 1e66f1324814e9c40b8e22db7ec3a07a, type: 2}
+  - slimeID: 3
+    wildSlimeTraits:
+    - {fileID: 11400000, guid: 561588790dd302440b7d1059da0dce78, type: 2}
+    - {fileID: 11400000, guid: e09e12108a4a45c4abe337f2d88081c3, type: 2}
+    - {fileID: 11400000, guid: 4655ab2923dbdd84c9ceed86195be0a0, type: 2}
+  - slimeID: 4
+    wildSlimeTraits:
+    - {fileID: 11400000, guid: 55ca2b786ef25a54fa6de1c29804f7e5, type: 2}
+    - {fileID: 11400000, guid: 02d456fe043cc774794c4039b3b3a77d, type: 2}
+    - {fileID: 11400000, guid: 78c7bb4a61ffb0e419d6d02dfddd3227, type: 2}
+  - slimeID: 5
+    wildSlimeTraits:
+    - {fileID: 11400000, guid: 55ca2b786ef25a54fa6de1c29804f7e5, type: 2}
+    - {fileID: 11400000, guid: 02d456fe043cc774794c4039b3b3a77d, type: 2}
+    - {fileID: 11400000, guid: 09656786a74813d45b75757533c2dffb, type: 2}
+  - slimeID: 6
+    wildSlimeTraits:
+    - {fileID: 11400000, guid: 561588790dd302440b7d1059da0dce78, type: 2}
+    - {fileID: 11400000, guid: 3c30896dacaff0c4891431aa75ef9fbd, type: 2}
+    - {fileID: 11400000, guid: 1e66f1324814e9c40b8e22db7ec3a07a, type: 2}
+  - slimeID: 7
+    wildSlimeTraits:
+    - {fileID: 11400000, guid: cc970834a17fa9f4d873dd4314358b16, type: 2}
+    - {fileID: 11400000, guid: 3c30896dacaff0c4891431aa75ef9fbd, type: 2}
+    - {fileID: 11400000, guid: 4655ab2923dbdd84c9ceed86195be0a0, type: 2}
+  tamedSlimes: []

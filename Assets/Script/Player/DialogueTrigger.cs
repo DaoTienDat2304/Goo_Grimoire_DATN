@@ -110,7 +110,37 @@ public class DialogueTrigger : MonoBehaviour
             TriggerDialogue();
         }
     }
-    
+
+    private void Update()
+    {
+        if (!triggerOnClick || !MobileInput.TryGetPrimaryTap(out var tapPosition, true))
+            return;
+
+        if (IsTapOnTrigger(tapPosition))
+            TriggerDialogue();
+    }
+
+    private bool IsTapOnTrigger(Vector2 screenPosition)
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+            return false;
+
+        var collider2d = GetComponent<Collider2D>();
+        if (collider2d != null)
+        {
+            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(screenPosition);
+            return collider2d.OverlapPoint(worldPosition);
+        }
+
+        var collider3d = GetComponent<Collider>();
+        if (collider3d == null)
+            return false;
+
+        Ray ray = mainCamera.ScreenPointToRay(screenPosition);
+        return collider3d.Raycast(ray, out _, mainCamera.farClipPlane);
+    }
+
     void OnMouseEnter()
     {
         if (showHighlightOnHover && highlightObject != null)

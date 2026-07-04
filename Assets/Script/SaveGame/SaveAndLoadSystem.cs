@@ -47,11 +47,27 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (CurrencyManager.Instance != null)
             CurrencyManager.Instance.firstLoadDone = false;
 
-        // 3. Load từ cloud JSON (đã được cache sẵn bởi CloudSaveProvider)
-        if (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.HasCloudSave)
+        // 3. Chọn save mới hơn giữa cloud và local (PlayerPrefs)
+        string cloudJson = (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.HasCloudSave)
+            ? CloudSaveProvider.Instance.GetCachedJson()
+            : null;
+        string localJson = LocalSaveStore.Load(AuthManager.Instance.LocalSaveId);
+
+        string chosenJson;
+        if (!string.IsNullOrEmpty(cloudJson) && !string.IsNullOrEmpty(localJson))
         {
-            string json = CloudSaveProvider.Instance.GetCachedJson();
-            Load(json);
+            bool localNewer = LocalSaveStore.GetSavedAt(localJson) > LocalSaveStore.GetSavedAt(cloudJson);
+            chosenJson = localNewer ? localJson : cloudJson;
+            Debug.Log($"[Save] Có cả cloud lẫn local — dùng {(localNewer ? "local" : "cloud")} (mới hơn).");
+        }
+        else
+        {
+            chosenJson = cloudJson ?? localJson;
+        }
+
+        if (!string.IsNullOrEmpty(chosenJson))
+        {
+            Load(chosenJson);
         }
         else
         {
@@ -61,9 +77,17 @@ public class SaveAndLoadSystem : MonoBehaviour
             if (DevAccountInitializer.IsDevAccount())
             {
                 DevAccountInitializer.InitializeDevSlimes();
-                Save(); // lưu cloud ngay để lần sau login có sẵn
             }
+            else
 #endif
+            {
+                // Tài khoản mới thường: tạo 2 slime khởi đầu (Starter_1, Starter_2).
+                // ResetGameState() vừa xóa sạch slime nên phải tạo lại ở đây,
+                // nếu không người chơi vào game sau tutorial sẽ không có slime nào.
+                if (BreedingManager.Instance != null)
+                    BreedingManager.Instance.CreateInitialSlimes();
+            }
+            Save(); // lưu ngay để lần sau login/replay có sẵn
         }
 
         // 4. Nếu có kết quả tower chưa được lưu, apply lên dữ liệu vừa load rồi save lại
@@ -71,6 +95,40 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         // 5. Load world
         yield return StartCoroutine(LoadWorld());
+
+        // 6. Bật auto-save sau khi đã load xong (tránh ghi đè save thật bằng dữ liệu rỗng)
+        _initialized = true;
+        if (autoSaveEnabled) StartCoroutine(AutoSaveLoop());
+    }
+
+    // ---------- Auto Save ----------
+    [Header("Auto Save")]
+    [SerializeField] private bool autoSaveEnabled = true;
+    [Tooltip("Khoảng thời gian (giây) giữa các lần tự lưu định kỳ.")]
+    [SerializeField] private float autoSaveInterval = 60f;
+
+    /// <summary>Chỉ true sau khi InitializeAsync load xong — gate cho mọi auto-save.</summary>
+    private bool _initialized;
+
+    IEnumerator AutoSaveLoop()
+    {
+        var wait = new WaitForSeconds(autoSaveInterval);
+        while (autoSaveEnabled)
+        {
+            yield return wait;
+            if (_initialized) Save();
+        }
+    }
+
+    void OnApplicationQuit()
+    {
+        if (_initialized) Save();
+    }
+
+    void OnApplicationPause(bool paused)
+    {
+        // Trên mobile OnApplicationQuit thường không bắn — lưu khi app xuống nền.
+        if (paused && _initialized) Save();
     }
 
     IEnumerator LoadWorld()
@@ -99,7 +157,13 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         var json = JsonUtility.ToJson(data, true);
 
-        // Chỉ lưu cloud — không ghi local file
+        // Luôn lưu cục bộ bằng PlayerPrefs — không mất save khi thoát/replay,
+        // kể cả ở offline dev mode khi cloud chưa bật. Dùng LocalSaveId (guest = key
+        // cố định) để save không bị lệch key mỗi phiên đăng nhập ẩn danh.
+        string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
+        LocalSaveStore.Save(localId, json);
+
+        // Lưu cloud (khi đã đăng nhập và bật Firebase)
         if (CloudSaveProvider.Instance != null
             && AuthManager.Instance != null
             && AuthManager.Instance.IsLoggedIn)

@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TurnBaseGame.unity
     guid: e3ce141777eecb34cbcdaa4503d869c9
+  - enabled: 1
+    path: Assets/Scenes/Frozen_Map.unity
+    guid: 75683485fdf3b364b9786acaaf5508b0
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

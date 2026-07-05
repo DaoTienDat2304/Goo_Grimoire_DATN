@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IInitializePotentialDragHandler, IDragHandler, IPointerUpHandler
 {
     private const string EditorPrefabPath = "Assets/UI/prefab/MobileControlsCanvas.prefab";
     private const string ResourcesPrefabPath = "UI/MobileControlsCanvas";
@@ -25,7 +25,7 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
     [SerializeField] private float baseSize = 240f;
     [SerializeField] private float knobSize = 92f;
     [SerializeField] private float handleRange = 86f;
-    [SerializeField] private float inputDeadZone = 12f;
+    [SerializeField] private float inputDeadZone = 6f;
     [SerializeField] private float movementSensitivity = 1f;
     [SerializeField] private bool showJoystickAtRest = true;
     [SerializeField] private bool moveCenterToFirstTouch = true;
@@ -279,7 +279,13 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IDragHandle
         activePointerId = eventData.pointerId;
         if (moveCenterToFirstTouch)
             MoveBaseToFinger(eventData);
-        SetInput(Vector2.zero);
+        else
+            UpdateInput(eventData);
+    }
+
+    public void OnInitializePotentialDrag(PointerEventData eventData)
+    {
+        eventData.useDragThreshold = false;
     }
 
     public void OnDrag(PointerEventData eventData)

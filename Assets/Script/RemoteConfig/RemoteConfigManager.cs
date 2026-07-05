@@ -37,6 +37,8 @@ public class RemoteConfigManager : MonoBehaviour
     [Header("Dev Settings")]
     [Tooltip("Bật khi dev: bỏ qua cache 12h, luôn fetch từ server mỗi lần chạy game.")]
     public bool forceFetchOnStart = true;
+    [Tooltip("Editor Windows can crash with Firebase SDK 13.5.0 during automatic network fetches. Enable only when testing Remote Config in Editor.")]
+    public bool fetchRemoteConfigInEditor = false;
 
     // ---- Breeding ----
     public float BreedingTime        => GetFloat("breeding_time_seconds",    5f);
@@ -181,6 +183,14 @@ public class RemoteConfigManager : MonoBehaviour
             Debug.Log("[RemoteConfig] ✓ Firebase dependencies OK.");
 
             SetDefaults();
+#if UNITY_EDITOR
+            if (!fetchRemoteConfigInEditor)
+            {
+                Debug.LogWarning("[RemoteConfig] Skipping FetchAndActivate in Editor to avoid Firebase native crash. Player builds still fetch normally.");
+                IsReady = true;
+                return;
+            }
+#endif
             FetchAndActivate();
         });
     }

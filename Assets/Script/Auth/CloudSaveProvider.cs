@@ -30,6 +30,9 @@ public class CloudSaveProvider : MonoBehaviour
 {
     public static CloudSaveProvider Instance { get; private set; }
 
+    [Tooltip("Enable only when you explicitly need to test Firestore cloud saves in the Unity Editor.")]
+    public bool useFirestoreInEditor = false;
+
     // ── Trạng thái cloud check ──────────────────────────────
     /// <summary>true nếu tài khoản hiện tại đã có save data trên cloud (và hợp lệ).</summary>
     public bool HasCloudSave    { get; private set; }
@@ -73,6 +76,13 @@ public class CloudSaveProvider : MonoBehaviour
             RemoteConfigManager.Instance == null || RemoteConfigManager.Instance.IsReady);
 
 #if FIREBASE_FIRESTORE
+        if (IsFirestoreDisabledInEditor())
+        {
+            Debug.LogWarning("[CloudSave] Skipping Firestore load in Editor to avoid Firebase native crash. Using local save only.");
+            yield return null;
+        }
+        else
+        {
         string rawJson = null;
         yield return StartCoroutine(LoadFromCloud(uid, (json, _) => rawJson = json));
 
@@ -81,6 +91,7 @@ public class CloudSaveProvider : MonoBehaviour
             string gameJson = UnwrapAndVerify(rawJson, uid);
             _cachedCloudJson = gameJson;
             HasCloudSave     = gameJson != null;
+        }
         }
 #else
         yield return null;
@@ -133,6 +144,12 @@ public class CloudSaveProvider : MonoBehaviour
     public IEnumerator SaveToCloud(string uid, string json)
     {
 #if FIREBASE_FIRESTORE
+        if (IsFirestoreDisabledInEditor())
+        {
+            Debug.Log("[CloudSave] Firestore save skipped in Editor. Local save is already written.");
+            yield break;
+        }
+
         if (string.IsNullOrEmpty(uid) || string.IsNullOrEmpty(json)) yield break;
 
         // Bọc game JSON trong envelope có chữ ký HMAC
@@ -188,6 +205,12 @@ public class CloudSaveProvider : MonoBehaviour
     public IEnumerator LoadFromCloud(string uid, Action<string, long> onComplete)
     {
 #if FIREBASE_FIRESTORE
+        if (IsFirestoreDisabledInEditor())
+        {
+            onComplete?.Invoke(null, 0);
+            yield break;
+        }
+
         if (string.IsNullOrEmpty(uid)) { onComplete?.Invoke(null, 0); yield break; }
 
         bool   done    = false;
@@ -251,5 +274,14 @@ public class CloudSaveProvider : MonoBehaviour
         // Không có envelope → save cũ hoặc dữ liệu lạ, reject
         Debug.LogWarning("[CloudSave] Save không có chữ ký — từ chối load.");
         return null;
+    }
+
+    bool IsFirestoreDisabledInEditor()
+    {
+#if UNITY_EDITOR
+        return !useFirestoreInEditor;
+#else
+        return false;
+#endif
     }
 }

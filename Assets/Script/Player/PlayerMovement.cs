@@ -58,6 +58,7 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.gravityScale = 0;
             rb.freezeRotation = true;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         }
         
         Debug.Log("PlayerMovement with state system initialized!");
@@ -68,11 +69,12 @@ public class PlayerMovement : MonoBehaviour
         HandleInput();
         UpdateMovementState();
         UpdateSpriteFlip();
+        ApplyMovementVelocity();
     }
     
     void FixedUpdate()
     {
-        HandleMovement();
+        ApplyMovementVelocity();
     }
 
     void HandleInput()
@@ -188,29 +190,26 @@ public class PlayerMovement : MonoBehaviour
             transform.localScale = new Vector3(1, 1, 1);  // Quay phải
     }
 
-    void HandleMovement()
+    private float GetSpeedForCurrentState()
     {
-        if (rb == null) return;
-
-        // Tính toán tốc độ dựa trên trạng thái
-        float currentSpeed;
         switch (currentState)
         {
             case PlayerMovementState.Sitting:
-                currentSpeed = sitSpeed;  // 3 - di chuyển chậm khi ngồi
-                break;
+                return sitSpeed;  // 3 - di chuyển chậm khi ngồi
             case PlayerMovementState.Running:
-                currentSpeed = runSpeed;  // 7 - chạy nhanh
-                break;
+                return runSpeed;  // 7 - chạy nhanh
             case PlayerMovementState.Walking:
             default:
-                currentSpeed = walkSpeed; // 5 - đi bộ bình thường
-                break;
+                return walkSpeed; // 5 - đi bộ bình thường
         }
-        
+    }
+
+    void ApplyMovementVelocity()
+    {
+        if (rb == null) return;
+
         // Di chuyển player
-        Vector2 targetVelocity = movement * currentSpeed;
-        rb.linearVelocity = targetVelocity;
+        rb.linearVelocity = movement * GetSpeedForCurrentState();
     }
 
     float GetDetectionRangeForState(PlayerMovementState state)

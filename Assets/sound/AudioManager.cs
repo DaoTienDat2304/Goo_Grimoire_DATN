@@ -26,6 +26,11 @@ public class AudioManager : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float sfxVolume = 1f;
 
+    private AudioClip generatedButtonClickSFX;
+    private AudioClip generatedBuildingClickSFX;
+    private float lastButtonClickTime = -1f;
+    private const float ButtonClickThrottleSeconds = 0.035f;
+
     // Configure your scene name keywords here
     private const string SceneName_Menu = "menu";
     private const string SceneName_Loading = "loading";
@@ -200,18 +205,16 @@ public class AudioManager : MonoBehaviour
 
     public void PlayButtonClickSFX()
     {
-        if (buttonClickSFX != null && sfxAudioSource != null)
-        {
-            sfxAudioSource.PlayOneShot(buttonClickSFX, sfxVolume);
-        }
+        if (Time.unscaledTime - lastButtonClickTime < ButtonClickThrottleSeconds)
+            return;
+
+        lastButtonClickTime = Time.unscaledTime;
+        PlaySFX(buttonClickSFX != null ? buttonClickSFX : GetGeneratedButtonClickSFX(), 0.85f);
     }
 
     public void PlayBuildingClickSFX()
     {
-        if (buildingClickSFX != null && sfxAudioSource != null)
-        {
-            sfxAudioSource.PlayOneShot(buildingClickSFX, sfxVolume);
-        }
+        PlaySFX(buildingClickSFX != null ? buildingClickSFX : GetGeneratedBuildingClickSFX(), 0.9f);
     }
 
     // Generic method to play any sound effect
@@ -229,5 +232,42 @@ public class AudioManager : MonoBehaviour
         {
             sfxAudioSource.PlayOneShot(clip, sfxVolume * volumeScale);
         }
+    }
+
+    private AudioClip GetGeneratedButtonClickSFX()
+    {
+        if (generatedButtonClickSFX == null)
+            generatedButtonClickSFX = CreateTapClip("Generated_Button_Tap", 860f, 1180f, 0.045f);
+        return generatedButtonClickSFX;
+    }
+
+    private AudioClip GetGeneratedBuildingClickSFX()
+    {
+        if (generatedBuildingClickSFX == null)
+            generatedBuildingClickSFX = CreateTapClip("Generated_Building_Tap", 620f, 920f, 0.055f);
+        return generatedBuildingClickSFX;
+    }
+
+    private static AudioClip CreateTapClip(string clipName, float startFrequency, float endFrequency, float duration)
+    {
+        const int sampleRate = 44100;
+        int sampleCount = Mathf.Max(1, Mathf.RoundToInt(sampleRate * duration));
+        var samples = new float[sampleCount];
+
+        float phase = 0f;
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = i / (float)sampleCount;
+            float frequency = Mathf.Lerp(startFrequency, endFrequency, t);
+            phase += frequency / sampleRate;
+
+            float envelope = Mathf.Exp(-t * 18f) * Mathf.Clamp01(t / 0.08f);
+            float tone = Mathf.Sin(phase * Mathf.PI * 2f);
+            samples[i] = tone * envelope * 0.42f;
+        }
+
+        var clip = AudioClip.Create(clipName, sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
     }
 }

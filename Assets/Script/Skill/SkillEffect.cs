@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public enum EffectType { Damage, Heal, Buff, Debuff, Stun }
+public enum EffectType { Damage, Heal, Buff, Debuff, Stun, Poison, Bleed }
 public enum BuffStat { Defense, Attack, Speed }
 
 // Bên nào nhận hiệu ứng

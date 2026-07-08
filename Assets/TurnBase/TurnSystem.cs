@@ -9,18 +9,18 @@ using UnityEngine.SceneManagement;
 
 public class TurnSystem : MonoBehaviour
 {
-    [SerializeField] private Queue<GameObject> turnQueue = new Queue<GameObject>();
-    private Dictionary<GameObject, float> remainingAV = new Dictionary<GameObject, float>();
+    [SerializeField] protected Queue<GameObject> turnQueue = new Queue<GameObject>();
+    protected Dictionary<GameObject, float> remainingAV = new Dictionary<GameObject, float>();
     public GameObject boss;
-    private GameObject currentSlime;
-    [SerializeField] private FormationManager formationManager;
+    protected GameObject currentSlime;
+    [SerializeField] protected FormationManager formationManager;
     [Header("Wild Slimes Database")]
     [SerializeField] public WildSlimes wildSlimes;
 
     [Header("Tower Database")]
     [SerializeField] public TowerSlimeBosses towerBosses;
 
-    private List<GameObject> turnList;
+    protected List<GameObject> turnList;
     public int turnCount = 0;
     public GameObject skillPanel;
     public GameObject memberPanel;
@@ -33,11 +33,10 @@ public class TurnSystem : MonoBehaviour
     public GameObject slimeTurn;
 
     [Header("Result Panel")]
-    [SerializeField] private GameObject resultPanel;
-    [SerializeField] private Text resultText;
+    [SerializeField] protected GameObject resultPanel;
+    [SerializeField] protected Text resultText;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    protected virtual void Start()
     {
         // Ẩn result panel khi bắt đầu
         if (resultPanel != null)
@@ -192,7 +191,7 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
-    IEnumerator turnDisplay()
+    protected IEnumerator turnDisplay()
     {
         foreach (Transform child in turnPanel.transform)
         {
@@ -336,7 +335,7 @@ public class TurnSystem : MonoBehaviour
         StartCoroutine(NextTurn());
     }
 
-    private void InitializeAVSystem()
+    protected void InitializeAVSystem()
     {
         remainingAV.Clear();
         foreach (var slime in turnList)
@@ -347,7 +346,7 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
-    private float GetSpeedOf(GameObject slime)
+    protected float GetSpeedOf(GameObject slime)
     {
         var stats = slime.GetComponent<SlimeBattleStats>();
         if (stats != null) return Mathf.Max(1f, stats.BattleSpeed);
@@ -405,7 +404,7 @@ public class TurnSystem : MonoBehaviour
         return upcoming;
     }
 
-    IEnumerator NextTurn()
+    protected virtual IEnumerator NextTurn()
     {
         if (currentSlime != null) currentSlime.GetComponent<SlimeStats>().turnHalo.SetActive(false);
         yield return new WaitForSeconds(0.3f);
@@ -523,7 +522,7 @@ public class TurnSystem : MonoBehaviour
     }
 
     // Gọi cuối lượt của chính slime đó (sau khi hành động hoặc bỏ lượt vì stun)
-    private void TickCurrentSlimeEffects()
+    protected void TickCurrentSlimeEffects()
     {
         var battleStats = currentSlime?.GetComponent<SlimeBattleStats>();
         battleStats?.TickBuffs();
@@ -534,7 +533,7 @@ public class TurnSystem : MonoBehaviour
         StartCoroutine(AutoAttack());
     }
 
-    IEnumerator AutoAttack()
+    protected virtual IEnumerator AutoAttack()
     {
         var target = boss.GetComponent<SlimeBattleStats>();
         var attacker = currentSlime.GetComponent<SlimeBattleStats>();
@@ -642,7 +641,7 @@ public class TurnSystem : MonoBehaviour
         else Debug.Log("this slime have no Weapon skill");
     }
 
-    private IEnumerator DoSkill(SkillInstance skill, GameObject target)
+    protected virtual IEnumerator DoSkill(SkillInstance skill, GameObject target)
     {
         var attacker = currentSlime.GetComponent<SlimeBattleStats>();
         var attackerAnim = currentSlime.GetComponent<SimpleCombatAnimation>();
@@ -737,7 +736,7 @@ public class TurnSystem : MonoBehaviour
         StartCoroutine(NextTurn());
     }
 
-    IEnumerator BossTurn()
+    protected virtual IEnumerator BossTurn()
     {
         turnCount++;
         curSlimeBody.skeletonDataAsset = currentSlime.GetComponentInChildren<SkeletonGraphic>().skeletonDataAsset;
@@ -902,7 +901,7 @@ public class TurnSystem : MonoBehaviour
     }
 
     // Kiểm tra điều kiện thắng (boss HP = 0)
-    private bool CheckWinCondition()
+    protected virtual bool CheckWinCondition()
     {
         if (boss == null) return false;
 
@@ -919,7 +918,7 @@ public class TurnSystem : MonoBehaviour
     }
 
     // Kiểm tra điều kiện thua (tất cả team slimes HP = 0)
-    private bool CheckLoseCondition()
+    protected bool CheckLoseCondition()
     {
         if (formationManager == null || formationManager.slimeFormation == null)
             return false;
@@ -956,7 +955,7 @@ public class TurnSystem : MonoBehaviour
         return true; // Tất cả đều chết
     }
 
-    private IEnumerator HandleVictory()
+    protected virtual IEnumerator HandleVictory()
     {
         // Log analytics trước khi xử lý reward
         {
@@ -1104,7 +1103,7 @@ public class TurnSystem : MonoBehaviour
         yield return SceneLoader.LoadSceneWithLoadingCoroutine("adventureSence");
     }
     
-    private IEnumerator HandleDefeat()
+    protected IEnumerator HandleDefeat()
     {
         // Log analytics khi thua
         {
@@ -1145,7 +1144,7 @@ public class TurnSystem : MonoBehaviour
     /// <summary>
     /// Hiển thị panel kết quả với text tương ứng
     /// </summary>
-    private void ShowResultPanel(bool isVictory)
+    protected void ShowResultPanel(bool isVictory)
     {
         if (resultPanel != null)
         {
@@ -1231,40 +1230,5 @@ public class TurnSystem : MonoBehaviour
         {
             Destroy(go);
         }
-    }
-
-    // ── Defense / Skip Action Actions ───────────────────────────────────
-    public void DoDefense()
-    {
-        if (currentSlime == null) return;
-        var battleStats = currentSlime.GetComponent<SlimeBattleStats>();
-        if (battleStats != null)
-        {
-            // Tăng 50% phòng thủ trong 1 lượt (sẽ hết hạn ở đầu lượt tiếp theo)
-            battleStats.ApplyBuff(BuffStat.Defense, 1.5f, 1, false);
-            Debug.Log($"{currentSlime.name} phòng thủ! Tăng 50% phòng thủ.");
-        }
-
-        skillPanel.SetActive(false);
-        StartCoroutine(ExecuteSkipOrDefense());
-    }
-
-    public void DoSkip()
-    {
-        if (currentSlime != null)
-        {
-            Debug.Log($"{currentSlime.name} skip turn!");
-            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "SKIP", Color.yellow);
-        }
-        
-        skillPanel.SetActive(false);
-        StartCoroutine(ExecuteSkipOrDefense());
-    }
-
-    private IEnumerator ExecuteSkipOrDefense()
-    {
-        yield return new WaitForSeconds(0.8f);
-        // Buff không tick ở đây nữa mà sẽ tick ở ĐẦU lượt của Slime tiếp theo trong NextTurn()
-        StartCoroutine(NextTurn());
     }
 }

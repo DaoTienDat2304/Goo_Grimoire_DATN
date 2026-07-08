@@ -11,6 +11,14 @@ public struct ActiveBuff
     public bool isDebuff;  // true = debuff
 }
 
+[System.Serializable]
+public struct ActiveDoT
+{
+    public EffectType type; // Poison or Bleed
+    public int damagePerTurn;
+    public int turnsLeft;
+}
+
 public class SlimeBattleStats : MonoBehaviour
 {
     [Header("Base Stats (from SlimeStats)")]
@@ -43,6 +51,7 @@ public class SlimeBattleStats : MonoBehaviour
     public float BattleCritDMG { get { return battleCritDMG; } set { battleCritDMG = value; } }
 
     private List<ActiveBuff> activeBuffs = new List<ActiveBuff>();
+    private List<ActiveDoT> activeDoTs = new List<ActiveDoT>();
 
     public int StunTurns { get; private set; }
     public bool IsStunned => StunTurns > 0;
@@ -312,6 +321,49 @@ public class SlimeBattleStats : MonoBehaviour
             case BuffStat.Defense: BattleDefense = value; break;
             case BuffStat.Attack:  BattleAttack  = value; break;
             case BuffStat.Speed:   BattleSpeed   = value; break;
+        }
+    }
+    public void ApplyDoT(EffectType type, int damagePerTurn, int duration)
+    {
+        activeDoTs.Add(new ActiveDoT { type = type, damagePerTurn = damagePerTurn, turnsLeft = duration });
+        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        if (turnSys != null)
+        {
+            string effectName = type == EffectType.Poison ? "POISONED!" : "BLEEDING!";
+            Color color = type == EffectType.Poison ? Color.green : new Color(0.6f, 0f, 0f);
+            turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.0f, effectName, color);
+        }
+        Debug.Log($"{name} bị dính {type} gây {damagePerTurn} sát thương mỗi lượt trong {duration} lượt!");
+    }
+
+    public void TickDoTs()
+    {
+        for (int i = activeDoTs.Count - 1; i >= 0; i--)
+        {
+            var dot = activeDoTs[i];
+            dot.turnsLeft--;
+            
+            // Gây sát thương
+            TakeDamage(dot.damagePerTurn);
+            
+            // Hiện popup sát thương DoT
+            TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+            if (turnSys != null)
+            {
+                Color color = dot.type == EffectType.Poison ? Color.green : new Color(0.6f, 0f, 0f);
+                string suffix = dot.type == EffectType.Poison ? " Poison" : " Bleed";
+                turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, dot.damagePerTurn.ToString() + suffix, color);
+            }
+
+            if (dot.turnsLeft <= 0)
+            {
+                Debug.Log($"{name}: {dot.type} hết hạn.");
+                activeDoTs.RemoveAt(i);
+            }
+            else
+            {
+                activeDoTs[i] = dot;
+            }
         }
     }
     

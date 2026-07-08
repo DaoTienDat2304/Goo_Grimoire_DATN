@@ -55,15 +55,33 @@ public class SaveAndLoadSystem : MonoBehaviour
         }
         else
         {
-            Debug.Log("[Save] Tài khoản mới — bắt đầu game với dữ liệu mặc định.");
-            ResetGameState();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (DevAccountInitializer.IsDevAccount())
+            string localPath = Application.persistentDataPath + "/save.json";
+            if (System.IO.File.Exists(localPath))
             {
-                DevAccountInitializer.InitializeDevSlimes();
-                Save(); // lưu cloud ngay để lần sau login có sẵn
+                try
+                {
+                    string localJson = System.IO.File.ReadAllText(localPath);
+                    Debug.Log("[Save] Load từ local backup vì không có cloud save.");
+                    Load(localJson);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[Save] Lỗi load local backup: {ex.Message}");
+                    ResetGameState();
+                }
             }
+            else
+            {
+                Debug.Log("[Save] Tài khoản mới — bắt đầu game với dữ liệu mặc định.");
+                ResetGameState();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                if (DevAccountInitializer.IsDevAccount())
+                {
+                    DevAccountInitializer.InitializeDevSlimes();
+                    Save(); // lưu cloud/local ngay để lần sau login có sẵn
+                }
 #endif
+            }
         }
 
         // 4. Nếu có kết quả tower chưa được lưu, apply lên dữ liệu vừa load rồi save lại
@@ -98,6 +116,18 @@ public class SaveAndLoadSystem : MonoBehaviour
         SerializeFarmDifficulties(data);
 
         var json = JsonUtility.ToJson(data, true);
+
+        // Lưu local backup trước
+        try
+        {
+            string localPath = Application.persistentDataPath + "/save.json";
+            System.IO.File.WriteAllText(localPath, json);
+            Debug.Log($"[Save] Đã lưu local backup. Path: {localPath}");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[Save] Lỗi lưu local backup: {ex.Message}");
+        }
 
         // Chỉ lưu cloud — không ghi local file
         if (CloudSaveProvider.Instance != null

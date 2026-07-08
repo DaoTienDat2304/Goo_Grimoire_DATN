@@ -1,6 +1,21 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+public enum TowerEnemyType { GreenSlime, TinyBat, SlimeKing }
+
+[System.Serializable]
+public class EnemySpawnConfig
+{
+    public TowerEnemyType enemyType;
+    public int level = 1;
+}
+
+[System.Serializable]
+public class TowerWaveConfig
+{
+    public List<EnemySpawnConfig> enemies = new List<EnemySpawnConfig>();
+}
+
 [CreateAssetMenu(fileName = "TowerSlimeBosses", menuName = "Tower/TowerSlimeBosses")]
 public class TowerSlimeBosses : ScriptableObject
 {
@@ -10,6 +25,9 @@ public class TowerSlimeBosses : ScriptableObject
         [Header("Floor Info")]
         public int floorNumber;
         public string floorName;
+        
+        [Header("Waves Setup (If empty, spawns default single boss)")]
+        public List<TowerWaveConfig> waves = new List<TowerWaveConfig>();
         
         [Header("Boss Traits")]
         public TraitSO bodyTrait;

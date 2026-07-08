@@ -36,6 +36,225 @@ public class TurnSystem : MonoBehaviour
     [SerializeField] private GameObject resultPanel;
     [SerializeField] private Text resultText;
 
+    [Header("Chapter 1 Levels Config (Wave System)")]
+    public int currentWaveIndex = 0;
+    public int totalWaves = 1;
+    public List<GameObject> activeEnemies = new List<GameObject>();
+    private Vector2 originalBossPos;
+    private int slimeKingTurnCount = 0;
+    private int activeTowerLevel = 1;
+
+    public enum EnemyType { GreenSlime, TinyBat, SlimeKing }
+
+    private void GetEnemyStats(EnemyType type, int level, out int hp, out int atk, out int matk, out int def, out int spd, out float crit, out float critDMG)
+    {
+        hp = 100; atk = 10; matk = 10; def = 10; spd = 100; crit = 0.05f; critDMG = 1.50f;
+        if (type == EnemyType.GreenSlime)
+        {
+            switch (level)
+            {
+                case 1: hp = 900; atk = 90; matk = 70; def = 60; spd = 90; crit = 0.02f; critDMG = 1.50f; break;
+                case 2: hp = 1004; atk = 99; matk = 77; def = 65; spd = 91; crit = 0.04f; critDMG = 1.50f; break;
+                case 3: hp = 1119; atk = 109; matk = 85; def = 71; spd = 92; crit = 0.06f; critDMG = 1.50f; break;
+                case 4: hp = 1248; atk = 120; matk = 94; def = 77; spd = 93; crit = 0.08f; critDMG = 1.50f; break;
+                case 5: hp = 1392; atk = 133; matk = 104; def = 84; spd = 94; crit = 0.10f; critDMG = 1.50f; break;
+            }
+        }
+        else if (type == EnemyType.TinyBat)
+        {
+            switch (level)
+            {
+                case 3: hp = 780; atk = 105; matk = 60; def = 50; spd = 95; crit = 0.06f; critDMG = 1.50f; break;
+                case 4: hp = 870; atk = 116; matk = 66; def = 55; spd = 96; crit = 0.08f; critDMG = 1.50f; break;
+                case 5: hp = 970; atk = 128; matk = 73; def = 60; spd = 97; crit = 0.10f; critDMG = 1.50f; break;
+            }
+        }
+        else if (type == EnemyType.SlimeKing)
+        {
+            hp = 4250; atk = 150; matk = 100; def = 105; spd = 97; crit = 0.15f; critDMG = 1.70f;
+        }
+    }
+
+    private List<List<EnemyType>> GetLevelWaves(int levelNum, out List<List<int>> waveLevels)
+    {
+        var waves = new List<List<EnemyType>>();
+        waveLevels = new List<List<int>>();
+
+        if (levelNum == 1)
+        {
+            waves.Add(new List<EnemyType> { EnemyType.GreenSlime, EnemyType.GreenSlime });
+            waveLevels.Add(new List<int> { 1, 1 });
+        }
+        else if (levelNum == 2)
+        {
+            waves.Add(new List<EnemyType> { EnemyType.GreenSlime, EnemyType.GreenSlime, EnemyType.GreenSlime });
+            waveLevels.Add(new List<int> { 2, 2, 2 });
+        }
+        else if (levelNum == 3)
+        {
+            waves.Add(new List<EnemyType> { EnemyType.GreenSlime, EnemyType.GreenSlime });
+            waveLevels.Add(new List<int> { 3, 3 });
+
+            waves.Add(new List<EnemyType> { EnemyType.TinyBat, EnemyType.GreenSlime });
+            waveLevels.Add(new List<int> { 3, 3 });
+        }
+        else if (levelNum == 4)
+        {
+            waves.Add(new List<EnemyType> { EnemyType.TinyBat, EnemyType.GreenSlime, EnemyType.GreenSlime });
+            waveLevels.Add(new List<int> { 4, 4, 4 });
+
+            waves.Add(new List<EnemyType> { EnemyType.TinyBat, EnemyType.TinyBat, EnemyType.GreenSlime });
+            waveLevels.Add(new List<int> { 4, 4, 4 });
+        }
+        else if (levelNum == 5)
+        {
+            waves.Add(new List<EnemyType> { EnemyType.GreenSlime, EnemyType.GreenSlime, EnemyType.TinyBat });
+            waveLevels.Add(new List<int> { 5, 5, 5 });
+
+            waves.Add(new List<EnemyType> { EnemyType.TinyBat, EnemyType.TinyBat, EnemyType.GreenSlime });
+            waveLevels.Add(new List<int> { 5, 5, 5 });
+
+            waves.Add(new List<EnemyType> { EnemyType.SlimeKing, EnemyType.GreenSlime, EnemyType.GreenSlime });
+            waveLevels.Add(new List<int> { 5, 5, 5 });
+        }
+        else // Fallback
+        {
+            waves.Add(new List<EnemyType> { EnemyType.GreenSlime });
+            waveLevels.Add(new List<int> { 1 });
+        }
+
+        return waves;
+    }
+
+    private void SpawnWave(int waveIndex)
+    {
+        foreach (var enemy in activeEnemies)
+        {
+            if (enemy != null && enemy != boss)
+            {
+                Destroy(enemy);
+            }
+        }
+        activeEnemies.Clear();
+
+        if (boss != null) boss.SetActive(false);
+
+        int levelNum = activeTowerLevel;
+
+        List<List<int>> waveLevels;
+        var levelWaves = GetLevelWaves(levelNum, out waveLevels);
+
+        if (waveIndex >= levelWaves.Count) return;
+
+        var currentWaveEnemies = levelWaves[waveIndex];
+        var currentWaveLevels = waveLevels[waveIndex];
+        totalWaves = levelWaves.Count;
+
+        for (int i = 0; i < currentWaveEnemies.Count; i++)
+        {
+            EnemyType type = currentWaveEnemies[i];
+            int level = currentWaveLevels[i];
+
+            GameObject enemyGo = Instantiate(boss, boss.transform.parent);
+            enemyGo.name = $"{type} Lv{level}";
+            enemyGo.SetActive(true);
+
+            RectTransform rect = enemyGo.GetComponent<RectTransform>();
+            Vector2 offset = Vector2.zero;
+            if (currentWaveEnemies.Count == 1)
+            {
+                offset = Vector2.zero;
+            }
+            else if (currentWaveEnemies.Count == 2)
+            {
+                offset = i == 0 ? new Vector2(0, 100) : new Vector2(0, -100);
+            }
+            else if (currentWaveEnemies.Count == 3)
+            {
+                if (i == 0) offset = new Vector2(80, 120);
+                else if (i == 1) offset = new Vector2(0, 0);
+                else offset = new Vector2(80, -120);
+            }
+
+            if (type == EnemyType.TinyBat)
+            {
+                offset += new Vector2(0, 80);
+            }
+
+            rect.anchoredPosition = originalBossPos + offset;
+
+            var spine = enemyGo.GetComponentInChildren<SkeletonGraphic>();
+            if (type == EnemyType.TinyBat)
+            {
+                if (spine != null) spine.color = new Color(0.6f, 0.2f, 0.8f);
+                enemyGo.transform.localScale = Vector3.one * 0.7f;
+            }
+            else if (type == EnemyType.SlimeKing)
+            {
+                enemyGo.transform.localScale = Vector3.one * 1.5f;
+            }
+            else
+            {
+                enemyGo.transform.localScale = Vector3.one * 1.0f;
+            }
+
+            int hp, atk, matk, def, spd;
+            float crit, critDMG;
+            GetEnemyStats(type, level, out hp, out atk, out matk, out def, out spd, out crit, out critDMG);
+
+            var stats = enemyGo.GetComponent<SlimeStats>();
+            if (stats == null) stats = enemyGo.AddComponent<SlimeStats>();
+            stats.HP = hp;
+            stats.MaxHP = hp;
+            stats.Attack = atk;
+            stats.MagicAttack = matk;
+            stats.Defense = def;
+            stats.Speed = spd;
+            stats.CritRate = crit;
+            stats.CritDMG = critDMG;
+            stats.isEnemy = true;
+
+            var battleStats = enemyGo.GetComponent<SlimeBattleStats>();
+            if (battleStats == null) battleStats = enemyGo.AddComponent<SlimeBattleStats>();
+            battleStats.MaxHP = hp;
+            battleStats.CurrentHP = hp;
+            battleStats.BattleAttack = atk;
+            battleStats.BattleMagicAttack = matk;
+            battleStats.BattleDefense = def;
+            battleStats.BattleSpeed = spd;
+            battleStats.BattleCritRate = crit;
+            battleStats.BattleCritDMG = critDMG;
+
+            if (type == EnemyType.SlimeKing)
+            {
+                stats.bodySkill = new SkillInstance(null);
+            }
+
+            activeEnemies.Add(enemyGo);
+        }
+
+        boss = activeEnemies[0];
+
+        foreach (var enemy in activeEnemies)
+        {
+            float enemySpd = GetSpeedOf(enemy);
+            remainingAV[enemy] = 10000f / enemySpd;
+        }
+    }
+
+    private void CheckWinLoseAfterEnemyDeath()
+    {
+        bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
+        if (isTowerMode && activeTowerLevel >= 1 && activeTowerLevel <= 5)
+        {
+            var nextAlive = activeEnemies.FirstOrDefault(e => e != null && e.GetComponent<SlimeBattleStats>().CurrentHP > 0);
+            if (nextAlive != null)
+            {
+                boss = nextAlive;
+            }
+        }
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -45,38 +264,66 @@ public class TurnSystem : MonoBehaviour
             resultPanel.SetActive(false);
         }
 
+        if (boss != null)
+        {
+            originalBossPos = boss.GetComponent<RectTransform>().anchoredPosition;
+        }
+
         turnList = formationManager.slimeFormation;
 
         bool isTowerMode = false;
         bool isFarmMode = false;
+        bool isAdventureMode = true;
         if (BattleDataManager.Instance != null)
         {
             isTowerMode = BattleDataManager.Instance.IsTowerMode();
             isFarmMode = BattleDataManager.Instance.IsFarmMode();
+            isAdventureMode = BattleDataManager.Instance.IsAdventureMode();
         }
 
-        // Farm mode luôn có boss data từ FarmModeManager
-        if (isFarmMode && BattleDataManager.Instance != null && BattleDataManager.Instance.HasBossData())
+        if (isTowerMode && towerBosses != null)
         {
-            InitializeBossFromData(BattleDataManager.Instance.GetBossData());
-            BattleDataManager.Instance.ClearBossDataExceptWildSlimeID();
-        }
-        else if (isTowerMode && (BattleDataManager.Instance == null || !BattleDataManager.Instance.HasBossData()))
-        {
-            InitializeBossFromTower();
-        }
-        else if (BattleDataManager.Instance != null && BattleDataManager.Instance.HasBossData())
-        {
-            InitializeBossFromData(BattleDataManager.Instance.GetBossData());
-            BattleDataManager.Instance.ClearBossDataExceptWildSlimeID();
-        }
-
-        if (boss != null)
-        {
-            turnList.Add(boss);
-            if (boss.GetComponent<SimpleCombatAnimation>() == null)
+            var floor = towerBosses.replayFloor > 0 ? towerBosses.GetFloor(towerBosses.replayFloor) : towerBosses.GetCurrentFloor();
+            int floorNum = floor != null ? floor.floorNumber : 1;
+            if (floorNum >= 1 && floorNum <= 5)
             {
-                boss.AddComponent<SimpleCombatAnimation>();
+                activeTowerLevel = floorNum;
+                currentWaveIndex = 0;
+                SpawnWave(0);
+            }
+            else
+            {
+                InitializeBossFromTower();
+                if (boss != null)
+                {
+                    activeEnemies.Add(boss);
+                    if (boss.GetComponent<SimpleCombatAnimation>() == null)
+                    {
+                        boss.AddComponent<SimpleCombatAnimation>();
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (isFarmMode && BattleDataManager.Instance != null && BattleDataManager.Instance.HasBossData())
+            {
+                InitializeBossFromData(BattleDataManager.Instance.GetBossData());
+                BattleDataManager.Instance.ClearBossDataExceptWildSlimeID();
+            }
+            else if (BattleDataManager.Instance != null && BattleDataManager.Instance.HasBossData())
+            {
+                InitializeBossFromData(BattleDataManager.Instance.GetBossData());
+                BattleDataManager.Instance.ClearBossDataExceptWildSlimeID();
+            }
+
+            if (boss != null)
+            {
+                activeEnemies.Add(boss);
+                if (boss.GetComponent<SimpleCombatAnimation>() == null)
+                {
+                    boss.AddComponent<SimpleCombatAnimation>();
+                }
             }
         }
 
@@ -410,6 +657,26 @@ public class TurnSystem : MonoBehaviour
         if (currentSlime != null) currentSlime.GetComponent<SlimeStats>().turnHalo.SetActive(false);
         yield return new WaitForSeconds(0.3f);
 
+        // Kiểm tra chuyển wave nếu ở Tower Mode tầng 1-5
+        bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
+        if (isTowerMode && activeTowerLevel >= 1 && activeTowerLevel <= 5)
+        {
+            bool allWaveEnemiesDead = activeEnemies.All(e => e == null || e.GetComponent<SlimeBattleStats>().CurrentHP <= 0);
+            if (allWaveEnemiesDead)
+            {
+                if (currentWaveIndex + 1 < totalWaves)
+                {
+                    currentWaveIndex++;
+                    CreateDamagePopup(Vector3.up * 2f, $"WAVE {currentWaveIndex + 1}!", Color.red);
+                    SpawnWave(currentWaveIndex);
+                    InitializeAVSystem();
+                    yield return new WaitForSeconds(1.0f);
+                    StartCoroutine(NextTurn());
+                    yield break;
+                }
+            }
+        }
+
         // Lọc danh sách còn sống và active
         var activeParticipants = remainingAV.Keys
             .Where(s => s != null && s.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
@@ -438,7 +705,7 @@ public class TurnSystem : MonoBehaviour
 
         if (nextSlime != null)
         {
-            // Trừ AV đã đi qua cho các nhân vật khác (để tiến hành động)
+            // Trừ AV đã đi qua cho các nhân vật khác (để tiến hành hành động)
             foreach (var slime in activeParticipants)
             {
                 remainingAV[slime] -= minAV;
@@ -462,6 +729,20 @@ public class TurnSystem : MonoBehaviour
         // Tích giảm thời gian Buff và Stun vào ĐẦU lượt của Slime đó (Chuẩn RPG)
         if (battleStats != null)
         {
+            battleStats.TickDoTs();
+            if (battleStats.CurrentHP <= 0)
+            {
+                Debug.Log($"{currentSlime.name} chết vì DoT!");
+                CheckWinLoseAfterEnemyDeath();
+                if (CheckWinCondition())
+                {
+                    yield return StartCoroutine(HandleVictory());
+                    yield break;
+                }
+                yield return new WaitForSeconds(0.8f);
+                StartCoroutine(NextTurn());
+                yield break;
+            }
             battleStats.TickBuffs();
             battleStats.TickStun();
         }
@@ -551,8 +832,8 @@ public class TurnSystem : MonoBehaviour
                 yield return StartCoroutine(attackerAnimController.PlayAttackAnimation(boss.transform));
             }
 
-            // Calculate damage using GDD: Normal Damage = ATK * (1 - DEF_enemy * 0.008)
-            // Effective ATK includes any Crit DMG overflow bonus
+            // Tính dame: Dame thường = ATK * (1 - thủ của enemy * 0.008)
+            // ATK hiệu dụng bao gồm mọi phần thưởng từ lượng Crit DMG vượt mức
             int damage = attacker.GetEffectiveAttack();
             bool isCrit = attacker.TryCriticalHit();
             if (isCrit)
@@ -562,10 +843,10 @@ public class TurnSystem : MonoBehaviour
                 Debug.Log("Critical Hit!");
             }
 
-            // Apply damage (TakeDamage in target applies defense and popup)
+            // Áp dụng sát thương (TakeDamage của mục tiêu sẽ xử lý phòng thủ và hiển thị popup)
             target.TakeDamage(damage);
 
-            // Show CRIT notification if critical
+            // Hiển thị thông báo CRIT nếu là hit chí mạng
             if (isCrit)
             {
                 CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
@@ -582,7 +863,11 @@ public class TurnSystem : MonoBehaviour
             if (target.CurrentHP <= 0)
             {
                 Debug.Log($"{boss.name} died!");
-                // Thắng - thuần hóa slime và quay về adventure scene
+                CheckWinLoseAfterEnemyDeath();
+            }
+
+            if (CheckWinCondition())
+            {
                 yield return StartCoroutine(HandleVictory());
                 yield break;
             }
@@ -686,10 +971,9 @@ public class TurnSystem : MonoBehaviour
                         var hitAnim = targetGo.GetComponent<SimpleCombatAnimation>();
                         if (hitAnim != null)
                             yield return StartCoroutine(hitAnim.PlayHitAnimation());
-                        if (targetGo == boss && CheckWinCondition())
+                        if (targetStats.CurrentHP <= 0)
                         {
-                            yield return StartCoroutine(HandleVictory());
-                            yield break;
+                            CheckWinLoseAfterEnemyDeath();
                         }
                         break;
 
@@ -755,57 +1039,151 @@ public class TurnSystem : MonoBehaviour
 
         var target = formationManager.GetRandomRowLastAlive();
         currentSlime.GetComponent<SlimeStats>().turnHalo.SetActive(true);
-        if (target != null)
+
+        bool isSlimeKing = currentSlime.name.Contains("SlimeKing");
+        var bossStats = currentSlime.GetComponent<SlimeBattleStats>();
+
+        if (isSlimeKing && bossStats != null)
         {
-            var bossStats = boss.GetComponent<SlimeBattleStats>();
-            var targetStats = target.GetComponent<SlimeBattleStats>();
+            slimeKingTurnCount++;
+            int cycleTurn = (slimeKingTurnCount - 1) % 6 + 1;
+            Debug.Log($"Slime King action turn: {cycleTurn}");
 
-            // Lấy SimpleCombatAnimation của boss và target
-            var bossAnimController = boss.GetComponent<SimpleCombatAnimation>();
-            var targetAnimController = target.GetComponent<SimpleCombatAnimation>();
-
-            // Chơi animation tấn công cho boss
-            if (bossAnimController != null)
+            if (cycleTurn == 1) // Slime Splash
             {
-                yield return StartCoroutine(bossAnimController.PlayAttackAnimation(target.transform));
-            }
-
-            // Calculate damage using GDD
-            int damage = bossStats != null ? bossStats.GetEffectiveAttack() : boss.GetComponent<SlimeStats>().Attack;
-            bool isCrit = bossStats != null && bossStats.TryCriticalHit();
-            if (isCrit)
-            {
-                float critMult = bossStats != null ? bossStats.GetFinalCritDMG() : 1.5f;
-                damage = Mathf.RoundToInt(damage * critMult);
-                Debug.Log("Boss Critical Hit!");
-            }
-
-            // Apply damage
-            if (targetStats != null)
-            {
-                targetStats.TakeDamage(damage);
-                if (isCrit)
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Slime Splash!", Color.cyan);
+                var allies = formationManager.GetAllAliveAllies();
+                foreach (var ally in allies)
                 {
-                    CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
+                    var allyStats = ally.GetComponent<SlimeBattleStats>();
+                    if (allyStats != null)
+                    {
+                        int rawDmg = Mathf.RoundToInt(bossStats.BattleMagicAttack * 1.3f);
+                        allyStats.TakeDamage(rawDmg);
+                        // Giảm chính xác 10 Speed
+                        float mult = (allyStats.BattleSpeed - 10f) / allyStats.BattleSpeed;
+                        allyStats.ApplyBuff(BuffStat.Speed, mult, 2, true);
+                    }
+                }
+                yield return new WaitForSeconds(1f);
+            }
+            else if (cycleTurn == 3) // Absorb
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Absorb!", Color.green);
+                int minionCount = activeEnemies.Count(e => e != null && e != currentSlime && e.GetComponent<SlimeBattleStats>().CurrentHP > 0);
+                float healPct = 0.12f + (0.05f * minionCount);
+                int healAmount = Mathf.RoundToInt(bossStats.MaxHP * healPct);
+                bossStats.CurrentHP = Mathf.Min(bossStats.MaxHP, bossStats.CurrentHP + healAmount);
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.2f, $"+{healAmount} HP", Color.green);
+                yield return new WaitForSeconds(1f);
+            }
+            else if (cycleTurn == 5) // Charge Ultimate
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "CHARGING ULTIMATE...", Color.red);
+                yield return new WaitForSeconds(1f);
+            }
+            else if (cycleTurn == 6) // Acid Rain (Ultimate)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Acid Rain (ULTIMATE)!", Color.red);
+                var allies = formationManager.GetAllAliveAllies();
+                foreach (var ally in allies)
+                {
+                    var allyStats = ally.GetComponent<SlimeBattleStats>();
+                    if (allyStats != null)
+                    {
+                        int rawDmg = Mathf.RoundToInt(bossStats.BattleMagicAttack * 1.5f);
+                        allyStats.TakeDamage(rawDmg);
+                        // Gây độc Poison, rút 10% MaxHP mỗi lượt
+                        int poisonDmg = Mathf.RoundToInt(allyStats.MaxHP * 0.10f);
+                        allyStats.ApplyDoT(EffectType.Poison, poisonDmg, 2);
+                    }
+                }
+                yield return new WaitForSeconds(1f);
+            }
+            else // Basic Attack (Turn 2, 4)
+            {
+                if (target != null)
+                {
+                    var targetStats = target.GetComponent<SlimeBattleStats>();
+                    var bossAnimController = currentSlime.GetComponent<SimpleCombatAnimation>();
+                    var targetAnimController = target.GetComponent<SimpleCombatAnimation>();
+
+                    if (bossAnimController != null)
+                    {
+                        yield return StartCoroutine(bossAnimController.PlayAttackAnimation(target.transform));
+                    }
+
+                    int damage = bossStats.GetEffectiveAttack();
+                    bool isCrit = bossStats.TryCriticalHit();
+                    if (isCrit)
+                    {
+                        float critMult = bossStats.GetFinalCritDMG();
+                        damage = Mathf.RoundToInt(damage * critMult);
+                        Debug.Log("Boss Critical Hit!");
+                    }
+
+                    if (targetStats != null)
+                    {
+                        targetStats.TakeDamage(damage);
+                        if (isCrit)
+                        {
+                            CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
+                        }
+                    }
+
+                    if (targetAnimController != null)
+                    {
+                        yield return StartCoroutine(targetAnimController.PlayHitAnimation());
+                    }
                 }
             }
-            else
+        }
+        else // Normal enemies (Tiny Bat, Green Slime, or default bosses)
+        {
+            if (target != null)
             {
-                target.GetComponent<SlimeStats>().HP -= damage;
-            }
+                var targetStats = target.GetComponent<SlimeBattleStats>();
+                var bossAnimController = currentSlime.GetComponent<SimpleCombatAnimation>();
+                var targetAnimController = target.GetComponent<SimpleCombatAnimation>();
 
-            Debug.Log($"{boss.name} attacks {target.name} for {damage} damage!");
+                if (bossAnimController == null)
+                {
+                    bossAnimController = currentSlime.AddComponent<SimpleCombatAnimation>();
+                }
 
-            // Chơi animation bị đánh cho target
-            if (targetAnimController != null)
-            {
-                yield return StartCoroutine(targetAnimController.PlayHitAnimation());
-            }
+                if (bossAnimController != null)
+                {
+                    yield return StartCoroutine(bossAnimController.PlayAttackAnimation(target.transform));
+                }
 
-            int currentHP = targetStats != null ? targetStats.CurrentHP : target.GetComponent<SlimeStats>().HP;
-            if (currentHP <= 0)
-            {
-                Debug.Log($"{target.name} died!");
+                int damage = bossStats != null ? bossStats.GetEffectiveAttack() : currentSlime.GetComponent<SlimeStats>().Attack;
+                bool isCrit = bossStats != null && bossStats.TryCriticalHit();
+                if (isCrit)
+                {
+                    float critMult = bossStats != null ? bossStats.GetFinalCritDMG() : 1.5f;
+                    damage = Mathf.RoundToInt(damage * critMult);
+                    Debug.Log("Boss Critical Hit!");
+                }
+
+                if (targetStats != null)
+                {
+                    targetStats.TakeDamage(damage);
+                    if (isCrit)
+                    {
+                        CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
+                    }
+                }
+                else
+                {
+                    target.GetComponent<SlimeStats>().HP -= damage;
+                }
+
+                Debug.Log($"{currentSlime.name} attacks {target.name} for {damage} damage!");
+
+                if (targetAnimController != null)
+                {
+                    yield return StartCoroutine(targetAnimController.PlayHitAnimation());
+                }
             }
         }
 
@@ -901,9 +1279,16 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
-    // Kiểm tra điều kiện thắng (boss HP = 0)
     private bool CheckWinCondition()
     {
+        bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
+        if (isTowerMode && activeTowerLevel >= 1 && activeTowerLevel <= 5)
+        {
+            bool isLastWave = (currentWaveIndex + 1 >= totalWaves);
+            bool allEnemiesDead = activeEnemies.All(e => e == null || e.GetComponent<SlimeBattleStats>().CurrentHP <= 0);
+            return isLastWave && allEnemiesDead;
+        }
+
         if (boss == null) return false;
 
         var bossStats = boss.GetComponent<SlimeBattleStats>();
@@ -1027,6 +1412,82 @@ public class TurnSystem : MonoBehaviour
                         Debug.Log($"Đã hoàn thành màn {currentFloor.floorNumber}: {currentFloor.floorName}");
                     }
 
+                    // Nhận thưởng theo GDD cho các tầng 1-5
+                    if (activeTowerLevel >= 1 && activeTowerLevel <= 5)
+                    {
+                        int gold = 50;
+                        int gem = 1;
+                        float marshmallowChance = 0.10f;
+                        float commonChance = 0.10f;
+                        float uncommonChance = 0.00f;
+                        float rareChance = 0.00f;
+
+                        switch (activeTowerLevel)
+                        {
+                            case 1:
+                                gold = 50; gem = 1;
+                                marshmallowChance = 0.10f; commonChance = 0.10f;
+                                break;
+                            case 2:
+                                gold = 70; gem = 1;
+                                marshmallowChance = 0.15f; commonChance = 0.15f; uncommonChance = 0.03f;
+                                break;
+                            case 3:
+                                gold = 100; gem = 2;
+                                marshmallowChance = 0.20f; commonChance = 0.20f; uncommonChance = 0.05f; rareChance = 0.01f;
+                                break;
+                            case 4:
+                                gold = 150; gem = 2;
+                                marshmallowChance = 0.25f; commonChance = 0.25f; uncommonChance = 0.10f; rareChance = 0.03f;
+                                break;
+                            case 5:
+                                gold = 300; gem = 5;
+                                marshmallowChance = 0.30f; commonChance = 0.30f; uncommonChance = 0.15f; rareChance = 0.08f;
+                                break;
+                        }
+
+                        // Cộng tiền
+                        if (CurrencyManager.Instance != null)
+                        {
+                            CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, gold);
+                            CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, gem);
+                        }
+
+                        // Rớt Marshmallow
+                        if (ResourceManager.Instance != null && Random.Range(0f, 1f) < marshmallowChance)
+                        {
+                            ResourceManager.Instance.AddResource(ResourceType.Marshmallow, 1);
+                            CreateDamagePopup(Vector3.up * 1f, "+1 Marshmallow Ball (S)", Color.green);
+                        }
+
+                        // Rớt Slime
+                        if (SlimeGen.Instance != null && BreedingManager.Instance != null)
+                        {
+                            float roll = Random.Range(0f, 1f);
+                            Slime newSlime = null;
+                            if (roll < rareChance)
+                            {
+                                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Rare", Rarity.Rare);
+                                CreateDamagePopup(Vector3.up * 1.5f, "NEW RARE SLIME!", Color.magenta);
+                            }
+                            else if (roll < rareChance + uncommonChance)
+                            {
+                                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Uncommon", Rarity.Uncommon);
+                                CreateDamagePopup(Vector3.up * 1.5f, "NEW UNCOMMON SLIME!", Color.cyan);
+                            }
+                            else if (roll < rareChance + uncommonChance + commonChance)
+                            {
+                                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Common", Rarity.Common);
+                                CreateDamagePopup(Vector3.up * 1.5f, "NEW COMMON SLIME!", Color.white);
+                            }
+
+                            if (newSlime != null)
+                            {
+                                BreedingManager.Instance.GetAllSlimes().Add(newSlime);
+                            }
+                        }
+                    }
+
                     towerBosses.AdvanceToNextFloor();
 
                     // Cache kết quả để SaveAndLoadSystem apply sau khi load cloud xong ở firstsave
@@ -1050,7 +1511,7 @@ public class TurnSystem : MonoBehaviour
             
             yield break;
         }
-        
+
         if (BattleDataManager.Instance != null && wildSlimes != null)
         {
             var wildSlimeID = BattleDataManager.Instance.GetWildSlimeID();
@@ -1231,40 +1692,5 @@ public class TurnSystem : MonoBehaviour
         {
             Destroy(go);
         }
-    }
-
-    // ── Defense / Skip Action Actions ───────────────────────────────────
-    public void DoDefense()
-    {
-        if (currentSlime == null) return;
-        var battleStats = currentSlime.GetComponent<SlimeBattleStats>();
-        if (battleStats != null)
-        {
-            // Tăng 50% phòng thủ trong 1 lượt (sẽ hết hạn ở đầu lượt tiếp theo)
-            battleStats.ApplyBuff(BuffStat.Defense, 1.5f, 1, false);
-            Debug.Log($"{currentSlime.name} phòng thủ! Tăng 50% phòng thủ.");
-        }
-
-        skillPanel.SetActive(false);
-        StartCoroutine(ExecuteSkipOrDefense());
-    }
-
-    public void DoSkip()
-    {
-        if (currentSlime != null)
-        {
-            Debug.Log($"{currentSlime.name} skip turn!");
-            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "SKIP", Color.yellow);
-        }
-        
-        skillPanel.SetActive(false);
-        StartCoroutine(ExecuteSkipOrDefense());
-    }
-
-    private IEnumerator ExecuteSkipOrDefense()
-    {
-        yield return new WaitForSeconds(0.8f);
-        // Buff không tick ở đây nữa mà sẽ tick ở ĐẦU lượt của Slime tiếp theo trong NextTurn()
-        StartCoroutine(NextTurn());
     }
 }

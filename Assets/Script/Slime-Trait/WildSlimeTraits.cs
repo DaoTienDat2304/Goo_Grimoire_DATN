@@ -1,4 +1,4 @@
-﻿using Spine.Unity;
+using Spine.Unity;
 using System.Collections;
 using System.Linq;
 using UnityEngine;

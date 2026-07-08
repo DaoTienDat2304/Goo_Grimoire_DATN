@@ -115,5 +115,37 @@ public class SlimeGen : MonoBehaviour
         s.CalculateStats();
         return s;
     }
+    public TraitSO RollTraitOfRarity(TraitType type, Rarity rarity)
+    {
+        if (allTraits == null) return null;
+        var pool = allTraits.Where(t => t != null && t.type == type && t.rarity == rarity).ToList();
+        if (pool.Count == 0)
+        {
+            pool = allTraits.Where(t => t != null && t.type == type).ToList();
+        }
+        if (pool.Count == 0) return null;
+        return pool[Random.Range(0, pool.Count)];
+    }
+
+    public Slime GenerateSlimeOfRarity(string name, Rarity rarity)
+    {
+        EnsureDefaultTraits();
+        var bodySo = RollTraitOfRarity(TraitType.Body, rarity);
+        var armorSo = RollTraitOfRarity(TraitType.Armor, rarity);
+        var weaponSo = RollTraitOfRarity(TraitType.Weapon, rarity);
+
+        if (bodySo == null || armorSo == null || weaponSo == null) return null;
+
+        Slime s = new Slime();
+        s.slimeName = name;
+        s.body = bodySo.GenerateInstance();
+        s.body.Rarity = rarity; // Đảm bảo độ hiếm chính xác
+        s.armor = armorSo.GenerateInstance();
+        s.armor.Rarity = rarity;
+        s.weapon = weaponSo.GenerateInstance();
+        s.weapon.Rarity = rarity;
+        s.CalculateStats();
+        return s;
+    }
 }
 

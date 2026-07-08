@@ -11,6 +11,14 @@ public struct ActiveBuff
     public bool isDebuff;  // true = debuff
 }
 
+[System.Serializable]
+public struct ActiveDoT
+{
+    public EffectType type; // Poison or Bleed
+    public int damagePerTurn;
+    public int turnsLeft;
+}
+
 public class SlimeBattleStats : MonoBehaviour
 {
     [Header("Base Stats (from SlimeStats)")]
@@ -43,6 +51,7 @@ public class SlimeBattleStats : MonoBehaviour
     public float BattleCritDMG { get { return battleCritDMG; } set { battleCritDMG = value; } }
 
     private List<ActiveBuff> activeBuffs = new List<ActiveBuff>();
+    private List<ActiveDoT> activeDoTs = new List<ActiveDoT>();
 
     public int StunTurns { get; private set; }
     public bool IsStunned => StunTurns > 0;
@@ -88,11 +97,11 @@ public class SlimeBattleStats : MonoBehaviour
         }
     }
 
-    // Dynamic stats computation taking conversion into account
+    // Tính tỉ lệ
     public float GetEffectiveCritRate()
     {
         float rate = BattleCritRate;
-        // critChance is additional buff from skills, represented as percentage (e.g. 10 means +10% or +0.10f)
+        // critChance là buff tỉ lệ chí mạng từ kỹ năng, tính theo phần trăm (10 = +10% = +0.10f).
         rate += critChance / 100f;
         return rate;
     }
@@ -101,7 +110,7 @@ public class SlimeBattleStats : MonoBehaviour
     {
         float rate = GetEffectiveCritRate();
         float excessCritRate = Mathf.Max(0f, rate - 0.75f);
-        float dmg = BattleCritDMG + excessCritRate; // 1:1 conversion
+        float dmg = BattleCritDMG + excessCritRate; // tỉ lệ 1:1
         return dmg;
     }
 
@@ -109,7 +118,7 @@ public class SlimeBattleStats : MonoBehaviour
     {
         float critDmg = GetEffectiveCritDMG();
         float excessCritDmg = Mathf.Max(0f, critDmg - 2.50f);
-        int atkBonus = Mathf.RoundToInt(excessCritDmg * 100f * 5f); // 1% excess = 5 ATK
+        int atkBonus = Mathf.RoundToInt(excessCritDmg * 100f * 5f); // 1% vượt mức = 5 ATK
         return BattleAttack + atkBonus;
     }
 
@@ -117,31 +126,31 @@ public class SlimeBattleStats : MonoBehaviour
     {
         float critDmg = GetEffectiveCritDMG();
         float excessCritDmg = Mathf.Max(0f, critDmg - 2.50f);
-        int matkBonus = Mathf.RoundToInt(excessCritDmg * 100f * 5f); // 1% excess = 5 Magic ATK
+        int matkBonus = Mathf.RoundToInt(excessCritDmg * 100f * 5f); // 1% vượt mức = 5 Magic ATK
         return BattleMagicAttack + matkBonus;
     }
 
     public float GetFinalCritDMG()
     {
         float critDmg = GetEffectiveCritDMG();
-        return Mathf.Min(2.50f, critDmg); // capped at 250% (2.50)
+        return Mathf.Min(2.50f, critDmg); // giới hạn 250% (2.50)
     }
 
     public float GetFinalCritRate()
     {
         float rate = GetEffectiveCritRate();
-        return Mathf.Min(0.75f, rate); // capped at 75% (0.75)
+        return Mathf.Min(0.75f, rate); // giới hạn 75% (0.75)
     }
     
     public void TakeDamage(int rawDamage)
     {
-        // GDD: Damage after defense = rawDamage * (1 - DEF_enemy * 0.008)
-        // Hard Cap DEF reduction at 80%
+        // Dame sau thủ = Dame thuần * (1 - thủ của quái * 0.008)
+        // Giới hạn tỉ lệ giảm dame 80%
         float defReduction = Mathf.Min(0.80f, BattleDefense * 0.008f);
         float finalDamage = rawDamage * (1f - defReduction);
         
         finalDamage *= (1f - (damageReduction / 100f));
-        finalDamage = Mathf.Max(1, finalDamage); // Minimum 1 damage
+        finalDamage = Mathf.Max(1, finalDamage); // dame nhỏ nhất là 1
         
         int finalDmgInt = Mathf.RoundToInt(finalDamage);
         CurrentHP -= finalDmgInt;
@@ -312,6 +321,49 @@ public class SlimeBattleStats : MonoBehaviour
             case BuffStat.Defense: BattleDefense = value; break;
             case BuffStat.Attack:  BattleAttack  = value; break;
             case BuffStat.Speed:   BattleSpeed   = value; break;
+        }
+    }
+    public void ApplyDoT(EffectType type, int damagePerTurn, int duration)
+    {
+        activeDoTs.Add(new ActiveDoT { type = type, damagePerTurn = damagePerTurn, turnsLeft = duration });
+        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        if (turnSys != null)
+        {
+            string effectName = type == EffectType.Poison ? "POISONED!" : "BLEEDING!";
+            Color color = type == EffectType.Poison ? Color.green : new Color(0.6f, 0f, 0f);
+            turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.0f, effectName, color);
+        }
+        Debug.Log($"{name} bị dính {type} gây {damagePerTurn} sát thương mỗi lượt trong {duration} lượt!");
+    }
+
+    public void TickDoTs()
+    {
+        for (int i = activeDoTs.Count - 1; i >= 0; i--)
+        {
+            var dot = activeDoTs[i];
+            dot.turnsLeft--;
+            
+            // Gây sát thương
+            TakeDamage(dot.damagePerTurn);
+            
+            // Hiện popup sát thương DoT
+            TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+            if (turnSys != null)
+            {
+                Color color = dot.type == EffectType.Poison ? Color.green : new Color(0.6f, 0f, 0f);
+                string suffix = dot.type == EffectType.Poison ? " Poison" : " Bleed";
+                turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, dot.damagePerTurn.ToString() + suffix, color);
+            }
+
+            if (dot.turnsLeft <= 0)
+            {
+                Debug.Log($"{name}: {dot.type} hết hạn.");
+                activeDoTs.RemoveAt(i);
+            }
+            else
+            {
+                activeDoTs[i] = dot;
+            }
         }
     }
     

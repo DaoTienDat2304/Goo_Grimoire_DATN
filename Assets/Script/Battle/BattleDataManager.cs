@@ -16,6 +16,7 @@ public class BattleDataManager : MonoBehaviour
     
     private int wildSlimeID = -1;
     private BattleMode battleMode = BattleMode.Adventure;
+    public int SelectedAdventureLevel { get; set; } = 1;
     
     void Awake()
     {

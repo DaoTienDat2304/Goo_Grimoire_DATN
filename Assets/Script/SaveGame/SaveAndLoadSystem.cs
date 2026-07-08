@@ -164,10 +164,10 @@ public class SaveAndLoadSystem : MonoBehaviour
             DeserializeCurrencies(data);
             DeserializeTowerFloors(data);
             DeserializeFarmDifficulties(data);
-        }  
+        }
         DeserializeResources(data);
         //DeserializeTamedSlimes(data);
-        
+
         breedingUI.RefreshAllUI();
         SlimeWorldManager.RefreshWorldSlimes();
         slimeInventory.RefreshAllUI();
@@ -187,16 +187,16 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (towerDatabase == null || !towerDatabase.hasPendingResult) return;
 
         int completedFloor = towerDatabase.cachedCompletedFloorNumber;
-        towerDatabase.currentFloor       = towerDatabase.cachedCurrentFloor;
+        towerDatabase.currentFloor = towerDatabase.cachedCurrentFloor;
         towerDatabase.highestFloorReached = towerDatabase.cachedHighestFloor;
 
         var floor = towerDatabase.GetFloor(completedFloor);
         if (floor != null) floor.completed = true;
 
         // Xóa cache trước khi save
-        towerDatabase.hasPendingResult         = false;
-        towerDatabase.cachedCurrentFloor       = 0;
-        towerDatabase.cachedHighestFloor       = 0;
+        towerDatabase.hasPendingResult = false;
+        towerDatabase.cachedCurrentFloor = 0;
+        towerDatabase.cachedHighestFloor = 0;
         towerDatabase.cachedCompletedFloorNumber = 0;
 
         Save();
@@ -239,7 +239,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         foreach (var id in data.teamSlimeIDs)
         {
             var s = all.FirstOrDefault(x => x != null && x.id == id);
-            if (s != null) 
+            if (s != null)
             {
                 s.isPicked = true; // Đảm bảo slime trong team có isPicked = true
                 teamSlime.team.Add(s);
@@ -536,7 +536,7 @@ public class SaveAndLoadSystem : MonoBehaviour
     void DeserializeBuildings(GameSaveData data)
     {
         var slots = FindObjectsByType<BuildingSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        
+
         // Sử dụng ToLookup để xử lý trường hợp nhiều slot có cùng slotIndex
         var lookup = slots.ToLookup(s => s.slotIndex);
 
@@ -656,18 +656,18 @@ public class SaveAndLoadSystem : MonoBehaviour
     void SerializeTamedSlimes(GameSaveData data)
     {
         if (wildSlimes == null || wildSlimes.tamedSlimes == null) return;
-        
+
         data.tamedSlimes.Clear();
         foreach (var tamed in wildSlimes.tamedSlimes)
         {
             if (tamed == null || tamed.wildSlimeTraits == null) continue;
-            
+
             var dto = new WildSlimeTraitsDTO();
             dto.slimeID = tamed.slimeID;
             dto.slimeType = (int)tamed.slimeType;
             dto.traitNames = new string[3];
             dto.traitTypes = new TraitType[3];
-            
+
             for (int i = 0; i < 3 && i < tamed.wildSlimeTraits.Length; i++)
             {
                 if (tamed.wildSlimeTraits[i] != null)
@@ -676,34 +676,34 @@ public class SaveAndLoadSystem : MonoBehaviour
                     dto.traitTypes[i] = tamed.wildSlimeTraits[i].type;
                 }
             }
-            
+
             data.tamedSlimes.Add(dto);
         }
     }
-    
+
     void DeserializeTamedSlimes(GameSaveData data)
     {
         if (wildSlimes == null || data.tamedSlimes == null) return;
-        
+
         // Khởi tạo list nếu chưa có
         if (wildSlimes.tamedSlimes == null)
         {
             wildSlimes.tamedSlimes = new System.Collections.Generic.List<WildSlimes.WildSlimeTraits>();
         }
-        
+
         // Clear và load lại từ save file để đảm bảo đồng bộ
         wildSlimes.tamedSlimes.Clear();
-        
+
         foreach (var dto in data.tamedSlimes)
         {
             if (dto == null) continue;
-            
+
             // Tạo lại WildSlimeTraits từ DTO
             var tamed = new WildSlimes.WildSlimeTraits();
             tamed.slimeID = dto.slimeID;
             tamed.slimeType = (WildSlimeType)dto.slimeType;
             tamed.wildSlimeTraits = new TraitSO[3];
-            
+
             for (int i = 0; i < 3 && i < dto.traitNames.Length; i++)
             {
                 if (!string.IsNullOrEmpty(dto.traitNames[i]))
@@ -712,10 +712,10 @@ public class SaveAndLoadSystem : MonoBehaviour
                     tamed.wildSlimeTraits[i] = ResolveTraitSO(dto.traitNames[i], dto.traitTypes[i]);
                 }
             }
-            
+
             wildSlimes.tamedSlimes.Add(tamed);
         }
-        
+
         Debug.Log($"DeserializeTamedSlimes: Loaded {wildSlimes.tamedSlimes.Count} tamed slimes");
     }
 
@@ -729,7 +729,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             var turnSystem = FindAnyObjectByType<TurnSystem>();
             if (turnSystem != null)
             {
-                var field = typeof(TurnSystem).GetField("towerBosses", 
+                var field = typeof(TurnSystem).GetField("towerBosses",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
                 if (field != null)
                 {
@@ -740,7 +740,7 @@ public class SaveAndLoadSystem : MonoBehaviour
                     }
                 }
             }
-            
+
             // Nếu vẫn null, tìm từ Resources
             if (towerDatabase == null)
             {
@@ -752,21 +752,21 @@ public class SaveAndLoadSystem : MonoBehaviour
                 }
             }
         }
-        
+
         if (towerDatabase == null)
         {
             Debug.LogWarning("TowerDatabase không tồn tại! Không thể lưu tower progress.");
             return;
         }
-        
+
         if (towerDatabase.floors == null)
         {
             Debug.LogWarning("TowerDatabase.floors is null!");
             return;
         }
-        
-        data.towerCurrentFloor  = towerDatabase.currentFloor;
-        data.towerHighestFloor  = towerDatabase.highestFloorReached;
+
+        data.towerCurrentFloor = towerDatabase.currentFloor;
+        data.towerHighestFloor = towerDatabase.highestFloorReached;
 
         data.towerFloors.Clear();
         int claimedCount = 0;
@@ -780,14 +780,14 @@ public class SaveAndLoadSystem : MonoBehaviour
             data.towerFloors.Add(new TowerFloorProgressDTO
             {
                 floorNumber = floor.floorNumber,
-                completed   = floor.completed,
-                claimed     = floor.claimed
+                completed = floor.completed,
+                claimed = floor.claimed
             });
         }
 
         Debug.Log($"SerializeTowerFloors: {data.towerFloors.Count} floors, highest={data.towerHighestFloor}, current={data.towerCurrentFloor}, claimed={claimedCount}");
     }
-    
+
     void DeserializeTowerFloors(GameSaveData data)
     {
         // Tìm towerDatabase nếu chưa được gán
@@ -797,7 +797,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             var turnSystem = FindAnyObjectByType<TurnSystem>();
             if (turnSystem != null)
             {
-                var field = typeof(TurnSystem).GetField("towerBosses", 
+                var field = typeof(TurnSystem).GetField("towerBosses",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
                 if (field != null)
                 {
@@ -808,7 +808,7 @@ public class SaveAndLoadSystem : MonoBehaviour
                     }
                 }
             }
-            
+
             // Nếu vẫn null, tìm từ Resources
             if (towerDatabase == null)
             {
@@ -820,25 +820,25 @@ public class SaveAndLoadSystem : MonoBehaviour
                 }
             }
         }
-        
+
         if (towerDatabase == null)
         {
             Debug.LogWarning("TowerDatabase không tồn tại! Không thể load tower progress.");
             return;
         }
-        
+
         if (towerDatabase.floors == null)
         {
             Debug.LogWarning("TowerDatabase.floors is null!");
             return;
         }
-        
+
         if (data.towerFloors == null)
         {
             Debug.Log("Không có tower floors data trong save file.");
             return;
         }
-        
+
         // Tạo dictionary để tìm floor nhanh
         var floorDict = new Dictionary<int, TowerSlimeBosses.TowerFloor>();
         foreach (var floor in towerDatabase.floors)
@@ -848,10 +848,10 @@ public class SaveAndLoadSystem : MonoBehaviour
                 floorDict[floor.floorNumber] = floor;
             }
         }
-        
+
         int loadedClaimed = 0;
-        
-        towerDatabase.currentFloor       = data.towerCurrentFloor;
+
+        towerDatabase.currentFloor = data.towerCurrentFloor;
         towerDatabase.highestFloorReached = data.towerHighestFloor;
 
         foreach (var dto in data.towerFloors)
@@ -859,7 +859,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             if (floorDict.TryGetValue(dto.floorNumber, out var floor))
             {
                 floor.completed = dto.completed;
-                floor.claimed   = dto.claimed;
+                floor.claimed = dto.claimed;
                 if (dto.claimed) loadedClaimed++;
             }
             else
@@ -867,7 +867,7 @@ public class SaveAndLoadSystem : MonoBehaviour
                 Debug.LogWarning($"Không tìm thấy floor {dto.floorNumber} trong towerDatabase!");
             }
         }
-        
+
         Debug.Log($"DeserializeTowerFloors: Loaded {data.towerFloors.Count} floor progress (claimed: {loadedClaimed})");
     }
 
@@ -875,10 +875,10 @@ public class SaveAndLoadSystem : MonoBehaviour
     void SerializeFarmDifficulties(GameSaveData data)
     {
         if (FarmModeManager.Instance == null) return;
-        
+
         var difficulties = FarmModeManager.Instance.GetDifficulties();
         if (difficulties == null) return;
-        
+
         data.farmDifficulties.Clear();
         for (int i = 0; i < difficulties.Count; i++)
         {
@@ -892,37 +892,37 @@ public class SaveAndLoadSystem : MonoBehaviour
                 });
             }
         }
-        
+
         Debug.Log($"SerializeFarmDifficulties: Lưu {data.farmDifficulties.Count} difficulties");
     }
-    
+
     void DeserializeFarmDifficulties(GameSaveData data)
     {
         if (FarmModeManager.Instance == null || data.farmDifficulties == null) return;
-        
+
         var difficulties = FarmModeManager.Instance.GetDifficulties();
         if (difficulties == null) return;
-        
+
         foreach (var dto in data.farmDifficulties)
         {
             if (dto.difficultyIndex >= 0 && dto.difficultyIndex < difficulties.Count)
             {
                 difficulties[dto.difficultyIndex].unlocked = dto.unlocked;
                 difficulties[dto.difficultyIndex].completed = dto.completed;
-                
+
                 Debug.Log($"Deserialize Farm Difficulty {dto.difficultyIndex}: unlocked={dto.unlocked}, completed={dto.completed}");
             }
         }
-        
+
         // Đảm bảo độ khó đầu tiên luôn unlock
         if (difficulties.Count > 0)
         {
             difficulties[0].unlocked = true;
         }
-        
+
         Debug.Log($"DeserializeFarmDifficulties: Loaded {data.farmDifficulties.Count} difficulty progress");
     }
-    
+
     /// <summary>
     /// Public method để FarmModeManager gọi khi cần load farm difficulties.
     /// Dùng JSON đã cache sẵn từ cloud (không load lại).

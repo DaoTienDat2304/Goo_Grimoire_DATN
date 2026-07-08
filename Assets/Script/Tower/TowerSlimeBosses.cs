@@ -25,15 +25,15 @@ public class TowerSlimeBosses : ScriptableObject
         [Header("Floor Info")]
         public int floorNumber;
         public string floorName;
-        
+
         [Header("Waves Setup (If empty, spawns default single boss)")]
         public List<TowerWaveConfig> waves = new List<TowerWaveConfig>();
-        
+
         [Header("Boss Traits")]
         public TraitSO bodyTrait;
         public TraitSO armorTrait;
         public TraitSO weaponTrait;
-        
+
         [Header("Boss Stats")]
         public int baseHP = 100;
         public int baseAttack = 50;
@@ -42,14 +42,14 @@ public class TowerSlimeBosses : ScriptableObject
         public int baseMagicAttack = 50;
         public float baseCritRate = 0.05f;
         public float baseCritDMG = 1.30f;
-        
+
         [Header("Rewards (Optional)")]
         public int rewardCoins = 0;
         public int rewardGems = 0;
         [Tooltip("Deprecated: Use rewardCoins and rewardGems instead")]
         public int rewardCurrency = 0; // Giữ lại để tương thích với dữ liệu cũ
         public List<TraitSO> rewardTraits = new List<TraitSO>();
-        
+
         // Runtime-only — không serialize vào asset, luôn reset về false khi build/start mới
         // Được fill bởi SaveAndLoadSystem.DeserializeTowerFloors()
         [System.NonSerialized] public bool completed;
@@ -72,21 +72,21 @@ public class TowerSlimeBosses : ScriptableObject
     [System.NonSerialized] public int cachedCurrentFloor = 0;
     [System.NonSerialized] public int cachedHighestFloor = 0;
     [System.NonSerialized] public int cachedCompletedFloorNumber = 0;
-    
+
     public TowerFloor GetCurrentFloor()
     {
         if (floors == null || floors.Count == 0) return null;
-        
+
         int index = currentFloor - 1;
         if (index < 0 || index >= floors.Count) return null;
-        
+
         return floors[index];
     }
-    
+
     public TowerFloor GetFloor(int floorNumber)
     {
         if (floors == null) return null;
-        
+
         foreach (var floor in floors)
         {
             if (floor != null && floor.floorNumber == floorNumber)
@@ -96,21 +96,21 @@ public class TowerSlimeBosses : ScriptableObject
         }
         return null;
     }
-    
+
     public Slime CreateBossSlimeFromFloor(TowerFloor floor)
     {
         if (floor == null) return null;
-        
+
         Slime bossSlime = new Slime();
         bossSlime.slimeName = floor.floorName;
-        
+
         if (floor.bodyTrait != null)
             bossSlime.body = floor.bodyTrait.GenerateInstance();
         if (floor.armorTrait != null)
             bossSlime.armor = floor.armorTrait.GenerateInstance();
         if (floor.weaponTrait != null)
             bossSlime.weapon = floor.weaponTrait.GenerateInstance();
-        
+
         bossSlime.totalHP = floor.baseHP;
         bossSlime.totalAttack = floor.baseAttack;
         bossSlime.totalMagicAttack = floor.baseMagicAttack;
@@ -118,9 +118,9 @@ public class TowerSlimeBosses : ScriptableObject
         bossSlime.totalSpeed = floor.baseSpeed;
         bossSlime.totalCritRate = floor.baseCritRate;
         bossSlime.totalCritDMG = floor.baseCritDMG;
-        
+
         bossSlime.CalculateStats();
-        
+
         bossSlime.totalHP = floor.baseHP;
         bossSlime.totalAttack = floor.baseAttack;
         bossSlime.totalMagicAttack = floor.baseMagicAttack;
@@ -128,10 +128,10 @@ public class TowerSlimeBosses : ScriptableObject
         bossSlime.totalSpeed = floor.baseSpeed;
         bossSlime.totalCritRate = floor.baseCritRate;
         bossSlime.totalCritDMG = floor.baseCritDMG;
-        
+
         return bossSlime;
     }
-    
+
     public void AdvanceToNextFloor()
     {
         currentFloor++;
@@ -140,13 +140,13 @@ public class TowerSlimeBosses : ScriptableObject
             highestFloorReached = currentFloor;
         }
     }
-    
+
     public void ResetProgress()
     {
         currentFloor = 0;
         highestFloorReached = 0;
     }
-    
+
     /// <summary>
     /// Kiểm tra xem còn floor sau không (sau khi đã advance)
     /// </summary>
@@ -159,4 +159,3 @@ public class TowerSlimeBosses : ScriptableObject
         return nextFloorIndex >= 0 && nextFloorIndex < floors.Count;
     }
 }
-

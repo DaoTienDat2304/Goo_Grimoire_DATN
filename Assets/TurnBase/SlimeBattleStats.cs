@@ -23,13 +23,13 @@ public class SlimeBattleStats : MonoBehaviour
 {
     [Header("Base Stats (from SlimeStats)")]
     public SlimeStats baseStats;
-    
+
     [Header("Battle Modifiers")]
     public float critChance = 0f; // buff thêm vào Crit Rate (%)
     public float damageReduction = 0f;
     public int maxHPBonus = 0;
     public int speedBonus = 0;
-    
+
     // Calculated stats for battle
     [Header("Battle Stats (Live editable)")]
     [SerializeField] private int currentHP;
@@ -61,35 +61,35 @@ public class SlimeBattleStats : MonoBehaviour
         if (baseStats == null)
             baseStats = GetComponent<SlimeStats>();
     }
-    
+
     private void Start()
     {
         InitializeBattleStats();
     }
-    
+
     void InitializeBattleStats()
     {
         if (baseStats == null) return;
-        
+
         // Nếu là boss (enemy), buff stats theo Remote Config (mặc định 3x)
         float bossMultiplier = RemoteConfigManager.Instance != null
             ? RemoteConfigManager.Instance.BossStatMultiplier : 3f;
         float multiplier = baseStats.isEnemy ? bossMultiplier : 1f;
-        
+
         MaxHP = Mathf.RoundToInt((baseStats.MaxHP + maxHPBonus) * multiplier);
         CurrentHP = MaxHP;
         BattleAttack = Mathf.RoundToInt(baseStats.Attack * multiplier);
         BattleMagicAttack = Mathf.RoundToInt(baseStats.MagicAttack * multiplier);
         BattleDefense = Mathf.RoundToInt(baseStats.Defense * multiplier);
         BattleSpeed = Mathf.RoundToInt((baseStats.Speed + speedBonus) * multiplier);
-        
+
         BattleCritRate = baseStats.CritRate;
         BattleCritDMG = baseStats.CritDMG;
-        
+
         // Cập nhật baseStats để UI hiển thị đúng
         baseStats.MaxHP = MaxHP;
         baseStats.HP = CurrentHP;
-        
+
         if (baseStats.hpbar != null)
         {
             baseStats.hpbar.maxValue = MaxHP;
@@ -141,21 +141,21 @@ public class SlimeBattleStats : MonoBehaviour
         float rate = GetEffectiveCritRate();
         return Mathf.Min(0.75f, rate); // capped at 75% (0.75)
     }
-    
+
     public void TakeDamage(int rawDamage)
     {
         // GDD: Damage after defense = rawDamage * (1 - DEF_enemy * 0.008)
         // Hard Cap DEF reduction at 80%
         float defReduction = Mathf.Min(0.80f, BattleDefense * 0.008f);
         float finalDamage = rawDamage * (1f - defReduction);
-        
+
         finalDamage *= (1f - (damageReduction / 100f));
         finalDamage = Mathf.Max(1, finalDamage); // Minimum 1 damage
-        
+
         int finalDmgInt = Mathf.RoundToInt(finalDamage);
         CurrentHP -= finalDmgInt;
         CurrentHP = Mathf.Max(0, CurrentHP);
-        
+
         if (baseStats != null)
         {
             baseStats.HP = CurrentHP;
@@ -164,7 +164,7 @@ public class SlimeBattleStats : MonoBehaviour
                 baseStats.hpbar.value = CurrentHP;
             }
         }
-        
+
         TurnSystem turnSys = FindObjectOfType<TurnSystem>();
         if (turnSys != null)
         {
@@ -173,12 +173,12 @@ public class SlimeBattleStats : MonoBehaviour
 
         Debug.Log($"{name} takes {finalDmgInt} damage! HP: {CurrentHP}/{MaxHP}");
     }
-    
+
     public void Heal(int healAmount)
     {
         CurrentHP += healAmount;
         CurrentHP = Mathf.Min(MaxHP, CurrentHP);
-        
+
         if (baseStats != null)
         {
             baseStats.HP = CurrentHP;
@@ -193,7 +193,7 @@ public class SlimeBattleStats : MonoBehaviour
         {
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, $"+{healAmount} HP", Color.green);
         }
-        
+
         Debug.Log($"{name} heals for {healAmount}! HP: {CurrentHP}/{MaxHP}");
     }
 
@@ -308,8 +308,8 @@ public class SlimeBattleStats : MonoBehaviour
         return stat switch
         {
             BuffStat.Defense => BattleDefense,
-            BuffStat.Attack  => BattleAttack,
-            BuffStat.Speed   => BattleSpeed,
+            BuffStat.Attack => BattleAttack,
+            BuffStat.Speed => BattleSpeed,
             _ => 0
         };
     }
@@ -319,8 +319,8 @@ public class SlimeBattleStats : MonoBehaviour
         switch (stat)
         {
             case BuffStat.Defense: BattleDefense = value; break;
-            case BuffStat.Attack:  BattleAttack  = value; break;
-            case BuffStat.Speed:   BattleSpeed   = value; break;
+            case BuffStat.Attack: BattleAttack = value; break;
+            case BuffStat.Speed: BattleSpeed = value; break;
         }
     }
     public void ApplyDoT(EffectType type, int damagePerTurn, int duration)
@@ -342,10 +342,10 @@ public class SlimeBattleStats : MonoBehaviour
         {
             var dot = activeDoTs[i];
             dot.turnsLeft--;
-            
+
             // Gây sát thương
             TakeDamage(dot.damagePerTurn);
-            
+
             // Hiện popup sát thương DoT
             TurnSystem turnSys = FindObjectOfType<TurnSystem>();
             if (turnSys != null)
@@ -366,7 +366,7 @@ public class SlimeBattleStats : MonoBehaviour
             }
         }
     }
-    
+
     public bool TryCriticalHit()
     {
         float finalCritRate = GetFinalCritRate();

@@ -9,16 +9,16 @@ public enum TargetSide { Allies = 0, Enemies = 1, All = 2 }
 // Hình dạng vùng ảnh hưởng tính từ điểm mốc (anchor)
 public enum AoEShape
 {
-    Single    = 0, // 1 ô (chính anchor)
-    Blast     = 1, // Lan (chính anchor + các ô lân cận trong hàng)
-    FullSide  = 2  // Toàn bộ 1 bên (allies hoặc enemies)
+    Single = 0, // 1 ô (chính anchor)
+    Blast = 1, // Lan (chính anchor + các ô lân cận trong hàng)
+    FullSide = 2  // Toàn bộ 1 bên (allies hoặc enemies)
 }
 
 // Điểm mốc xác định tâm của AoE
 public enum AnchorType
 {
-    Self           = 0, // Bản thân caster
-    AttackTarget   = 1  // Mục tiêu tấn công hiện tại
+    Self = 0, // Bản thân caster
+    AttackTarget = 1  // Mục tiêu tấn công hiện tại
 }
 
 // Định nghĩa loại hiệu ứng và targeting — dùng chung giữa nhiều skill.

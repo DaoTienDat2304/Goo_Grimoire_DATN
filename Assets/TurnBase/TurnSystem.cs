@@ -889,7 +889,7 @@ public class TurnSystem : MonoBehaviour
                 }
             }
         }
-        
+
         if (boss != null)
         {
             var bossAnim = boss.GetComponent<SimpleCombatAnimation>();
@@ -973,10 +973,10 @@ public class TurnSystem : MonoBehaviour
 
         // Hiển thị panel kết quả thắng
         ShowResultPanel(true);
-        
+
         bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
         bool isFarmMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode();
-        
+
         if (isFarmMode)
         {
             // Xử lý farm mode victory
@@ -988,21 +988,21 @@ public class TurnSystem : MonoBehaviour
             {
                 Debug.LogWarning("FarmModeManager.Instance is null! Không thể thêm coins.");
             }
-            
+
             if (BattleDataManager.Instance != null)
             {
                 BattleDataManager.Instance.ClearBossData();
             }
-            
+
             yield return new WaitForSeconds(2f);
-            
+
             // Quay về firstsave scene
             Debug.Log("Thắng farm mode, về firstsave");
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
-            
+
             yield break;
         }
-        
+
         if (isTowerMode)
         {
             TowerSlimeBosses.TowerFloor currentFloor = null;
@@ -1035,25 +1035,25 @@ public class TurnSystem : MonoBehaviour
                     towerBosses.hasPendingResult = true;
                 }
             }
-            
+
             if (BattleDataManager.Instance != null)
             {
                 BattleDataManager.Instance.ClearBossData();
             }
-            
+
             yield return new WaitForSeconds(2f);
-            
+
             // Luôn về firstsave sau khi thắng tower
             Debug.Log("Thắng tower, về firstsave");
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
-            
+
             yield break;
         }
-        
+
         if (BattleDataManager.Instance != null && wildSlimes != null)
         {
             var wildSlimeID = BattleDataManager.Instance.GetWildSlimeID();
-            
+
             if (wildSlimeID >= 0)
             {
                 WildSlimes.WildSlimeTraits wildSlimeTraits = null;
@@ -1065,7 +1065,7 @@ public class TurnSystem : MonoBehaviour
                         break;
                     }
                 }
-                
+
                 if (wildSlimeTraits != null)
                 {
                     WildSlimes.WildSlimeTraits tamedSlime = new WildSlimes.WildSlimeTraits();
@@ -1076,7 +1076,7 @@ public class TurnSystem : MonoBehaviour
                     {
                         tamedSlime.wildSlimeTraits[i] = wildSlimeTraits.wildSlimeTraits[i];
                     }
-                    
+
                     if (wildSlimes.tamedSlimes == null)
                     {
                         wildSlimes.tamedSlimes = new System.Collections.Generic.List<WildSlimes.WildSlimeTraits>();
@@ -1085,47 +1085,47 @@ public class TurnSystem : MonoBehaviour
                     {
                         wildSlimes.slimes = new System.Collections.Generic.List<WildSlimes.WildSlimeTraits>();
                     }
-                    
+
                     wildSlimes.tamedSlimes.Add(tamedSlime);
                     wildSlimes.slimes.Remove(wildSlimeTraits);
-                    
+
                     if (SaveAndLoadSystem.Instance != null)
                     {
                         SaveAndLoadSystem.Instance.Save();
                     }
                 }
             }
-            
+
             BattleDataManager.Instance.ClearBossData();
         }
-        
+
         yield return new WaitForSeconds(2f);
         yield return SceneLoader.LoadSceneWithLoadingCoroutine("adventureSence");
     }
-    
+
     protected IEnumerator HandleDefeat()
     {
         // Log analytics khi thua
         {
             string bMode = BattleDataManager.Instance?.GetBattleMode().ToString().ToLower() ?? "adventure";
-            string diff  = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
+            string diff = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
                 ? (FarmModeManager.Instance?.SelectedDifficultyName ?? "unknown") : "";
             FirebaseAnalyticsManager.LogBattleLose(bMode, diff, turnCount);
         }
 
         // Hiển thị panel kết quả thua
         ShowResultPanel(false);
-        
+
         bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
         bool isFarmMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode();
-        
+
         if (BattleDataManager.Instance != null)
         {
             BattleDataManager.Instance.ClearBossData();
         }
-        
+
         yield return new WaitForSeconds(2f);
-        
+
         if (isFarmMode)
         {
             // Quay về firstsave scene khi thua farm mode
@@ -1140,7 +1140,7 @@ public class TurnSystem : MonoBehaviour
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("adventureSence");
         }
     }
-    
+
     /// <summary>
     /// Hiển thị panel kết quả với text tương ứng
     /// </summary>
@@ -1149,7 +1149,7 @@ public class TurnSystem : MonoBehaviour
         if (resultPanel != null)
         {
             resultPanel.SetActive(true);
-            
+
             if (resultText != null)
             {
                 if (isVictory)
@@ -1185,7 +1185,7 @@ public class TurnSystem : MonoBehaviour
             parentCanvas.worldCamera,
             out localPos
         );
-        
+
         RectTransform rectTransform = popupGO.AddComponent<RectTransform>();
         rectTransform.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f)); // Random offset
         rectTransform.sizeDelta = new Vector2(300, 80);
@@ -1197,7 +1197,7 @@ public class TurnSystem : MonoBehaviour
         textComponent.fontStyle = FontStyle.Bold;
         textComponent.alignment = TextAnchor.MiddleCenter;
         textComponent.color = color;
-        
+
         Outline outline = popupGO.AddComponent<Outline>();
         outline.effectColor = Color.black;
         outline.effectDistance = new Vector2(2, -2);

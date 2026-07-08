@@ -343,17 +343,18 @@ public class BreedingManager : MonoBehaviour
     private void ApplyMutation(Slime slime)
     {
         // Tăng ngẫu nhiên một stat
-        int statChoice = Random.Range(0, 5);
+        int statChoice = Random.Range(0, 6);
         int bonus = Random.Range(1, 4);
-        string[] statNames = { "hp", "attack", "defense", "speed", "magicAttack" };
+        string[] statNames = { "hp", "attack", "magicAttack", "defense", "speed", "crit" };
 
         switch (statChoice)
         {
             case 0: slime.body.HP += bonus; break;
             case 1: slime.body.attack += bonus; break;
-            case 2: slime.body.defense += bonus; break;
-            case 3: slime.body.speed += bonus; break;
-            case 4: slime.body.magicAttack += bonus * 10; break;
+            case 2: slime.body.magicAttack += bonus; break;
+            case 3: slime.body.defense += bonus; break;
+            case 4: slime.body.speed += bonus; break;
+            case 5: slime.body.critRate += bonus / 100f; break;
         }
 
         slime.CalculateStats();

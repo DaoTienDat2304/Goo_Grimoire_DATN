@@ -149,11 +149,11 @@ public class SlimeWorldManager : MonoBehaviour
     public void StartWorldView()
     {
         isWorldViewActive = true;
-        breedingUI.panelBreedingActive = false;
 
         // Ẩn breeding UI
         if (breedingUI != null)
         {
+            breedingUI.panelBreedingActive = false;
             breedingUI.gameObject.SetActive(false);
         }
         if (breedUI != null)
@@ -177,14 +177,26 @@ public class SlimeWorldManager : MonoBehaviour
     public void StartinventoryView()
     {
         isWorldViewActive = true;
-        breedingUI.panelBreedingActive = false;
-        inventory.SetActive(true);
+        if (breedingUI != null)
+        {
+            breedingUI.panelBreedingActive = false;
+            breedingUI.gameObject.SetActive(false);
+        }
+        if (breedUI != null)
+        {
+            breedUI.SetActive(false);
+        }
+        if (inventory != null)
+        {
+            inventory.SetActive(true);
+        }
         // Xóa slimes cũ và tạo mới
         ClearWorldSlimes();
     }
     public void StartBreedingView()
     {
-        breedingUI.panelBreedingActive = true;
+        if (breedingUI != null)
+            breedingUI.panelBreedingActive = true;
         isWorldViewActive = false;
 
         // Hiển thị breeding UI

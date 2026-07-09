@@ -53,7 +53,17 @@ public class ShopItemUI : MonoBehaviour
 
     private void OnBuyButtonClicked()
     {
-        shopItemsSpawner.confirmPopUp.SetActive(true);
+        if (shopItemsSpawner == null)
+        {
+            Debug.LogWarning($"{nameof(ShopItemUI)} on {name} cannot open confirm popup because ShopItemsSpawner is missing.", this);
+            return;
+        }
+
+        if (shopItemsSpawner.confirmPopUp != null)
+            shopItemsSpawner.confirmPopUp.SetActive(true);
+        else
+            Debug.LogWarning($"{nameof(ShopItemUI)} on {name} cannot open confirm popup because confirmPopUp is missing.", this);
+
         shopItemsSpawner.price = data.price;
         shopItemsSpawner.currencyType = data.currencyType;
         shopItemsSpawner.resourceGranted = data.resourceGranted;

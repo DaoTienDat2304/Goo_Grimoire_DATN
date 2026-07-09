@@ -207,6 +207,11 @@ public class BreedingUIManager : MonoBehaviour
             var canvasGO = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             var canvas = canvasGO.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasGO.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = 0.5f;
             new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
         }
 
@@ -449,6 +454,9 @@ public class BreedingUIManager : MonoBehaviour
         }
         collectionSlots.Clear();
 
+        if (BreedingManager.Instance == null)
+            return;
+
         // Get all slimes
         var allSlimes = BreedingManager.Instance.GetAllSlimes();
 
@@ -496,7 +504,8 @@ public class BreedingUIManager : MonoBehaviour
 
             if (CanBreedSelectedSlimes())
             {
-                breedButton.interactable = true;
+                if (breedButton != null)
+                    breedButton.interactable = true;
             }
             else
             {
@@ -532,7 +541,7 @@ public class BreedingUIManager : MonoBehaviour
         }
 
         // Kiểm tra giới hạn slime trước khi breeding
-        if (!BreedingManager.Instance.CanBreedMore())
+        if (BreedingManager.Instance == null || !BreedingManager.Instance.CanBreedMore())
         {
             return;
         }
@@ -543,17 +552,17 @@ public class BreedingUIManager : MonoBehaviour
             BreedingManager.Instance.SelectSlimeForBreeding(selectedSlime2);
 
             // Show breeding progress
-            breedingProgressPanel.SetActive(true);
-            breedButton.gameObject.SetActive(false);
-            cancelButton.gameObject.SetActive(false);
+            if (breedingProgressPanel != null) breedingProgressPanel.SetActive(true);
+            if (breedButton != null) breedButton.gameObject.SetActive(false);
+            if (cancelButton != null) cancelButton.gameObject.SetActive(false);
         }
     }
 
     private void OnCancelButtonClicked()
     {
         ResetSelection();
-        breedingProgressPanel.SetActive(false);
-        breedingPanel.SetActive(true);
+        if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
+        if (breedingPanel != null) breedingPanel.SetActive(true);
     }
 
     private void ResetSelection()
@@ -565,6 +574,9 @@ public class BreedingUIManager : MonoBehaviour
     }
     private void UpdateBreedingProgress()
     {
+        if (BreedingManager.Instance == null)
+            return;
+
         if (BreedingManager.Instance.IsBreeding())
         {
             currentlyBreeding = true;
@@ -582,9 +594,9 @@ public class BreedingUIManager : MonoBehaviour
 
             if (breedingStatusText != null)
             {
-                breedingProgressPanel.SetActive(false);
-                breedButton.gameObject.SetActive(true);
-                cancelButton.gameObject.SetActive(true);
+                if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
+                if (breedButton != null) breedButton.gameObject.SetActive(true);
+                if (cancelButton != null) cancelButton.gameObject.SetActive(true);
             }
             if (currentlyBreeding)
             {
@@ -615,7 +627,7 @@ public class BreedingUIManager : MonoBehaviour
         if (breedButton != null)
         {
             // Vô hiệu hóa button nếu không thể breeding hoặc đã đạt giới hạn
-            bool canBreed = CanBreedSelectedSlimes() && BreedingManager.Instance.CanBreedMore();
+            bool canBreed = CanBreedSelectedSlimes() && BreedingManager.Instance != null && BreedingManager.Instance.CanBreedMore();
             breedButton.interactable = canBreed;
         }
     }
@@ -627,8 +639,10 @@ public class BreedingUIManager : MonoBehaviour
             AudioManager.Instance.PlayButtonClickSFX();
         }
 
-        breedingPanel.SetActive(true);
-        slimeCollectionPanel.SetActive(false);
+        panelBreedingActive = true;
+        if (breedingPanel != null) breedingPanel.SetActive(true);
+        if (slimeCollectionPanel != null) slimeCollectionPanel.SetActive(false);
+        if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
         RefreshSlimeGrid();
     }
 
@@ -640,8 +654,10 @@ public class BreedingUIManager : MonoBehaviour
             AudioManager.Instance.PlayButtonClickSFX();
         }
 
-        breedingPanel.SetActive(false);
-        slimeCollectionPanel.SetActive(true);
+        panelBreedingActive = true;
+        if (breedingPanel != null) breedingPanel.SetActive(false);
+        if (slimeCollectionPanel != null) slimeCollectionPanel.SetActive(true);
+        if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
         RefreshCollectionGrid();
     }
 

@@ -7,8 +7,6 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IInitialize
 {
     private const string EditorPrefabPath = "Assets/UI/prefab/MobileControlsCanvas.prefab";
     private const string ResourcesPrefabPath = "UI/MobileControlsCanvas";
-    private const float ReferenceWidth = 1920f;
-    private const float ReferenceHeight = 1080f;
     private const int MobileControlsSortingOrder = -10;
     private const float LeftControlWidthRatio = 0.45f;
     private const float LowerControlHeightRatio = 0.72f;
@@ -76,7 +74,8 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IInitialize
 
         var scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 0.5f;
 
         CreateJoystick(canvasObject.transform);
@@ -100,7 +99,10 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IInitialize
         DontDestroyOnLoad(instance);
         var canvas = instance.GetComponent<Canvas>();
         if (canvas != null)
+        {
             ConfigureControlsCanvas(canvas);
+            ConfigureControlsScaler(canvas);
+        }
         EnsureEventBlocker(instance);
         return true;
     }
@@ -109,6 +111,18 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IInitialize
     {
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = MobileControlsSortingOrder;
+    }
+
+    private static void ConfigureControlsScaler(Canvas canvas)
+    {
+        var scaler = canvas.GetComponent<CanvasScaler>();
+        if (scaler == null)
+            scaler = canvas.gameObject.AddComponent<CanvasScaler>();
+
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 0.5f;
     }
 
     private static void EnsureEventBlocker(GameObject controlsCanvas)

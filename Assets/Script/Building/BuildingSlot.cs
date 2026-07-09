@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
@@ -15,10 +14,17 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
     public SaveAndLoadSystem saveAndLoadSystem;
     public GameObject TowerPanel;
     public GameObject shop;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    private void Awake()
     {
-        buildingMenu.SetActive(false);
+        AutoWireMissingReferences();
+    }
+
+    private void Start()
+    {
+        AutoWireMissingReferences();
+        if (buildingMenu != null)
+            buildingMenu.SetActive(false);
     }
 
     // Update is called once per frame
@@ -28,38 +34,69 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
     }
     public void OnPointerClick(PointerEventData eventData)
     {
+        AutoWireMissingReferences();
+
         // Play building click sound effect
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayBuildingClickSFX();
         }
 
-        if (isOccupied == false) buildingMenuManager.ToggleMenu();
-        if (isOccupied == true && slotID == 1)
+        if (isOccupied == false)
         {
-            slimeWorldManager.StartBreedingView();
+            if (buildingMenuManager != null)
+                buildingMenuManager.ToggleMenu();
+            else
+                Debug.LogWarning($"{nameof(BuildingSlot)} on {name} cannot open building menu because BuildingMenuManager is missing.", this);
+            return;
         }
-        if (isOccupied == true && slotID == 2)
+
+        if (slotID == 1)
         {
-            saveAndLoadSystem.Save();
-            slimeWorldManager.ClearWorldSlimes();
-            GameObject map = GameObject.Find("MapSelection");
-            map.transform.GetChild(0).gameObject.SetActive(true);
+            if (slimeWorldManager != null)
+                slimeWorldManager.StartBreedingView();
+            else
+                Debug.LogWarning($"{nameof(BuildingSlot)} on {name} cannot open breeding view because SlimeWorldManager is missing.", this);
+            return;
         }
-        if (isOccupied == true && slotID == 3)
+
+        if (slotID == 2)
         {
-            slimeWorldManager.StartinventoryView();
-            slimeWorldManager.ClearWorldSlimes();
+            if (saveAndLoadSystem != null)
+                saveAndLoadSystem.Save();
+            else
+                SaveAndLoadSystem.Instance?.Save();
+
+            ClearWorldSlimesIfAvailable();
+            ShowFirstChild("MapSelection");
+            return;
         }
-        if (isOccupied == true && slotID == 4)
+
+        if (slotID == 3)
         {
-            slimeWorldManager.ClearWorldSlimes();
-            TowerPanel.SetActive(true);
+            if (slimeWorldManager != null)
+            {
+                slimeWorldManager.StartinventoryView();
+                slimeWorldManager.ClearWorldSlimes();
+            }
+            else
+            {
+                Debug.LogWarning($"{nameof(BuildingSlot)} on {name} cannot open inventory view because SlimeWorldManager is missing.", this);
+            }
+            return;
         }
-        if(isOccupied == true && slotID == 5)
+
+        if (slotID == 4)
         {
-            slimeWorldManager.ClearWorldSlimes();
-            shop.SetActive(true);
+            ClearWorldSlimesIfAvailable();
+            SetPanelActive(TowerPanel, "TowerPanel");
+            return;
+        }
+
+        if (slotID == 5)
+        {
+            ClearWorldSlimesIfAvailable();
+            SetPanelActive(shop, "shop");
         }
     }
 
@@ -119,5 +156,72 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
         }
         else return;
         
+    }
+
+    private void AutoWireMissingReferences()
+    {
+        if (buildingMenuManager == null)
+            buildingMenuManager = FindAnyObjectByType<BuildingMenuManager>(FindObjectsInactive.Include);
+
+        if (buildingMenu == null && buildingMenuManager != null)
+            buildingMenu = buildingMenuManager.menuRoot;
+
+        if (slimeWorldManager == null)
+            slimeWorldManager = FindAnyObjectByType<SlimeWorldManager>(FindObjectsInactive.Include);
+
+        if (saveAndLoadSystem == null)
+            saveAndLoadSystem = SaveAndLoadSystem.Instance != null
+                ? SaveAndLoadSystem.Instance
+                : FindAnyObjectByType<SaveAndLoadSystem>(FindObjectsInactive.Include);
+
+        if (TowerPanel == null)
+            TowerPanel = FindSceneObjectByName("TowerPanel");
+
+        if (shop == null)
+            shop = FindSceneObjectByName("shop") ?? FindSceneObjectByName("Shop");
+    }
+
+    private void ClearWorldSlimesIfAvailable()
+    {
+        if (slimeWorldManager != null)
+            slimeWorldManager.ClearWorldSlimes();
+    }
+
+    private void ShowFirstChild(string objectName)
+    {
+        GameObject target = FindSceneObjectByName(objectName);
+        if (target == null)
+        {
+            Debug.LogWarning($"{nameof(BuildingSlot)} on {name} cannot find '{objectName}' in the scene.", this);
+            return;
+        }
+
+        if (target.transform.childCount == 0)
+        {
+            Debug.LogWarning($"{nameof(BuildingSlot)} on {name} found '{objectName}', but it has no child to show.", target);
+            return;
+        }
+
+        target.transform.GetChild(0).gameObject.SetActive(true);
+    }
+
+    private void SetPanelActive(GameObject panel, string panelName)
+    {
+        if (panel != null)
+            panel.SetActive(true);
+        else
+            Debug.LogWarning($"{nameof(BuildingSlot)} on {name} cannot open {panelName} because the reference is missing.", this);
+    }
+
+    private static GameObject FindSceneObjectByName(string objectName)
+    {
+        var transforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var transform in transforms)
+        {
+            if (transform.name == objectName)
+                return transform.gameObject;
+        }
+
+        return null;
     }
 }

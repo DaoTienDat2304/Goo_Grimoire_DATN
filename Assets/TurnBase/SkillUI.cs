@@ -36,13 +36,22 @@ public class SkillUI : MonoBehaviour
                 skillImage.sprite = border;
             }
             
-            // Làm tối icon nếu đang hồi chiêu
-            skillImage.color = skill.currentCooldown > 0 ? new Color(0.4f, 0.4f, 0.4f, 1.0f) : Color.white;
+            // Làm tối icon và disable button nếu đang hồi chiêu
+            bool isReady = skill.currentCooldown <= 0;
+            skillImage.color = isReady ? Color.white : new Color(0.4f, 0.4f, 0.4f, 1.0f);
+            
+            Button btn = skillImage.GetComponent<Button>();
+            if (btn == null) btn = skillImage.GetComponentInParent<Button>();
+            if (btn != null) btn.interactable = isReady;
         }
         else
         {
             skillImage.sprite = border;
             skillImage.color = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+            
+            Button btn = skillImage.GetComponent<Button>();
+            if (btn == null) btn = skillImage.GetComponentInParent<Button>();
+            if (btn != null) btn.interactable = false;
         }
 
         // Cập nhật nhãn Text bên dưới nút để hiển thị tên kỹ năng

@@ -1,0 +1,887 @@
+fileFormatVersion: 2
+guid: 4cc0d85d8d251fb458f5d98bc20e7148
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2448582194061851316
+    second: ENEMY_0
+  - first:
+      213: -7555894060015867045
+    second: ENEMY_1
+  - first:
+      213: -337772511103682495
+    second: ENEMY_2
+  - first:
+      213: -5490689182627715962
+    second: ENEMY_3
+  - first:
+      213: 7974736611508053464
+    second: ENEMY_4
+  - first:
+      213: 6790565273963799053
+    second: ENEMY_5
+  - first:
+      213: 4310109759326464426
+    second: ENEMY_6
+  - first:
+      213: 130253060492331265
+    second: ENEMY_7
+  - first:
+      213: 3476491844600648290
+    second: ENEMY_8
+  - first:
+      213: -8229465375997007498
+    second: ENEMY_9
+  - first:
+      213: -8939836709429717290
+    second: ENEMY_10
+  - first:
+      213: 404069688548869789
+    second: ENEMY_11
+  - first:
+      213: -2055807008233157492
+    second: ENEMY_12
+  - first:
+      213: -4161600620682740117
+    second: ENEMY_13
+  - first:
+      213: 6575140695330583821
+    second: ENEMY_14
+  - first:
+      213: 7393986794628680852
+    second: ENEMY_15
+  - first:
+      213: 7816023064498861105
+    second: ENEMY_16
+  - first:
+      213: 2657484008607179947
+    second: ENEMY_17
+  - first:
+      213: -1349252119162225760
+    second: ENEMY_18
+  - first:
+      213: -4477058840843159412
+    second: ENEMY_19
+  - first:
+      213: 5583304030171569523
+    second: ENEMY_20
+  - first:
+      213: -1612000209716201595
+    second: ENEMY_21
+  - first:
+      213: 7664046400605439657
+    second: ENEMY_22
+  - first:
+      213: -7422365479429841639
+    second: ENEMY_23
+  - first:
+      213: -4228253576309633019
+    second: ENEMY_24
+  - first:
+      213: -7467236717860364658
+    second: ENEMY_25
+  - first:
+      213: 608091541198300115
+    second: ENEMY_26
+  - first:
+      213: -6437259888204545069
+    second: ENEMY_27
+  - first:
+      213: -209954450556685718
+    second: ENEMY_28
+  - first:
+      213: 825638409329289242
+    second: ENEMY_29
+  - first:
+      213: -3701580137078877643
+    second: ENEMY_30
+  - first:
+      213: 7671457050123310612
+    second: ENEMY_31
+  - first:
+      213: -3733624206696644372
+    second: ENEMY_32
+  - first:
+      213: -5629676027326543536
+    second: ENEMY_33
+  - first:
+      213: -6738974215729884962
+    second: ENEMY_34
+  - first:
+      213: -7060556260840917245
+    second: ENEMY_35
+  - first:
+      213: 7049495039290888285
+    second: ENEMY_36
+  - first:
+      213: 8989797268837403823
+    second: ENEMY_37
+  - first:
+      213: -1174291268651296695
+    second: ENEMY_38
+  - first:
+      213: 6189878887026359839
+    second: ENEMY_39
+  - first:
+      213: -594336475423568763
+    second: ENEMY_40
+  - first:
+      213: 4266464802506724686
+    second: ENEMY_41
+  - first:
+      213: 5168010404004410323
+    second: ENEMY_42
+  - first:
+      213: 7043312170106632780
+    second: ENEMY_43
+  - first:
+      213: 1769776754573505160
+    second: ENEMY_44
+  - first:
+      213: -7304151217759301750
+    second: ENEMY_45
+  - first:
+      213: 5032657051789148185
+    second: ENEMY_46
+  - first:
+      213: -2011693896337469621
+    second: ENEMY_47
+  - first:
+      213: 7020207704351733022
+    second: ENEMY_48
+  - first:
+      213: -29393524595988382
+    second: ENEMY_49
+  - first:
+      213: -1594664151877147325
+    second: ENEMY_50
+  - first:
+      213: -8785026939622446700
+    second: ENEMY_51
+  - first:
+      213: 5929079951940090240
+    second: ENEMY_52
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 10
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: GreenSlime
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 336
+        width: 45
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ba3768488c1bf120800000000000000
+      internalID: 2448582194061851316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TinyBat
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 339
+        width: 83
+        height: 39
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5b2540a262142790800000000000000
+      internalID: -7555894060015867045
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SlimeKing
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 333
+        width: 57
+        height: 61
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 148f5c4d0bdff4bf0800000000000000
+      internalID: -337772511103682495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoblinWarrior
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 332
+        width: 60
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 684256187472dc3b0800000000000000
+      internalID: -5490689182627715962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoblinArcher
+      rect:
+        serializedVersion: 2
+        x: 328
+        y: 332
+        width: 62
+        height: 54
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d56d3a32b4fbae60800000000000000
+      internalID: 7974736611508053464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoblinShaman
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 331
+        width: 60
+        height: 62
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0227b2832fec3e50800000000000000
+      internalID: 6790565273963799053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GoblinChief
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 331
+        width: 84
+        height: 67
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa9299b7df590db30800000000000000
+      internalID: 4310109759326464426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PoisonSlime
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 243
+        width: 47
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d05f46530a79f3b50800000000000000
+      internalID: 6575140695330583821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CorruptedGoblin
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 241
+        width: 58
+        height: 55
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 134f6bbe097187c60800000000000000
+      internalID: 7816023064498861105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DarkGoblinShaman
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 240
+        width: 69
+        height: 71
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba4ef4930a741e420800000000000000
+      internalID: 2657484008607179947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CorruptedGoblinChief
+      rect:
+        serializedVersion: 2
+        x: 232
+        y: 240
+        width: 82
+        height: 67
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ab74e4a85e764de0800000000000000
+      internalID: -1349252119162225760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: StoneGoblin
+      rect:
+        serializedVersion: 2
+        x: 323
+        y: 241
+        width: 55
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c88750964ba4ed1c0800000000000000
+      internalID: -4477058840843159412
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CrystalSlime
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 242
+        width: 53
+        height: 45
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37d126f0f61eb7d40800000000000000
+      internalID: 5583304030171569523
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AncientShaman
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 240
+        width: 55
+        height: 67
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 587b20a995601a9e0800000000000000
+      internalID: -1612000209716201595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AncientGuardian
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 240
+        width: 70
+        height: 66
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a6c23278992c5a60800000000000000
+      internalID: 7664046400605439657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: StoneGolem
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 139
+        width: 67
+        height: 66
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 416144eba8d767a60800000000000000
+      internalID: 7671457050123310612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IronGolem
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 138
+        width: 66
+        height: 66
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce00c0bc0908f2cc0800000000000000
+      internalID: -3733624206696644372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CrystalGolem
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 139
+        width: 66
+        height: 66
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0594baefa7f5fd1b0800000000000000
+      internalID: -5629676027326543536
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AncientColossus
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 136
+        width: 78
+        height: 80
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed057e8c7aa5a72a0800000000000000
+      internalID: -6738974215729884962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EliteStoneGolem
+      rect:
+        serializedVersion: 2
+        x: 294
+        y: 139
+        width: 69
+        height: 67
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 307baeb3d7dd30e90800000000000000
+      internalID: -7060556260840917245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EliteIronGolem
+      rect:
+        serializedVersion: 2
+        x: 370
+        y: 139
+        width: 72
+        height: 65
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d50dfce6366d4d160800000000000000
+      internalID: 7049495039290888285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EliteCrystalGolem
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 139
+        width: 73
+        height: 74
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fac84db6cfc22cc70800000000000000
+      internalID: 8989797268837403823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CorruptedGoblinElite
+      rect:
+        serializedVersion: 2
+        x: 526
+        y: 144
+        width: 76
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9485235105414bfe0800000000000000
+      internalID: -1174291268651296695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PoisonSlimeElite
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 35
+        width: 72
+        height: 65
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4fcbf74f070514e0800000000000000
+      internalID: -2011693896337469621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TinyBatElite
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 45
+        width: 87
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e15785366b9cc6160800000000000000
+      internalID: 7020207704351733022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CelestialGuardian
+      rect:
+        serializedVersion: 2
+        x: 305
+        y: 31
+        width: 140
+        height: 76
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26862cfbeb2979ff0800000000000000
+      internalID: -29393524595988382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: c15ce07f6645fa24ebafbbf46960692d
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      AncientColossus: -6738974215729884962
+      AncientGuardian: 7664046400605439657
+      AncientShaman: -1612000209716201595
+      CelestialGuardian: -29393524595988382
+      CorruptedGoblin: 7816023064498861105
+      CorruptedGoblinChief: -1349252119162225760
+      CorruptedGoblinElite: -1174291268651296695
+      CrystalGolem: -5629676027326543536
+      CrystalSlime: 5583304030171569523
+      DarkGoblinShaman: 2657484008607179947
+      EliteCrystalGolem: 8989797268837403823
+      EliteIronGolem: 7049495039290888285
+      EliteStoneGolem: -7060556260840917245
+      GoblinArcher: 7974736611508053464
+      GoblinChief: 4310109759326464426
+      GoblinShaman: 6790565273963799053
+      GoblinWarrior: -5490689182627715962
+      GreenSlime: 2448582194061851316
+      IronGolem: -3733624206696644372
+      PoisonSlime: 6575140695330583821
+      PoisonSlimeElite: -2011693896337469621
+      SlimeKing: -337772511103682495
+      StoneGoblin: -4477058840843159412
+      StoneGolem: 7671457050123310612
+      TinyBat: -7555894060015867045
+      TinyBatElite: 7020207704351733022
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

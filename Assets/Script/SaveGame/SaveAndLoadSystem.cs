@@ -360,6 +360,11 @@ public class SaveAndLoadSystem : MonoBehaviour
                 totalDefense = s.totalDefense,
                 totalSpeed = s.totalSpeed,
                 totalEvade = s.totalEvade,
+                totalMagicAttack = s.totalMagicAttack,
+                critRate = s.critRate,
+                critDamage = s.critDamage,
+                eggStatRollPercent = s.eggStatRollPercent,
+                eggStatQuality = s.eggStatQuality,
                 body = ToTraitDTO(s.body),
                 armor = ToTraitDTO(s.armor),
                 weapon = ToTraitDTO(s.weapon),
@@ -386,6 +391,11 @@ public class SaveAndLoadSystem : MonoBehaviour
             s.happiness = dto.happiness;
             s.experience = dto.experience;
             s.isPicked = dto.isPicked;
+            s.totalMagicAttack = dto.totalMagicAttack;
+            s.critRate = dto.critRate;
+            s.critDamage = dto.critDamage;
+            s.eggStatRollPercent = dto.eggStatRollPercent;
+            s.eggStatQuality = dto.eggStatQuality;
 
             s.body = FromTraitDTO(dto.body);
             s.armor = FromTraitDTO(dto.armor);

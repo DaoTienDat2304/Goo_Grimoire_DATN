@@ -68,6 +68,11 @@ public class SlimeDTO
     public int totalDefense;
     public int totalSpeed;
     public int totalEvade;
+    public int totalMagicAttack;
+    public float critRate;
+    public float critDamage;
+    public float eggStatRollPercent;
+    public string eggStatQuality;
 }
 
 [Serializable]

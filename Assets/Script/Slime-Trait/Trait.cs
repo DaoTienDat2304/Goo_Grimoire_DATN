@@ -21,9 +21,11 @@ public class TraitSO : ScriptableObject
     
     public Vector2Int HPRange;
     public Vector2Int attackRange;
+    public Vector2Int magicAttackRange;
     public Vector2Int defenseRange;
     public Vector2Int speedRange;
-    public Vector2Int evadeRange;
+    public Vector2Int critRateRange;
+    public Vector2Int critDMGRange;
     public SkillSO skill;
 
     public TraitInstance GenerateInstance()

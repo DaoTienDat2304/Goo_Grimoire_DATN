@@ -84,7 +84,7 @@ public class ShowSlime : MonoBehaviour
         DEF.text = $"Defense : {slime.totalDefense}";
         ATK.text = $"Attack : {slime.totalAttack}";
         SPD.text = $"Speed : {slime.totalSpeed}";
-        EVA.text = $"evasion : {slime.totalEvade}";
+        EVA.text = $"crit : {slime.totalCritRate:P0} (x{slime.totalCritDMG:0.##})";
 
 
         if (slime.body.Rarity != Rarity.Secret)

@@ -9,9 +9,11 @@ public class Enemy : MonoBehaviour
         var stats = this.GetComponent<SlimeStats>();
         stats.HP = enemy.totalHP;
         stats.Attack = enemy.totalAttack;
+        stats.MagicAttack = enemy.totalMagicAttack;
         stats.Defense = enemy.totalDefense;
         stats.Speed = enemy.totalSpeed;
-        stats.Evade = enemy.totalEvade;
+        stats.CritRate = enemy.totalCritRate;
+        stats.CritDMG = enemy.totalCritDMG;
         stats.isEnemy = true;
     }
 

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
+  m_Name: Test_HSR_SingleDmg
+  m_EditorClassIdentifier: 
+  skillName: "HSR Test: \u0110\u01A1n M\u1EE5c Ti\xEAu"
+  type: 0
+  description: "T\u1EA5n c\xF4ng \u0111\u01A1n th\u1EC3, g\xE2y 1.5x s\xE1t th\u01B0\u01A1ng
+    cho 1 k\u1EBB \u0111\u1ECBch."
+  icon: {fileID: 0}
+  cooldown: 1
+  effects:
+  - effect: {fileID: 11400000, guid: 4a3a0815ad92c3742a3e9661662555d1, type: 2}
+    value: 1.5
+    duration: 0
+    applyChance: 100

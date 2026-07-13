@@ -63,9 +63,11 @@ public class Member : MonoBehaviour
                 var stat = slimeGO.GetComponent<SlimeStats>();
                 stat.HP = s.totalHP;
                 stat.Attack = s.totalAttack;
+                stat.MagicAttack = s.totalMagicAttack;
                 stat.Defense = s.totalDefense;
                 stat.Speed = s.totalSpeed;
-                stat.Evade = s.totalEvade;
+                stat.CritRate = s.totalCritRate;
+                stat.CritDMG = s.totalCritDMG;
                 stat.isEnemy = false;
                 stat.id = s.id;
                 stat.bodySkill = s.body.skill;

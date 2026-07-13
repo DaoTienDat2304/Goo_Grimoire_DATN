@@ -8,30 +8,50 @@ public struct ActiveBuff
     public BuffStat stat;
     public int originalValue;
     public int turnsLeft; // -1 = vĩnh viễn
-    public bool isDebuff;  // true = debuff (dùng để cleanse riêng sau này)
+    public bool isDebuff;  // true = debuff
+}
+
+[System.Serializable]
+public struct ActiveDoT
+{
+    public EffectType type; // Poison or Bleed
+    public int damagePerTurn;
+    public int turnsLeft;
 }
 
 public class SlimeBattleStats : MonoBehaviour
 {
     [Header("Base Stats (from SlimeStats)")]
     public SlimeStats baseStats;
-    
+
     [Header("Battle Modifiers")]
-    public float critChance = 0f;
-    public float evadeChance = 0f;
+    public float critChance = 0f; // buff thêm vào Crit Rate (%)
     public float damageReduction = 0f;
     public int maxHPBonus = 0;
     public int speedBonus = 0;
-    
+
     // Calculated stats for battle
-    public int CurrentHP { get; private set; }
-    public int MaxHP { get; private set; }
-    public int BattleAttack { get; private set; }
-    public int BattleDefense { get; private set; }
-    public int BattleSpeed { get; private set; }
-    public int BattleEvade { get; private set; }
+    [Header("Battle Stats (Live editable)")]
+    [SerializeField] private int currentHP;
+    [SerializeField] private int maxHP;
+    [SerializeField] private int battleAttack;
+    [SerializeField] private int battleMagicAttack;
+    [SerializeField] private int battleDefense;
+    [SerializeField] private int battleSpeed;
+    [SerializeField] private float battleCritRate;
+    [SerializeField] private float battleCritDMG;
+
+    public int CurrentHP { get { return currentHP; } set { currentHP = value; } }
+    public int MaxHP { get { return maxHP; } set { maxHP = value; } }
+    public int BattleAttack { get { return battleAttack; } set { battleAttack = value; } }
+    public int BattleMagicAttack { get { return battleMagicAttack; } set { battleMagicAttack = value; } }
+    public int BattleDefense { get { return battleDefense; } set { battleDefense = value; } }
+    public int BattleSpeed { get { return battleSpeed; } set { battleSpeed = value; } }
+    public float BattleCritRate { get { return battleCritRate; } set { battleCritRate = value; } }
+    public float BattleCritDMG { get { return battleCritDMG; } set { battleCritDMG = value; } }
 
     private List<ActiveBuff> activeBuffs = new List<ActiveBuff>();
+    private List<ActiveDoT> activeDoTs = new List<ActiveDoT>();
 
     public int StunTurns { get; private set; }
     public bool IsStunned => StunTurns > 0;
@@ -41,88 +61,144 @@ public class SlimeBattleStats : MonoBehaviour
         if (baseStats == null)
             baseStats = GetComponent<SlimeStats>();
     }
-    
+
     private void Start()
     {
         InitializeBattleStats();
-        
     }
-    
+
     void InitializeBattleStats()
     {
         if (baseStats == null) return;
-        
+
         // Nếu là boss (enemy), buff stats theo Remote Config (mặc định 3x)
         float bossMultiplier = RemoteConfigManager.Instance != null
             ? RemoteConfigManager.Instance.BossStatMultiplier : 3f;
         float multiplier = baseStats.isEnemy ? bossMultiplier : 1f;
-        
+
         MaxHP = Mathf.RoundToInt((baseStats.MaxHP + maxHPBonus) * multiplier);
         CurrentHP = MaxHP;
         BattleAttack = Mathf.RoundToInt(baseStats.Attack * multiplier);
+        BattleMagicAttack = Mathf.RoundToInt(baseStats.MagicAttack * multiplier);
         BattleDefense = Mathf.RoundToInt(baseStats.Defense * multiplier);
         BattleSpeed = Mathf.RoundToInt((baseStats.Speed + speedBonus) * multiplier);
-        BattleEvade = baseStats.Evade; // Evade không cần buff
-        
-        // Cập nhật baseStats để UI (thanh máu) hiển thị đúng
+
+        BattleCritRate = baseStats.CritRate;
+        BattleCritDMG = baseStats.CritDMG;
+
+        // Cập nhật baseStats để UI hiển thị đúng
         baseStats.MaxHP = MaxHP;
         baseStats.HP = CurrentHP;
-        
-        // Cập nhật hpbar nếu có
+
         if (baseStats.hpbar != null)
         {
             baseStats.hpbar.maxValue = MaxHP;
             baseStats.hpbar.value = CurrentHP;
         }
     }
-    
-    public void TakeDamage(int damage)
+
+    // Dynamic stats computation taking conversion into account
+    public float GetEffectiveCritRate()
     {
-        // Tính toán damage với defense và damage reduction
-        float finalDamage = damage*damage/(BattleDefense+damage);
-        Debug.Log($"{BattleDefense} {damage}");
+        float rate = BattleCritRate;
+        // critChance is additional buff from skills, represented as percentage (e.g. 10 means +10% or +0.10f)
+        rate += critChance / 100f;
+        return rate;
+    }
+
+    public float GetEffectiveCritDMG()
+    {
+        float rate = GetEffectiveCritRate();
+        float excessCritRate = Mathf.Max(0f, rate - 0.75f);
+        float dmg = BattleCritDMG + excessCritRate; // 1:1 conversion
+        return dmg;
+    }
+
+    public int GetEffectiveAttack()
+    {
+        float critDmg = GetEffectiveCritDMG();
+        float excessCritDmg = Mathf.Max(0f, critDmg - 2.50f);
+        int atkBonus = Mathf.RoundToInt(excessCritDmg * 100f * 5f); // 1% excess = 5 ATK
+        return BattleAttack + atkBonus;
+    }
+
+    public int GetEffectiveMagicAttack()
+    {
+        float critDmg = GetEffectiveCritDMG();
+        float excessCritDmg = Mathf.Max(0f, critDmg - 2.50f);
+        int matkBonus = Mathf.RoundToInt(excessCritDmg * 100f * 5f); // 1% excess = 5 Magic ATK
+        return BattleMagicAttack + matkBonus;
+    }
+
+    public float GetFinalCritDMG()
+    {
+        float critDmg = GetEffectiveCritDMG();
+        return Mathf.Min(2.50f, critDmg); // capped at 250% (2.50)
+    }
+
+    public float GetFinalCritRate()
+    {
+        float rate = GetEffectiveCritRate();
+        return Mathf.Min(0.75f, rate); // capped at 75% (0.75)
+    }
+
+    public void TakeDamage(int rawDamage)
+    {
+        // GDD: Damage after defense = rawDamage * (1 - DEF_enemy * 0.008)
+        // Hard Cap DEF reduction at 80%
+        float defReduction = Mathf.Min(0.80f, BattleDefense * 0.008f);
+        float finalDamage = rawDamage * (1f - defReduction);
+
         finalDamage *= (1f - (damageReduction / 100f));
         finalDamage = Mathf.Max(1, finalDamage); // Minimum 1 damage
-        
-        CurrentHP -= Mathf.RoundToInt(finalDamage);
+
+        int finalDmgInt = Mathf.RoundToInt(finalDamage);
+        CurrentHP -= finalDmgInt;
         CurrentHP = Mathf.Max(0, CurrentHP);
-        
-        // Cập nhật baseStats.HP để UI (thanh máu) hiển thị đúng
+
         if (baseStats != null)
         {
             baseStats.HP = CurrentHP;
-            // Cập nhật hpbar ngay lập tức
             if (baseStats.hpbar != null)
             {
                 baseStats.hpbar.value = CurrentHP;
             }
         }
-        
-        Debug.Log($"{name} takes {finalDamage} damage! HP: {CurrentHP}/{MaxHP}");
+
+        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        if (turnSys != null)
+        {
+            turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, $"-{finalDmgInt}", Color.red);
+        }
+
+        Debug.Log($"{name} takes {finalDmgInt} damage! HP: {CurrentHP}/{MaxHP}");
     }
-    
+
     public void Heal(int healAmount)
     {
         CurrentHP += healAmount;
         CurrentHP = Mathf.Min(MaxHP, CurrentHP);
-        
-        // Cập nhật baseStats.HP để UI (thanh máu) hiển thị đúng
+
         if (baseStats != null)
         {
             baseStats.HP = CurrentHP;
-            // Cập nhật hpbar ngay lập tức
             if (baseStats.hpbar != null)
             {
                 baseStats.hpbar.value = CurrentHP;
             }
         }
-        
+
+        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        if (turnSys != null)
+        {
+            turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, $"+{healAmount} HP", Color.green);
+        }
+
         Debug.Log($"{name} heals for {healAmount}! HP: {CurrentHP}/{MaxHP}");
     }
-    // Áp dụng buff/debuff lên stat. duration=0 nghĩa là vĩnh viễn.
+
     public void ApplyBuff(BuffStat stat, float multiplier, int duration, bool isDebuff = false)
     {
-        // Lấy original thật: nếu đang có buff trên stat này thì restore về gốc trước
         int existingIdx = activeBuffs.FindIndex(b => b.stat == stat);
         int trueOriginal;
         if (existingIdx >= 0)
@@ -149,9 +225,19 @@ public class SlimeBattleStats : MonoBehaviour
                 isDebuff = isDebuff
             });
         }
+
+        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        if (turnSys != null)
+        {
+            string symbol = isDebuff ? "-" : "+";
+            Color c = isDebuff ? new Color(1f, 0.5f, 0f) : Color.cyan;
+            string statName = stat.ToString().Substring(0, 3).ToUpper();
+            int diff = buffed - trueOriginal;
+            string valueStr = diff != 0 ? $"{symbol}{Mathf.Abs(diff)} {statName}" : $"{symbol}{statName}";
+            turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.8f, valueStr, c);
+        }
     }
 
-    // Xóa tất cả debuff (dùng cho skill "Cleanse" sau này)
     public void CleanseDebuffs()
     {
         for (int i = activeBuffs.Count - 1; i >= 0; i--)
@@ -164,7 +250,6 @@ public class SlimeBattleStats : MonoBehaviour
         }
     }
 
-    // Xóa tất cả buff (dùng cho skill dispel của enemy sau này)
     public void DispelBuffs()
     {
         for (int i = activeBuffs.Count - 1; i >= 0; i--)
@@ -181,10 +266,16 @@ public class SlimeBattleStats : MonoBehaviour
     {
         if (duration > StunTurns)
             StunTurns = duration;
+
+        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        if (turnSys != null)
+        {
+            turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.8f, "STUNNED!", Color.magenta);
+        }
+
         Debug.Log($"{name} bị stun {duration} lượt!");
     }
 
-    // Gọi cuối mỗi lượt của slime này để giảm stun duration
     public void TickStun()
     {
         if (StunTurns <= 0) return;
@@ -193,7 +284,6 @@ public class SlimeBattleStats : MonoBehaviour
             Debug.Log($"{name} thoát khỏi stun.");
     }
 
-    // Gọi cuối mỗi lượt của slime này để giảm duration và restore stat hết hạn
     public void TickBuffs()
     {
         for (int i = activeBuffs.Count - 1; i >= 0; i--)
@@ -218,8 +308,8 @@ public class SlimeBattleStats : MonoBehaviour
         return stat switch
         {
             BuffStat.Defense => BattleDefense,
-            BuffStat.Attack  => BattleAttack,
-            BuffStat.Speed   => BattleSpeed,
+            BuffStat.Attack => BattleAttack,
+            BuffStat.Speed => BattleSpeed,
             _ => 0
         };
     }
@@ -229,17 +319,57 @@ public class SlimeBattleStats : MonoBehaviour
         switch (stat)
         {
             case BuffStat.Defense: BattleDefense = value; break;
-            case BuffStat.Attack:  BattleAttack  = value; break;
-            case BuffStat.Speed:   BattleSpeed   = value; break;
+            case BuffStat.Attack: BattleAttack = value; break;
+            case BuffStat.Speed: BattleSpeed = value; break;
         }
     }
-    public bool TryEvade()
+    public void ApplyDoT(EffectType type, int damagePerTurn, int duration)
     {
-        return Random.Range(0f, 100f) < evadeChance;
+        activeDoTs.Add(new ActiveDoT { type = type, damagePerTurn = damagePerTurn, turnsLeft = duration });
+        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        if (turnSys != null)
+        {
+            string effectName = type == EffectType.Poison ? "POISONED!" : "BLEEDING!";
+            Color color = type == EffectType.Poison ? Color.green : new Color(0.6f, 0f, 0f);
+            turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.0f, effectName, color);
+        }
+        Debug.Log($"{name} bị dính {type} gây {damagePerTurn} sát thương mỗi lượt trong {duration} lượt!");
     }
-    
+
+    public void TickDoTs()
+    {
+        for (int i = activeDoTs.Count - 1; i >= 0; i--)
+        {
+            var dot = activeDoTs[i];
+            dot.turnsLeft--;
+
+            // Gây sát thương
+            TakeDamage(dot.damagePerTurn);
+
+            // Hiện popup sát thương DoT
+            TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+            if (turnSys != null)
+            {
+                Color color = dot.type == EffectType.Poison ? Color.green : new Color(0.6f, 0f, 0f);
+                string suffix = dot.type == EffectType.Poison ? " Poison" : " Bleed";
+                turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, dot.damagePerTurn.ToString() + suffix, color);
+            }
+
+            if (dot.turnsLeft <= 0)
+            {
+                Debug.Log($"{name}: {dot.type} hết hạn.");
+                activeDoTs.RemoveAt(i);
+            }
+            else
+            {
+                activeDoTs[i] = dot;
+            }
+        }
+    }
+
     public bool TryCriticalHit()
     {
-        return Random.Range(0f, 100f) < critChance;
+        float finalCritRate = GetFinalCritRate();
+        return Random.Range(0f, 1f) < finalCritRate;
     }
 }

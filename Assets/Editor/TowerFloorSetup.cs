@@ -60,24 +60,24 @@ public static class TowerFloorSetup
     {
         var floors = new List<TowerSlimeBosses.TowerFloor>();
 
-        // (floor, name,        HP,  ATK, DEF, SPD, EVD, coins, gems)
-        var data = new (int f, string n, int hp, int atk, int def, int spd, int evd, int coins, int gems)[]
+        // (floor, name,        HP,  ATK, MATK, DEF, SPD, CR, CD, coins, gems)
+        var data = new (int f, string n, int hp, int atk, int matk, int def, int spd, float cr, float cd, int coins, int gems)[]
         {
-            (1,  "Gooey Meadow",       80,   20,  10,  12,   5,   50,  0),
-            (2,  "Misty Forest",       110,   28,  14,  14,   6,   65,  0),
-            (3,  "Toxic Mushroom Cave",145,   36,  18,  16,   7,   80,  0),
-            (4,  "Bubble Swamp",       185,   45,  22,  18,   8,  100,  0),
-            (5,  "Smoldering Crater",  230,   55,  28,  20,  10,  130,  2),  // milestone
-            (6,  "Frozen Spire",       280,   66,  35,  22,  11,  160,  0),
-            (7,  "Ancient Canopy",     335,   78,  42,  24,  13,  190,  0),
-            (8,  "Cloud Sea",          395,   91,  50,  26,  15,  225,  0),
-            (9,  "Crystal Labyrinth",  460,  105,  58,  28,  17,  260,  0),
-            (10, "Golden Citadel",     535,  120,  68,  31,  19,  310,  3),  // milestone
-            (11, "Eternal Abyss",      615,  137,  78,  34,  21,  360,  0),
-            (12, "Thunder Peak",       705,  155,  90,  37,  24,  415,  0),
-            (13, "Galactic Shore",     805,  175, 103,  40,  27,  475,  0),
-            (14, "Void Gate",          915,  197, 117,  43,  30,  540,  0),
-            (15, "Grimoire Throne",   1040,  220, 133,  47,  33,  620,  5),  // milestone
+            (1,  "Gooey Meadow",       80,   20,   40,  10,  12,  0.05f, 1.30f,  50,  0),
+            (2,  "Misty Forest",       110,   28,   56,  14,  14,  0.06f, 1.35f,  65,  0),
+            (3,  "Toxic Mushroom Cave",145,   36,   72,  18,  16,  0.08f, 1.45f,  80,  0),
+            (4,  "Bubble Swamp",       185,   45,   90,  22,  18,  0.10f, 1.55f, 100,  0),
+            (5,  "Smoldering Crater",  230,   55,  110,  28,  20,  0.13f, 1.70f, 130,  2),  // milestone
+            (6,  "Frozen Spire",       280,   66,  132,  35,  22,  0.16f, 1.90f, 160,  0),
+            (7,  "Ancient Canopy",     335,   78,  156,  42,  24,  0.20f, 2.20f, 190,  0),
+            (8,  "Cloud Sea",          395,   91,  182,  50,  26,  0.22f, 2.30f, 225,  0),
+            (9,  "Crystal Labyrinth",  460,  105,  210,  58,  28,  0.25f, 2.40f, 260,  0),
+            (10, "Golden Citadel",     535,  120,  240,  68,  31,  0.28f, 2.50f, 310,  3),  // milestone
+            (11, "Eternal Abyss",      615,  137,  274,  78,  34,  0.30f, 2.50f, 360,  0),
+            (12, "Thunder Peak",       705,  155,  310,  90,  37,  0.32f, 2.50f, 415,  0),
+            (13, "Galactic Shore",     805,  175,  350, 103,  40,  0.35f, 2.50f, 475,  0),
+            (14, "Void Gate",          915,  197,  394, 117,  43,  0.38f, 2.50f, 540,  0),
+            (15, "Grimoire Throne",   1040,  220,  440, 133,  47,  0.40f, 2.50f, 620,  5),  // milestone
         };
 
         foreach (var d in data)
@@ -88,9 +88,11 @@ public static class TowerFloorSetup
                 floorName    = d.n,
                 baseHP       = d.hp,
                 baseAttack   = d.atk,
+                baseMagicAttack = d.matk,
                 baseDefense  = d.def,
                 baseSpeed    = d.spd,
-                baseEvade    = d.evd,
+                baseCritRate = d.cr,
+                baseCritDMG  = d.cd,
                 rewardCoins  = d.coins,
                 rewardGems   = d.gems,
                 completed    = false,

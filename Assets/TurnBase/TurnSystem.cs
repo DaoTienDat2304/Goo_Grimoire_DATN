@@ -9,17 +9,18 @@ using UnityEngine.SceneManagement;
 
 public class TurnSystem : MonoBehaviour
 {
-    [SerializeField] private Queue<GameObject> turnQueue = new Queue<GameObject>();
+    [SerializeField] protected Queue<GameObject> turnQueue = new Queue<GameObject>();
+    protected Dictionary<GameObject, float> remainingAV = new Dictionary<GameObject, float>();
     public GameObject boss;
-    private GameObject currentSlime;
-    [SerializeField] private FormationManager formationManager;
+    protected GameObject currentSlime;
+    [SerializeField] protected FormationManager formationManager;
     [Header("Wild Slimes Database")]
     [SerializeField] public WildSlimes wildSlimes;
-    
+
     [Header("Tower Database")]
     [SerializeField] public TowerSlimeBosses towerBosses;
-    
-    private List<GameObject> turnList;
+
+    protected List<GameObject> turnList;
     public int turnCount = 0;
     public GameObject skillPanel;
     public GameObject memberPanel;
@@ -30,22 +31,21 @@ public class TurnSystem : MonoBehaviour
     public GameObject avatar;
     public GameObject turnPanel;
     public GameObject slimeTurn;
-    
+
     [Header("Result Panel")]
-    [SerializeField] private GameObject resultPanel;
-    [SerializeField] private Text resultText;
-    
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [SerializeField] protected GameObject resultPanel;
+    [SerializeField] protected Text resultText;
+
+    protected virtual void Start()
     {
         // Ẩn result panel khi bắt đầu
         if (resultPanel != null)
         {
             resultPanel.SetActive(false);
         }
-        
+
         turnList = formationManager.slimeFormation;
-        
+
         bool isTowerMode = false;
         bool isFarmMode = false;
         if (BattleDataManager.Instance != null)
@@ -53,7 +53,7 @@ public class TurnSystem : MonoBehaviour
             isTowerMode = BattleDataManager.Instance.IsTowerMode();
             isFarmMode = BattleDataManager.Instance.IsFarmMode();
         }
-        
+
         // Farm mode luôn có boss data từ FarmModeManager
         if (isFarmMode && BattleDataManager.Instance != null && BattleDataManager.Instance.HasBossData())
         {
@@ -69,7 +69,7 @@ public class TurnSystem : MonoBehaviour
             InitializeBossFromData(BattleDataManager.Instance.GetBossData());
             BattleDataManager.Instance.ClearBossDataExceptWildSlimeID();
         }
-        
+
         if (boss != null)
         {
             turnList.Add(boss);
@@ -78,10 +78,10 @@ public class TurnSystem : MonoBehaviour
                 boss.AddComponent<SimpleCombatAnimation>();
             }
         }
-        
+
         StartCoroutine(DelayedSetupCombatAnimations());
     }
-    
+
     private void InitializeBossFromTower()
     {
         if (towerBosses == null)
@@ -89,7 +89,7 @@ public class TurnSystem : MonoBehaviour
             Debug.LogError("TowerSlimeBosses is not assigned in TurnSystem!");
             return;
         }
-        
+
         var currentFloor = towerBosses.replayFloor > 0
             ? towerBosses.GetFloor(towerBosses.replayFloor)
             : towerBosses.GetCurrentFloor();
@@ -98,59 +98,78 @@ public class TurnSystem : MonoBehaviour
             Debug.LogError($"No current floor found! Current floor index: {towerBosses.currentFloor}");
             return;
         }
-        
+
         Slime bossSlime = towerBosses.CreateBossSlimeFromFloor(currentFloor);
         if (bossSlime == null)
         {
             Debug.LogError("Failed to create boss slime from tower floor!");
             return;
         }
-        
+
         if (BattleDataManager.Instance == null)
         {
             GameObject battleDataManagerGO = new GameObject("BattleDataManager");
             battleDataManagerGO.AddComponent<BattleDataManager>();
         }
         BattleDataManager.Instance.SetBattleMode(BattleMode.Tower);
-        
+
         InitializeBossFromData(bossSlime);
     }
-    
+
     private void InitializeBossFromData(Slime slimeData)
     {
         if (boss == null || slimeData == null) return;
-        
+
+        // Tự động khôi phục SkillInstance từ TraitSO gốc cho Boss nếu bị null do lưu trữ
+        if (slimeData.body != null && (slimeData.body.skill == null || slimeData.body.skill.baseSkill == null) && slimeData.body.baseTrait != null && slimeData.body.baseTrait.skill != null)
+        {
+            slimeData.body.skill = new SkillInstance(slimeData.body.baseTrait.skill);
+            slimeData.body.skill.power = slimeData.body.GetRarityMultiplier(slimeData.body.Rarity) * 1.5f;
+        }
+        if (slimeData.armor != null && (slimeData.armor.skill == null || slimeData.armor.skill.baseSkill == null) && slimeData.armor.baseTrait != null && slimeData.armor.baseTrait.skill != null)
+        {
+            slimeData.armor.skill = new SkillInstance(slimeData.armor.baseTrait.skill);
+            slimeData.armor.skill.power = slimeData.armor.GetRarityMultiplier(slimeData.armor.Rarity) * 1.5f;
+        }
+        if (slimeData.weapon != null && (slimeData.weapon.skill == null || slimeData.weapon.skill.baseSkill == null) && slimeData.weapon.baseTrait != null && slimeData.weapon.baseTrait.skill != null)
+        {
+            slimeData.weapon.skill = new SkillInstance(slimeData.weapon.baseTrait.skill);
+            slimeData.weapon.skill.power = slimeData.weapon.GetRarityMultiplier(slimeData.weapon.Rarity) * 1.5f;
+        }
+
         SlimeStats bossStats = boss.GetComponent<SlimeStats>();
         if (bossStats == null)
         {
             bossStats = boss.AddComponent<SlimeStats>();
         }
-        
+
         bossStats.HP = slimeData.totalHP;
         bossStats.MaxHP = slimeData.totalHP;
         bossStats.Attack = slimeData.totalAttack;
+        bossStats.MagicAttack = slimeData.totalMagicAttack;
         bossStats.Defense = slimeData.totalDefense;
         bossStats.Speed = slimeData.totalSpeed;
-        bossStats.Evade = slimeData.totalEvade;
+        bossStats.CritRate = slimeData.totalCritRate;
+        bossStats.CritDMG = slimeData.totalCritDMG;
         bossStats.isEnemy = true;
-        
+
         if (slimeData.body?.skill != null)
             bossStats.bodySkill = slimeData.body.skill;
         if (slimeData.armor?.skill != null)
             bossStats.armorSkill = slimeData.armor.skill;
         if (slimeData.weapon?.skill != null)
             bossStats.weaponSkill = slimeData.weapon.skill;
-        
+
         SetupBossVisuals(slimeData);
     }
-    
+
     private void SetupBossVisuals(Slime slimeData)
     {
         if (boss == null || slimeData == null) return;
-        
+
         var bossStats = boss.GetComponent<SlimeStats>();
         if (bossStats == null) return;
-        
+
         if (bossStats.skeletonGraphic != null && slimeData.body != null)
         {
             if (slimeData.body.hasAnimation && slimeData.body.animationAsset != null)
@@ -160,19 +179,19 @@ public class TurnSystem : MonoBehaviour
                 bossStats.skeletonGraphic.AnimationState.SetAnimation(0, slimeData.body.animationName ?? "animation", true);
             }
         }
-        
+
         if (bossStats.armor != null && slimeData.armor != null)
         {
             bossStats.armor.sprite = slimeData.armor.sprite;
         }
-        
+
         if (bossStats.weapon != null && slimeData.weapon != null)
         {
             bossStats.weapon.sprite = slimeData.weapon.sprite;
         }
     }
 
-    IEnumerator turnDisplay()
+    protected IEnumerator turnDisplay()
     {
         foreach (Transform child in turnPanel.transform)
         {
@@ -180,7 +199,8 @@ public class TurnSystem : MonoBehaviour
         }
 
         yield return new WaitForSeconds(0.3f);
-        foreach (GameObject go in turnQueue)
+        List<GameObject> upcoming = GetUpcomingTurns(5);
+        foreach (GameObject go in upcoming)
         {
             GameObject turn = Instantiate(slimeTurn, turnPanel.transform);
             var display = turn.GetComponent<TurnDisplay>();
@@ -198,20 +218,20 @@ public class TurnSystem : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     private IEnumerator DelayedSetupCombatAnimations()
     {
         // Đợi 1 giây để đảm bảo team slimes đã được tạo
         yield return new WaitForSeconds(1f);
-        
+
         // Setup animation cho tất cả slime trong formation
         SetupCombatAnimations();
-        
+
         // Setup battle stats và skills cho tất cả slimes
         SetupBattleStats();
-        
+
     }
 
     private void SetupCombatAnimations()
@@ -224,14 +244,14 @@ public class TurnSystem : MonoBehaviour
                 slime.AddComponent<SimpleCombatAnimation>();
             }
         }
-        
+
         // Setup cho boss (nếu chưa có)
         if (boss != null && boss.GetComponent<SimpleCombatAnimation>() == null)
         {
             boss.AddComponent<SimpleCombatAnimation>();
         }
     }
-    
+
     private void SetupBattleStats()
     {
         // Setup SlimeBattleStats cho tất cả slime trong formation
@@ -242,14 +262,14 @@ public class TurnSystem : MonoBehaviour
                 slime.AddComponent<SlimeBattleStats>();
             }
         }
-        
+
         // Setup cho boss (nếu chưa có)
         if (boss != null && boss.GetComponent<SlimeBattleStats>() == null)
         {
             boss.AddComponent<SlimeBattleStats>();
         }
     }
-    
+
     private void EnsureAllSlimesHaveAnimation()
     {
         // Kiểm tra và thêm animation cho tất cả slimes trong turnList
@@ -265,7 +285,7 @@ public class TurnSystem : MonoBehaviour
     private void TurnSorting()
     {
         var sorted = turnList
-            .Where(s => s != null)
+            .Where(s => s != null && s.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
             .OrderByDescending(s => {
                 var battleStats = s.GetComponent<SlimeBattleStats>();
                 return battleStats != null ? battleStats.BattleSpeed : s.GetComponent<SlimeStats>().Speed;
@@ -276,6 +296,13 @@ public class TurnSystem : MonoBehaviour
 
     public void StartGame()
     {
+        // Vô hiệu hóa tính năng kéo thả khi trận đấu bắt đầu
+        var dragHandlers = FindObjectsOfType<SlimeDragHandler>();
+        foreach (var handler in dragHandlers)
+        {
+            handler.enabled = false;
+        }
+
         // Log analytics khi trận đấu bắt đầu
         string battleMode = BattleDataManager.Instance != null
             ? BattleDataManager.Instance.GetBattleMode().ToString().ToLower()
@@ -286,39 +313,162 @@ public class TurnSystem : MonoBehaviour
         int teamSize = formationManager?.slimeFormation?.Count ?? 0;
         FirebaseAnalyticsManager.LogBattleStart(battleMode, difficulty, teamSize);
 
-        foreach (var s in formationManager.slimeFormation)
-        {
-            if (s.GetComponent<SlimeStats>().bodySkill != null) s.GetComponent<SlimeStats>().bodySkill.currentCooldown = 0;
-            if (s.GetComponent<SlimeStats>().armorSkill != null) s.GetComponent<SlimeStats>().armorSkill.currentCooldown = 0;
-            if (s.GetComponent<SlimeStats>().weaponSkill != null) s.GetComponent<SlimeStats>().weaponSkill.currentCooldown = 0;
-        }
+        // Chỉ đưa vào danh sách tham chiến (turnList) những Slime đã được kéo thả ra sân (isUsed) và Boss
         turnList = formationManager.slimeFormation
-            .Where(s => s != null && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
+            .Where(s => s != null && (s == boss || s.GetComponent<SlimeDragHandler>() == null || s.GetComponent<SlimeDragHandler>().isUsed))
+            .Where(s => s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
             .ToList();
-        TurnSorting();
+
+        foreach (var s in turnList)
+        {
+            var stats = s.GetComponent<SlimeStats>();
+            if (stats != null)
+            {
+                if (stats.bodySkill != null) stats.bodySkill.currentCooldown = 0;
+                if (stats.armorSkill != null) stats.armorSkill.currentCooldown = 0;
+                if (stats.weaponSkill != null) stats.weaponSkill.currentCooldown = 0;
+            }
+        }
+
+        InitializeAVSystem();
         avatar.SetActive(true);
         StartCoroutine(NextTurn());
     }
-    IEnumerator NextTurn()
+
+    protected void InitializeAVSystem()
+    {
+        remainingAV.Clear();
+        foreach (var slime in turnList)
+        {
+            if (slime == null) continue;
+            float speed = GetSpeedOf(slime);
+            remainingAV[slime] = 10000f / speed;
+        }
+    }
+
+    protected float GetSpeedOf(GameObject slime)
+    {
+        var stats = slime.GetComponent<SlimeBattleStats>();
+        if (stats != null) return Mathf.Max(1f, stats.BattleSpeed);
+
+        var slimeStats = slime.GetComponent<SlimeStats>();
+        if (slimeStats != null) return Mathf.Max(1f, slimeStats.Speed);
+
+        return 100f; // fallback
+    }
+
+    public void OnSpeedChanged(GameObject slime, float oldSpeed, float newSpeed)
+    {
+        if (remainingAV.ContainsKey(slime))
+        {
+            remainingAV[slime] = remainingAV[slime] * (oldSpeed / newSpeed);
+            Debug.Log($"{slime.name}: Speed changed from {oldSpeed} to {newSpeed}. Re-calculated AV to {remainingAV[slime]}");
+        }
+    }
+
+    public List<GameObject> GetUpcomingTurns(int count)
+    {
+        List<GameObject> upcoming = new List<GameObject>();
+        Dictionary<GameObject, float> tempAV = new Dictionary<GameObject, float>();
+
+        foreach (var kvp in remainingAV)
+        {
+            if (kvp.Key != null && kvp.Key.activeInHierarchy && kvp.Key.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
+            {
+                tempAV[kvp.Key] = kvp.Value;
+            }
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            if (tempAV.Count == 0) break;
+
+            GameObject next = null;
+            float minVal = float.MaxValue;
+            foreach (var kvp in tempAV)
+            {
+                if (kvp.Value < minVal)
+                {
+                    minVal = kvp.Value;
+                    next = kvp.Key;
+                }
+            }
+
+            if (next == null) break;
+
+            upcoming.Add(next);
+            float speed = GetSpeedOf(next);
+            tempAV[next] = minVal + (10000f / speed);
+        }
+
+        return upcoming;
+    }
+
+    protected virtual IEnumerator NextTurn()
     {
         if (currentSlime != null) currentSlime.GetComponent<SlimeStats>().turnHalo.SetActive(false);
         yield return new WaitForSeconds(0.3f);
-        if (turnQueue.Count == 0)
+
+        // Lọc danh sách còn sống và active
+        var activeParticipants = remainingAV.Keys
+            .Where(s => s != null && s.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
+            .ToList();
+
+        if (activeParticipants.Count == 0)
         {
-            TurnSorting();
-            EnsureAllSlimesHaveAnimation();
+            // Reset nếu trống
+            InitializeAVSystem();
+            activeParticipants = remainingAV.Keys
+                .Where(s => s != null && s.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
+                .ToList();
         }
 
-        currentSlime = turnQueue.Dequeue();
+        // Chọn nhân vật có Action Value (AV) nhỏ nhất để đi tiếp
+        GameObject nextSlime = null;
+        float minAV = float.MaxValue;
+        foreach (var slime in activeParticipants)
+        {
+            if (remainingAV[slime] < minAV)
+            {
+                minAV = remainingAV[slime];
+                nextSlime = slime;
+            }
+        }
+
+        if (nextSlime != null)
+        {
+            // Trừ AV đã đi qua cho các nhân vật khác (để tiến hành động)
+            foreach (var slime in activeParticipants)
+            {
+                remainingAV[slime] -= minAV;
+            }
+
+            // Đặt lại AV mới cho nhân vật vừa hành động xong
+            float speed = GetSpeedOf(nextSlime);
+            remainingAV[nextSlime] = 10000f / speed;
+
+            currentSlime = nextSlime;
+        }
+        else
+        {
+            currentSlime = boss;
+        }
+
         StartCoroutine(turnDisplay());
 
         var battleStats = currentSlime.GetComponent<SlimeBattleStats>();
+
+        // Tích giảm thời gian Buff và Stun vào ĐẦU lượt của Slime đó (Chuẩn RPG)
+        if (battleStats != null)
+        {
+            battleStats.TickBuffs();
+            battleStats.TickStun();
+        }
 
         if (battleStats != null && battleStats.IsStunned)
         {
             Debug.Log($"{currentSlime.name} bị stun, mất lượt!");
             yield return new WaitForSeconds(0.8f);
-            TickCurrentSlimeEffects();
             StartCoroutine(NextTurn());
             yield break;
         }
@@ -366,13 +516,13 @@ public class TurnSystem : MonoBehaviour
     {
         var stats = slime.GetComponent<SlimeStats>();
         if (stats == null) return;
-        if (stats.bodySkill   != null && stats.bodySkill.currentCooldown   > 0) stats.bodySkill.currentCooldown--;
-        if (stats.armorSkill  != null && stats.armorSkill.currentCooldown  > 0) stats.armorSkill.currentCooldown--;
+        if (stats.bodySkill != null && stats.bodySkill.currentCooldown > 0) stats.bodySkill.currentCooldown--;
+        if (stats.armorSkill != null && stats.armorSkill.currentCooldown > 0) stats.armorSkill.currentCooldown--;
         if (stats.weaponSkill != null && stats.weaponSkill.currentCooldown > 0) stats.weaponSkill.currentCooldown--;
     }
 
     // Gọi cuối lượt của chính slime đó (sau khi hành động hoặc bỏ lượt vì stun)
-    private void TickCurrentSlimeEffects()
+    protected void TickCurrentSlimeEffects()
     {
         var battleStats = currentSlime?.GetComponent<SlimeBattleStats>();
         battleStats?.TickBuffs();
@@ -380,10 +530,10 @@ public class TurnSystem : MonoBehaviour
     }
     public void DoAutoAttack()
     {
-        StartCoroutine (AutoAttack());
+        StartCoroutine(AutoAttack());
     }
 
-    IEnumerator AutoAttack()
+    protected virtual IEnumerator AutoAttack()
     {
         var target = boss.GetComponent<SlimeBattleStats>();
         var attacker = currentSlime.GetComponent<SlimeBattleStats>();
@@ -400,25 +550,26 @@ public class TurnSystem : MonoBehaviour
                 yield return StartCoroutine(attackerAnimController.PlayAttackAnimation(boss.transform));
             }
 
-            // Check if target evades
-            if (target.TryEvade())
+            // Calculate damage using GDD: Normal Damage = ATK * (1 - DEF_enemy * 0.008)
+            // Effective ATK includes any Crit DMG overflow bonus
+            int damage = attacker.GetEffectiveAttack();
+            bool isCrit = attacker.TryCriticalHit();
+            if (isCrit)
             {
-                Debug.Log($"{boss.name} evades the attack!");
-                yield break;
-            }
-
-            // Calculate damage with critical hit chance
-            int damage = attacker.BattleAttack;
-            if (attacker.TryCriticalHit())
-            {
-                float critMult = RemoteConfigManager.Instance != null
-                    ? RemoteConfigManager.Instance.CritDamageMultiplier : 1.5f;
+                float critMult = attacker.GetFinalCritDMG();
                 damage = Mathf.RoundToInt(damage * critMult);
                 Debug.Log("Critical Hit!");
             }
 
-            // Apply damage
+            // Apply damage (TakeDamage in target applies defense and popup)
             target.TakeDamage(damage);
+
+            // Show CRIT notification if critical
+            if (isCrit)
+            {
+                CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
+            }
+
             Debug.Log($"{currentSlime.name} attacks {boss.name} for {damage} damage!");
 
             // Chơi animation bị đánh cho target
@@ -490,7 +641,7 @@ public class TurnSystem : MonoBehaviour
         else Debug.Log("this slime have no Weapon skill");
     }
 
-    private IEnumerator DoSkill(SkillInstance skill, GameObject target)
+    protected virtual IEnumerator DoSkill(SkillInstance skill, GameObject target)
     {
         var attacker = currentSlime.GetComponent<SlimeBattleStats>();
         var attackerAnim = currentSlime.GetComponent<SimpleCombatAnimation>();
@@ -515,16 +666,21 @@ public class TurnSystem : MonoBehaviour
                 switch (entry.effect.type)
                 {
                     case EffectType.Damage:
-                        float rawDamage = attacker.BattleAttack * skill.power * entry.value;
+                        float baseSkillDmg = 0.8f * attacker.GetEffectiveAttack() + 1.2f * attacker.GetEffectiveMagicAttack();
+                        float rawDamage = baseSkillDmg * skill.power * entry.value;
                         int finalDamage = Mathf.RoundToInt(rawDamage);
-                        if (attacker.TryCriticalHit())
+                        bool isCrit = attacker.TryCriticalHit();
+                        if (isCrit)
                         {
-                            float critMult = RemoteConfigManager.Instance != null
-                                ? RemoteConfigManager.Instance.CritDamageMultiplier : 1.5f;
+                            float critMult = attacker.GetFinalCritDMG();
                             finalDamage = Mathf.RoundToInt(finalDamage * critMult);
                             Debug.Log("Critical Hit!");
                         }
                         targetStats.TakeDamage(finalDamage);
+                        if (isCrit)
+                        {
+                            CreateDamagePopup(targetGo.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
+                        }
                         Debug.Log($"{currentSlime.name} dùng {skill.baseSkill.skillName} lên {targetGo.name}: {finalDamage} damage");
                         var hitAnim = targetGo.GetComponent<SimpleCombatAnimation>();
                         if (hitAnim != null)
@@ -580,7 +736,7 @@ public class TurnSystem : MonoBehaviour
         StartCoroutine(NextTurn());
     }
 
-    IEnumerator BossTurn()
+    protected virtual IEnumerator BossTurn()
     {
         turnCount++;
         curSlimeBody.skeletonDataAsset = currentSlime.GetComponentInChildren<SkeletonGraphic>().skeletonDataAsset;
@@ -602,81 +758,73 @@ public class TurnSystem : MonoBehaviour
         {
             var bossStats = boss.GetComponent<SlimeBattleStats>();
             var targetStats = target.GetComponent<SlimeBattleStats>();
-            
+
             // Lấy SimpleCombatAnimation của boss và target
             var bossAnimController = boss.GetComponent<SimpleCombatAnimation>();
             var targetAnimController = target.GetComponent<SimpleCombatAnimation>();
-            
+
             // Chơi animation tấn công cho boss
             if (bossAnimController != null)
             {
                 yield return StartCoroutine(bossAnimController.PlayAttackAnimation(target.transform));
             }
-            
-            // Check if target evades
-            if (targetStats != null && targetStats.TryEvade())
+
+            // Calculate damage using GDD
+            int damage = bossStats != null ? bossStats.GetEffectiveAttack() : boss.GetComponent<SlimeStats>().Attack;
+            bool isCrit = bossStats != null && bossStats.TryCriticalHit();
+            if (isCrit)
             {
-                Debug.Log($"{target.name} evades the boss attack!");
+                float critMult = bossStats != null ? bossStats.GetFinalCritDMG() : 1.5f;
+                damage = Mathf.RoundToInt(damage * critMult);
+                Debug.Log("Boss Critical Hit!");
+            }
+
+            // Apply damage
+            if (targetStats != null)
+            {
+                targetStats.TakeDamage(damage);
+                if (isCrit)
+                {
+                    CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
+                }
             }
             else
             {
-                // Calculate damage
-                int damage = bossStats != null ? bossStats.BattleAttack : boss.GetComponent<SlimeStats>().Attack;
-                
-                // Apply damage
-                if (targetStats != null)
-                {
-                    targetStats.TakeDamage(damage);
-                }
-                else
-                {
-                    target.GetComponent<SlimeStats>().HP -= damage;
-                }
-                
-                Debug.Log($"{boss.name} attacks {target.name} for {damage} damage!");
-                
-                // Chơi animation bị đánh cho target
-                if (targetAnimController != null)
-                {
-                    yield return StartCoroutine(targetAnimController.PlayHitAnimation());
-                }
-                
-                int currentHP = targetStats != null ? targetStats.CurrentHP : target.GetComponent<SlimeStats>().HP;
-                if (currentHP <= 0)
-                {
-                    Debug.Log($"{target.name} died!");
-                }
-            }
-            
-            // Kiểm tra điều kiện thắng/thua
-            if (CheckWinCondition())
-            {
-                yield return StartCoroutine(HandleVictory());
-                yield break;
-            }
-            else if (CheckLoseCondition())
-            {
-                yield return StartCoroutine(HandleDefeat());
-                yield break;
+                target.GetComponent<SlimeStats>().HP -= damage;
             }
 
-            yield return new WaitForSeconds(1f);
-            TickCurrentSlimeEffects();
-            StartCoroutine(NextTurn());
+            Debug.Log($"{boss.name} attacks {target.name} for {damage} damage!");
+
+            // Chơi animation bị đánh cho target
+            if (targetAnimController != null)
+            {
+                yield return StartCoroutine(targetAnimController.PlayHitAnimation());
+            }
+
+            int currentHP = targetStats != null ? targetStats.CurrentHP : target.GetComponent<SlimeStats>().HP;
+            if (currentHP <= 0)
+            {
+                Debug.Log($"{target.name} died!");
+            }
         }
-        else
+
+        // Kiểm tra điều kiện thắng/thua
+        if (CheckWinCondition())
         {
-            Debug.Log("You Lost!");
+            yield return StartCoroutine(HandleVictory());
+            yield break;
+        }
+        else if (CheckLoseCondition())
+        {
             yield return StartCoroutine(HandleDefeat());
             yield break;
         }
+
+        yield return new WaitForSeconds(1f);
+        TickCurrentSlimeEffects();
+        StartCoroutine(NextTurn());
     }
-    
-    [ContextMenu("Debug Animation Components")]
-    public void DebugAnimationComponents()
-    {
-    }
-    
+
     [ContextMenu("Update All Formation Positions")]
     public void UpdateAllFormationPositions()
     {
@@ -691,7 +839,7 @@ public class TurnSystem : MonoBehaviour
                 }
             }
         }
-        
+
         if (boss != null)
         {
             var bossAnim = boss.GetComponent<SimpleCombatAnimation>();
@@ -701,7 +849,7 @@ public class TurnSystem : MonoBehaviour
             }
         }
     }
-    
+
     [ContextMenu("Force Reset All Scales")]
     public void ForceResetAllScales()
     {
@@ -716,7 +864,7 @@ public class TurnSystem : MonoBehaviour
                 }
             }
         }
-        
+
         if (boss != null)
         {
             var bossAnim = boss.GetComponent<SimpleCombatAnimation>();
@@ -726,7 +874,7 @@ public class TurnSystem : MonoBehaviour
             }
         }
     }
-    
+
     [ContextMenu("Force Set All Original Scales")]
     public void ForceSetAllOriginalScales()
     {
@@ -741,7 +889,7 @@ public class TurnSystem : MonoBehaviour
                 }
             }
         }
-        
+
         if (boss != null)
         {
             var bossAnim = boss.GetComponent<SimpleCombatAnimation>();
@@ -751,12 +899,12 @@ public class TurnSystem : MonoBehaviour
             }
         }
     }
-    
+
     // Kiểm tra điều kiện thắng (boss HP = 0)
-    private bool CheckWinCondition()
+    protected virtual bool CheckWinCondition()
     {
         if (boss == null) return false;
-        
+
         var bossStats = boss.GetComponent<SlimeBattleStats>();
         if (bossStats != null)
         {
@@ -768,41 +916,51 @@ public class TurnSystem : MonoBehaviour
             return bossSlimeStats != null && bossSlimeStats.HP <= 0;
         }
     }
-    
+
     // Kiểm tra điều kiện thua (tất cả team slimes HP = 0)
-    private bool CheckLoseCondition()
+    protected bool CheckLoseCondition()
     {
         if (formationManager == null || formationManager.slimeFormation == null)
             return false;
-        
+
+        bool hasAnyActiveSlime = false;
         foreach (var slime in formationManager.slimeFormation)
         {
             if (slime == null) continue;
-            
+            if (slime == boss) continue; // Bỏ qua boss kẻ địch
+
+            var slimeStats = slime.GetComponent<SlimeStats>();
+            if (slimeStats != null && slimeStats.isEnemy) continue; // Bỏ qua kẻ địch
+
+            // Bỏ qua các slime nằm trên hàng chờ (chưa kéo ra sân)
+            var dragHandler = slime.GetComponent<SlimeDragHandler>();
+            if (dragHandler != null && !dragHandler.isUsed) continue;
+
+            hasAnyActiveSlime = true;
+
             var battleStats = slime.GetComponent<SlimeBattleStats>();
             if (battleStats != null && battleStats.CurrentHP > 0)
             {
-                return false; // Còn ít nhất 1 slime sống
+                return false; // Còn ít nhất 1 slime chiến đấu sống
             }
             else
             {
-                var slimeStats = slime.GetComponent<SlimeStats>();
                 if (slimeStats != null && slimeStats.HP > 0)
                 {
                     return false; // Còn ít nhất 1 slime sống
                 }
             }
         }
-        
+
         return true; // Tất cả đều chết
     }
-    
-    private IEnumerator HandleVictory()
+
+    protected virtual IEnumerator HandleVictory()
     {
         // Log analytics trước khi xử lý reward
         {
             string bMode = BattleDataManager.Instance?.GetBattleMode().ToString().ToLower() ?? "adventure";
-            string diff  = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
+            string diff = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
                 ? (FarmModeManager.Instance?.SelectedDifficultyName ?? "unknown") : "";
             int coinsEarned = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
                 ? (FarmModeManager.Instance?.GetRewardCoins() ?? 0) : 0;
@@ -815,10 +973,10 @@ public class TurnSystem : MonoBehaviour
 
         // Hiển thị panel kết quả thắng
         ShowResultPanel(true);
-        
+
         bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
         bool isFarmMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode();
-        
+
         if (isFarmMode)
         {
             // Xử lý farm mode victory
@@ -830,21 +988,21 @@ public class TurnSystem : MonoBehaviour
             {
                 Debug.LogWarning("FarmModeManager.Instance is null! Không thể thêm coins.");
             }
-            
+
             if (BattleDataManager.Instance != null)
             {
                 BattleDataManager.Instance.ClearBossData();
             }
-            
+
             yield return new WaitForSeconds(2f);
-            
+
             // Quay về firstsave scene
             Debug.Log("Thắng farm mode, về firstsave");
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
-            
+
             yield break;
         }
-        
+
         if (isTowerMode)
         {
             TowerSlimeBosses.TowerFloor currentFloor = null;
@@ -877,25 +1035,25 @@ public class TurnSystem : MonoBehaviour
                     towerBosses.hasPendingResult = true;
                 }
             }
-            
+
             if (BattleDataManager.Instance != null)
             {
                 BattleDataManager.Instance.ClearBossData();
             }
-            
+
             yield return new WaitForSeconds(2f);
-            
+
             // Luôn về firstsave sau khi thắng tower
             Debug.Log("Thắng tower, về firstsave");
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
-            
+
             yield break;
         }
-        
+
         if (BattleDataManager.Instance != null && wildSlimes != null)
         {
             var wildSlimeID = BattleDataManager.Instance.GetWildSlimeID();
-            
+
             if (wildSlimeID >= 0)
             {
                 WildSlimes.WildSlimeTraits wildSlimeTraits = null;
@@ -907,7 +1065,7 @@ public class TurnSystem : MonoBehaviour
                         break;
                     }
                 }
-                
+
                 if (wildSlimeTraits != null)
                 {
                     WildSlimes.WildSlimeTraits tamedSlime = new WildSlimes.WildSlimeTraits();
@@ -918,7 +1076,7 @@ public class TurnSystem : MonoBehaviour
                     {
                         tamedSlime.wildSlimeTraits[i] = wildSlimeTraits.wildSlimeTraits[i];
                     }
-                    
+
                     if (wildSlimes.tamedSlimes == null)
                     {
                         wildSlimes.tamedSlimes = new System.Collections.Generic.List<WildSlimes.WildSlimeTraits>();
@@ -927,47 +1085,47 @@ public class TurnSystem : MonoBehaviour
                     {
                         wildSlimes.slimes = new System.Collections.Generic.List<WildSlimes.WildSlimeTraits>();
                     }
-                    
+
                     wildSlimes.tamedSlimes.Add(tamedSlime);
                     wildSlimes.slimes.Remove(wildSlimeTraits);
-                    
+
                     if (SaveAndLoadSystem.Instance != null)
                     {
                         SaveAndLoadSystem.Instance.Save();
                     }
                 }
             }
-            
+
             BattleDataManager.Instance.ClearBossData();
         }
-        
+
         yield return new WaitForSeconds(2f);
         yield return SceneLoader.LoadSceneWithLoadingCoroutine("adventureSence");
     }
-    
-    private IEnumerator HandleDefeat()
+
+    protected IEnumerator HandleDefeat()
     {
         // Log analytics khi thua
         {
             string bMode = BattleDataManager.Instance?.GetBattleMode().ToString().ToLower() ?? "adventure";
-            string diff  = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
+            string diff = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
                 ? (FarmModeManager.Instance?.SelectedDifficultyName ?? "unknown") : "";
             FirebaseAnalyticsManager.LogBattleLose(bMode, diff, turnCount);
         }
 
         // Hiển thị panel kết quả thua
         ShowResultPanel(false);
-        
+
         bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
         bool isFarmMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode();
-        
+
         if (BattleDataManager.Instance != null)
         {
             BattleDataManager.Instance.ClearBossData();
         }
-        
+
         yield return new WaitForSeconds(2f);
-        
+
         if (isFarmMode)
         {
             // Quay về firstsave scene khi thua farm mode
@@ -982,16 +1140,16 @@ public class TurnSystem : MonoBehaviour
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("adventureSence");
         }
     }
-    
+
     /// <summary>
     /// Hiển thị panel kết quả với text tương ứng
     /// </summary>
-    private void ShowResultPanel(bool isVictory)
+    protected void ShowResultPanel(bool isVictory)
     {
         if (resultPanel != null)
         {
             resultPanel.SetActive(true);
-            
+
             if (resultText != null)
             {
                 if (isVictory)
@@ -1007,6 +1165,70 @@ public class TurnSystem : MonoBehaviour
         else
         {
             Debug.LogWarning("Result Panel is not assigned in TurnSystem!");
+        }
+    }
+
+    // ── Popup damage & stats indicator ──────────────────────────────────
+    public void CreateDamagePopup(Vector3 worldPosition, string text, Color color)
+    {
+        Canvas parentCanvas = FindObjectOfType<Canvas>();
+        if (parentCanvas == null) return;
+
+        GameObject popupGO = new GameObject("BattlePopupText");
+        popupGO.transform.SetParent(parentCanvas.transform, false);
+
+        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector3.zero;
+        Vector2 localPos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            parentCanvas.transform as RectTransform,
+            screenPos,
+            parentCanvas.worldCamera,
+            out localPos
+        );
+
+        RectTransform rectTransform = popupGO.AddComponent<RectTransform>();
+        rectTransform.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f)); // Random offset
+        rectTransform.sizeDelta = new Vector2(300, 80);
+
+        Text textComponent = popupGO.AddComponent<Text>();
+        textComponent.text = text;
+        textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textComponent.fontSize = 28;
+        textComponent.fontStyle = FontStyle.Bold;
+        textComponent.alignment = TextAnchor.MiddleCenter;
+        textComponent.color = color;
+
+        Outline outline = popupGO.AddComponent<Outline>();
+        outline.effectColor = Color.black;
+        outline.effectDistance = new Vector2(2, -2);
+
+        StartCoroutine(AnimatePopupText(popupGO, textComponent));
+    }
+
+    private IEnumerator AnimatePopupText(GameObject go, Text textComponent)
+    {
+        float duration = 1.2f;
+        float elapsed = 0f;
+        Vector2 startPos = go.GetComponent<RectTransform>().anchoredPosition;
+        Vector2 endPos = startPos + new Vector2(0, 80); // Float up
+        Color startColor = textComponent.color;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            if (go == null) yield break;
+
+            go.GetComponent<RectTransform>().anchoredPosition = Vector2.Lerp(startPos, endPos, t);
+            textComponent.color = new Color(startColor.r, startColor.g, startColor.b, 1f - t);
+
+            yield return null;
+        }
+
+        if (go != null)
+        {
+            Destroy(go);
         }
     }
 }

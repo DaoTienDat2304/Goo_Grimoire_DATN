@@ -7,7 +7,6 @@ using UnityEngine.EventSystems;
 public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public Slime slime;
-    private Transform originalParent;
     public Transform unusedSlime;
     public bool isUsed = false;
     private Canvas rootCanvas;
@@ -16,6 +15,9 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     private Vector2 dragOffset;
     public GameObject armor;
     public GameObject weapon;
+
+    private Transform targetParent;
+
     void Start()
     {
         rootCanvas = GetComponentInParent<Canvas>();
@@ -24,14 +26,19 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         rectTransform = transform as RectTransform;
         unusedSlime = transform.parent;
     }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
-        originalParent = transform.parent;
-        transform.SetParent(rootCanvas.transform, true);
+        if (!enabled) return;
+
+        // By default, if drop is not captured by any DropZone, return to unusedSlime
+        targetParent = unusedSlime;
         canvasGroup.blocksRaycasts = false;
         canvasGroup.alpha = 0.7f;
 
-        // Use the event camera and track offset so icon stays under cursor
+        // Reparent to canvas to draw on top
+        transform.SetParent(rootCanvas.transform, true);
+
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
             rootCanvas.transform as RectTransform,
             eventData.position,
@@ -43,8 +50,11 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         }
         transform.SetAsLastSibling();
     }
+
     public void OnDrag(PointerEventData eventData)
     {
+        if (!enabled) return;
+
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
             rootCanvas.transform as RectTransform,
             eventData.position,
@@ -53,19 +63,47 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         {
             rectTransform.anchoredPosition = localPoint + dragOffset;
         }
+
+        // If hovered over a valid dropzone, update the target parent
         if (DropZone.currentDropZone != null)
         {
-            originalParent = DropZone.currentDropZone;
-            Debug.Log(originalParent.name);
+            targetParent = DropZone.currentDropZone;
+        }
+        else
+        {
+            targetParent = unusedSlime;
         }
     }
+
     public void OnEndDrag(PointerEventData eventData)
     {
+        if (!enabled) return;
+
         canvasGroup.blocksRaycasts = true;
         canvasGroup.alpha = 1f;
-        transform.SetParent(originalParent, true);
+
+        // Set parent to the resolved target parent
+        // Keep worldPositionStays = true to preserve local scale after scale multiplications!
+        transform.SetParent(targetParent, true);
+        if (targetParent == unusedSlime)
+        {
+            transform.localScale = Vector3.one * 1.3f; // Khôi phục lại kích thước chuẩn khi quay về dự bị
+        }
         rectTransform.anchoredPosition = Vector2.zero;
-        if (originalParent != unusedSlime) isUsed = true;
+        
+        isUsed = (targetParent != unusedSlime);
+
+        // Hide or show the original placeholder graphics in the Member panel slot
+        if (unusedSlime != null)
+        {
+            Member member = unusedSlime.GetComponent<Member>();
+            if (member != null)
+            {
+                if (member.body != null) member.body.SetActive(!isUsed);
+                if (member.armor != null) member.armor.SetActive(!isUsed);
+                if (member.weapon != null) member.weapon.SetActive(!isUsed);
+            }
+        }
         
         // Cập nhật formation position cho combat animation
         var combatAnim = GetComponent<SimpleCombatAnimation>();
@@ -74,6 +112,9 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             combatAnim.OnDroppedToFormation();
         }
     }
+
+    public void SetNewParent(Transform newParent)
+    {
+        targetParent = newParent;
+    }
 }
-
-

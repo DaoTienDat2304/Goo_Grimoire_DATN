@@ -9,7 +9,7 @@ public class FormationManager : MonoBehaviour
     public List<Transform> dropZones;
     public List<GameObject> slimeFormation;
     public int rows = 3;   // 3 hàng
-    public int cols = 4;   // 4 cột
+    public int cols = 4;   // 3 cột 
     public Transform gridParent;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public Sprite CreateDefaultSlimeSprite()
@@ -80,6 +80,16 @@ public class FormationManager : MonoBehaviour
 
     void Start()
     {
+        // Tự động ẩn các ô vượt quá giới hạn 3x3 (max = 9)
+        int maxSlots = rows * cols;
+        if (gridParent != null)
+        {
+            for (int i = 0; i < gridParent.childCount; i++)
+            {
+                gridParent.GetChild(i).gameObject.SetActive(i < maxSlots);
+            }
+        }
+
         // Delay để đảm bảo team đã được load
         Invoke(nameof(RefreshTeamDisplay), 0.1f);
     }
@@ -325,69 +335,82 @@ public class FormationManager : MonoBehaviour
         {
             AnchorType.Self           => caster,
             AnchorType.AttackTarget   => directTarget,
-            AnchorType.RandomAlly     => GetRandomAliveAlly(),
-            AnchorType.RandomEnemy    => boss,
-            AnchorType.LowestHPAlly   => GetLowestHPAlly(),
-            AnchorType.LowestHPEnemy  => boss,
-            AnchorType.HighestHPAlly  => GetHighestHPAlly(),
-            AnchorType.HighestHPEnemy => boss,
-            AnchorType.SameRowEnemy   => directTarget,
-            AnchorType.Row0           => GetFirstAliveInRow(0),
-            AnchorType.Row1           => GetFirstAliveInRow(1),
-            AnchorType.Row2           => GetFirstAliveInRow(2),
-            AnchorType.Col0           => GetFirstAliveInColumn(0),
-            AnchorType.Col1           => GetFirstAliveInColumn(1),
-            AnchorType.Col2           => GetFirstAliveInColumn(2),
-            AnchorType.Col3           => GetFirstAliveInColumn(3),
             _                         => directTarget
         };
 
         if (anchor == null) return new();
-        bool anchorIsEnemy = (anchor == boss);
 
         // Bước 2: Expand theo AoEShape
         List<GameObject> candidates;
-        switch (fx.aoeShape)
+        if (fx.aoeShape == AoEShape.FullSide)
         {
-            case AoEShape.FullSide:
-                candidates = anchorIsEnemy
-                    ? GetAllAliveEnemies(boss)
-                    : GetAllAliveAllies();
-                break;
-            case AoEShape.Everything:
+            bool casterIsEnemy = (caster == boss || caster.GetComponent<SlimeStats>()?.isEnemy == true);
+            if (fx.targetSide == TargetSide.Allies)
+            {
+                candidates = casterIsEnemy ? GetAllAliveEnemies(boss) : GetAllAliveAllies();
+            }
+            else if (fx.targetSide == TargetSide.Enemies)
+            {
+                candidates = casterIsEnemy ? GetAllAliveAllies() : GetAllAliveEnemies(boss);
+            }
+            else
+            {
                 candidates = new(GetAllAliveAllies());
                 candidates.AddRange(GetAllAliveEnemies(boss));
-                break;
-            case AoEShape.Row:
-                if (anchorIsEnemy)
+            }
+        }
+        else if (fx.aoeShape == AoEShape.Blast)
+        {
+            candidates = new() { anchor };
+            
+            // Tìm các ô lân cận trong grid (chỉ áp dụng nếu anchor là player slime trên grid 3x3)
+            bool anchorIsBoss = (anchor == boss || anchor.GetComponent<SlimeStats>()?.isEnemy == true);
+            if (!anchorIsBoss)
+            {
+                if (TryGetSlimePosition(anchor, out int row, out int col))
                 {
-                    candidates = fx.targetSide == TargetSide.Allies
-                        ? GetAliveSlimesInRow(rows / 2)
-                        : GetAllAliveEnemies(boss);
+                    // Lân cận trên cùng một hàng (cột col-1 và col+1)
+                    if (col > 0)
+                    {
+                        Transform leftSlot = GetSlot(row, col - 1);
+                        var leftStats = leftSlot != null ? leftSlot.GetComponentInChildren<SlimeBattleStats>() : null;
+                        if (leftStats != null && leftStats.CurrentHP > 0) candidates.Add(leftStats.gameObject);
+                    }
+                    if (col < cols - 1)
+                    {
+                        Transform rightSlot = GetSlot(row, col + 1);
+                        var rightStats = rightSlot != null ? rightSlot.GetComponentInChildren<SlimeBattleStats>() : null;
+                        if (rightStats != null && rightStats.CurrentHP > 0) candidates.Add(rightStats.gameObject);
+                    }
                 }
-                else if (TryGetSlimePosition(anchor, out int row, out _))
-                    candidates = GetAliveSlimesInRow(row);
-                else
-                    candidates = new() { anchor };
-                break;
-            case AoEShape.Column:
-                if (anchorIsEnemy)
-                    candidates = GetAllAliveEnemies(boss);
-                else if (TryGetSlimePosition(anchor, out _, out int col))
-                    candidates = GetAliveSlimesInColumn(col);
-                else
-                    candidates = new() { anchor };
-                break;
-            default: // Single
-                candidates = new() { anchor };
-                break;
+            }
+        }
+        else // Single target
+        {
+            candidates = new() { anchor };
         }
 
         // Bước 3: Filter theo TargetSide
-        if (fx.targetSide == TargetSide.Allies)
-            candidates.RemoveAll(go => go == boss);
-        else if (fx.targetSide == TargetSide.Enemies)
-            candidates.RemoveAll(go => go != boss);
+        bool targetIsEnemySide = (fx.targetSide == TargetSide.Enemies);
+        bool casterIsEnemySide = (caster == boss || caster.GetComponent<SlimeStats>()?.isEnemy == true);
+        
+        // Xác định xem mục tiêu có thuộc phe đối địch với caster hay không
+        bool wantEnemyOfCaster = targetIsEnemySide;
+
+        candidates.RemoveAll(go => {
+            if (go == null) return true;
+            bool goIsEnemy = (go == boss || go.GetComponent<SlimeStats>()?.isEnemy == true);
+            bool isAllyOfCaster = (goIsEnemy == casterIsEnemySide);
+            
+            if (wantEnemyOfCaster)
+            {
+                return isAllyOfCaster; // Loại bỏ nếu là đồng đội của caster
+            }
+            else
+            {
+                return !isAllyOfCaster; // Loại bỏ nếu là kẻ địch của caster
+            }
+        });
 
         // Bước 4: Filter dead / null
         candidates.RemoveAll(go => go == null

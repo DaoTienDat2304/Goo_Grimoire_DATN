@@ -65,9 +65,11 @@ public class SlimeDTO
 
     public int totalHP;
     public int totalAttack;
+    public int totalMagicAttack;
     public int totalDefense;
     public int totalSpeed;
-    public int totalEvade;
+    public float totalCritRate;
+    public float totalCritDMG;
 }
 
 [Serializable]
@@ -78,16 +80,20 @@ public class TraitInstanceDTO
     public TraitType type;
     public int HP;
     public int attack;
+    public int magicAttack;
     public int defense;
     public int speed;
-    public int evade;
+    public float critRate;
+    public float critDMG;
 
     // Base stats trước multiplier — nếu = 0 là save cũ, cần migrate
     public int baseHP;
     public int baseAttack;
+    public int baseMagicAttack;
     public int baseDefense;
     public int baseSpeed;
-    public int baseEvade;
+    public float baseCritRate;
+    public float baseCritDMG;
 }
 
 [Serializable]

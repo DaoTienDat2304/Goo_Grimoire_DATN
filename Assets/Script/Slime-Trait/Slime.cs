@@ -19,9 +19,11 @@ public class Slime
     public TraitInstance weapon;
     public int totalHP;
     public int totalAttack;
+    public int totalMagicAttack;
     public int totalDefense;
     public int totalSpeed;
-    public int totalEvade;
+    public float totalCritRate;
+    public float totalCritDMG;
     public List<SkillInstance> Skills { get; private set; } = new List<SkillInstance>();
 
     private void AssignSkills()
@@ -180,21 +182,41 @@ public class Slime
         trait.type = type;
         trait.rarity = Rarity.Common;
         trait.dropRate = 100f;
-        trait.HPRange = new Vector2Int(1, 5);
-        trait.attackRange = new Vector2Int(1, 3);
-        trait.defenseRange = new Vector2Int(1, 3);
-        trait.speedRange = new Vector2Int(1, 3);
-        trait.evadeRange = new Vector2Int(1, 3);
+        trait.HPRange = new Vector2Int(1000, 2000);
+        trait.attackRange = new Vector2Int(100, 200);
+        trait.magicAttackRange = new Vector2Int(200, 400);
+        trait.defenseRange = new Vector2Int(400, 800);
+        trait.speedRange = new Vector2Int(80, 100);
+        trait.critRateRange = new Vector2Int(5, 5);
+        trait.critDMGRange = new Vector2Int(130, 130);
         return trait;
     }
 
     public void CalculateStats()
     {
-        totalHP = body.HP + armor.HP + weapon.HP;
-        totalAttack = body.attack + armor.attack + weapon.attack;
-        totalDefense = body.defense + armor.defense + weapon.defense;
-        totalSpeed = body.speed + armor.speed + weapon.speed;
-        totalEvade = body.evade + armor.evade + weapon.evade;
+        if (body != null && body.Rarity == Rarity.Secret)
+        {
+            totalHP = body.HP;
+            totalAttack = body.attack;
+            totalMagicAttack = body.magicAttack;
+            totalDefense = body.defense;
+            totalSpeed = body.speed;
+            totalCritRate = body.critRate;
+            totalCritDMG = body.critDMG;
+            AssignSkills();
+            return;
+        }
+
+        totalHP = (body != null ? body.HP : 0) + (armor != null ? armor.HP : 0) + (weapon != null ? weapon.HP : 0);
+        totalAttack = (body != null ? body.attack : 0) + (armor != null ? armor.attack : 0) + (weapon != null ? weapon.attack : 0);
+        totalMagicAttack = (body != null ? body.magicAttack : 0) + (armor != null ? armor.magicAttack : 0) + (weapon != null ? weapon.magicAttack : 0);
+        totalDefense = (body != null ? body.defense : 0) + (armor != null ? armor.defense : 0) + (weapon != null ? weapon.defense : 0);
+        totalSpeed = (body != null ? body.speed : 0) + (armor != null ? armor.speed : 0) + (weapon != null ? weapon.speed : 0);
+        
+        // Crit Rate & Crit DMG comes from Head (armor/special) part
+        totalCritRate = (armor != null ? armor.critRate : 0.05f);
+        totalCritDMG = (armor != null ? armor.critDMG : 1.30f);
+
         AssignSkills();
     }
 

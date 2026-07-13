@@ -357,9 +357,11 @@ public class SaveAndLoadSystem : MonoBehaviour
                 isPicked = s.isPicked,
                 totalHP = s.totalHP,
                 totalAttack = s.totalAttack,
+                totalMagicAttack = s.totalMagicAttack,
                 totalDefense = s.totalDefense,
                 totalSpeed = s.totalSpeed,
-                totalEvade = s.totalEvade,
+                totalCritRate = s.totalCritRate,
+                totalCritDMG = s.totalCritDMG,
                 body = ToTraitDTO(s.body),
                 armor = ToTraitDTO(s.armor),
                 weapon = ToTraitDTO(s.weapon),
@@ -417,14 +419,18 @@ public class SaveAndLoadSystem : MonoBehaviour
             type = ti.TraitType,
             HP = ti.HP,
             attack = ti.attack,
+            magicAttack = ti.magicAttack,
             defense = ti.defense,
             speed = ti.speed,
-            evade = ti.evade,
+            critRate = ti.critRate,
+            critDMG = ti.critDMG,
             baseHP = ti.baseHP,
             baseAttack = ti.baseAttack,
+            baseMagicAttack = ti.baseMagicAttack,
             baseDefense = ti.baseDefense,
             baseSpeed = ti.baseSpeed,
-            baseEvade = ti.baseEvade
+            baseCritRate = ti.baseCritRate,
+            baseCritDMG = ti.baseCritDMG
         };
     }
 
@@ -441,24 +447,31 @@ public class SaveAndLoadSystem : MonoBehaviour
             TraitType = dto.type
         };
         ti.HP = dto.HP;
+        ti.magicAttack = dto.magicAttack;
+        ti.critRate = dto.critRate;
+        ti.critDMG = dto.critDMG;
 
         // Migration: save cũ không có base stats → ước tính từ multiplier mặc định
         if (dto.baseAttack == 0 && dto.attack > 0)
         {
             float defaultMult = ti.GetRarityMultiplier(dto.rarity);
-            ti.baseAttack  = Mathf.RoundToInt(dto.attack  / defaultMult);
-            ti.baseDefense = Mathf.RoundToInt(dto.defense / defaultMult);
-            ti.baseSpeed   = Mathf.RoundToInt(dto.speed   / defaultMult);
-            ti.baseEvade   = Mathf.RoundToInt(dto.evade   / defaultMult);
-            ti.baseHP      = dto.HP;
+            ti.baseAttack       = Mathf.RoundToInt(dto.attack  / defaultMult);
+            ti.baseDefense      = Mathf.RoundToInt(dto.defense / defaultMult);
+            ti.baseSpeed        = Mathf.RoundToInt(dto.speed   / defaultMult);
+            ti.baseMagicAttack  = dto.magicAttack;
+            ti.baseCritRate     = dto.critRate;
+            ti.baseCritDMG      = dto.critDMG;
+            ti.baseHP           = dto.HP;
         }
         else
         {
-            ti.baseHP      = dto.baseHP;
-            ti.baseAttack  = dto.baseAttack;
-            ti.baseDefense = dto.baseDefense;
-            ti.baseSpeed   = dto.baseSpeed;
-            ti.baseEvade   = dto.baseEvade;
+            ti.baseHP           = dto.baseHP;
+            ti.baseAttack       = dto.baseAttack;
+            ti.baseDefense      = dto.baseDefense;
+            ti.baseSpeed        = dto.baseSpeed;
+            ti.baseMagicAttack  = dto.baseMagicAttack;
+            ti.baseCritRate     = dto.baseCritRate;
+            ti.baseCritDMG      = dto.baseCritDMG;
         }
 
         // Áp dụng multiplier hiện tại (có thể đã thay đổi qua Remote Config)

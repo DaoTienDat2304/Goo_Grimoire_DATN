@@ -7,9 +7,11 @@ public class SlimeStats : MonoBehaviour
     public int HP;
     public int MaxHP;
     public int Attack;
+    public int MagicAttack;
     public int Defense;
     public int Speed;
-    public int Evade;
+    public float CritRate;
+    public float CritDMG;
     public bool isEnemy;
     public SkeletonGraphic skeletonGraphic;
     public Image armor;

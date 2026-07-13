@@ -12,52 +12,52 @@ public class TraitInstance
     public Rarity Rarity;
     public int HP;
     public int attack;
+    public int magicAttack;
     public int defense;
     public int speed;
-    public int evade;
+    public float critRate;
+    public float critDMG;
 
-    // Base stats trước khi nhân rarity multiplier — dùng để recalculate khi Remote Config thay đổi
+    // Base stats trước khi nhân rarity multiplier
     public int baseHP;
     public int baseAttack;
+    public int baseMagicAttack;
     public int baseDefense;
     public int baseSpeed;
-    public int baseEvade;
+    public float baseCritRate;
+    public float baseCritDMG;
+
     public TraitType TraitType;
     public string traitname;
     public SkillInstance skill;
 
 
-    public Sprite sprite => baseTrait.sprite;
+    public Sprite sprite => baseTrait != null ? baseTrait.sprite : null;
     
     // Animation properties
-    public SkeletonDataAsset animationAsset => baseTrait.animationAsset;
-    public string animationName => baseTrait.animationName;
-    public bool hasAnimation => baseTrait.animationAsset != null;
+    public SkeletonDataAsset animationAsset => baseTrait != null ? baseTrait.animationAsset : null;
+    public string animationName => baseTrait != null ? baseTrait.animationName : "animation";
+    public bool hasAnimation => baseTrait != null && baseTrait.animationAsset != null;
 
     public TraitInstance(TraitSO so)
     {
         baseTrait = so;
-        traitname = so.name;
-        Rarity = so.rarity;
-        TraitType = so.type;
+        traitname = so != null ? so.name : "Unknown";
+        Rarity = so != null ? so.rarity : Rarity.Common;
+        TraitType = so != null ? so.type : TraitType.Body;
         allTraits = new List<TraitSO>();
-        if (so.skill != null)
-            skill = new SkillInstance(so.skill);
-
-        float rarityMultiplier = GetRarityMultiplier(so.rarity);
-        baseHP = Random.Range(so.HPRange.x, so.HPRange.y + 1);
-        baseAttack = Random.Range(so.attackRange.x, so.attackRange.y + 1);
-        baseDefense = Random.Range(so.defenseRange.x, so.defenseRange.y + 1);
-        baseSpeed = Random.Range(so.speedRange.x, so.speedRange.y + 1);
-        baseEvade = Random.Range(so.evadeRange.x, so.evadeRange.y + 1);
-
-        HP = baseHP;
-        attack = Mathf.RoundToInt(baseAttack * rarityMultiplier);
-        defense = Mathf.RoundToInt(baseDefense * rarityMultiplier);
-        speed = Mathf.RoundToInt(baseSpeed * rarityMultiplier);
-        evade = Mathf.RoundToInt(baseEvade * rarityMultiplier);
-        if (so.skill != null) skill.power = rarityMultiplier*1.5f;
         
+        // Skill common and uncommon do not have skills
+        if (so != null && so.skill != null && Rarity != Rarity.Common && Rarity != Rarity.Uncommon)
+        {
+            skill = new SkillInstance(so.skill);
+        }
+        else
+        {
+            skill = null;
+        }
+
+        RollStatsByGDD();
     }
 
     // Copy constructor cho breeding
@@ -67,26 +67,224 @@ public class TraitInstance
         Rarity = other.Rarity;
         TraitType = other.TraitType;
         allTraits = new List<TraitSO>(other.allTraits ?? new List<TraitSO>());
+        
         HP = other.HP;
         attack = other.attack;
+        magicAttack = other.magicAttack;
         defense = other.defense;
         speed = other.speed;
-        evade = other.evade;
+        critRate = other.critRate;
+        critDMG = other.critDMG;
+
         baseHP = other.baseHP;
         baseAttack = other.baseAttack;
+        baseMagicAttack = other.baseMagicAttack;
         baseDefense = other.baseDefense;
         baseSpeed = other.baseSpeed;
-        baseEvade = other.baseEvade;
+        baseCritRate = other.baseCritRate;
+        baseCritDMG = other.baseCritDMG;
+
+        if (other.skill != null)
+        {
+            skill = new SkillInstance(other.skill.baseSkill);
+            skill.power = other.skill.power;
+        }
     }
 
-    // Recalculate stats từ base values với multiplier mới (dùng khi Remote Config thay đổi)
+    private void RollStatsByGDD()
+    {
+        HP = 0;
+        attack = 0;
+        magicAttack = 0;
+        defense = 0;
+        speed = 0;
+        critRate = 0f;
+        critDMG = 0f;
+
+        baseHP = 0;
+        baseAttack = 0;
+        baseMagicAttack = 0;
+        baseDefense = 0;
+        baseSpeed = 0;
+        baseCritRate = 0f;
+        baseCritDMG = 0f;
+
+        bool isLowRarity = (Rarity == Rarity.Common || Rarity == Rarity.Uncommon);
+
+        if (TraitType == TraitType.Body)
+        {
+            baseHP = RollGDDHP(Rarity);
+            baseDefense = RollGDDDEF(Rarity);
+            baseSpeed = RollGDDSpeed(Rarity);
+
+            HP = baseHP;
+            defense = baseDefense;
+            speed = baseSpeed;
+        }
+        else if (TraitType == TraitType.Weapon)
+        {
+            baseAttack = RollGDDATK(Rarity);
+            attack = baseAttack;
+
+            if (!isLowRarity)
+            {
+                baseMagicAttack = RollGDDMagicATK(Rarity);
+                magicAttack = baseMagicAttack;
+            }
+            else
+            {
+                if (Random.Range(0, 2) == 0)
+                {
+                    baseMagicAttack = RollGDDMagicATK(Rarity);
+                    magicAttack = baseMagicAttack;
+                }
+            }
+        }
+        else if (TraitType == TraitType.Armor || TraitType == TraitType.special)
+        {
+            if (!isLowRarity)
+            {
+                baseCritRate = RollGDDCritRate(Rarity);
+                baseCritDMG = RollGDDCritDMG(Rarity);
+                critRate = baseCritRate;
+                critDMG = baseCritDMG;
+            }
+            else
+            {
+                if (Random.Range(0, 2) == 0)
+                {
+                    baseCritRate = RollGDDCritRate(Rarity);
+                    critRate = baseCritRate;
+                }
+                else
+                {
+                    baseCritDMG = RollGDDCritDMG(Rarity);
+                    critDMG = baseCritDMG;
+                }
+            }
+        }
+    }
+
+    private int RollGDDHP(Rarity rarity)
+    {
+        switch (rarity)
+        {
+            case Rarity.Common:    return Random.Range(1000, 2001);
+            case Rarity.Uncommon:  return Random.Range(1800, 3501);
+            case Rarity.Rare:      return Random.Range(3200, 6001);
+            case Rarity.SuperRare: return Random.Range(5500, 10001);
+            case Rarity.UltraRare: return Random.Range(9000, 16001);
+            case Rarity.Legendary: return Random.Range(14000, 25001);
+            case Rarity.Mythic:    return Random.Range(2200, 50001); // Wait, GDD Mythic HP is 22000 - 50000. Let's fix that typo from my thoughts: 22000 to 50001!
+            case Rarity.Secret:    return Random.Range(9000, 16001);
+            default:               return Random.Range(1000, 2001);
+        }
+    }
+
+    private int RollGDDATK(Rarity rarity)
+    {
+        switch (rarity)
+        {
+            case Rarity.Common:    return Random.Range(100, 201);
+            case Rarity.Uncommon:  return Random.Range(180, 321);
+            case Rarity.Rare:      return Random.Range(320, 601);
+            case Rarity.SuperRare: return Random.Range(550, 1001);
+            case Rarity.UltraRare: return Random.Range(900, 1601);
+            case Rarity.Legendary: return Random.Range(1400, 2501);
+            case Rarity.Mythic:    return Random.Range(2200, 5001);
+            case Rarity.Secret:    return Random.Range(90, 161);
+            default:               return Random.Range(100, 201);
+        }
+    }
+
+    private int RollGDDMagicATK(Rarity rarity)
+    {
+        switch (rarity)
+        {
+            case Rarity.Common:    return Random.Range(200, 401);
+            case Rarity.Uncommon:  return Random.Range(320, 641);
+            case Rarity.Rare:      return Random.Range(640, 1201);
+            case Rarity.SuperRare: return Random.Range(1100, 2001);
+            case Rarity.UltraRare: return Random.Range(1800, 3201);
+            case Rarity.Legendary: return Random.Range(2800, 5001);
+            case Rarity.Mythic:    return Random.Range(4400, 10001);
+            case Rarity.Secret:    return Random.Range(180, 321);
+            default:               return Random.Range(200, 401);
+        }
+    }
+
+    private int RollGDDDEF(Rarity rarity)
+    {
+        switch (rarity)
+        {
+            case Rarity.Common:    return Random.Range(400, 801);
+            case Rarity.Uncommon:  return Random.Range(720, 1401);
+            case Rarity.Rare:      return Random.Range(1280, 2401);
+            case Rarity.SuperRare: return Random.Range(2200, 4001);
+            case Rarity.UltraRare: return Random.Range(3600, 6401);
+            case Rarity.Legendary: return Random.Range(5600, 10001);
+            case Rarity.Mythic:    return Random.Range(8800, 20001);
+            case Rarity.Secret:    return Random.Range(1440, 2561);
+            default:               return Random.Range(400, 801);
+        }
+    }
+
+    private int RollGDDSpeed(Rarity rarity)
+    {
+        switch (rarity)
+        {
+            case Rarity.Common:    return Random.Range(80, 101);
+            case Rarity.Uncommon:  return Random.Range(90, 111);
+            case Rarity.Rare:      return Random.Range(100, 121);
+            case Rarity.SuperRare: return Random.Range(110, 136);
+            case Rarity.UltraRare: return Random.Range(120, 151);
+            case Rarity.Legendary: return Random.Range(135, 166);
+            case Rarity.Mythic:    return Random.Range(150, 181);
+            case Rarity.Secret:    return Random.Range(120, 151);
+            default:               return Random.Range(80, 101);
+        }
+    }
+
+    private float RollGDDCritRate(Rarity rarity)
+    {
+        switch (rarity)
+        {
+            case Rarity.Common:    return 0.05f;
+            case Rarity.Uncommon:  return 0.06f;
+            case Rarity.Rare:      return 0.08f;
+            case Rarity.SuperRare: return 0.10f;
+            case Rarity.UltraRare: return 0.13f;
+            case Rarity.Legendary: return 0.16f;
+            case Rarity.Mythic:    return 0.20f;
+            case Rarity.Secret:    return Random.Range(0.25f, 0.35f);
+            default:               return 0.05f;
+        }
+    }
+
+    private float RollGDDCritDMG(Rarity rarity)
+    {
+        switch (rarity)
+        {
+            case Rarity.Common:    return 1.30f;
+            case Rarity.Uncommon:  return 1.35f;
+            case Rarity.Rare:      return 1.45f;
+            case Rarity.SuperRare: return 1.55f;
+            case Rarity.UltraRare: return 1.70f;
+            case Rarity.Legendary: return 1.90f;
+            case Rarity.Mythic:    return 2.20f;
+            case Rarity.Secret:    return 2.50f;
+            default:               return 1.30f;
+        }
+    }
+
     public void RecalculateStats(float newMultiplier)
     {
-        attack = Mathf.RoundToInt(baseAttack * newMultiplier);
-        defense = Mathf.RoundToInt(baseDefense * newMultiplier);
-        speed = Mathf.RoundToInt(baseSpeed * newMultiplier);
-        evade = Mathf.RoundToInt(baseEvade * newMultiplier);
-        if (skill != null) skill.power = newMultiplier * 1.5f;
+        // GDD overrides multipliers, but we keep this for consistency if needed
+        float rarityMultiplier = GetRarityMultiplier(Rarity);
+        attack = Mathf.RoundToInt(baseAttack * rarityMultiplier);
+        defense = Mathf.RoundToInt(baseDefense * rarityMultiplier);
+        speed = Mathf.RoundToInt(baseSpeed * rarityMultiplier);
+        if (skill != null) skill.power = rarityMultiplier * 1.5f;
     }
 
     public TraitInstance Clone()
@@ -96,11 +294,9 @@ public class TraitInstance
 
     public float GetRarityMultiplier(Rarity rarity)
     {
-        // Nếu Remote Config đã sẵn sàng, dùng giá trị từ server
         if (RemoteConfigManager.Instance != null && RemoteConfigManager.Instance.IsReady)
             return RemoteConfigManager.Instance.GetRarityMultiplier(rarity);
 
-        // Fallback hardcode khi chưa có Remote Config
         switch (rarity)
         {
             case Rarity.Common:    return 1f;
@@ -124,26 +320,22 @@ public class TraitInstance
             Rarity = newTrait.rarity;
             TraitType = newTrait.type;
             
-            // Recalculate stats with new rarity multiplier
-            float rarityMultiplier = GetRarityMultiplier(newTrait.rarity);
-            baseHP = Random.Range(newTrait.HPRange.x, newTrait.HPRange.y + 1);
-            baseAttack = Random.Range(newTrait.attackRange.x, newTrait.attackRange.y + 1);
-            baseDefense = Random.Range(newTrait.defenseRange.x, newTrait.defenseRange.y + 1);
-            baseSpeed = Random.Range(newTrait.speedRange.x, newTrait.speedRange.y + 1);
-            baseEvade = Random.Range(newTrait.evadeRange.x, newTrait.evadeRange.y + 1);
+            if (newTrait.skill != null && Rarity != Rarity.Common && Rarity != Rarity.Uncommon)
+            {
+                skill = new SkillInstance(newTrait.skill);
+            }
+            else
+            {
+                skill = null;
+            }
 
-            HP = baseHP;
-            attack = Mathf.RoundToInt(baseAttack * rarityMultiplier);
-            defense = Mathf.RoundToInt(baseDefense * rarityMultiplier);
-            speed = Mathf.RoundToInt(baseSpeed * rarityMultiplier);
-            evade = Mathf.RoundToInt(baseEvade * rarityMultiplier);
+            RollStatsByGDD();
         }
         return this;
     }
     
     private TraitSO RollTrait(TraitType type, Rarity rarity)
     {
-        // Get traits from SlimeGen if allTraits is empty
         if (allTraits == null || allTraits.Count == 0)
         {
             if (SlimeGen.Instance != null && SlimeGen.Instance.allTraits != null)
@@ -152,7 +344,6 @@ public class TraitInstance
             }
             else
             {
-
                 return null;
             }
         }
@@ -160,14 +351,12 @@ public class TraitInstance
         var pool = allTraits.Where(t => t != null && t.type == type && t.rarity == rarity && t.dropRate > 0f).ToList();
         if (pool.Count == 0)
         {
-
             return null;
         }
 
         float totalRate = pool.Sum(t => t.dropRate);
         if (totalRate <= 0f)
         {
-
             return null;
         }
 

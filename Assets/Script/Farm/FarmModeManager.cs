@@ -232,7 +232,11 @@ public class FarmModeManager : MonoBehaviour
         bossSlime.totalAttack = difficulty.bossAttack;
         bossSlime.totalDefense = difficulty.bossDefense;
         bossSlime.totalSpeed = difficulty.bossSpeed;
-        bossSlime.totalEvade = difficulty.bossEvade;
+        // Hệ evade đã được thay bằng hệ crit — dùng giá trị crit mặc định cho farm boss.
+        // (difficulty.bossEvade vẫn giữ trong config nhưng không còn áp dụng vào combat.)
+        bossSlime.totalMagicAttack = 0;
+        bossSlime.totalCritRate = 0.05f;
+        bossSlime.totalCritDMG = 1.30f;
         
         return bossSlime;
     }

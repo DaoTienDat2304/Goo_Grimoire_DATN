@@ -10,15 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
-  m_Name: Test_ColDmg
+  m_Name: B_Myt_WrldT
   m_EditorClassIdentifier: 
-  skillName: "Test: Ch\u1EB7t C\u1ED9t"
-  type: 0
-  description: "G\xE2y 80% ATK cho c\u1EA3 c\u1ED9t k\u1EBB \u0111\u1ECBch."
+  skillName: World Tree Root
+  type: 2
+  description: "H\u1ED3i 3% HP team"
   icon: {fileID: 0}
-  cooldown: 2
+  targetTrait: 0
+  rarity: 6
+  battlePointCost: 0
+  battlePointGain: 0
+  energyCost: 0
+  energyGain: 0
   effects:
-  - effect: {fileID: 11400000, guid: ca3b7bb116affb8469ca5fca21ba4381, type: 2}
-    value: 0.8
+  - effect: {fileID: 11400000, guid: b0acda50e0729984087c71094ccf225e, type: 2}
+    value: 0.03
+    flatBonus: 0
     duration: 0
     applyChance: 100

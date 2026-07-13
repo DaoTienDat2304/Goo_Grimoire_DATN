@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
+  m_Name: B_Sec_Prio
+  m_EditorClassIdentifier: 
+  skillName: Priority Protocol
+  type: 2
+  description: "\u0110i \u0111\u1EA7u, +1 \u0110CK"
+  icon: {fileID: 0}
+  targetTrait: 0
+  rarity: 7
+  battlePointCost: 0
+  battlePointGain: 0
+  energyCost: 0
+  energyGain: 0
+  effects:
+  - effect: {fileID: 11400000, guid: fa59558944469004e8a0407d7d1aa9c7, type: 2}
+    value: 100
+    flatBonus: 0
+    duration: 0
+    applyChance: 100

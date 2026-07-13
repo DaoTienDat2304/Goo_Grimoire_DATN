@@ -10,15 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
-  m_Name: Test_GroupHeal
+  m_Name: B_Sec_Hack
   m_EditorClassIdentifier: 
-  skillName: "Test: H\u1ED3i Nh\xF3m"
-  type: 0
-  description: "H\u1ED3i 15% HP t\u1ED1i \u0111a cho to\xE0n \u0111\u1ED9i."
+  skillName: Hacker
+  type: 2
+  description: "T\u1EF1 \u0111\xE1nh 270%"
   icon: {fileID: 0}
-  cooldown: 3
+  targetTrait: 0
+  rarity: 7
+  battlePointCost: 0
+  battlePointGain: 0
+  energyCost: 0
+  energyGain: 0
   effects:
-  - effect: {fileID: 11400000, guid: 2aa5de6b8eaf02a4bbed2220457c81e9, type: 2}
-    value: 0.15
+  - effect: {fileID: 11400000, guid: 845218d83646bc5468fcdecc2fb51090, type: 2}
+    value: 2.7
+    flatBonus: 0
     duration: 0
     applyChance: 100

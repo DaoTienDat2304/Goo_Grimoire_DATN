@@ -147,5 +147,40 @@ public class SlimeGen : MonoBehaviour
         s.CalculateStats();
         return s;
     }
+
+    [Header("Skill Database")]
+    public List<SkillSO> allSkillsDatabase;
+
+    private void EnsureSkillDatabase()
+    {
+        if (allSkillsDatabase == null || allSkillsDatabase.Count == 0)
+        {
+            allSkillsDatabase = new List<SkillSO>(Resources.LoadAll<SkillSO>("SkillDB"));
+        }
+    }
+
+    public SkillSO GetRandomSkill(TraitType type, Rarity rarity)
+    {
+        EnsureSkillDatabase();
+        if (allSkillsDatabase == null) return null;
+
+        var pool = allSkillsDatabase.Where(s => s.targetTrait == type && s.rarity == rarity).ToList();
+
+        if (pool.Count > 0)
+        {
+            return pool[Random.Range(0, pool.Count)];
+        }
+        else
+        {
+            // Fallback: nếu không có skill của độ hiếm này, lấy bất kỳ skill nào của bộ phận đó
+            var fallbackPool = allSkillsDatabase.Where(s => s.targetTrait == type).ToList();
+            if (fallbackPool.Count > 0)
+            {
+                return fallbackPool[Random.Range(0, fallbackPool.Count)];
+            }
+        }
+
+        return null;
+    }
 }
 

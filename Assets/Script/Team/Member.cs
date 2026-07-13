@@ -87,9 +87,9 @@ public class Member : MonoBehaviour
                 stat.CritDMG = s.totalCritDMG;
                 stat.isEnemy = false;
                 stat.id = s.id;
-                stat.bodySkill = s.body.skill;
-                stat.weaponSkill = s.weapon.skill;
-                stat.armorSkill = s.armor.skill;
+                stat.bodySkill = s.body?.skill;
+                stat.weaponSkill = s.weapon?.skill;
+                stat.armorSkill = s.armor?.skill;
                 formationManager.slimeFormation.Add(slimeGO);
             }
         }

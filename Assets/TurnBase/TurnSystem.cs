@@ -22,6 +22,7 @@ public class TurnSystem : MonoBehaviour
 
     protected List<GameObject> turnList;
     public int turnCount = 0;
+    public bool isBattleStarted = false;
     public GameObject skillPanel;
     public GameObject memberPanel;
     public SkeletonGraphic curSlimeBody;
@@ -36,6 +37,9 @@ public class TurnSystem : MonoBehaviour
     [SerializeField] protected GameObject resultPanel;
     [SerializeField] protected Text resultText;
 
+    // Các biến cho hệ thống Chọn Mục tiêu
+    protected GameObject targetIndicator;
+
     protected virtual void Start()
     {
         // Ẩn result panel khi bắt đầu
@@ -43,6 +47,9 @@ public class TurnSystem : MonoBehaviour
         {
             resultPanel.SetActive(false);
         }
+
+        // Tạo Target Indicator
+        CreateTargetIndicator();
 
         turnList = formationManager.slimeFormation;
 
@@ -80,6 +87,65 @@ public class TurnSystem : MonoBehaviour
         }
 
         StartCoroutine(DelayedSetupCombatAnimations());
+    }
+
+    protected void CreateTargetIndicator()
+    {
+        if (targetIndicator != null) return;
+        
+        targetIndicator = new GameObject("TargetIndicator");
+        var img = targetIndicator.AddComponent<Image>();
+        // Tải ảnh Arrow từ thư mục Resources
+        img.sprite = Resources.Load<Sprite>("Arrow");
+        img.color = Color.white; // Trả về màu gốc của ảnh thay vì màu đỏ
+        
+        RectTransform rt = targetIndicator.GetComponent<RectTransform>();
+        rt.sizeDelta = new Vector2(80, 80); // Tăng kích thước mũi tên cho dễ nhìn trên Mobile
+        targetIndicator.SetActive(false);
+    }
+
+    public void SelectTarget(GameObject newTarget)
+    {
+        if (newTarget == null) return;
+        
+        var stats = newTarget.GetComponent<SlimeBattleStats>();
+        if (stats == null || stats.CurrentHP <= 0) return; // Không chọn quái đã chết
+
+        boss = newTarget; // Gán lại biến boss thành mục tiêu mới
+        
+        // Di chuyển Indicator lên đầu quái vật
+        targetIndicator.transform.SetParent(newTarget.transform);
+        targetIndicator.transform.localPosition = new Vector3(0, 130f, 0); // Hiển thị phía trên đầu
+        targetIndicator.transform.localScale = Vector3.one; // Reset scale
+
+        if (isBattleStarted)
+        {
+            targetIndicator.SetActive(true);
+        }
+    }
+
+    public void MakeEnemyTargetable(GameObject enemyGo)
+    {
+        if (enemyGo == null) return;
+
+        // 1. Tạo hitbox vô hình để dễ click trên Mobile
+        var hitbox = new GameObject("ClickHitbox");
+        hitbox.transform.SetParent(enemyGo.transform);
+        hitbox.transform.localPosition = Vector3.zero;
+        hitbox.transform.localScale = Vector3.one;
+        
+        var hitboxImg = hitbox.AddComponent<Image>();
+        hitboxImg.color = new Color(1, 1, 1, 0); // Trong suốt hoàn toàn
+        var hitboxRt = hitbox.GetComponent<RectTransform>();
+        hitboxRt.sizeDelta = new Vector2(150, 200); // Kích thước hitbox bao trọn quái
+        
+        // 2. Gắn EventTrigger
+        var pointerClick = hitbox.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+        var clickEntry = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick };
+        clickEntry.callback.AddListener((data) => {
+            SelectTarget(enemyGo);
+        });
+        pointerClick.triggers.Add(clickEntry);
     }
 
     private void InitializeBossFromTower()
@@ -296,6 +362,13 @@ public class TurnSystem : MonoBehaviour
 
     public void StartGame()
     {
+        isBattleStarted = true;
+        
+        if (boss != null && targetIndicator != null)
+        {
+            targetIndicator.SetActive(true);
+        }
+
         // Vô hiệu hóa tính năng kéo thả khi trận đấu bắt đầu
         var dragHandlers = FindObjectsOfType<SlimeDragHandler>();
         foreach (var handler in dragHandlers)
@@ -601,44 +674,54 @@ public class TurnSystem : MonoBehaviour
     }
     public void UseBodySkill()
     {
-        if (currentSlime.GetComponent<SlimeStats>().bodySkill.baseSkill != null)
-        {
-            if (currentSlime.GetComponent<SlimeStats>().bodySkill.currentCooldown == 0)
-            {
-                skillPanel.SetActive(false);
-                StartCoroutine(DoSkill(currentSlime.GetComponent<SlimeStats>().bodySkill, boss));
-            }
-            else Debug.Log($"Skill is on Cooldown {currentSlime.GetComponent<SlimeStats>().bodySkill.currentCooldown}");
-        }
-        else Debug.Log("this slime have no Body skill");
+        ExecuteSkillLogic(currentSlime.GetComponent<SlimeStats>().bodySkill);
     }
 
     public void UseHatSkill()
     {
-        if (currentSlime.GetComponent<SlimeStats>().armorSkill.baseSkill != null)
-        {
-            if (currentSlime.GetComponent<SlimeStats>().armorSkill.currentCooldown <= 0)
-            {
-                skillPanel.SetActive(false);
-                StartCoroutine(DoSkill(currentSlime.GetComponent<SlimeStats>().armorSkill, boss));
-            }
-            else Debug.Log($"Skill is on Cooldown {currentSlime.GetComponent<SlimeStats>().armorSkill.currentCooldown}");
-        }
-        else Debug.Log("this slime have no Armor skill");
+        ExecuteSkillLogic(currentSlime.GetComponent<SlimeStats>().armorSkill);
     }
 
     public void UseWeaponSkill()
     {
-        if (currentSlime.GetComponent<SlimeStats>().weaponSkill.baseSkill != null)
+        ExecuteSkillLogic(currentSlime.GetComponent<SlimeStats>().weaponSkill);
+    }
+
+    private void ExecuteSkillLogic(SkillInstance skillInstance)
+    {
+        if (skillInstance == null || skillInstance.baseSkill == null)
         {
-            if (currentSlime.GetComponent<SlimeStats>().weaponSkill.currentCooldown <= 0)
-            {
-                skillPanel.SetActive(false);
-                StartCoroutine(DoSkill(currentSlime.GetComponent<SlimeStats>().weaponSkill, boss));
-            }
-            else Debug.Log($"Skill is on Cooldown {currentSlime.GetComponent<SlimeStats>().weaponSkill.currentCooldown}");
+            Debug.Log("Không có kỹ năng.");
+            return;
         }
-        else Debug.Log("this slime have no Weapon skill");
+
+        // 1. Chặn Nội tại
+        if (skillInstance.baseSkill.type == SkillType.Passive)
+        {
+            Debug.Log("Kỹ năng nội tại không thể kích hoạt chủ động.");
+            return;
+        }
+
+        var caster = currentSlime.GetComponent<SlimeBattleStats>();
+
+        // 2. Kiểm tra tài nguyên ĐCK / NL thông qua BattleSystemManager
+        if (BattleSystemManager.Instance != null)
+        {
+            if (!BattleSystemManager.Instance.CanUseSkill(skillInstance.baseSkill, caster))
+            {
+                Debug.Log($"Không đủ điểm để dùng {skillInstance.baseSkill.skillName}");
+                return;
+            }
+
+            // 3. Trừ điểm ngay lập tức nếu đủ điều kiện
+            BattleSystemManager.Instance.ExecuteSkill(skillInstance.baseSkill, caster);
+        }
+
+        // Tắt bảng điều khiển kỹ năng
+        skillPanel.SetActive(false);
+
+        // Kích hoạt kỹ năng
+        StartCoroutine(DoSkill(skillInstance, boss));
     }
 
     protected virtual IEnumerator DoSkill(SkillInstance skill, GameObject target)
@@ -717,8 +800,6 @@ public class TurnSystem : MonoBehaviour
                 yield return new WaitForSeconds(0.15f);
             }
         }
-
-        skill.currentCooldown = skill.baseSkill.cooldown;
 
         if (CheckWinCondition())
         {

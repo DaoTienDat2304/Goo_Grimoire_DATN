@@ -150,6 +150,7 @@ public class TowerTurnSystem : TurnSystem
             {
                 boss.SetActive(true);
                 if (!activeEnemies.Contains(boss)) activeEnemies.Add(boss);
+                MakeEnemyTargetable(boss);
                 
                 // Set stats fallback if not set by TurnSystem yet
                 var battleStats = boss.GetComponent<SlimeBattleStats>();
@@ -178,7 +179,10 @@ public class TowerTurnSystem : TurnSystem
         }
 
         // Cập nhật lại list hành động
-        if (activeEnemies.Count > 0) boss = activeEnemies[0];
+        if (activeEnemies.Count > 0) 
+        {
+            SelectTarget(activeEnemies[0]);
+        }
 
         foreach (var enemy in activeEnemies)
         {
@@ -293,6 +297,7 @@ public class TowerTurnSystem : TurnSystem
         }
 
         activeEnemies.Add(enemyGo);
+        MakeEnemyTargetable(enemyGo);
     }
 
     // 4. DATABASE STATS GỌN GÀNG HƠN
@@ -476,7 +481,7 @@ public class TowerTurnSystem : TurnSystem
     private void CheckWinLoseAfterEnemyDeath()
     {
         var nextAlive = activeEnemies.FirstOrDefault(e => e != null && e.GetComponent<SlimeBattleStats>().CurrentHP > 0);
-        if (nextAlive != null) boss = nextAlive;
+        if (nextAlive != null) SelectTarget(nextAlive);
 
         foreach (var enemy in activeEnemies)
         {
@@ -722,8 +727,6 @@ public class TowerTurnSystem : TurnSystem
                 yield return new WaitForSeconds(0.15f);
             }
         }
-
-        skill.currentCooldown = skill.baseSkill.cooldown;
 
         if (CheckWinCondition())
         {

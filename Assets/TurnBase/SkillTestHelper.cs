@@ -124,10 +124,6 @@ public class SkillTestHelper : MonoBehaviour
             }
         }
 
-        // Đặt cooldown sau khi dùng
-        _cooldowns[index] = skill.cooldown;
-        if (skill.cooldown > 0)
-            Debug.Log($"[SkillTest] '{skill.skillName}' cooldown: {skill.cooldown} lượt. Nhấn R để reset sớm.");
     }
 }
 

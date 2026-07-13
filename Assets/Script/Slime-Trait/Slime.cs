@@ -86,6 +86,7 @@ public class Slime
         }
 
         CalculateStats();
+        RollRandomSkillsMatchingRarity();
     }
     private Rarity GetNextRarity(Rarity current)
     {
@@ -216,6 +217,31 @@ public class Slime
         // Crit Rate & Crit DMG comes from Head (armor/special) part
         totalCritRate = (armor != null ? armor.critRate : 0.05f);
         totalCritDMG = (armor != null ? armor.critDMG : 1.30f);
+
+        AssignSkills();
+    }
+
+    public void RollRandomSkillsMatchingRarity()
+    {
+        if (SlimeGen.Instance == null) return;
+
+        if (body != null)
+        {
+            var newSkillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Body, body.Rarity);
+            if (newSkillSO != null) body.skill = new SkillInstance(newSkillSO);
+        }
+
+        if (armor != null)
+        {
+            var newSkillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Armor, armor.Rarity);
+            if (newSkillSO != null) armor.skill = new SkillInstance(newSkillSO);
+        }
+
+        if (weapon != null)
+        {
+            var newSkillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Weapon, weapon.Rarity);
+            if (newSkillSO != null) weapon.skill = new SkillInstance(newSkillSO);
+        }
 
         AssignSkills();
     }

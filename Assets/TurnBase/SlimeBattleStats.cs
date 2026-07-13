@@ -41,6 +41,15 @@ public class SlimeBattleStats : MonoBehaviour
     [SerializeField] private float battleCritRate;
     [SerializeField] private float battleCritDMG;
 
+    [SerializeField] private int currentEnergy = 0;
+    private const int MAX_ENERGY = 100;
+
+    [SerializeField] private float currentAV; // Action Value hiện tại
+    [SerializeField] private int currentShield = 0; // Lá chắn
+    public int CurrentEnergy { get => currentEnergy; }
+    public float CurrentAV { get => currentAV; set => currentAV = value; }
+    public int CurrentShield { get => currentShield; }
+
     public int CurrentHP { get { return currentHP; } set { currentHP = value; } }
     public int MaxHP { get { return maxHP; } set { maxHP = value; } }
     public int BattleAttack { get { return battleAttack; } set { battleAttack = value; } }
@@ -97,6 +106,29 @@ public class SlimeBattleStats : MonoBehaviour
         }
     }
 
+    // Tính toán AV khởi đầu dựa trên SPD
+    public void CalculateInitialAV()
+    {
+        currentAV = 10000f / Mathf.Max(1, BattleSpeed);
+    }
+
+    // Khi hành động xong, reset lại AV
+    public void ResetAV()
+    {
+        currentAV += 10000f / Mathf.Max(1, BattleSpeed);
+    }
+
+    public void AddEnergy(int amount)
+    {
+        currentEnergy = Mathf.Clamp(currentEnergy + amount, 0, MAX_ENERGY);
+        Debug.Log($"{name} hồi {amount} Năng lượng. Current: {currentEnergy}/100");
+    }
+
+    public void UseEnergy(int amount)
+    {
+        currentEnergy = Mathf.Max(0, currentEnergy - amount);
+    }
+
     // Dynamic stats computation taking conversion into account
     public float GetEffectiveCritRate()
     {
@@ -144,15 +176,32 @@ public class SlimeBattleStats : MonoBehaviour
 
     public void TakeDamage(int rawDamage)
     {
-        // GDD: Damage after defense = rawDamage * (1 - DEF_enemy * 0.008)
-        // Hard Cap DEF reduction at 80%
-        float defReduction = Mathf.Min(0.80f, BattleDefense * 0.008f);
+        float defReduction = Mathf.Min(0.80f, BattleDefense * 0.012f);
         float finalDamage = rawDamage * (1f - defReduction);
 
         finalDamage *= (1f - (damageReduction / 100f));
         finalDamage = Mathf.Max(1, finalDamage); // Minimum 1 damage
 
         int finalDmgInt = Mathf.RoundToInt(finalDamage);
+
+        AddEnergy(10);
+
+        // Trừ khiên trước
+        if (currentShield > 0)
+        {
+            if (currentShield >= finalDmgInt)
+            {
+                currentShield -= finalDmgInt;
+                Debug.Log($"{name} bị đánh {finalDmgInt} nhưng khiên đã đỡ hết!");
+                return;
+            }
+            else
+            {
+                finalDmgInt -= currentShield;
+                currentShield = 0;
+            }
+        }
+
         CurrentHP -= finalDmgInt;
         CurrentHP = Mathf.Max(0, CurrentHP);
 
@@ -172,6 +221,24 @@ public class SlimeBattleStats : MonoBehaviour
         }
 
         Debug.Log($"{name} takes {finalDmgInt} damage! HP: {CurrentHP}/{MaxHP}");
+    }
+
+    // Kéo lượt (Tiến) hoặc Đẩy lùi
+    public void ModifyActionValue(float percentage, bool isAdvance)
+    {
+        float baseAV = 10000f / Mathf.Max(1, BattleSpeed);
+        float changeAmount = baseAV * (percentage / 100f);
+
+        if (isAdvance)
+        {
+            currentAV = Mathf.Max(0, currentAV - changeAmount); // Tiến
+            Debug.Log($"{name} được kéo lượt {percentage}%, AV giảm còn {currentAV}");
+        }
+        else
+        {
+            currentAV += changeAmount; // Lùi
+            Debug.Log($"{name} bị đẩy lùi {percentage}%, AV tăng lên {currentAV}");
+        }
     }
 
     public void Heal(int healAmount)

@@ -10,6 +10,7 @@ public class SlimeDisplayBehavior : MonoBehaviour, IPointerClickHandler, IPointe
     public float scaleSpeed = 5f;
     
     [Header("Info Display")]
+
     public GameObject infoPanel;
     public float infoPanelOffset = 2f;
     

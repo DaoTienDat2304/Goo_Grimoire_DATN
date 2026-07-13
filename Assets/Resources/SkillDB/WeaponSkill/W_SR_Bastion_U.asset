@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
+  m_Name: W_SR_Bastion_U
+  m_EditorClassIdentifier: 
+  skillName: Fortress Wall
+  type: 3
+  description: "L\xE1 ch\u1EAFn 20% HP"
+  icon: {fileID: 0}
+  targetTrait: 2
+  rarity: 3
+  battlePointCost: 0
+  battlePointGain: 0
+  energyCost: 100
+  energyGain: 0
+  effects:
+  - effect: {fileID: 11400000, guid: b26dda7793a8a3f4cbc93b3b0df3ba2c, type: 2}
+    value: 0.2
+    flatBonus: 400
+    duration: 3
+    applyChance: 100

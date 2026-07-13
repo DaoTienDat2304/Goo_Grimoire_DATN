@@ -7,7 +7,7 @@ public class MobileThrowButtonUI : MonoBehaviour, IPointerDownHandler, IDragHand
 {
     private const float RightControlStartRatio = 0.55f;
     private const float LowerControlHeightRatio = 0.72f;
-    private static readonly string[] DefaultActiveSceneNames = { "adventureSence", "Map2" };
+    private static readonly string[] DefaultActiveSceneNames = { "adventureSence", "Map2", "Frozen_Map", "NonameMap" };
 
     [Header("Scenes")]
     [SerializeField] private string[] activeSceneNames = DefaultActiveSceneNames;

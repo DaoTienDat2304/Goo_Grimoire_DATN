@@ -10,7 +10,7 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IInitialize
     private const int MobileControlsSortingOrder = -10;
     private const float LeftControlWidthRatio = 0.45f;
     private const float LowerControlHeightRatio = 0.72f;
-    private static readonly string[] DefaultActiveSceneNames = { "adventureSence", "Map2", "Frozen_Map" };
+    private static readonly string[] DefaultActiveSceneNames = { "adventureSence", "Map2", "Frozen_Map", "NonameMap" };
 
     [Header("Scenes")]
     [SerializeField] private string[] activeSceneNames = DefaultActiveSceneNames;

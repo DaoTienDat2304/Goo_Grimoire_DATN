@@ -5,6 +5,10 @@ using Spine.Unity;
 
 public class SlimeWorldManager : MonoBehaviour
 {
+    private const int BackgroundUiSortingOrder = -100;
+    private const int BuildingUiSortingOrder = -90;
+    private const int WorldSlimeSortingOrder = -50;
+
     [Header("World Display")]
     public bool showSlimesInWorld = true;
     public float worldRadius = 12f;
@@ -62,6 +66,8 @@ public class SlimeWorldManager : MonoBehaviour
         {
             mainCamera = FindAnyObjectByType<Camera>();
         }
+
+        ConfigureWorldViewSorting();
 
         // Cache movement area colliders if provided
         if (movementArea != null)
@@ -148,6 +154,7 @@ public class SlimeWorldManager : MonoBehaviour
 
     public void StartWorldView()
     {
+        ConfigureWorldViewSorting();
         isWorldViewActive = true;
 
         // Ẩn breeding UI
@@ -290,10 +297,10 @@ public class SlimeWorldManager : MonoBehaviour
 
         // Gán sprite cho armor và weapon
         armorRenderer.sprite = (slime != null ? slime.armor?.sprite : null) ?? CreateDefaultSlimeSprite();
-        armorRenderer.sortingOrder = 1;
+        armorRenderer.sortingOrder = WorldSlimeSortingOrder + 1;
 
         weaponRenderer.sprite = (slime != null ? slime.weapon?.sprite : null) ?? CreateDefaultSlimeSprite();
-        weaponRenderer.sortingOrder = 2;
+        weaponRenderer.sortingOrder = WorldSlimeSortingOrder + 2;
 
 
         // Thêm CircleCollider2D để click
@@ -317,6 +324,14 @@ public class SlimeWorldManager : MonoBehaviour
         outlineText.transform.SetSiblingIndex(nameText.transform.GetSiblingIndex());
         outlineText.color = Color.black;
         outlineText.characterSize = 2f;
+
+        // Keep every part of a world slime between the background UI and the
+        // rest of the UI, regardless of whether its body is Spine or a sprite.
+        SetRendererSortingOrder(slimeGO, WorldSlimeSortingOrder);
+        armorRenderer.sortingOrder = WorldSlimeSortingOrder + 1;
+        weaponRenderer.sortingOrder = WorldSlimeSortingOrder + 2;
+        nameText.GetComponent<MeshRenderer>().sortingOrder = WorldSlimeSortingOrder + 3;
+        outlineText.GetComponent<MeshRenderer>().sortingOrder = WorldSlimeSortingOrder + 3;
 
         // Thiết lập kích thước
         slimeGO.transform.localScale = Vector3.one*0.08f;
@@ -346,6 +361,60 @@ public class SlimeWorldManager : MonoBehaviour
         textMesh.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         return textMesh;
+    }
+
+    private void ConfigureWorldViewSorting()
+    {
+        Canvas rootCanvas = breedingUI != null ? breedingUI.GetComponentInParent<Canvas>() : null;
+        if (rootCanvas == null || rootCanvas.transform.Find("BackGround") == null)
+        {
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < canvases.Length; i++)
+            {
+                if (canvases[i].transform.Find("BackGround") == null && canvases[i].transform.Find("BuildingSlotArea") == null)
+                    continue;
+                rootCanvas = canvases[i];
+                break;
+            }
+        }
+        if (rootCanvas == null)
+        {
+            return;
+        }
+
+        ConfigureBackgroundCanvas(rootCanvas.transform.Find("BackGround"), rootCanvas, BackgroundUiSortingOrder, false);
+        ConfigureBackgroundCanvas(rootCanvas.transform.Find("BuildingSlotArea"), rootCanvas, BuildingUiSortingOrder, true);
+    }
+
+    private static void ConfigureBackgroundCanvas(Transform target, Canvas rootCanvas, int sortingOrder, bool needsRaycaster)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        Canvas canvas = target.GetComponent<Canvas>();
+        if (canvas == null)
+        {
+            canvas = target.gameObject.AddComponent<Canvas>();
+        }
+
+        canvas.overrideSorting = true;
+        canvas.sortingLayerID = rootCanvas.sortingLayerID;
+        canvas.sortingOrder = sortingOrder;
+
+        Graphic rootGraphic = target.GetComponent<Graphic>();
+        if (rootGraphic != null) rootGraphic.raycastTarget = false;
+        if (needsRaycaster && target.GetComponent<GraphicRaycaster>() == null)
+            target.gameObject.AddComponent<GraphicRaycaster>();
+    }
+
+    private static void SetRendererSortingOrder(GameObject root, int sortingOrder)
+    {
+        foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+        {
+            renderer.sortingOrder = sortingOrder;
+        }
     }
 
     public Sprite CreateDefaultSlimeSprite()

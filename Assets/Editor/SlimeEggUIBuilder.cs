@@ -11,6 +11,7 @@ public static class SlimeEggUIBuilder
 {
     private const string ScenePath = "Assets/Scenes/firstsave.unity";
     private const string OldScenePath = "Assets/Scenes/menu.unity";
+    private const string EggPrefabPath = "Assets/Resources/SlimeEgg.prefab";
     private static readonly Color Ink = new Color32(43, 31, 57, 255);
     private static readonly Color Cream = new Color32(255, 245, 218, 255);
     private static readonly Color Gold = new Color32(242, 181, 62, 255);
@@ -19,16 +20,22 @@ public static class SlimeEggUIBuilder
     [MenuItem("Tools/Goo Grimoire/Build Egg UI In FirstSave")]
     public static void Build()
     {
+        BuildWorldEggPrefab();
         RemoveOldMenuUI();
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-        Canvas canvas = Object.FindFirstObjectByType<Canvas>();
+        Canvas canvas = FindMainCanvas();
         if (canvas == null) throw new System.Exception("Canvas not found in menu scene.");
-        Transform old = canvas.transform.Find("EggUI");
-        if (old != null) Object.DestroyImmediate(old.gameObject);
+        ConfigureWorldBackgroundSorting(canvas);
+        SlimeEggUI[] oldEggUIs = Object.FindObjectsByType<SlimeEggUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (SlimeEggUI oldEggUI in oldEggUIs)
+            if (oldEggUI != null) Object.DestroyImmediate(oldEggUI.gameObject);
 
-        GameObject oldSystem = GameObject.Find("SlimeEggSystem");
-        if (oldSystem != null) Object.DestroyImmediate(oldSystem);
-        new GameObject("SlimeEggSystem").AddComponent<SlimeEggSystem>();
+        SlimeEggSystem[] oldSystems = Object.FindObjectsByType<SlimeEggSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (SlimeEggSystem oldSystem in oldSystems)
+            if (oldSystem != null) Object.DestroyImmediate(oldSystem.gameObject);
+        SlimeEggSystem eggSystem = new GameObject("SlimeEggSystem").AddComponent<SlimeEggSystem>();
+        eggSystem.worldEggPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(EggPrefabPath);
+        if (eggSystem.worldEggPrefab == null) throw new System.Exception("SlimeEgg prefab could not be loaded.");
 
         GameObject root = UI("EggUI", canvas.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         SlimeEggUI ui = root.AddComponent<SlimeEggUI>();
@@ -43,14 +50,25 @@ public static class SlimeEggUIBuilder
         ui.eggInventoryPanel = Modal("EggInventoryPanel", root.transform, new Vector2(760,460));
         Text("Title", ui.eggInventoryPanel.transform, "EGG NEST", 38, Ink, TextAlignmentOptions.Center, new Vector2(0,175), new Vector2(600,55));
         Text("Subtitle", ui.eggInventoryPanel.transform, "Maximum 3 unhatched eggs", 20, Purple, TextAlignmentOptions.Center, new Vector2(0,132), new Vector2(600,35));
-        ui.eggSlotButtons = new Button[3]; ui.eggSlotTexts = new TMP_Text[3];
-        for (int i=0;i<3;i++)
-        {
-            float x = -230 + i * 230;
-            ui.eggSlotButtons[i] = Button($"EggSlot_{i+1}", ui.eggInventoryPanel.transform, "", Vector2.one*.5f, Vector2.one*.5f, new Vector2(x,-15), new Vector2(190,230), new Color32(238,222,190,255));
-            Oval("EggVisual", ui.eggSlotButtons[i].transform, new Vector2(82,108), new Color32(188,150,216,255));
-            ui.eggSlotTexts[i] = Text("Status", ui.eggSlotButtons[i].transform, "EMPTY", 19, Ink, TextAlignmentOptions.Center, new Vector2(0,-78), new Vector2(175,60));
-        }
+        GameObject scroll = UI("EggScrollView", ui.eggInventoryPanel.transform, Vector2.one*.5f, Vector2.one*.5f, new Vector2(0,-15), new Vector2(650,240));
+        scroll.AddComponent<Image>().color = new Color32(225,207,177,120);
+        ui.eggScrollRect = scroll.AddComponent<ScrollRect>();
+        ui.eggScrollRect.horizontal = true; ui.eggScrollRect.vertical = false; ui.eggScrollRect.movementType = ScrollRect.MovementType.Clamped;
+        GameObject viewport = UI("Viewport", scroll.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        viewport.AddComponent<RectMask2D>();
+        GameObject content = UI("Content", viewport.transform, new Vector2(0,.5f), new Vector2(0,.5f), Vector2.zero, Vector2.zero);
+        RectTransform contentRect = content.GetComponent<RectTransform>();
+        contentRect.anchorMin = new Vector2(0,0); contentRect.anchorMax = new Vector2(0,1); contentRect.pivot = new Vector2(0,.5f);
+        HorizontalLayoutGroup layout = content.AddComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(18,18,5,5); layout.spacing = 18; layout.childAlignment = TextAnchor.MiddleLeft;
+        layout.childControlWidth = false; layout.childControlHeight = false; layout.childForceExpandWidth = false; layout.childForceExpandHeight = false;
+        ContentSizeFitter fitter = content.AddComponent<ContentSizeFitter>(); fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        ui.eggScrollRect.viewport = viewport.GetComponent<RectTransform>(); ui.eggScrollRect.content = contentRect; ui.eggContent = contentRect;
+        ui.eggSlotPrefab = Button("EggItemTemplate", content.transform, "", new Vector2(0,.5f), new Vector2(0,.5f), Vector2.zero, new Vector2(190,220), new Color32(238,222,190,255));
+        Oval("EggVisual", ui.eggSlotPrefab.transform, new Vector2(82,108), new Color32(188,150,216,255));
+        Text("Status", ui.eggSlotPrefab.transform, "", 19, Ink, TextAlignmentOptions.Center, new Vector2(0,-78), new Vector2(175,60));
+        ui.eggSlotPrefab.gameObject.SetActive(false);
+        ui.eggSlotButtons = new Button[0]; ui.eggSlotTexts = new TMP_Text[0];
         Button closeInventory = Button("CloseButton", ui.eggInventoryPanel.transform, "CLOSE", Vector2.one*.5f, Vector2.one*.5f, new Vector2(0,-190), new Vector2(170,52), Purple);
         UnityEventTools.AddPersistentListener(closeInventory.onClick, ui.CloseInventory);
 
@@ -60,8 +78,6 @@ public static class SlimeEggUIBuilder
         ui.incubateButton = Button("IncubateButton", ui.incubationConfirmPanel.transform, "START INCUBATING", Vector2.one*.5f, Vector2.one*.5f, new Vector2(0,-65), new Vector2(280,58), Gold);
         ui.finishWithGemsButton = Button("FinishWithGemsButton", ui.incubationConfirmPanel.transform, "", Vector2.one*.5f, Vector2.one*.5f, new Vector2(0,-65), new Vector2(310,58), Gold);
         ui.gemCostText = ui.finishWithGemsButton.GetComponentInChildren<TMP_Text>();
-        Button closeIncubation = Button("CloseButton", ui.incubationConfirmPanel.transform, "X", new Vector2(1,1), new Vector2(1,1), new Vector2(-28,-28), new Vector2(42,42), Purple);
-        UnityEventTools.AddPersistentListener(closeIncubation.onClick, ui.CloseIncubation);
 
         ui.hatchResultPanel = Modal("HatchResultPanel", root.transform, new Vector2(780,570));
         ui.hatchAnimationRoot = UI("HatchAnimationRoot", ui.hatchResultPanel.transform, Vector2.one*.5f, Vector2.one*.5f, new Vector2(-220,30), new Vector2(280,350));
@@ -72,9 +88,58 @@ public static class SlimeEggUIBuilder
         Button closeHatch = Button("CollectButton", ui.hatchResultPanel.transform, "COLLECT", Vector2.one*.5f, Vector2.one*.5f, new Vector2(170,-235), new Vector2(220,58), Gold);
         UnityEventTools.AddPersistentListener(closeHatch.onClick, ui.CloseHatchResult);
 
+        EnsureExitButton(ui.eggInventoryPanel, ui.CloseInventory);
+        EnsureExitButton(ui.incubationConfirmPanel, ui.CloseIncubation);
+        EnsureExitButton(ui.hatchResultPanel, ui.CloseHatchResult);
+
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         Debug.Log("[EggUI] Built and saved UI hierarchy in " + ScenePath);
+    }
+
+    private static Canvas FindMainCanvas()
+    {
+        Canvas[] canvases = Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (Canvas canvas in canvases)
+            if (canvas.isRootCanvas && (canvas.transform.Find("BackGround") != null || canvas.transform.Find("BuildingSlotArea") != null))
+                return canvas;
+        foreach (Canvas canvas in canvases)
+            if (canvas.isRootCanvas) return canvas;
+        return null;
+    }
+
+    private static void BuildWorldEggPrefab()
+    {
+        GameObject egg = new GameObject("SlimeEgg");
+        SpriteRenderer renderer = egg.AddComponent<SpriteRenderer>();
+        renderer.sortingOrder = 5;
+        CapsuleCollider2D collider = egg.AddComponent<CapsuleCollider2D>();
+        collider.direction = CapsuleDirection2D.Vertical;
+        collider.size = new Vector2(.9f, 1.15f);
+        egg.AddComponent<WorldEggPickup>();
+        PrefabUtility.SaveAsPrefabAsset(egg, EggPrefabPath);
+        Object.DestroyImmediate(egg);
+    }
+
+    private static void ConfigureWorldBackgroundSorting(Canvas rootCanvas)
+    {
+        ConfigureNestedCanvas(rootCanvas.transform.Find("BackGround"), rootCanvas, -100, false);
+        ConfigureNestedCanvas(rootCanvas.transform.Find("BuildingSlotArea"), rootCanvas, -90, true);
+    }
+
+    private static void ConfigureNestedCanvas(Transform target, Canvas rootCanvas, int sortingOrder, bool needsRaycaster)
+    {
+        if (target == null) return;
+        Canvas nested = target.GetComponent<Canvas>();
+        if (nested == null) nested = target.gameObject.AddComponent<Canvas>();
+        nested.overrideSorting = true;
+        nested.sortingLayerID = rootCanvas.sortingLayerID;
+        nested.sortingOrder = sortingOrder;
+        Graphic rootGraphic = target.GetComponent<Graphic>();
+        if (rootGraphic != null) rootGraphic.raycastTarget = false;
+        if (needsRaycaster && target.GetComponent<GraphicRaycaster>() == null)
+            target.gameObject.AddComponent<GraphicRaycaster>();
+        EditorUtility.SetDirty(nested);
     }
 
     [MenuItem("Tools/Goo Grimoire/Egg UI/Add Missing Exit Buttons")]

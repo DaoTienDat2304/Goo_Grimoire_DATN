@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Online egg production and incubation. Add once to a persistent scene and wire
@@ -20,7 +21,20 @@ public class SlimeEggSystem : MonoBehaviour
     }
 
     [Serializable]
-    private class EggSave { public List<Egg> eggs = new List<Egg>(); public float layTimer; }
+    public class WorldEggData
+    {
+        public string id;
+        public string sceneName;
+        public Vector3 position;
+    }
+
+    [Serializable]
+    private class EggSave
+    {
+        public List<Egg> eggs = new List<Egg>();
+        public List<WorldEggData> worldEggs = new List<WorldEggData>();
+        public float layTimer;
+    }
 
     public enum StatQuality { Poor, Normal, Good, Excellent, Perfect, GodRoll }
 
@@ -30,20 +44,33 @@ public class SlimeEggSystem : MonoBehaviour
     [Min(1)] public int maxUnhatchedEggs = 3;
     [Min(2)] public int requiredSlimes = 2;
 
+    [Header("World egg spawning")]
+    [Tooltip("Optional. When empty, Resources/SlimeEgg.prefab is loaded automatically.")]
+    public GameObject worldEggPrefab;
+    public Transform worldEggSpawnCenter;
+    [Min(0.5f)] public float worldEggSpawnRadius = 4f;
+    [Min(0f)] public float minimumDistanceFromPlayer = 2f;
+    public LayerMask worldEggObstacleMask;
+
     [Header("Incubation")]
     [Min(1f)] public float incubationDurationSeconds = 600f;
     [Min(1f)] public float secondsPerGem = 60f;
 
     [SerializeField] private List<Egg> eggs = new List<Egg>();
+    [SerializeField] private List<WorldEggData> worldEggs = new List<WorldEggData>();
+    private readonly Dictionary<string, WorldEggPickup> activeWorldEggs = new Dictionary<string, WorldEggPickup>();
     private float layTimer;
     private float saveTimer;
     private const string SaveKey = "SlimeEggSystem_v1";
 
     public event Action EggsChanged;
+    public event Action<Vector3, Sprite> WorldEggCollected;
     public event Action<Slime> SlimeHatched;
 
     public IReadOnlyList<Egg> Eggs => eggs;
     public int EggCount => eggs.Count;
+    public int WorldEggCount => worldEggs.Count;
+    public int TotalUnhatchedEggCount => eggs.Count + worldEggs.Count;
 
     private void Awake()
     {
@@ -51,6 +78,16 @@ public class SlimeEggSystem : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         LoadState();
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void Start() => RestoreWorldEggsForActiveScene();
+
+    private void OnDestroy()
+    {
+        if (Instance != this) return;
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        Instance = null;
     }
 
     private void Update()
@@ -68,19 +105,108 @@ public class SlimeEggSystem : MonoBehaviour
     private void TickProduction(float dt)
     {
         var manager = BreedingManager.Instance;
-        if (manager == null || manager.GetCurrentSlimeCount() < requiredSlimes || eggs.Count >= maxUnhatchedEggs)
+        if (manager == null || manager.GetCurrentSlimeCount() < requiredSlimes || TotalUnhatchedEggCount >= maxUnhatchedEggs)
             return;
 
         layTimer += dt;
-        while (layTimer >= checkIntervalSeconds && eggs.Count < maxUnhatchedEggs)
+        while (layTimer >= checkIntervalSeconds && TotalUnhatchedEggCount < maxUnhatchedEggs)
         {
             layTimer -= checkIntervalSeconds;
             if (UnityEngine.Random.value < eggChance)
             {
-                eggs.Add(new Egg { id = Guid.NewGuid().ToString("N") });
+                SpawnWorldEgg();
                 SaveAndNotify();
             }
         }
+    }
+
+    private void SpawnWorldEgg()
+    {
+        string sceneName = SceneManager.GetActiveScene().name;
+        Vector3 position = FindWorldEggSpawnPosition();
+        var data = new WorldEggData
+        {
+            id = Guid.NewGuid().ToString("N"),
+            sceneName = sceneName,
+            position = position
+        };
+        worldEggs.Add(data);
+        CreateWorldEggObject(data);
+    }
+
+    private Vector3 FindWorldEggSpawnPosition()
+    {
+        SlimeSpawner slimeSpawner = FindAnyObjectByType<SlimeSpawner>();
+        if (slimeSpawner != null)
+        {
+            Vector3 spawnerPosition = slimeSpawner.GetRandomSpawnPosition();
+            if (spawnerPosition != Vector3.zero) return spawnerPosition;
+        }
+
+        Transform player = null;
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject != null) player = playerObject.transform;
+        Vector3 center = worldEggSpawnCenter != null
+            ? worldEggSpawnCenter.position
+            : player != null ? player.position : transform.position;
+
+        for (int attempt = 0; attempt < 30; attempt++)
+        {
+            Vector2 offset = UnityEngine.Random.insideUnitCircle * worldEggSpawnRadius;
+            Vector3 candidate = center + new Vector3(offset.x, offset.y, 0f);
+            if (player != null && Vector3.Distance(candidate, player.position) < minimumDistanceFromPlayer)
+                continue;
+            if (worldEggObstacleMask.value != 0 && Physics2D.OverlapCircle(candidate, 0.5f, worldEggObstacleMask) != null)
+                continue;
+            return candidate;
+        }
+        return center;
+    }
+
+    private void CreateWorldEggObject(WorldEggData data)
+    {
+        if (data == null || data.sceneName != SceneManager.GetActiveScene().name || activeWorldEggs.ContainsKey(data.id))
+            return;
+
+        GameObject prefab = worldEggPrefab != null ? worldEggPrefab : Resources.Load<GameObject>("SlimeEgg");
+        GameObject eggObject = prefab != null
+            ? Instantiate(prefab, data.position, Quaternion.identity)
+            : new GameObject("SlimeEgg");
+        eggObject.name = $"SlimeEgg_{data.id.Substring(0, Mathf.Min(6, data.id.Length))}";
+        WorldEggPickup pickup = eggObject.GetComponent<WorldEggPickup>();
+        if (pickup == null) pickup = eggObject.AddComponent<WorldEggPickup>();
+        pickup.Initialize(data.id, data.position);
+        activeWorldEggs[data.id] = pickup;
+    }
+
+    public bool CollectWorldEgg(string eggId, Vector3 worldPosition, Sprite icon)
+    {
+        int index = worldEggs.FindIndex(item => item != null && item.id == eggId);
+        if (index < 0 || eggs.Count >= maxUnhatchedEggs) return false;
+
+        worldEggs.RemoveAt(index);
+        eggs.Add(new Egg { id = eggId });
+        activeWorldEggs.TryGetValue(eggId, out WorldEggPickup pickup);
+        activeWorldEggs.Remove(eggId);
+
+        WorldEggCollected?.Invoke(worldPosition, icon);
+        SaveAndNotify();
+        if (pickup != null) Destroy(pickup.gameObject);
+        return true;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode) => RestoreWorldEggsForActiveScene();
+
+    private void RestoreWorldEggsForActiveScene()
+    {
+        foreach (WorldEggPickup pickup in activeWorldEggs.Values)
+            if (pickup != null) Destroy(pickup.gameObject);
+        activeWorldEggs.Clear();
+
+        string sceneName = SceneManager.GetActiveScene().name;
+        foreach (WorldEggData data in worldEggs)
+            if (data != null && data.sceneName == sceneName)
+                CreateWorldEggObject(data);
     }
 
     public bool StartIncubation(int eggIndex)
@@ -220,8 +346,8 @@ public class SlimeEggSystem : MonoBehaviour
     private static int LerpInt(int min, int max, float t) => Mathf.RoundToInt(Mathf.Lerp(min, max, t));
     private bool TryGetEgg(int index, out Egg egg) { egg = index >= 0 && index < eggs.Count ? eggs[index] : null; return egg != null; }
     private void SaveAndNotify() { SaveState(); EggsChanged?.Invoke(); }
-    private void SaveState() { PlayerPrefs.SetString(SaveKey, JsonUtility.ToJson(new EggSave { eggs = eggs, layTimer = layTimer })); PlayerPrefs.Save(); }
-    private void LoadState() { if (!PlayerPrefs.HasKey(SaveKey)) return; var s = JsonUtility.FromJson<EggSave>(PlayerPrefs.GetString(SaveKey)); if (s != null) { eggs = s.eggs ?? new List<Egg>(); layTimer = s.layTimer; } }
+    private void SaveState() { PlayerPrefs.SetString(SaveKey, JsonUtility.ToJson(new EggSave { eggs = eggs, worldEggs = worldEggs, layTimer = layTimer })); PlayerPrefs.Save(); }
+    private void LoadState() { if (!PlayerPrefs.HasKey(SaveKey)) return; var s = JsonUtility.FromJson<EggSave>(PlayerPrefs.GetString(SaveKey)); if (s != null) { eggs = s.eggs ?? new List<Egg>(); worldEggs = s.worldEggs ?? new List<WorldEggData>(); layTimer = s.layTimer; } }
     private void OnApplicationPause(bool paused) { if (paused) SaveState(); }
     private void OnApplicationQuit() { SaveState(); }
 }

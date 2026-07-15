@@ -17,7 +17,6 @@ public class Member : MonoBehaviour
 
     [Header("Prefab Settings")]
     public GameObject slimePrefab;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     IEnumerator TeamSlimeSpawn()
     {
         yield return new WaitForSeconds(0.5f);
@@ -25,14 +24,31 @@ public class Member : MonoBehaviour
         {
             if (s.id == id)
             {
+                // Tự động sửa/khôi phục SkillInstance từ TraitSO gốc nếu dữ liệu đã lưu bị null
+                if (s.body != null && (s.body.skill == null || s.body.skill.baseSkill == null) && s.body.baseTrait != null && s.body.baseTrait.skill != null)
+                {
+                    s.body.skill = new SkillInstance(s.body.baseTrait.skill);
+                    s.body.skill.power = s.body.GetRarityMultiplier(s.body.Rarity) * 1.5f;
+                }
+                if (s.armor != null && (s.armor.skill == null || s.armor.skill.baseSkill == null) && s.armor.baseTrait != null && s.armor.baseTrait.skill != null)
+                {
+                    s.armor.skill = new SkillInstance(s.armor.baseTrait.skill);
+                    s.armor.skill.power = s.armor.GetRarityMultiplier(s.armor.Rarity) * 1.5f;
+                }
+                if (s.weapon != null && (s.weapon.skill == null || s.weapon.skill.baseSkill == null) && s.weapon.baseTrait != null && s.weapon.baseTrait.skill != null)
+                {
+                    s.weapon.skill = new SkillInstance(s.weapon.baseTrait.skill);
+                    s.weapon.skill.power = s.weapon.GetRarityMultiplier(s.weapon.Rarity) * 1.5f;
+                }
+
                 GameObject slimeGO = Instantiate(slimePrefab, this.transform);
                 slimeGO.name = $"TeamSlime_{s.id}";
                 slimeGO.transform.position = transform.position;
-                slimeGO.transform.localScale = Vector3.one*1.3f;
+                slimeGO.transform.localScale = Vector3.one * 1.3f;
 
                 // Thêm SlimeAnimationController để quản lý body
                 var skeletonGraphic = slimeGO.GetComponentInChildren<SkeletonGraphic>();
-                
+
                 // Thêm SlimeDragHandler để hỗ trợ drag and drop
                 var dragHandler = slimeGO.GetComponent<SlimeDragHandler>();
 
@@ -70,21 +86,16 @@ public class Member : MonoBehaviour
                 stat.CritDMG = s.totalCritDMG;
                 stat.isEnemy = false;
                 stat.id = s.id;
-                stat.bodySkill = s.body.skill;
-                stat.weaponSkill = s.weapon.skill;
-                stat.armorSkill = s.armor.skill;
+                stat.bodySkill = s.body?.skill;
+                stat.weaponSkill = s.weapon?.skill;
+                stat.armorSkill = s.armor?.skill;
                 formationManager.slimeFormation.Add(slimeGO);
             }
         }
-        
+
     }
     private void Start()
     {
         StartCoroutine(TeamSlimeSpawn());
-    }
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

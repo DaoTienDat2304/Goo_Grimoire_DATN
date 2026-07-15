@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
+  m_Name: H_Myt_MassR
+  m_EditorClassIdentifier: 
+  skillName: Mass Resurrection
+  type: 1
+  description: "H\u1ED3i sinh team 25%"
+  icon: {fileID: 0}
+  targetTrait: 1
+  rarity: 6
+  battlePointCost: 2
+  battlePointGain: 0
+  energyCost: 0
+  energyGain: 25
+  effects:
+  - effect: {fileID: 11400000, guid: 6014566102ec7f34bb2088c942c002ff, type: 2}
+    value: 0.25
+    flatBonus: 0
+    duration: 0
+    applyChance: 100

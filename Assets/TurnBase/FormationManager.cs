@@ -9,7 +9,7 @@ public class FormationManager : MonoBehaviour
     public List<Transform> dropZones;
     public List<GameObject> slimeFormation;
     public int rows = 3;   // 3 hàng
-    public int cols = 4;   // 3 cột 
+    public int cols = 3;   // 3 cột 
     public Transform gridParent;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public Sprite CreateDefaultSlimeSprite()
@@ -229,14 +229,21 @@ public class FormationManager : MonoBehaviour
         return result;
     }
 
-    // Tất cả enemy còn sống (single boss hiện tại, extensible sau)
-    public List<GameObject> GetAllAliveEnemies(GameObject boss)
+    public List<GameObject> GetAllAliveEnemies(GameObject currentTarget)
     {
         var result = new List<GameObject>();
-        if (boss == null) return result;
-        var stats = boss.GetComponent<SlimeBattleStats>();
-        if (stats != null && stats.CurrentHP > 0)
-            result.Add(boss);
+        var allStats = Object.FindObjectsByType<SlimeBattleStats>(FindObjectsSortMode.None);
+        foreach (var stats in allStats)
+        {
+            if (stats != null && stats.CurrentHP > 0 && stats.gameObject.activeInHierarchy)
+            {
+                var baseStats = stats.GetComponent<SlimeStats>();
+                if (baseStats != null && baseStats.isEnemy)
+                {
+                    result.Add(stats.gameObject);
+                }
+            }
+        }
         return result;
     }
 

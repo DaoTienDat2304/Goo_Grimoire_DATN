@@ -86,6 +86,7 @@ public class Slime
         }
 
         CalculateStats();
+        RollRandomSkillsMatchingRarity();
     }
     private Rarity GetNextRarity(Rarity current)
     {
@@ -111,7 +112,7 @@ public class Slime
             case Rarity.SuperRare: return 4.5f;
             case Rarity.UltraRare: return 5f;
             case Rarity.Legendary: return 5.5f;
-            case Rarity.Mythic: return 6f; 
+            case Rarity.Mythic: return 6f;
             default: return 6f;
         }
     }
@@ -125,7 +126,7 @@ public class Slime
 
             return null;
         }
-        
+
         if (trait1 == null) return trait2.Clone();
         if (trait2 == null) return trait1.Clone();
 
@@ -146,7 +147,7 @@ public class Slime
         {
 
             // Mutation chance - upgrade rarity if possible
-            if (Random.Range(1,10) > 4 + ((GetStableStat(trait1.Rarity) > GetStableStat(trait2.Rarity)) ? GetStableStat(trait1.Rarity) : GetStableStat(trait2.Rarity)))
+            if (Random.Range(1, 10) > 4 + ((GetStableStat(trait1.Rarity) > GetStableStat(trait2.Rarity)) ? GetStableStat(trait1.Rarity) : GetStableStat(trait2.Rarity)))
             {
                 TraitInstance selectedTrait = (Random.Range(0f, 1f) < 0.5f) ? trait1 : trait2;
                 var mutatedTrait = selectedTrait.Clone();
@@ -212,10 +213,35 @@ public class Slime
         totalMagicAttack = (body != null ? body.magicAttack : 0) + (armor != null ? armor.magicAttack : 0) + (weapon != null ? weapon.magicAttack : 0);
         totalDefense = (body != null ? body.defense : 0) + (armor != null ? armor.defense : 0) + (weapon != null ? weapon.defense : 0);
         totalSpeed = (body != null ? body.speed : 0) + (armor != null ? armor.speed : 0) + (weapon != null ? weapon.speed : 0);
-        
+
         // Crit Rate & Crit DMG comes from Head (armor/special) part
         totalCritRate = (armor != null ? armor.critRate : 0.05f);
         totalCritDMG = (armor != null ? armor.critDMG : 1.30f);
+
+        AssignSkills();
+    }
+
+    public void RollRandomSkillsMatchingRarity()
+    {
+        if (SlimeGen.Instance == null) return;
+
+        if (body != null)
+        {
+            var newSkillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Body, body.Rarity);
+            if (newSkillSO != null) body.skill = new SkillInstance(newSkillSO);
+        }
+
+        if (armor != null)
+        {
+            var newSkillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Armor, armor.Rarity);
+            if (newSkillSO != null) armor.skill = new SkillInstance(newSkillSO);
+        }
+
+        if (weapon != null)
+        {
+            var newSkillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Weapon, weapon.Rarity);
+            if (newSkillSO != null) weapon.skill = new SkillInstance(newSkillSO);
+        }
 
         AssignSkills();
     }

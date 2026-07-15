@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
+  m_Name: W_Myt_Emp_U
+  m_EditorClassIdentifier: 
+  skillName: Empyrean Ascension
+  type: 3
+  description: "+30% ATK, Full N\u0103ng l\u01B0\u1EE3ng"
+  icon: {fileID: 0}
+  targetTrait: 2
+  rarity: 6
+  battlePointCost: 0
+  battlePointGain: 0
+  energyCost: 100
+  energyGain: 0
+  effects:
+  - effect: {fileID: 11400000, guid: ca99acc98302f3642a04463d96e542ff, type: 2}
+    value: 0.3
+    flatBonus: 0
+    duration: 3
+    applyChance: 100
+  - effect: {fileID: 11400000, guid: d50523354cdc87e48b38818c6225e0e2, type: 2}
+    value: 100
+    flatBonus: 0
+    duration: 0
+    applyChance: 100

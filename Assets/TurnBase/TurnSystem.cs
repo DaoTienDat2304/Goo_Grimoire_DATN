@@ -22,6 +22,7 @@ public class TurnSystem : MonoBehaviour
 
     protected List<GameObject> turnList;
     public int turnCount = 0;
+    public bool isBattleStarted = false;
     public GameObject skillPanel;
     public GameObject memberPanel;
     public SkeletonGraphic curSlimeBody;
@@ -36,6 +37,9 @@ public class TurnSystem : MonoBehaviour
     [SerializeField] protected GameObject resultPanel;
     [SerializeField] protected Text resultText;
 
+    // Các biến cho hệ thống Chọn Mục tiêu
+    protected GameObject targetIndicator;
+
     protected virtual void Start()
     {
         // Ẩn result panel khi bắt đầu
@@ -43,6 +47,9 @@ public class TurnSystem : MonoBehaviour
         {
             resultPanel.SetActive(false);
         }
+
+        // Tạo Target Indicator
+        CreateTargetIndicator();
 
         turnList = formationManager.slimeFormation;
 
@@ -80,6 +87,67 @@ public class TurnSystem : MonoBehaviour
         }
 
         StartCoroutine(DelayedSetupCombatAnimations());
+    }
+
+    protected void CreateTargetIndicator()
+    {
+        if (targetIndicator != null) return;
+
+        targetIndicator = new GameObject("TargetIndicator");
+        var spriteRenderer = targetIndicator.AddComponent<SpriteRenderer>();
+        // Tải ảnh Arrow từ thư mục Resources
+        spriteRenderer.sprite = Resources.Load<Sprite>("Arrow");
+        spriteRenderer.color = Color.white; // Trả về màu gốc của ảnh thay vì màu đỏ
+        spriteRenderer.sortingOrder = 100; // Đảm bảo hiển thị trên cùng
+
+        targetIndicator.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f); // Chỉnh lại kích thước cho phù hợp
+        targetIndicator.SetActive(false);
+    }
+
+    public void SelectTarget(GameObject newTarget)
+    {
+        if (newTarget == null) return;
+
+        var stats = newTarget.GetComponent<SlimeBattleStats>();
+        if (stats == null || stats.CurrentHP <= 0) return; // Không chọn quái đã chết
+
+        boss = newTarget; // Gán lại biến boss thành mục tiêu mới
+
+        if (targetIndicator == null) CreateTargetIndicator();
+
+        // Di chuyển Indicator lên đầu quái vật
+        targetIndicator.transform.SetParent(newTarget.transform);
+        targetIndicator.transform.localPosition = new Vector3(0, 2.5f, 0); // Hiển thị phía trên đầu (World Space)
+        targetIndicator.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f); // Reset scale
+
+        if (isBattleStarted)
+        {
+            targetIndicator.SetActive(true);
+        }
+    }
+
+    public void MakeEnemyTargetable(GameObject enemyGo)
+    {
+        if (enemyGo == null) return;
+
+        // 1. Tạo hitbox vô hình để dễ click trên Mobile
+        var hitbox = new GameObject("ClickHitbox");
+        hitbox.transform.SetParent(enemyGo.transform);
+        hitbox.transform.localPosition = Vector3.zero;
+        hitbox.transform.localScale = Vector3.one;
+
+        var hitboxImg = hitbox.AddComponent<Image>();
+        hitboxImg.color = new Color(1, 1, 1, 0); // Trong suốt hoàn toàn
+        var hitboxRt = hitbox.GetComponent<RectTransform>();
+        hitboxRt.sizeDelta = new Vector2(150, 200); // Kích thước hitbox bao trọn quái
+
+        // 2. Gắn EventTrigger
+        var pointerClick = hitbox.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+        var clickEntry = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick };
+        clickEntry.callback.AddListener((data) => {
+            SelectTarget(enemyGo);
+        });
+        pointerClick.triggers.Add(clickEntry);
     }
 
     private void InitializeBossFromTower()
@@ -204,14 +272,27 @@ public class TurnSystem : MonoBehaviour
         {
             GameObject turn = Instantiate(slimeTurn, turnPanel.transform);
             var display = turn.GetComponent<TurnDisplay>();
-            display.body.skeletonDataAsset = go.GetComponentInChildren<SkeletonGraphic>().skeletonDataAsset;
-            display.body.allowMultipleCanvasRenderers = true;
-            display.body.enableSeparatorSlots = true;
-            display.body.Initialize(true);
-            display.body.AnimationState.SetAnimation(0, "animation", true);
-            display.body.timeScale = 2;
-            display.hat.sprite = go.GetComponent<SlimeStats>().armor.sprite;
-            display.weapon.sprite = go.GetComponent<SlimeStats>().weapon.sprite;
+            var spine = go.GetComponentInChildren<SkeletonGraphic>(true);
+            if (spine != null && spine.skeletonDataAsset != null)
+            {
+                display.body.skeletonDataAsset = spine.skeletonDataAsset;
+                display.body.allowMultipleCanvasRenderers = true;
+                display.body.enableSeparatorSlots = true;
+                display.body.Initialize(true);
+                display.body.AnimationState.SetAnimation(0, "animation", true);
+                display.body.timeScale = 2;
+            }
+            else
+            {
+                display.body.gameObject.SetActive(false);
+            }
+            
+            var stats = go.GetComponent<SlimeStats>();
+            if (stats != null)
+            {
+                if (stats.armor != null) display.hat.sprite = stats.armor.sprite;
+                if (stats.weapon != null) display.weapon.sprite = stats.weapon.sprite;
+            }
         }
     }
 
@@ -221,7 +302,7 @@ public class TurnSystem : MonoBehaviour
 
     }
 
-    private IEnumerator DelayedSetupCombatAnimations()
+    protected virtual IEnumerator DelayedSetupCombatAnimations()
     {
         // Đợi 1 giây để đảm bảo team slimes đã được tạo
         yield return new WaitForSeconds(1f);
@@ -231,42 +312,37 @@ public class TurnSystem : MonoBehaviour
 
         // Setup battle stats và skills cho tất cả slimes
         SetupBattleStats();
-
     }
 
     private void SetupCombatAnimations()
     {
-        // Setup cho tất cả slime trong formation
         foreach (var slime in formationManager.slimeFormation)
         {
             if (slime != null && slime.GetComponent<SimpleCombatAnimation>() == null)
-            {
                 slime.AddComponent<SimpleCombatAnimation>();
-            }
         }
 
-        // Setup cho boss (nếu chưa có)
-        if (boss != null && boss.GetComponent<SimpleCombatAnimation>() == null)
+        var allEnemies = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None).Where(s => s != null && s.isEnemy && s.gameObject.activeInHierarchy);
+        foreach (var enemy in allEnemies)
         {
-            boss.AddComponent<SimpleCombatAnimation>();
+            if (enemy.GetComponent<SimpleCombatAnimation>() == null)
+                enemy.gameObject.AddComponent<SimpleCombatAnimation>();
         }
     }
 
     private void SetupBattleStats()
     {
-        // Setup SlimeBattleStats cho tất cả slime trong formation
         foreach (var slime in formationManager.slimeFormation)
         {
             if (slime != null && slime.GetComponent<SlimeBattleStats>() == null)
-            {
                 slime.AddComponent<SlimeBattleStats>();
-            }
         }
 
-        // Setup cho boss (nếu chưa có)
-        if (boss != null && boss.GetComponent<SlimeBattleStats>() == null)
+        var allEnemies = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None).Where(s => s != null && s.isEnemy && s.gameObject.activeInHierarchy);
+        foreach (var enemy in allEnemies)
         {
-            boss.AddComponent<SlimeBattleStats>();
+            if (enemy.GetComponent<SlimeBattleStats>() == null)
+                enemy.gameObject.AddComponent<SlimeBattleStats>();
         }
     }
 
@@ -296,28 +372,28 @@ public class TurnSystem : MonoBehaviour
 
     public void StartGame()
     {
-        // Vô hiệu hóa tính năng kéo thả khi trận đấu bắt đầu
-        var dragHandlers = FindObjectsOfType<SlimeDragHandler>();
-        foreach (var handler in dragHandlers)
-        {
-            handler.enabled = false;
-        }
+        isBattleStarted = true;
 
-        // Log analytics khi trận đấu bắt đầu
-        string battleMode = BattleDataManager.Instance != null
-            ? BattleDataManager.Instance.GetBattleMode().ToString().ToLower()
-            : "adventure";
-        string difficulty = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
-            ? (FarmModeManager.Instance?.SelectedDifficultyName ?? "unknown")
-            : "";
-        int teamSize = formationManager?.slimeFormation?.Count ?? 0;
-        FirebaseAnalyticsManager.LogBattleStart(battleMode, difficulty, teamSize);
+        if (boss != null && targetIndicator != null) targetIndicator.SetActive(true);
 
-        // Chỉ đưa vào danh sách tham chiến (turnList) những Slime đã được kéo thả ra sân (isUsed) và Boss
+        var dragHandlers = FindObjectsByType<SlimeDragHandler>(FindObjectsSortMode.None);
+        foreach (var handler in dragHandlers) handler.enabled = false;
+
+        // Lấy danh sách phe ta
         turnList = formationManager.slimeFormation
-            .Where(s => s != null && (s == boss || s.GetComponent<SlimeDragHandler>() == null || s.GetComponent<SlimeDragHandler>().isUsed))
+            .Where(s => s != null && (s.GetComponent<SlimeDragHandler>() == null || s.GetComponent<SlimeDragHandler>().isUsed))
             .Where(s => s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
             .ToList();
+
+        // Lấy TẤT CẢ kẻ địch đang có trên sân để đưa vào Turn
+        var allEnemies = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None)
+            .Where(s => s != null && s.isEnemy && s.gameObject.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
+            .Select(s => s.gameObject).ToList();
+
+        foreach (var enemy in allEnemies)
+        {
+            if (!turnList.Contains(enemy)) turnList.Add(enemy);
+        }
 
         foreach (var s in turnList)
         {
@@ -334,6 +410,7 @@ public class TurnSystem : MonoBehaviour
         avatar.SetActive(true);
         StartCoroutine(NextTurn());
     }
+
 
     protected void InitializeAVSystem()
     {
@@ -545,7 +622,7 @@ public class TurnSystem : MonoBehaviour
             var targetAnimController = boss.GetComponent<SimpleCombatAnimation>();
 
             // Chơi animation tấn công
-            if (attackerAnimController != null)
+            if (attackerAnimController != null && attackerAnimController.gameObject.activeInHierarchy)
             {
                 yield return StartCoroutine(attackerAnimController.PlayAttackAnimation(boss.transform));
             }
@@ -573,7 +650,7 @@ public class TurnSystem : MonoBehaviour
             Debug.Log($"{currentSlime.name} attacks {boss.name} for {damage} damage!");
 
             // Chơi animation bị đánh cho target
-            if (targetAnimController != null)
+            if (targetAnimController != null && targetAnimController.gameObject.activeInHierarchy)
             {
                 yield return StartCoroutine(targetAnimController.PlayHitAnimation());
             }
@@ -581,6 +658,16 @@ public class TurnSystem : MonoBehaviour
             if (target.CurrentHP <= 0)
             {
                 Debug.Log($"{boss.name} died!");
+                var allEnemies = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None).Where(s => s != null && s.isEnemy && s.gameObject.activeInHierarchy).ToList();
+                var nextAlive = allEnemies.FirstOrDefault(e => {
+                    var bStats = e.GetComponent<SlimeBattleStats>();
+                    return bStats != null && bStats.CurrentHP > 0;
+                });
+                if (nextAlive != null) SelectTarget(nextAlive.gameObject);
+            }
+
+            if (CheckWinCondition())
+            {
                 // Thắng - thuần hóa slime và quay về adventure scene
                 yield return StartCoroutine(HandleVictory());
                 yield break;
@@ -601,44 +688,54 @@ public class TurnSystem : MonoBehaviour
     }
     public void UseBodySkill()
     {
-        if (currentSlime.GetComponent<SlimeStats>().bodySkill.baseSkill != null)
-        {
-            if (currentSlime.GetComponent<SlimeStats>().bodySkill.currentCooldown == 0)
-            {
-                skillPanel.SetActive(false);
-                StartCoroutine(DoSkill(currentSlime.GetComponent<SlimeStats>().bodySkill, boss));
-            }
-            else Debug.Log($"Skill is on Cooldown {currentSlime.GetComponent<SlimeStats>().bodySkill.currentCooldown}");
-        }
-        else Debug.Log("this slime have no Body skill");
+        ExecuteSkillLogic(currentSlime.GetComponent<SlimeStats>().bodySkill);
     }
 
     public void UseHatSkill()
     {
-        if (currentSlime.GetComponent<SlimeStats>().armorSkill.baseSkill != null)
-        {
-            if (currentSlime.GetComponent<SlimeStats>().armorSkill.currentCooldown <= 0)
-            {
-                skillPanel.SetActive(false);
-                StartCoroutine(DoSkill(currentSlime.GetComponent<SlimeStats>().armorSkill, boss));
-            }
-            else Debug.Log($"Skill is on Cooldown {currentSlime.GetComponent<SlimeStats>().armorSkill.currentCooldown}");
-        }
-        else Debug.Log("this slime have no Armor skill");
+        ExecuteSkillLogic(currentSlime.GetComponent<SlimeStats>().armorSkill);
     }
 
     public void UseWeaponSkill()
     {
-        if (currentSlime.GetComponent<SlimeStats>().weaponSkill.baseSkill != null)
+        ExecuteSkillLogic(currentSlime.GetComponent<SlimeStats>().weaponSkill);
+    }
+
+    private void ExecuteSkillLogic(SkillInstance skillInstance)
+    {
+        if (skillInstance == null || skillInstance.baseSkill == null)
         {
-            if (currentSlime.GetComponent<SlimeStats>().weaponSkill.currentCooldown <= 0)
-            {
-                skillPanel.SetActive(false);
-                StartCoroutine(DoSkill(currentSlime.GetComponent<SlimeStats>().weaponSkill, boss));
-            }
-            else Debug.Log($"Skill is on Cooldown {currentSlime.GetComponent<SlimeStats>().weaponSkill.currentCooldown}");
+            Debug.Log("Không có kỹ năng.");
+            return;
         }
-        else Debug.Log("this slime have no Weapon skill");
+
+        // 1. Chặn Nội tại
+        if (skillInstance.baseSkill.type == SkillType.Passive)
+        {
+            Debug.Log("Kỹ năng nội tại không thể kích hoạt chủ động.");
+            return;
+        }
+
+        var caster = currentSlime.GetComponent<SlimeBattleStats>();
+
+        // 2. Kiểm tra tài nguyên ĐCK / NL thông qua BattleSystemManager
+        if (BattleSystemManager.Instance != null)
+        {
+            if (!BattleSystemManager.Instance.CanUseSkill(skillInstance.baseSkill, caster))
+            {
+                Debug.Log($"Không đủ điểm để dùng {skillInstance.baseSkill.skillName}");
+                return;
+            }
+
+            // 3. Trừ điểm ngay lập tức nếu đủ điều kiện
+            BattleSystemManager.Instance.ExecuteSkill(skillInstance.baseSkill, caster);
+        }
+
+        // Tắt bảng điều khiển kỹ năng
+        skillPanel.SetActive(false);
+
+        // Kích hoạt kỹ năng
+        StartCoroutine(DoSkill(skillInstance, boss));
     }
 
     protected virtual IEnumerator DoSkill(SkillInstance skill, GameObject target)
@@ -718,8 +815,6 @@ public class TurnSystem : MonoBehaviour
             }
         }
 
-        skill.currentCooldown = skill.baseSkill.cooldown;
-
         if (CheckWinCondition())
         {
             yield return StartCoroutine(HandleVictory());
@@ -739,17 +834,29 @@ public class TurnSystem : MonoBehaviour
     protected virtual IEnumerator BossTurn()
     {
         turnCount++;
-        curSlimeBody.skeletonDataAsset = currentSlime.GetComponentInChildren<SkeletonGraphic>().skeletonDataAsset;
-        curSlimeBody.allowMultipleCanvasRenderers = true;
-        curSlimeBody.enableSeparatorSlots = true;
-
-        // Khởi tạo lại Skeleton
-        curSlimeBody.Initialize(true);
-
-        curSlimeBody.AnimationState.SetAnimation(0, "animation", true);
-        curSlimeBody.timeScale = 2;
-        curSlimeHat.sprite = currentSlime.GetComponent<SlimeStats>()?.armor.sprite;
-        curSlimeWeapon.sprite = currentSlime.GetComponent<SlimeStats>()?.weapon.sprite;
+        
+        var spine = currentSlime.GetComponentInChildren<SkeletonGraphic>(true);
+        if (spine != null && spine.skeletonDataAsset != null)
+        {
+            curSlimeBody.skeletonDataAsset = spine.skeletonDataAsset;
+            curSlimeBody.allowMultipleCanvasRenderers = true;
+            curSlimeBody.enableSeparatorSlots = true;
+            curSlimeBody.Initialize(true);
+            curSlimeBody.AnimationState.SetAnimation(0, "animation", true);
+            curSlimeBody.timeScale = 2;
+            curSlimeBody.gameObject.SetActive(true);
+        }
+        else
+        {
+            curSlimeBody.gameObject.SetActive(false);
+        }
+        
+        var stats = currentSlime.GetComponent<SlimeStats>();
+        if (stats != null)
+        {
+            if (stats.armor != null) curSlimeHat.sprite = stats.armor.sprite;
+            if (stats.weapon != null) curSlimeWeapon.sprite = stats.weapon.sprite;
+        }
         curSlimeBorder.color = Color.red;
 
         var target = formationManager.GetRandomRowLastAlive();
@@ -764,7 +871,7 @@ public class TurnSystem : MonoBehaviour
             var targetAnimController = target.GetComponent<SimpleCombatAnimation>();
 
             // Chơi animation tấn công cho boss
-            if (bossAnimController != null)
+            if (bossAnimController != null && bossAnimController.gameObject.activeInHierarchy)
             {
                 yield return StartCoroutine(bossAnimController.PlayAttackAnimation(target.transform));
             }
@@ -900,21 +1007,33 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
-    // Kiểm tra điều kiện thắng (boss HP = 0)
     protected virtual bool CheckWinCondition()
     {
-        if (boss == null) return false;
+        // Kiểm tra xem còn bất kỳ kẻ địch nào sống sót không
+        bool hasAliveEnemy = false;
 
-        var bossStats = boss.GetComponent<SlimeBattleStats>();
-        if (bossStats != null)
+        // Nếu có TowerTurnSystem hoặc danh sách kẻ địch, nên dùng logic của mode đó.
+        // Ở TurnSystem cơ bản, ta tìm tất cả các SlimeStats có isEnemy = true trên scene.
+        var allStats = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None);
+        foreach (var stat in allStats)
         {
-            return bossStats.CurrentHP <= 0;
+            if (stat != null && stat.isEnemy && stat.gameObject.activeInHierarchy)
+            {
+                var battleStats = stat.GetComponent<SlimeBattleStats>();
+                if (battleStats != null && battleStats.CurrentHP > 0)
+                {
+                    hasAliveEnemy = true;
+                    break;
+                }
+                else if (battleStats == null && stat.HP > 0)
+                {
+                    hasAliveEnemy = true;
+                    break;
+                }
+            }
         }
-        else
-        {
-            var bossSlimeStats = boss.GetComponent<SlimeStats>();
-            return bossSlimeStats != null && bossSlimeStats.HP <= 0;
-        }
+
+        return !hasAliveEnemy;
     }
 
     // Kiểm tra điều kiện thua (tất cả team slimes HP = 0)

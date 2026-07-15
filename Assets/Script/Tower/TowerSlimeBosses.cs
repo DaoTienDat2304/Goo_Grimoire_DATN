@@ -1,7 +1,8 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
+using static TowerTurnSystem;
 
-public enum TowerEnemyType { GreenSlime, TinyBat, SlimeKing }
+
 
 [System.Serializable]
 public class EnemySpawnConfig

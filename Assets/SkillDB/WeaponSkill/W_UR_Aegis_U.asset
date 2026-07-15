@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
+  m_Name: W_UR_Aegis_U
+  m_EditorClassIdentifier: 
+  skillName: Sanctuary of Light
+  type: 3
+  description: "L\xE1 ch\u1EAFn 25%"
+  icon: {fileID: 0}
+  targetTrait: 2
+  rarity: 4
+  battlePointCost: 0
+  battlePointGain: 0
+  energyCost: 100
+  energyGain: 0
+  effects:
+  - effect: {fileID: 11400000, guid: aa9dc2c93e7d183428d3025b71c197a4, type: 2}
+    value: 0.25
+    flatBonus: 0
+    duration: 3
+    applyChance: 100
+  - effect: {fileID: 11400000, guid: 399370400372ff347915245640c8184a, type: 2}
+    value: 0.12
+    flatBonus: 0
+    duration: 0
+    applyChance: 100

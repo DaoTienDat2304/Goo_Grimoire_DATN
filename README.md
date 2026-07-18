@@ -52,7 +52,7 @@
 
 Điểm nhấn thiết kế là hệ thống **Slime cấu thành từ 3 bộ phận độc lập** (Vũ khí – Thân – Đầu), cho phép tổ hợp số lượng lớn biến thể về chỉ số và kỹ năng. Kết hợp với cơ chế đột biến khi lai tạo, người chơi được khuyến khích sưu tầm, sáng tạo và không ngừng tối ưu đội hình của mình.
 
-Về mặt kỹ thuật, dự án gồm **~137 script C#** tổ chức theo module, **9 scene**, sử dụng **animation Spine 2D**, và tích hợp **Firebase** (Authentication, Remote Config, Analytics, Cloud Save) cùng **Google Sign-In** để hỗ trợ đăng nhập và đồng bộ dữ liệu đám mây.
+Về mặt kỹ thuật, dự án tổ chức theo module, sử dụng **animation Spine 2D**, và tích hợp **Firebase** (Authentication, Remote Config, Analytics, Cloud Save) cùng **Google Sign-In** để hỗ trợ đăng nhập và đồng bộ dữ liệu đám mây.
 
 ---
 

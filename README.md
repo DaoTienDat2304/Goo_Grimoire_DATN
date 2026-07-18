@@ -536,6 +536,6 @@ Bộ tài liệu thiết kế (Game Design Document) đi kèm dự án:
 
 *"Keeper không giết Slime — Keeper là nơi chúng trú ngụ."*
 
-**Goo Grimoire** · Đồ án Tốt nghiệp
+**Goo Grimoire**
 
 </div>

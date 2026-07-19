@@ -114,22 +114,87 @@ public class SlimeEggUI : MonoBehaviour
         Refresh();
     }
 
+    private Image hatchedSlimeImage; // ảnh slime vừa nhận trong popup kết quả
+
     private void ShowHatchResult(Slime slime)
     {
-        eggInventoryPanel.SetActive(false);
-        incubationConfirmPanel.SetActive(false);
-        hatchResultPanel.SetActive(true);
-        hatchAnimationRoot.SetActive(true); // Attach Animator/Timeline here later.
-        hatchTitleText.text = $"{slime.slimeName}\n{slime.body.Rarity} • {slime.eggStatQuality}";
-        hatchStatsText.text =
-            $"HP             {slime.totalHP:N0}\n" +
-            $"ATK            {slime.totalAttack:N0}\n" +
-            $"MAGIC ATK      {slime.totalMagicAttack:N0}\n" +
-            $"DEF            {slime.totalDefense:N0}\n" +
-            $"SPEED          {slime.totalSpeed:N0}\n" +
-            $"CRIT RATE      {slime.totalCritRate * 100f:0.#}%\n" +
-            $"CRIT DAMAGE    {slime.totalCritDMG * 100f:0.#}%\n" +
-            $"STAT ROLL      {slime.eggStatRollPercent:0.##}%";
+        if (slime == null) return;
+        if (eggInventoryPanel != null) eggInventoryPanel.SetActive(false);
+        if (incubationConfirmPanel != null) incubationConfirmPanel.SetActive(false);
+        if (hatchResultPanel != null) hatchResultPanel.SetActive(true);
+        if (hatchAnimationRoot != null) hatchAnimationRoot.SetActive(true);
+
+        if (hatchTitleText != null)
+        {
+            string rarity = slime.body != null ? slime.body.Rarity.ToString() : "";
+            hatchTitleText.text = $"{slime.slimeName}\n{rarity} • {slime.eggStatQuality}";
+        }
+        if (hatchStatsText != null)
+        {
+            hatchStatsText.text =
+                $"HP             {slime.totalHP:N0}\n" +
+                $"ATK            {slime.totalAttack:N0}\n" +
+                $"MAGIC ATK      {slime.totalMagicAttack:N0}\n" +
+                $"DEF            {slime.totalDefense:N0}\n" +
+                $"SPEED          {slime.totalSpeed:N0}\n" +
+                $"CRIT RATE      {slime.totalCritRate * 100f:0.#}%\n" +
+                $"CRIT DAMAGE    {slime.totalCritDMG * 100f:0.#}%\n" +
+                $"STAT ROLL      {slime.eggStatRollPercent:0.##}%";
+        }
+
+        ShowHatchedSlimeVisual(slime);
+    }
+
+    /// <summary>Hiện HÌNH slime vừa nhận trong ô animation + hiệu ứng pop (cảm giác "nhận slime").</summary>
+    private void ShowHatchedSlimeVisual(Slime slime)
+    {
+        if (hatchAnimationRoot == null) return;
+
+        Sprite sprite = slime.body != null ? slime.body.sprite : null;
+        if (sprite == null && slime.armor != null) sprite = slime.armor.sprite;
+        if (sprite == null && slime.weapon != null) sprite = slime.weapon.sprite;
+
+        if (hatchedSlimeImage == null)
+        {
+            var go = new GameObject("HatchedSlimeSprite", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(hatchAnimationRoot.transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(20f, 20f); rt.offsetMax = new Vector2(-20f, -20f);
+            hatchedSlimeImage = go.GetComponent<Image>();
+            hatchedSlimeImage.preserveAspect = true;
+            hatchedSlimeImage.raycastTarget = false;
+        }
+        hatchedSlimeImage.enabled = sprite != null;
+        hatchedSlimeImage.sprite = sprite;
+        hatchedSlimeImage.transform.SetAsLastSibling();
+
+        StopCoroutine(nameof(HatchRevealPop));
+        StartCoroutine(HatchRevealPop());
+    }
+
+    private IEnumerator HatchRevealPop()
+    {
+        Transform t = hatchAnimationRoot != null ? hatchAnimationRoot.transform : null;
+        if (t == null) yield break;
+
+        float e = 0f;
+        while (e < 0.35f) // phóng to từ nhỏ → hơi quá cỡ
+        {
+            e += Time.unscaledDeltaTime;
+            float s = Mathf.SmoothStep(0.5f, 1.12f, Mathf.Clamp01(e / 0.35f));
+            t.localScale = new Vector3(s, s, 1f);
+            yield return null;
+        }
+        e = 0f;
+        while (e < 0.14f) // nảy về 1
+        {
+            e += Time.unscaledDeltaTime;
+            float s = Mathf.Lerp(1.12f, 1f, Mathf.Clamp01(e / 0.14f));
+            t.localScale = new Vector3(s, s, 1f);
+            yield return null;
+        }
+        t.localScale = Vector3.one;
     }
 
     private void Refresh()

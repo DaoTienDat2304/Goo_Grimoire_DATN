@@ -101,16 +101,28 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
             else
                 backgroundImage.color = breedingColor;
         }
+            // Chống NullReference: nếu 1 slot lỗi (thiếu renderer/worldManager) thì cả grid
+            // sẽ dừng dựng và mất hình slime. Guard từng phần để luôn dựng xong.
             var bodyRenderer = slimeBody?.GetComponent<Image>();
             var armorRenderer = SlimeArmor?.GetComponent<Image>();
             var weaponRenderer = SlimeWeapon?.GetComponent<Image>();
-            bodyRenderer.transform.localScale = Vector3.one * 1.3f;
-            armorRenderer.transform.localScale = Vector3.one;
-            weaponRenderer.transform.localScale = Vector3.one;
-            bodyRenderer.sprite = (slime != null ? slime.body?.sprite : null) ?? worldManager.CreateDefaultSlimeSprite();
-            armorRenderer.sprite = (slime != null ? slime.armor?.sprite : null) ?? worldManager.CreateDefaultSlimeSprite();
-            weaponRenderer.sprite = (slime != null ? slime.weapon?.sprite : null) ?? worldManager.CreateDefaultSlimeSprite();
+            Sprite fallback = worldManager != null ? worldManager.CreateDefaultSlimeSprite() : null;
 
+            if (bodyRenderer != null)
+            {
+                bodyRenderer.transform.localScale = Vector3.one * 1.3f;
+                bodyRenderer.sprite = (slime != null ? slime.body?.sprite : null) ?? fallback;
+            }
+            if (armorRenderer != null)
+            {
+                armorRenderer.transform.localScale = Vector3.one;
+                armorRenderer.sprite = (slime != null ? slime.armor?.sprite : null) ?? fallback;
+            }
+            if (weaponRenderer != null)
+            {
+                weaponRenderer.transform.localScale = Vector3.one;
+                weaponRenderer.sprite = (slime != null ? slime.weapon?.sprite : null) ?? fallback;
+            }
     }
 
     public void OnPointerClick(PointerEventData eventData)

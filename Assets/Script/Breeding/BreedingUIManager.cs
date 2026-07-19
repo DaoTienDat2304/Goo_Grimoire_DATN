@@ -61,8 +61,9 @@ public class BreedingUIManager : MonoBehaviour
 
     private void OnEnable()
     {
-        // Mở lại UI breeding (vd sau khi ra world rồi vào lại): hiện ngay đúng màn theo
-        // trạng thái — đang lai thì hiện màn đếm ngược, không thì hiện màn chọn slime.
+        // Mở lại UI breeding (vd sau khi ra world rồi vào lại): dựng lại grid slime (kẻo
+        // mất hình) và hiện ngay đúng màn theo trạng thái (đếm ngược nếu đang lai).
+        RefreshAllUI();
         UpdateBreedingProgress();
     }
 

@@ -30,8 +30,8 @@ public class BreedingSessionDTO
     public bool active;
     public int parent1Id;
     public int parent2Id;
-    public int eggRarity;   // (int)Rarity
-    public float elapsed;
+    public int eggRarity;    // (int)Rarity
+    public long startUnixMs; // mốc bắt đầu (thời gian thực) — để lai tạo chạy nền/offline
     public float duration;
     public int goldPaid;
 }

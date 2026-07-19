@@ -34,11 +34,16 @@ public class BreedingManager : MonoBehaviour
         public Slime parent1;
         public Slime parent2;
         public Rarity eggRarity;
-        public float elapsed;   // giây đã trôi
-        public float duration;  // tổng thời gian (giây)
+        public long startUnixMs; // mốc bắt đầu theo THỜI GIAN THỰC (chạy nền/offline)
+        public float duration;   // tổng thời gian (giây)
         public int goldPaid;
     }
     private BreedingSession activeSession;
+
+    // Đồng hồ thực để lai tạo chạy nền: đóng game rồi mở lại vẫn tính thời gian đã trôi.
+    private static long NowUnixMs() => System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    private float SessionElapsedSeconds()
+        => activeSession == null ? 0f : Mathf.Max(0f, (NowUnixMs() - activeSession.startUnixMs) / 1000f);
 
     public static BreedingManager Instance { get; private set; }
 
@@ -91,14 +96,10 @@ public class BreedingManager : MonoBehaviour
             slime.UpdateBreedingCooldown(Time.deltaTime);
         }
 
-        // Tiến trình phiên lai tạo (mục 3): đếm thời gian tới khi hoàn thành.
-        if (activeSession != null)
+        // Tiến trình phiên lai tạo (mục 3): tính theo thời gian thực → chạy nền/offline.
+        if (activeSession != null && SessionElapsedSeconds() >= activeSession.duration)
         {
-            activeSession.elapsed += Time.deltaTime;
-            if (activeSession.elapsed >= activeSession.duration)
-            {
-                CompleteBreeding();
-            }
+            CompleteBreeding();
         }
     }
 
@@ -291,7 +292,7 @@ public class BreedingManager : MonoBehaviour
             parent1 = selectedSlime1,
             parent2 = selectedSlime2,
             eggRarity = eggRarity,
-            elapsed = 0f,
+            startUnixMs = NowUnixMs(),
             duration = duration,
             goldPaid = cost
         };
@@ -395,7 +396,7 @@ public class BreedingManager : MonoBehaviour
     public float GetBreedingProgress()
     {
         if (activeSession == null || activeSession.duration <= 0f) return 0f;
-        return Mathf.Clamp01(activeSession.elapsed / activeSession.duration);
+        return Mathf.Clamp01(SessionElapsedSeconds() / activeSession.duration);
     }
 
     public bool IsBreeding()
@@ -421,7 +422,7 @@ public class BreedingManager : MonoBehaviour
     public float GetActiveRemainingSeconds()
     {
         if (activeSession == null) return 0f;
-        return Mathf.Max(0f, activeSession.duration - activeSession.elapsed);
+        return Mathf.Max(0f, activeSession.duration - SessionElapsedSeconds());
     }
 
     /// <summary>Số Gem cần để hoàn thành ngay phiên đang chạy (mục 3.2).</summary>
@@ -434,7 +435,6 @@ public class BreedingManager : MonoBehaviour
         int gems = GetActiveFinishGemCost();
         if (CurrencyManager.Instance == null) return false;
         if (gems > 0 && !CurrencyManager.Instance.SpendCurrency(CurrencyType.Gems, gems)) return false;
-        activeSession.elapsed = activeSession.duration; // sẽ hoàn thành ở Update kế tiếp
         CompleteBreeding();
         return true;
     }
@@ -444,7 +444,7 @@ public class BreedingManager : MonoBehaviour
     public BreedingSession GetActiveSessionForSave() => activeSession;
 
     /// <summary>Khôi phục phiên lai tạo từ save. parent1/parent2 tra theo id.</summary>
-    public void RestoreSession(int parent1Id, int parent2Id, Rarity eggRarity, float elapsed, float duration, int goldPaid)
+    public void RestoreSession(int parent1Id, int parent2Id, Rarity eggRarity, long startUnixMs, float duration, int goldPaid)
     {
         var p1 = allSlimes.FirstOrDefault(s => s != null && s.id == parent1Id);
         var p2 = allSlimes.FirstOrDefault(s => s != null && s.id == parent2Id);
@@ -458,7 +458,7 @@ public class BreedingManager : MonoBehaviour
             parent1 = p1,
             parent2 = p2,
             eggRarity = eggRarity,
-            elapsed = elapsed,
+            startUnixMs = startUnixMs,
             duration = duration,
             goldPaid = goldPaid
         };

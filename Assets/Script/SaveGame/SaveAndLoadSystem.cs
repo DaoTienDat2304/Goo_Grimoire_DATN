@@ -433,7 +433,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             parent1Id = session.parent1.id,
             parent2Id = session.parent2.id,
             eggRarity = (int)session.eggRarity,
-            elapsed = session.elapsed,
+            startUnixMs = session.startUnixMs,
             duration = session.duration,
             goldPaid = session.goldPaid
         };
@@ -445,7 +445,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (bm == null || data.breedingSession == null || !data.breedingSession.active) return;
 
         var s = data.breedingSession;
-        bm.RestoreSession(s.parent1Id, s.parent2Id, (Rarity)s.eggRarity, s.elapsed, s.duration, s.goldPaid);
+        bm.RestoreSession(s.parent1Id, s.parent2Id, (Rarity)s.eggRarity, s.startUnixMs, s.duration, s.goldPaid);
     }
 
     TraitInstanceDTO ToTraitDTO(TraitInstance ti)

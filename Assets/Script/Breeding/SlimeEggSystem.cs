@@ -297,6 +297,11 @@ public class SlimeEggSystem : MonoBehaviour
         if (slime == null) return null;
         eggs.RemoveAt(eggIndex);
         BreedingManager.Instance.GetAllSlimes().Add(slime);
+
+        // Hiện slime mới ngay trên màn chơi (world) — trước đây phải ra/vào lại mới thấy.
+        var worldManager = FindAnyObjectByType<SlimeWorldManager>();
+        if (worldManager != null) worldManager.RefreshWorldSlimes();
+
         SaveAndLoadSystem.Instance?.Save();
         SaveAndNotify();
         SlimeHatched?.Invoke(slime);

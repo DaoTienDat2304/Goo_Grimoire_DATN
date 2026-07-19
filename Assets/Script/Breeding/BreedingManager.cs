@@ -336,6 +336,10 @@ public class BreedingManager : MonoBehaviour
         offspring.slimeName = $"Slime_{allSlimes.Count + 1}";
         allSlimes.Add(offspring);
 
+        // Hiện slime con ngay trên màn chơi (world).
+        var worldManager = FindAnyObjectByType<SlimeWorldManager>();
+        if (worldManager != null) worldManager.RefreshWorldSlimes();
+
         if (showslot != null)
         {
             showslot.SetActive(true);

@@ -196,6 +196,9 @@ public class BreedingUIManager : MonoBehaviour
 
     private void SetupUI()
     {
+        // Tự tạo UI hiện chi phí Gold + nút tăng tốc Gem nếu chưa gán (mục 3).
+        EnsureCostAndGemUI();
+
         if (breedButton != null)
             breedButton.onClick.AddListener(OnBreedButtonClicked);
 
@@ -218,6 +221,57 @@ public class BreedingUIManager : MonoBehaviour
     {
         if (AudioManager.Instance != null) AudioManager.Instance.PlayButtonClickSFX();
         if (BreedingManager.Instance != null) BreedingManager.Instance.FinishActiveWithGems();
+    }
+
+    /// <summary>
+    /// Tự tạo (nếu chưa gán trong Inspector): text chi phí Gold cho cặp đang chọn,
+    /// nút tăng tốc bằng Gem và text số Gem. Để UI hiện đủ mà không cần wiring tay.
+    /// </summary>
+    private void EnsureCostAndGemUI()
+    {
+        // Text chi phí Gold + thời gian cho cặp đang chọn (trên breeding panel).
+        if (breedingCostText == null && breedingPanel != null)
+        {
+            breedingCostText = CreateText(breedingPanel.transform, "BreedingCostText", "");
+            var rt = breedingCostText.rectTransform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -8f);
+            rt.sizeDelta = new Vector2(380f, 90f);
+            breedingCostText.alignment = TextAnchor.UpperCenter;
+            breedingCostText.fontSize = 18;
+            breedingCostText.color = new Color(1f, 0.92f, 0.4f); // vàng Gold
+        }
+
+        // Nút + text Gem tăng tốc (trên progress panel; fallback breeding panel).
+        Transform gemParent = breedingProgressPanel != null ? breedingProgressPanel.transform
+                              : (breedingPanel != null ? breedingPanel.transform : null);
+        if (gemParent == null) return;
+
+        if (gemCostText == null)
+        {
+            gemCostText = CreateText(gemParent, "GemCostText", "");
+            var rt = gemCostText.rectTransform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(0f, 78f);
+            rt.sizeDelta = new Vector2(380f, 24f);
+            gemCostText.alignment = TextAnchor.MiddleCenter;
+            gemCostText.color = new Color(0.62f, 0.85f, 1f); // xanh Gem
+        }
+
+        if (finishWithGemsButton == null)
+        {
+            finishWithGemsButton = CreateButton(gemParent, "FinishWithGemsButton", "Tăng tốc (Gem)");
+            var rt = finishWithGemsButton.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(0f, 36f);
+            rt.sizeDelta = new Vector2(200f, 40f);
+            var img = finishWithGemsButton.GetComponent<Image>();
+            if (img != null) img.color = new Color(0.55f, 0.32f, 0.9f, 0.95f); // tím Gem
+            finishWithGemsButton.gameObject.SetActive(false);
+        }
     }
 
     /// <summary>Định dạng giây → mm:ss (hoặc hh:mm:ss nếu ≥ 1 giờ).</summary>

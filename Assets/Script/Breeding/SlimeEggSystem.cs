@@ -34,6 +34,7 @@ public class SlimeEggSystem : MonoBehaviour
         public List<Egg> eggs = new List<Egg>();
         public List<WorldEggData> worldEggs = new List<WorldEggData>();
         public float layTimer;
+        public long lastTickUnixMs; // mốc tick theo thời gian thực (chạy nền/offline)
     }
 
     public enum StatQuality { Poor, Normal, Good, Excellent, Perfect, GodRoll }
@@ -65,7 +66,10 @@ public class SlimeEggSystem : MonoBehaviour
     private readonly Dictionary<string, WorldEggPickup> activeWorldEggs = new Dictionary<string, WorldEggPickup>();
     private float layTimer;
     private float saveTimer;
+    private long lastTickUnixMs; // mốc tick trước theo thời gian thực (để tính offline)
     private const string SaveKey = "SlimeEggSystem_v1";
+
+    private static long NowMs() => System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
     public event Action EggsChanged;
     public event Action<Vector3, Sprite> WorldEggCollected;
@@ -82,6 +86,7 @@ public class SlimeEggSystem : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         LoadState();
+        if (lastTickUnixMs <= 0) lastTickUnixMs = NowMs(); // lần đầu (chưa có save) → mốc = bây giờ
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -96,7 +101,12 @@ public class SlimeEggSystem : MonoBehaviour
 
     private void Update()
     {
-        float dt = Time.unscaledDeltaTime; // production only advances while the player is in-game
+        // Delta theo THỜI GIAN THỰC → sinh trứng & ấp trứng chạy nền (kể cả khi đóng game).
+        // Lần Update đầu sau khi load sẽ có dt lớn = khoảng thời gian offline.
+        long now = NowMs();
+        float dt = Mathf.Max(0f, (now - lastTickUnixMs) / 1000f);
+        lastTickUnixMs = now;
+
         TickProduction(dt);
         foreach (var egg in eggs)
             if (egg.isIncubating)
@@ -108,11 +118,14 @@ public class SlimeEggSystem : MonoBehaviour
 
     private void TickProduction(float dt)
     {
-        var manager = BreedingManager.Instance;
-        if (manager == null || manager.GetCurrentSlimeCount() < requiredSlimes || TotalUnhatchedEggCount >= maxUnhatchedEggs)
-            return;
+        // Luôn cộng dồn layTimer (kể cả khi chưa đủ điều kiện) để không mất thời gian offline
+        // trong lúc slime chưa load xong. Chặn trần để tránh phình vô hạn và vòng lặp dài.
+        layTimer = Mathf.Min(layTimer + dt, checkIntervalSeconds * (maxUnhatchedEggs + 1));
 
-        layTimer += dt;
+        var manager = BreedingManager.Instance;
+        if (manager == null || manager.GetCurrentSlimeCount() < requiredSlimes)
+            return; // chưa đủ điều kiện: giữ layTimer, chờ lần sau
+
         while (layTimer >= checkIntervalSeconds && TotalUnhatchedEggCount < maxUnhatchedEggs)
         {
             layTimer -= checkIntervalSeconds;
@@ -123,6 +136,10 @@ public class SlimeEggSystem : MonoBehaviour
                 SaveAndNotify();
             }
         }
+
+        // Đã đầy trứng thì không tích thêm layTimer.
+        if (TotalUnhatchedEggCount >= maxUnhatchedEggs)
+            layTimer = Mathf.Min(layTimer, checkIntervalSeconds);
     }
 
     private void SpawnWorldEgg()
@@ -377,8 +394,8 @@ public class SlimeEggSystem : MonoBehaviour
     private static int LerpInt(int min, int max, float t) => Mathf.RoundToInt(Mathf.Lerp(min, max, t));
     private bool TryGetEgg(int index, out Egg egg) { egg = index >= 0 && index < eggs.Count ? eggs[index] : null; return egg != null; }
     private void SaveAndNotify() { SaveState(); EggsChanged?.Invoke(); }
-    private void SaveState() { PlayerPrefs.SetString(SaveKey, JsonUtility.ToJson(new EggSave { eggs = eggs, worldEggs = worldEggs, layTimer = layTimer })); PlayerPrefs.Save(); }
-    private void LoadState() { if (!PlayerPrefs.HasKey(SaveKey)) return; var s = JsonUtility.FromJson<EggSave>(PlayerPrefs.GetString(SaveKey)); if (s != null) { eggs = s.eggs ?? new List<Egg>(); worldEggs = s.worldEggs ?? new List<WorldEggData>(); layTimer = s.layTimer; } }
-    private void OnApplicationPause(bool paused) { if (paused) SaveState(); }
+    private void SaveState() { PlayerPrefs.SetString(SaveKey, JsonUtility.ToJson(new EggSave { eggs = eggs, worldEggs = worldEggs, layTimer = layTimer, lastTickUnixMs = lastTickUnixMs })); PlayerPrefs.Save(); }
+    private void LoadState() { if (!PlayerPrefs.HasKey(SaveKey)) return; var s = JsonUtility.FromJson<EggSave>(PlayerPrefs.GetString(SaveKey)); if (s != null) { eggs = s.eggs ?? new List<Egg>(); worldEggs = s.worldEggs ?? new List<WorldEggData>(); layTimer = s.layTimer; lastTickUnixMs = s.lastTickUnixMs; } }
+    private void OnApplicationPause(bool paused) { if (paused) { lastTickUnixMs = NowMs(); SaveState(); } }
     private void OnApplicationQuit() { SaveState(); }
 }

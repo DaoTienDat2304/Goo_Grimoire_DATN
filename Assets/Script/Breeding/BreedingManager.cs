@@ -26,9 +26,19 @@ public class BreedingManager : MonoBehaviour
     [SerializeField] private List<Slime> allSlimes = new List<Slime>();
     private Slime selectedSlime1;
     private Slime selectedSlime2;
-    private bool isBreeding = false;
-    private float breedingProgress = 0f;
     public GameObject showslot;
+
+    /// <summary>Một phiên lai tạo đang chạy (mục 3). Chỉ 1 phiên tại một thời điểm.</summary>
+    public class BreedingSession
+    {
+        public Slime parent1;
+        public Slime parent2;
+        public Rarity eggRarity;
+        public float elapsed;   // giây đã trôi
+        public float duration;  // tổng thời gian (giây)
+        public int goldPaid;
+    }
+    private BreedingSession activeSession;
 
     public static BreedingManager Instance { get; private set; }
 
@@ -81,11 +91,11 @@ public class BreedingManager : MonoBehaviour
             slime.UpdateBreedingCooldown(Time.deltaTime);
         }
 
-        // Cập nhật breeding progress
-        if (isBreeding)
+        // Tiến trình phiên lai tạo (mục 3): đếm thời gian tới khi hoàn thành.
+        if (activeSession != null)
         {
-            breedingProgress += Time.deltaTime;
-            if (breedingProgress >= BreedingTime)
+            activeSession.elapsed += Time.deltaTime;
+            if (activeSession.elapsed >= activeSession.duration)
             {
                 CompleteBreeding();
             }
@@ -230,13 +240,20 @@ public class BreedingManager : MonoBehaviour
 
     private void StartBreeding()
     {
+        // Mục 3: mỗi lần chỉ 1 phiên lai tạo.
+        if (activeSession != null)
+        {
+            Debug.LogWarning("Đang có một phiên lai tạo khác chạy! Chờ hoàn thành.");
+            ResetSelection();
+            return;
+        }
+
         if (allSlimes.Count >= MaxSlimes)
         {
             ResetSelection();
             return;
         }
 
-        int cost = BreedingCost;
         if (CurrencyManager.Instance == null)
         {
             Debug.LogWarning("CurrencyManager không tồn tại! Không thể breeding.");
@@ -244,121 +261,107 @@ public class BreedingManager : MonoBehaviour
             return;
         }
 
+        // Độ hiếm trứng = độ hiếm cao nhất của cặp; chi phí & thời gian theo tier.
+        Rarity eggRarity = SelectiveBreeding.GetEggRarity(selectedSlime1, selectedSlime2);
+        int cost = SelectiveBreeding.GetGoldCost(eggRarity);
+        float duration = SelectiveBreeding.GetDurationSeconds(eggRarity);
+
         if (!CurrencyManager.Instance.HasEnoughCurrency(CurrencyType.Coins, cost))
         {
-            Debug.LogWarning($"Không đủ coins để breeding! Cần: {cost} Coins, Có: {CurrencyManager.Instance.GetCurrency(CurrencyType.Coins)}");
+            Debug.LogWarning($"Không đủ Gold để lai tạo! Cần: {cost}, Có: {CurrencyManager.Instance.GetCurrency(CurrencyType.Coins)}");
             ResetSelection();
             return;
         }
 
-        bool spentSuccess = CurrencyManager.Instance.SpendCurrency(CurrencyType.Coins, cost);
-        if (!spentSuccess)
+        if (!CurrencyManager.Instance.SpendCurrency(CurrencyType.Coins, cost))
         {
-            Debug.LogWarning("Không thể trừ coins! Breeding bị hủy.");
+            Debug.LogWarning("Không thể trừ Gold! Lai tạo bị hủy.");
             ResetSelection();
             return;
         }
 
-        isBreeding = true;
-        breedingProgress = 0f;
-
-        FirebaseAnalyticsManager.LogBreedStart(
-            selectedSlime1.body?.Rarity.ToString() ?? "Unknown",
-            selectedSlime2.body?.Rarity.ToString() ?? "Unknown",
-            cost,
-            allSlimes.Count);
-    }
-
-    private void CompleteBreeding()
-    {
-        isBreeding = false;
-        breedingProgress = 0f;
-
-        // Tạo slime con
-        var offspring = new Slime(selectedSlime1, selectedSlime2);
-        showslot.SetActive(true);
-        var slotScript = showslot.GetComponentInChildren<viewslime>();
-        if (slotScript != null)
-        {
-            slotScript.SetupSlime(offspring);
-        }
-        // Áp dụng mutation nếu có
-        bool hadMutation = Random.Range(0f, 1f) < MutationChance;
-        if (hadMutation)
-        {
-            ApplyMutation(offspring);
-        }
-
-        // Đặt tên cho slime con
-        offspring.slimeName = $"Slime_{allSlimes.Count+1}";
-
-
-
-        // Thêm vào collection
-        allSlimes.Add(offspring);
-
-        FirebaseAnalyticsManager.LogBreedComplete(
-            offspring.body?.Rarity.ToString() ?? "Unknown",
-            hadMutation,
-            allSlimes.Count);
-
-        // Bỏ qua breeding cooldown - tất cả slime đều có thể lai tạo ngay lập tức
-        // selectedSlime1.breedingCooldown = 30f;
-        // selectedSlime1.canBreed = false;
-        // selectedSlime2.breedingCooldown = 30f;
-        // selectedSlime2.canBreed = false;
-
-        // Thay vào đó, đặt cooldown rất ngắn (1 giây) để tất cả slime đều có thể lai tạo
-        selectedSlime1.breedingCooldown = BreedingCooldown;
+        // Khóa cặp bố mẹ cho tới khi hoàn thành.
+        selectedSlime1.breedingLocked = true;
         selectedSlime1.canBreed = false;
-        selectedSlime2.breedingCooldown = BreedingCooldown;
+        selectedSlime2.breedingLocked = true;
         selectedSlime2.canBreed = false;
 
+        activeSession = new BreedingSession
+        {
+            parent1 = selectedSlime1,
+            parent2 = selectedSlime2,
+            eggRarity = eggRarity,
+            elapsed = 0f,
+            duration = duration,
+            goldPaid = cost
+        };
 
+        FirebaseAnalyticsManager.LogBreedStart(
+            SelectiveBreeding.GetSlimeRarity(selectedSlime1).ToString(),
+            SelectiveBreeding.GetSlimeRarity(selectedSlime2).ToString(),
+            cost,
+            allSlimes.Count);
 
         ResetSelection();
 
-        // Cập nhật lại UI sau khi breeding hoàn tất
-        var ui = FindAnyObjectByType<BreedingUIManager>();
-        if (ui != null)
-        {
-            ui.RefreshAllUI();
-        }
-
-        // Play breeding sound effect when breeding completes
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayBreedingSFX();
-        }
-
-        // Trigger achievement khi breeding thành công
-        if (ArchievementManager.Instance != null)
-        {
-            ArchievementManager.Instance.GetArchivement(0); // 0 = Breed achievement
-        }
+        var startUi = FindAnyObjectByType<BreedingUIManager>();
+        if (startUi != null) startUi.RefreshAllUI();
 
         SaveAndLoadSystem.Instance?.Save();
     }
 
-    private void ApplyMutation(Slime slime)
+    private void CompleteBreeding()
     {
-        // Tăng ngẫu nhiên một stat
-        int statChoice = Random.Range(0, 6);
-        int bonus = Random.Range(1, 4);
-        string[] statNames = { "hp", "attack", "magicAttack", "defense", "speed", "crit" };
+        var session = activeSession;
+        activeSession = null;
+        if (session == null) return;
 
-        switch (statChoice)
+        // Sinh slime con theo mục 3 (không kế thừa stat trực tiếp; đột biến theo từng trait).
+        var offspring = SelectiveBreeding.GenerateChild(session.parent1, session.parent2, session.eggRarity);
+        bool hadMutation = offspring != null && offspring.eggStatQuality == "Mutation";
+
+        // Mở khóa bố mẹ.
+        UnlockParent(session.parent1);
+        UnlockParent(session.parent2);
+
+        if (offspring == null)
         {
-            case 0: slime.body.HP += bonus; break;
-            case 1: slime.body.attack += bonus; break;
-            case 2: slime.body.magicAttack += bonus; break;
-            case 3: slime.body.defense += bonus; break;
-            case 4: slime.body.speed += bonus; break;
-            case 5: slime.body.critRate += bonus / 100f; break;
+            Debug.LogError("[Breeding] Không sinh được slime con!");
+            var failUi = FindAnyObjectByType<BreedingUIManager>();
+            if (failUi != null) failUi.RefreshAllUI();
+            return;
         }
 
-        slime.CalculateStats();
-        FirebaseAnalyticsManager.LogBreedMutation(statNames[statChoice], bonus);
+        offspring.slimeName = $"Slime_{allSlimes.Count + 1}";
+        allSlimes.Add(offspring);
+
+        if (showslot != null)
+        {
+            showslot.SetActive(true);
+            var slotScript = showslot.GetComponentInChildren<viewslime>();
+            if (slotScript != null) slotScript.SetupSlime(offspring);
+        }
+
+        FirebaseAnalyticsManager.LogBreedComplete(
+            SelectiveBreeding.GetSlimeRarity(offspring).ToString(),
+            hadMutation,
+            allSlimes.Count);
+
+        var ui = FindAnyObjectByType<BreedingUIManager>();
+        if (ui != null) ui.RefreshAllUI();
+
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayBreedingSFX();
+        if (ArchievementManager.Instance != null) ArchievementManager.Instance.GetArchivement(0);
+
+        SaveAndLoadSystem.Instance?.Save();
+    }
+
+    private void UnlockParent(Slime s)
+    {
+        if (s == null) return;
+        s.breedingLocked = false;
+        s.canBreed = true;
+        s.breedingCooldown = 0f;
     }
 
 
@@ -376,8 +379,8 @@ public class BreedingManager : MonoBehaviour
 
     public List<Slime> GetBreedableSlimes()
     {
-        // Filter ra các slime có thể breeding và không có Secret body trait
-        return allSlimes.Where(s => s.canBreed && !HasSecretBodyTrait(s)).ToList();
+        // Filter ra các slime có thể breeding, không bị khóa và không có Secret body trait
+        return allSlimes.Where(s => s.canBreed && !s.breedingLocked && !HasSecretBodyTrait(s)).ToList();
     }
 
     /// <summary>
@@ -391,12 +394,74 @@ public class BreedingManager : MonoBehaviour
 
     public float GetBreedingProgress()
     {
-        return breedingProgress / BreedingTime;
+        if (activeSession == null || activeSession.duration <= 0f) return 0f;
+        return Mathf.Clamp01(activeSession.elapsed / activeSession.duration);
     }
 
     public bool IsBreeding()
     {
-        return isBreeding;
+        return activeSession != null;
+    }
+
+    // ---------- API cho UI (mục 3) ----------
+
+    /// <summary>Xem trước độ hiếm trứng của một cặp (độ hiếm cao nhất).</summary>
+    public Rarity PreviewEggRarity(Slime s1, Slime s2) => SelectiveBreeding.GetEggRarity(s1, s2);
+
+    /// <summary>Chi phí Gold để lai một cặp.</summary>
+    public int PreviewGoldCost(Slime s1, Slime s2) => SelectiveBreeding.GetGoldCost(SelectiveBreeding.GetEggRarity(s1, s2));
+
+    /// <summary>Thời gian lai (giây) của một cặp.</summary>
+    public float PreviewDurationSeconds(Slime s1, Slime s2) => SelectiveBreeding.GetDurationSeconds(SelectiveBreeding.GetEggRarity(s1, s2));
+
+    public Rarity GetActiveEggRarity() => activeSession != null ? activeSession.eggRarity : Rarity.Common;
+    public Slime GetActiveParent1() => activeSession?.parent1;
+    public Slime GetActiveParent2() => activeSession?.parent2;
+
+    public float GetActiveRemainingSeconds()
+    {
+        if (activeSession == null) return 0f;
+        return Mathf.Max(0f, activeSession.duration - activeSession.elapsed);
+    }
+
+    /// <summary>Số Gem cần để hoàn thành ngay phiên đang chạy (mục 3.2).</summary>
+    public int GetActiveFinishGemCost() => SelectiveBreeding.GetGemCostForRemaining(GetActiveRemainingSeconds());
+
+    /// <summary>Tăng tốc bằng Gem: trả phí Gem để hoàn thành ngay.</summary>
+    public bool FinishActiveWithGems()
+    {
+        if (activeSession == null) return false;
+        int gems = GetActiveFinishGemCost();
+        if (CurrencyManager.Instance == null) return false;
+        if (gems > 0 && !CurrencyManager.Instance.SpendCurrency(CurrencyType.Gems, gems)) return false;
+        activeSession.elapsed = activeSession.duration; // sẽ hoàn thành ở Update kế tiếp
+        CompleteBreeding();
+        return true;
+    }
+
+    // ---------- Persistence (Save/Load phiên lai tạo) ----------
+
+    public BreedingSession GetActiveSessionForSave() => activeSession;
+
+    /// <summary>Khôi phục phiên lai tạo từ save. parent1/parent2 tra theo id.</summary>
+    public void RestoreSession(int parent1Id, int parent2Id, Rarity eggRarity, float elapsed, float duration, int goldPaid)
+    {
+        var p1 = allSlimes.FirstOrDefault(s => s != null && s.id == parent1Id);
+        var p2 = allSlimes.FirstOrDefault(s => s != null && s.id == parent2Id);
+        if (p1 == null || p2 == null) return; // bố mẹ không còn → bỏ phiên
+
+        p1.breedingLocked = true; p1.canBreed = false;
+        p2.breedingLocked = true; p2.canBreed = false;
+
+        activeSession = new BreedingSession
+        {
+            parent1 = p1,
+            parent2 = p2,
+            eggRarity = eggRarity,
+            elapsed = elapsed,
+            duration = duration,
+            goldPaid = goldPaid
+        };
     }
 
     public int GetCurrentSlimeCount()

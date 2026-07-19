@@ -144,6 +144,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         data.lastSavedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         SerializeSlimes(data);
+        SerializeBreedingSession(data);
         SerializeUnlockedTraits(data);
         SerializeBuildings(data);
         SerializeQuests(data);
@@ -188,6 +189,7 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         DeserializeUnlockedTraits(data); // traits first (used by slimes visuals)
         DeserializeSlimes(data);
+        DeserializeBreedingSession(data); // sau khi slimes đã có (tra bố mẹ theo id)
         DeserializeTeam(data);
         DeserializeBuildings(data);
         DeserializeQuests(data);
@@ -362,6 +364,8 @@ public class SaveAndLoadSystem : MonoBehaviour
                 totalSpeed = s.totalSpeed,
                 totalCritRate = s.totalCritRate,
                 totalCritDMG = s.totalCritDMG,
+                eggStatRollPercent = s.eggStatRollPercent,
+                eggStatQuality = s.eggStatQuality,
                 body = ToTraitDTO(s.body),
                 armor = ToTraitDTO(s.armor),
                 weapon = ToTraitDTO(s.weapon),
@@ -388,6 +392,10 @@ public class SaveAndLoadSystem : MonoBehaviour
             s.happiness = dto.happiness;
             s.experience = dto.experience;
             s.isPicked = dto.isPicked;
+            // totalMagicAttack/crit sẽ được CalculateStats() tính lại từ trait bên dưới.
+            // Chỉ giữ metadata chất lượng roll (không tái tạo được từ trait).
+            s.eggStatRollPercent = dto.eggStatRollPercent;
+            s.eggStatQuality = dto.eggStatQuality;
 
             s.body = FromTraitDTO(dto.body);
             s.armor = FromTraitDTO(dto.armor);
@@ -407,6 +415,37 @@ public class SaveAndLoadSystem : MonoBehaviour
         {
             // you may have a method to refresh; if not, scene reload may be needed
         }
+    }
+
+    // ---------- Breeding Session (mục 3) ----------
+    void SerializeBreedingSession(GameSaveData data)
+    {
+        var bm = BreedingManager.Instance;
+        var session = bm != null ? bm.GetActiveSessionForSave() : null;
+        if (session == null || session.parent1 == null || session.parent2 == null)
+        {
+            data.breedingSession = new BreedingSessionDTO { active = false };
+            return;
+        }
+        data.breedingSession = new BreedingSessionDTO
+        {
+            active = true,
+            parent1Id = session.parent1.id,
+            parent2Id = session.parent2.id,
+            eggRarity = (int)session.eggRarity,
+            elapsed = session.elapsed,
+            duration = session.duration,
+            goldPaid = session.goldPaid
+        };
+    }
+
+    void DeserializeBreedingSession(GameSaveData data)
+    {
+        var bm = BreedingManager.Instance;
+        if (bm == null || data.breedingSession == null || !data.breedingSession.active) return;
+
+        var s = data.breedingSession;
+        bm.RestoreSession(s.parent1Id, s.parent2Id, (Rarity)s.eggRarity, s.elapsed, s.duration, s.goldPaid);
     }
 
     TraitInstanceDTO ToTraitDTO(TraitInstance ti)

@@ -21,6 +21,19 @@ public class GameSaveData
     public int towerCurrentFloor = 0;    // currentFloor của TowerSlimeBosses
     public int towerHighestFloor = 0;    // highestFloorReached của TowerSlimeBosses
     public List<FarmDifficultyDTO> farmDifficulties = new List<FarmDifficultyDTO>(); // Lưu trạng thái farm difficulties
+    public BreedingSessionDTO breedingSession; // Phiên lai tạo đang chạy (mục 3), null nếu không có
+}
+
+[Serializable]
+public class BreedingSessionDTO
+{
+    public bool active;
+    public int parent1Id;
+    public int parent2Id;
+    public int eggRarity;   // (int)Rarity
+    public float elapsed;
+    public float duration;
+    public int goldPaid;
 }
 
 [Serializable]
@@ -70,6 +83,9 @@ public class SlimeDTO
     public int totalSpeed;
     public float totalCritRate;
     public float totalCritDMG;
+    // Metadata từ hệ thống trứng (mục 1) & lai tạo (mục 3): chất lượng roll khi sinh ra.
+    public float eggStatRollPercent;
+    public string eggStatQuality;
 }
 
 [Serializable]

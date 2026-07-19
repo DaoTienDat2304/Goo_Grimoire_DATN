@@ -8,6 +8,7 @@ public class Slime
     public int generation; // Thế hệ của slime
     public float breedingCooldown; // Thời gian chờ để có thể lai tạo
     public bool canBreed; // Có thể lai tạo hay không
+    public bool breedingLocked; // Đang trong một phiên lai tạo (mục 3) → bị khóa
     public List<string> parents; // Danh sách tên bố mẹ
     public float happiness; // Chỉ số hạnh phúc (ảnh hưởng đến breeding)
     public int experience; // Kinh nghiệm của slime
@@ -24,6 +25,10 @@ public class Slime
     public int totalSpeed;
     public float totalCritRate;
     public float totalCritDMG;
+    // Chất lượng roll khi slime được sinh ra từ trứng (mục 1) hoặc lai tạo (mục 3).
+    // Chỉ là metadata hiển thị — stat thật nằm trong các trait/total ở trên.
+    public float eggStatRollPercent;
+    public string eggStatQuality;
     public List<SkillInstance> Skills { get; private set; } = new List<SkillInstance>();
 
     private void AssignSkills()
@@ -248,6 +253,7 @@ public class Slime
 
     public void UpdateBreedingCooldown(float deltaTime)
     {
+        if (breedingLocked) return; // Đang lai tạo: giữ khóa, không đếm ngược cooldown.
         if (!canBreed)
         {
             breedingCooldown -= deltaTime;
@@ -261,6 +267,6 @@ public class Slime
 
     public bool CanBreedWith(Slime other)
     {
-        return canBreed && other.canBreed;
+        return canBreed && !breedingLocked && other != null && other.canBreed && !other.breedingLocked;
     }
 }

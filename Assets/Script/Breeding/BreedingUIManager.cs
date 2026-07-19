@@ -23,12 +23,18 @@ public class BreedingUIManager : MonoBehaviour
     public Text breedingStatusText;
     public Text selectedSlimesText;
 
-    [Header("Breeding Cost / Gem (mục 3) — tùy chọn, gán trong Inspector")]
-    [Tooltip("Text hiển thị độ hiếm trứng + Gold + thời gian cho cặp đang chọn")]
+    [Header("Chi phí lai — kéo vào Inspector cho khớp UI PNG (màn CHỌN slime)")]
+    [Tooltip("Icon coin của bạn, hiện cạnh số Gold. Chỉ bật khi đã chọn đủ 2 slime.")]
+    public Image costCoinIcon;
+    [Tooltip("Text hiển thị SỐ Gold cần để lai cặp đang chọn (đặt cạnh icon coin).")]
     public Text breedingCostText;
-    [Tooltip("Nút tăng tốc bằng Gem cho phiên đang chạy")]
+
+    [Header("Tăng tốc bằng Gem — kéo vào Inspector (màn CHỜ đếm ngược)")]
+    [Tooltip("Nút bấm để tốn Gem hoàn thành lai ngay.")]
     public Button finishWithGemsButton;
-    [Tooltip("Text hiển thị số Gem cần để hoàn thành ngay")]
+    [Tooltip("Icon gem của bạn, hiện trên/cạnh nút tăng tốc.")]
+    public Image gemIcon;
+    [Tooltip("Text hiển thị SỐ Gem cần để hoàn thành ngay.")]
     public Text gemCostText;
 
     [Header("Collection UI")]
@@ -649,13 +655,16 @@ public class BreedingUIManager : MonoBehaviour
                 breedingStatusText.text = s;
             }
 
-            if (gemCostText != null) gemCostText.text = $"Hoàn thành ngay • {gemCost} GEM";
-            if (finishWithGemsButton != null) finishWithGemsButton.gameObject.SetActive(remaining > 0f);
+            bool showGem = remaining > 0f;
+            if (gemCostText != null) gemCostText.text = showGem ? $"{gemCost}" : string.Empty;
+            if (finishWithGemsButton != null) finishWithGemsButton.gameObject.SetActive(showGem);
+            if (gemIcon != null) gemIcon.gameObject.SetActive(showGem);
         }
         else
         {
             if (breedingProgressBar != null) breedingProgressBar.value = 0f;
             if (finishWithGemsButton != null) finishWithGemsButton.gameObject.SetActive(false);
+            if (gemIcon != null) gemIcon.gameObject.SetActive(false);
             if (gemCostText != null) gemCostText.text = string.Empty;
 
             // Không lai: ẩn màn đếm ngược, hiện lại nút chọn/breed.
@@ -698,22 +707,19 @@ public class BreedingUIManager : MonoBehaviour
         UpdateBreedingCostPreview();
     }
 
-    /// <summary>Hiển thị độ hiếm trứng + Gold + thời gian cho cặp đang chọn (mục 3.1).</summary>
+    /// <summary>Hiện SỐ Gold + icon coin cho cặp đang chọn (mục 3.1). Ẩn khi đang lai/chưa đủ cặp.</summary>
     private void UpdateBreedingCostPreview()
     {
-        if (breedingCostText == null) return;
+        bool show = selectedSlime1 != null && selectedSlime2 != null
+                    && BreedingManager.Instance != null && !BreedingManager.Instance.IsBreeding();
 
-        if (selectedSlime1 != null && selectedSlime2 != null && BreedingManager.Instance != null)
-        {
-            Rarity eggRarity = BreedingManager.Instance.PreviewEggRarity(selectedSlime1, selectedSlime2);
-            int gold = BreedingManager.Instance.PreviewGoldCost(selectedSlime1, selectedSlime2);
-            float seconds = BreedingManager.Instance.PreviewDurationSeconds(selectedSlime1, selectedSlime2);
-            breedingCostText.text = $"Trứng: {eggRarity}\nGiá: {gold:N0} Gold\nThời gian: {FormatTime(seconds)}";
-        }
-        else
-        {
-            breedingCostText.text = string.Empty;
-        }
+        int gold = show ? BreedingManager.Instance.PreviewGoldCost(selectedSlime1, selectedSlime2) : 0;
+
+        if (breedingCostText != null)
+            breedingCostText.text = show ? $"{gold:N0}" : string.Empty;
+
+        if (costCoinIcon != null)
+            costCoinIcon.gameObject.SetActive(show);
     }
 
     private void UpdateBreedButton()

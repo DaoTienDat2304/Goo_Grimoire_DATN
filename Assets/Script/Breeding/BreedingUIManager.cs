@@ -196,10 +196,9 @@ public class BreedingUIManager : MonoBehaviour
 
     private void SetupUI()
     {
-        // Tự tạo UI hiện chi phí Gold + nút tăng tốc Gem nếu chưa gán (mục 3).
-        // Bọc try/catch để một lỗi tạo UI không bao giờ chặn việc wire nút Breed.
-        try { EnsureCostAndGemUI(); }
-        catch (System.Exception e) { Debug.LogWarning($"[BreedingUI] EnsureCostAndGemUI lỗi: {e.Message}"); }
+        // KHÔNG tự tạo element UI để tránh làm lệch layout có sẵn. Chi phí Gold + Gem
+        // được hiển thị trong các text sẵn có (selectedSlimesText / breedingStatusText).
+        // Nút/Text riêng chỉ dùng nếu bạn tự gán trong Inspector.
 
         if (breedButton != null)
             breedButton.onClick.AddListener(OnBreedButtonClicked);
@@ -223,57 +222,6 @@ public class BreedingUIManager : MonoBehaviour
     {
         if (AudioManager.Instance != null) AudioManager.Instance.PlayButtonClickSFX();
         if (BreedingManager.Instance != null) BreedingManager.Instance.FinishActiveWithGems();
-    }
-
-    /// <summary>
-    /// Tự tạo (nếu chưa gán trong Inspector): text chi phí Gold cho cặp đang chọn,
-    /// nút tăng tốc bằng Gem và text số Gem. Để UI hiện đủ mà không cần wiring tay.
-    /// </summary>
-    private void EnsureCostAndGemUI()
-    {
-        // Text chi phí Gold + thời gian cho cặp đang chọn (trên breeding panel).
-        if (breedingCostText == null && breedingPanel != null)
-        {
-            breedingCostText = CreateText(breedingPanel.transform, "BreedingCostText", "");
-            var rt = breedingCostText.rectTransform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, -8f);
-            rt.sizeDelta = new Vector2(380f, 90f);
-            breedingCostText.alignment = TextAnchor.UpperCenter;
-            breedingCostText.fontSize = 18;
-            breedingCostText.color = new Color(1f, 0.92f, 0.4f); // vàng Gold
-        }
-
-        // Nút + text Gem tăng tốc (trên progress panel; fallback breeding panel).
-        Transform gemParent = breedingProgressPanel != null ? breedingProgressPanel.transform
-                              : (breedingPanel != null ? breedingPanel.transform : null);
-        if (gemParent == null) return;
-
-        if (gemCostText == null)
-        {
-            gemCostText = CreateText(gemParent, "GemCostText", "");
-            var rt = gemCostText.rectTransform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
-            rt.pivot = new Vector2(0.5f, 0f);
-            rt.anchoredPosition = new Vector2(0f, 78f);
-            rt.sizeDelta = new Vector2(380f, 24f);
-            gemCostText.alignment = TextAnchor.MiddleCenter;
-            gemCostText.color = new Color(0.62f, 0.85f, 1f); // xanh Gem
-        }
-
-        if (finishWithGemsButton == null)
-        {
-            finishWithGemsButton = CreateButton(gemParent, "FinishWithGemsButton", "Tăng tốc (Gem)");
-            var rt = finishWithGemsButton.GetComponent<RectTransform>();
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
-            rt.pivot = new Vector2(0.5f, 0f);
-            rt.anchoredPosition = new Vector2(0f, 36f);
-            rt.sizeDelta = new Vector2(200f, 40f);
-            var img = finishWithGemsButton.GetComponent<Image>();
-            if (img != null) img.color = new Color(0.55f, 0.32f, 0.9f, 0.95f); // tím Gem
-            finishWithGemsButton.gameObject.SetActive(false);
-        }
     }
 
     /// <summary>Định dạng giây → mm:ss (hoặc hh:mm:ss nếu ≥ 1 giờ).</summary>
@@ -482,6 +430,7 @@ public class BreedingUIManager : MonoBehaviour
         t.text = content;
         t.fontSize = 14;
         t.color = Color.white;
+        t.raycastTarget = false; // text không chặn click các nút bên dưới (vd dấu X)
         var rt = tGO.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(300, 24);
         return t;
@@ -676,11 +625,18 @@ public class BreedingUIManager : MonoBehaviour
             if (breedingProgressBar != null)
                 breedingProgressBar.value = progress;
 
-            if (breedingStatusText != null)
-                breedingStatusText.text = $"Đang lai tạo ({eggRarity})...\nCòn lại {FormatTime(remaining)} • {(progress * 100):F0}%";
-
             // Nút tăng tốc bằng Gem (mục 3.2)
             int gemCost = BreedingManager.Instance.GetActiveFinishGemCost();
+
+            if (breedingStatusText != null)
+            {
+                string s = $"Đang lai tạo ({eggRarity})...\nCòn lại {FormatTime(remaining)} • {(progress * 100):F0}%";
+                // Nếu không gán nút Gem riêng, hiện số Gem tăng tốc ngay trong status text.
+                if (finishWithGemsButton == null && remaining > 0f)
+                    s += $"\nTăng tốc: {gemCost} Gem";
+                breedingStatusText.text = s;
+            }
+
             if (gemCostText != null) gemCostText.text = $"Hoàn thành ngay • {gemCost} GEM";
             if (finishWithGemsButton != null) finishWithGemsButton.gameObject.SetActive(remaining > 0f);
         }
@@ -715,7 +671,16 @@ public class BreedingUIManager : MonoBehaviour
             if (selectedSlime1 != null)
                 text += $"1: {selectedSlime1.slimeName}\n";
             if (selectedSlime2 != null)
-                text += $"2: {selectedSlime2.slimeName}";
+                text += $"2: {selectedSlime2.slimeName}\n";
+
+            // Hiện chi phí Gold/thời gian ngay trong text sẵn có (khi chưa gán breedingCostText riêng).
+            if (breedingCostText == null && selectedSlime1 != null && selectedSlime2 != null && BreedingManager.Instance != null)
+            {
+                Rarity r = BreedingManager.Instance.PreviewEggRarity(selectedSlime1, selectedSlime2);
+                int gold = BreedingManager.Instance.PreviewGoldCost(selectedSlime1, selectedSlime2);
+                float sec = BreedingManager.Instance.PreviewDurationSeconds(selectedSlime1, selectedSlime2);
+                text += $"Giá: {gold:N0} Gold  |  {r}  |  {FormatTime(sec)}";
+            }
 
             selectedSlimesText.text = text;
             RefreshSlimeGrid();

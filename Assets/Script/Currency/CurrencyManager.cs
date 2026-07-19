@@ -7,7 +7,7 @@ public class CurrencyManager : MonoBehaviour
     public static CurrencyManager Instance { get; private set; }
 
     [Header("Starting Currency")]
-    [SerializeField] private int startingCoins = 100;
+    [SerializeField] private int startingCoins = 5000;
     [SerializeField] private int startingGems = 10;
 
     private Dictionary<CurrencyType, int> currencies = new Dictionary<CurrencyType, int>();

@@ -197,7 +197,9 @@ public class BreedingUIManager : MonoBehaviour
     private void SetupUI()
     {
         // Tự tạo UI hiện chi phí Gold + nút tăng tốc Gem nếu chưa gán (mục 3).
-        EnsureCostAndGemUI();
+        // Bọc try/catch để một lỗi tạo UI không bao giờ chặn việc wire nút Breed.
+        try { EnsureCostAndGemUI(); }
+        catch (System.Exception e) { Debug.LogWarning($"[BreedingUI] EnsureCostAndGemUI lỗi: {e.Message}"); }
 
         if (breedButton != null)
             breedButton.onClick.AddListener(OnBreedButtonClicked);
@@ -386,28 +388,28 @@ public class BreedingUIManager : MonoBehaviour
         var nameGO = new GameObject("Name", typeof(RectTransform), typeof(Text));
         nameGO.transform.SetParent(root.transform, false);
         var nameText = nameGO.GetComponent<Text>();
-        nameText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         nameText.fontSize = 14;
         nameText.alignment = TextAnchor.UpperLeft;
 
         var statsGO = new GameObject("Stats", typeof(RectTransform), typeof(Text));
         statsGO.transform.SetParent(root.transform, false);
         var statsText = statsGO.GetComponent<Text>();
-        statsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        statsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         statsText.fontSize = 12;
         statsText.alignment = TextAnchor.UpperLeft;
 
         var genGO = new GameObject("Gen", typeof(RectTransform), typeof(Text));
         genGO.transform.SetParent(root.transform, false);
         var genText = genGO.GetComponent<Text>();
-        genText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        genText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         genText.fontSize = 12;
         genText.alignment = TextAnchor.LowerLeft;
 
         var statusGO = new GameObject("Status", typeof(RectTransform), typeof(Text));
         statusGO.transform.SetParent(root.transform, false);
         var statusText = statusGO.GetComponent<Text>();
-        statusText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        statusText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         statusText.fontSize = 12;
         statusText.alignment = TextAnchor.LowerRight;
 
@@ -476,7 +478,7 @@ public class BreedingUIManager : MonoBehaviour
         var tGO = new GameObject(name, typeof(RectTransform), typeof(Text));
         tGO.transform.SetParent(parent, false);
         var t = tGO.GetComponent<Text>();
-        t.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         t.text = content;
         t.fontSize = 14;
         t.color = Color.white;

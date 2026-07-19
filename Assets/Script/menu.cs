@@ -52,28 +52,16 @@ public class menu : MonoBehaviour
     {
         loading.gameObject.SetActive(true);
 
-        if (forceSkipTutorial)
-        {
-            await loading.onplay(SceneManager.GetActiveScene().buildIndex + 2);
-            return;
-        }
-
+        // Đã bỏ tutorial (travelSence): luôn vào thẳng firstsave (home) — load theo TÊN
+        // để không phụ thuộc thứ tự build index. firstsave tự chờ Auth/CloudSave khi khởi tạo.
         if (forceTutorial)
         {
-            await loading.onplay(SceneManager.GetActiveScene().buildIndex + 1);
+            // Vẫn cho phép ép chạy tutorial nếu bật thủ công trong Inspector.
+            await loading.LoadSceneByName("travelSence");
             return;
         }
 
-        // Chờ CloudSaveProvider kiểm tra xong cloud save cho tài khoản hiện tại
-        while (CloudSaveProvider.Instance == null || !CloudSaveProvider.Instance.CloudCheckDone)
-            await System.Threading.Tasks.Task.Yield();
-
-        // Returning player (đã có cloud save) → skip travelSence
-        // New player (chưa có cloud save) → chạy travelSence
-        if (CloudSaveProvider.Instance.HasCloudSave)
-            await loading.onplay(SceneManager.GetActiveScene().buildIndex + 2);
-        else
-            await loading.onplay(SceneManager.GetActiveScene().buildIndex + 1);
+        await loading.LoadSceneByName("firstsave");
     }
 
     public void Save()

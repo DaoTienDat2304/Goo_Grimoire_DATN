@@ -306,35 +306,40 @@ public class SlimeEggSystem : MonoBehaviour
     private Slime GenerateEggSlime()
     {
         Rarity rarity = RollRarity();
-        if (SlimeGen.Instance == null || SlimeGen.Instance.allTraits == null) return null;
-        TraitSO body = PickTrait(TraitType.Body, rarity);
-        TraitSO armor = PickTrait(TraitType.Armor, rarity);
-        TraitSO weapon = PickTrait(TraitType.Weapon, rarity);
-        if (body == null || armor == null || weapon == null)
+        if (SlimeGen.Instance == null) return null;
+
+        // Dùng GenerateSlimeOfRarity: CÓ fallback nếu thiếu trait đúng độ hiếm → luôn ra
+        // được slime (trước đây PickTrait không fallback nên trả null → hatch không ra gì).
+        string name = $"Egg_{rarity}_{BreedingManager.Instance.GetCurrentSlimeCount() + 1}";
+        var slime = SlimeGen.Instance.GenerateSlimeOfRarity(name, rarity);
+        if (slime == null)
         {
-            Debug.LogError($"[Egg] Missing Body/Armor/Weapon TraitSO for {rarity}.");
+            Debug.LogError("[Egg] Không tạo được slime — SlimeGen chưa có trait nào? Kiểm tra allTraits.");
             return null;
         }
 
-        var slime = new Slime
-        {
-            slimeName = $"Egg_{rarity}_{BreedingManager.Instance.GetCurrentSlimeCount() + 1}",
-            body = body.GenerateInstance(), armor = armor.GenerateInstance(), weapon = weapon.GenerateInstance()
-        };
         StatQuality quality = RollQuality(out float roll);
         StatRange range = GetRange(rarity);
 
-        // One quality roll is shared by all stats: a God Roll is consistently strong.
-        // Map stats vào đúng model của main: HP/DEF/Speed ở Body, ATK/Magic ở Weapon,
-        // Crit ở Armor (Head). CalculateStats() sẽ cộng dồn thành total tương ứng.
-        slime.body.HP = slime.body.baseHP = LerpInt(range.hpMin, range.hpMax, roll);
-        slime.body.defense = slime.body.baseDefense = LerpInt(range.defMin, range.defMax, roll);
-        slime.body.speed = slime.body.baseSpeed = LerpInt(range.speedMin, range.speedMax, roll);
-        slime.weapon.attack = slime.weapon.baseAttack = LerpInt(range.atkMin, range.atkMax, roll);
-        slime.weapon.magicAttack = slime.weapon.baseMagicAttack = LerpInt(range.magicMin, range.magicMax, roll);
-        // Range crit lưu theo % (15–20, 120–130) → đổi sang đơn vị của main: rate = phân số, dmg = hệ số nhân.
-        slime.armor.critRate = slime.armor.baseCritRate = Mathf.Lerp(range.critRateMin, range.critRateMax, roll) / 100f;
-        slime.armor.critDMG = slime.armor.baseCritDMG = Mathf.Lerp(range.critDamageMin, range.critDamageMax, roll) / 100f;
+        // Một quality roll dùng chung cho mọi chỉ số (God Roll = mạnh đồng đều). Map vào
+        // model main: HP/DEF/Speed ở Body, ATK/Magic ở Weapon, Crit ở Armor (Head).
+        if (slime.body != null)
+        {
+            slime.body.HP = slime.body.baseHP = LerpInt(range.hpMin, range.hpMax, roll);
+            slime.body.defense = slime.body.baseDefense = LerpInt(range.defMin, range.defMax, roll);
+            slime.body.speed = slime.body.baseSpeed = LerpInt(range.speedMin, range.speedMax, roll);
+        }
+        if (slime.weapon != null)
+        {
+            slime.weapon.attack = slime.weapon.baseAttack = LerpInt(range.atkMin, range.atkMax, roll);
+            slime.weapon.magicAttack = slime.weapon.baseMagicAttack = LerpInt(range.magicMin, range.magicMax, roll);
+        }
+        if (slime.armor != null)
+        {
+            // Range crit lưu theo % (15–20, 120–130) → đổi sang đơn vị main: rate=phân số, dmg=hệ số nhân.
+            slime.armor.critRate = slime.armor.baseCritRate = Mathf.Lerp(range.critRateMin, range.critRateMax, roll) / 100f;
+            slime.armor.critDMG = slime.armor.baseCritDMG = Mathf.Lerp(range.critDamageMin, range.critDamageMax, roll) / 100f;
+        }
         slime.eggStatRollPercent = roll * 100f;
         slime.eggStatQuality = quality.ToString();
         slime.CalculateStats();

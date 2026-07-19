@@ -59,6 +59,13 @@ public class BreedingUIManager : MonoBehaviour
         StartCoroutine(Countdown());
     }
 
+    private void OnEnable()
+    {
+        // Mở lại UI breeding (vd sau khi ra world rồi vào lại): hiện ngay đúng màn theo
+        // trạng thái — đang lai thì hiện màn đếm ngược, không thì hiện màn chọn slime.
+        UpdateBreedingProgress();
+    }
+
     IEnumerator Countdown()
     {
         yield return new WaitForSeconds(1);
@@ -622,10 +629,14 @@ public class BreedingUIManager : MonoBehaviour
             float progress = BreedingManager.Instance.GetBreedingProgress();
             float remaining = BreedingManager.Instance.GetActiveRemainingSeconds();
             Rarity eggRarity = BreedingManager.Instance.GetActiveEggRarity();
-            if (breedingProgressBar != null)
-                breedingProgressBar.value = progress;
 
-            // Nút tăng tốc bằng Gem (mục 3.2)
+            // UI bám trạng thái: ĐANG LAI thì LUÔN hiện màn đếm ngược và ẩn nút chọn/breed —
+            // kể cả sau khi đóng rồi mở lại popup. Không cho quay về màn chọn slime giữa chừng.
+            if (breedingProgressPanel != null) breedingProgressPanel.SetActive(true);
+            if (breedButton != null) breedButton.gameObject.SetActive(false);
+            if (cancelButton != null) cancelButton.gameObject.SetActive(false);
+            if (breedingProgressBar != null) breedingProgressBar.value = progress;
+
             int gemCost = BreedingManager.Instance.GetActiveFinishGemCost();
 
             if (breedingStatusText != null)
@@ -642,21 +653,18 @@ public class BreedingUIManager : MonoBehaviour
         }
         else
         {
-            if (breedingProgressBar != null)
-                breedingProgressBar.value = 0f;
-
+            if (breedingProgressBar != null) breedingProgressBar.value = 0f;
             if (finishWithGemsButton != null) finishWithGemsButton.gameObject.SetActive(false);
             if (gemCostText != null) gemCostText.text = string.Empty;
 
-            if (breedingStatusText != null)
-            {
-                if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
-                if (breedButton != null) breedButton.gameObject.SetActive(true);
-                if (cancelButton != null) cancelButton.gameObject.SetActive(true);
-            }
+            // Không lai: ẩn màn đếm ngược, hiện lại nút chọn/breed.
+            if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
+            if (breedButton != null) breedButton.gameObject.SetActive(true);
+            if (cancelButton != null) cancelButton.gameObject.SetActive(true);
+
             if (currentlyBreeding)
             {
-                // Just finished breeding
+                // Vừa lai xong.
                 ResetSelection();
                 currentlyBreeding = false;
             }
@@ -727,8 +735,10 @@ public class BreedingUIManager : MonoBehaviour
         panelBreedingActive = true;
         if (breedingPanel != null) breedingPanel.SetActive(true);
         if (slimeCollectionPanel != null) slimeCollectionPanel.SetActive(false);
-        if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
         RefreshSlimeGrid();
+        // KHÔNG ép tắt màn đếm ngược ở đây — để UpdateBreedingProgress quyết định theo
+        // trạng thái: nếu đang lai thì hiện màn đếm ngược ngay, nếu không thì hiện màn chọn.
+        UpdateBreedingProgress();
     }
 
     public void ShowCollectionPanel()

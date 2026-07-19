@@ -10,6 +10,10 @@ public class CurrencyUI : MonoBehaviour
     [Header("Currency Icons (Optional)")]
     [SerializeField] private Image coinsIcon;
     [SerializeField] private Image gemsIcon;
+
+    /// <summary>Sprite icon coin/gem đang dùng trong HUD — cho UI khác (vd breeding) tái sử dụng.</summary>
+    public Sprite CoinSprite => coinsIcon != null ? coinsIcon.sprite : null;
+    public Sprite GemSprite => gemsIcon != null ? gemsIcon.sprite : null;
     
     [Header("Animation Settings")]
     [SerializeField] private bool useAnimation = false;

@@ -210,9 +210,10 @@ public class BreedingUIManager : MonoBehaviour
 
     private void SetupUI()
     {
-        // KHÔNG tự tạo element UI để tránh làm lệch layout có sẵn. Chi phí Gold + Gem
-        // được hiển thị trong các text sẵn có (selectedSlimesText / breedingStatusText).
-        // Nút/Text riêng chỉ dùng nếu bạn tự gán trong Inspector.
+        // Tự dựng demo UI: cụm chi phí (icon coin + số Gold) và nút tăng tốc (icon gem +
+        // số Gem). Dùng LayoutElement.ignoreLayout để KHÔNG làm xê dịch layout PNG có sẵn.
+        try { EnsureCostAndGemUI(); }
+        catch (System.Exception e) { Debug.LogWarning($"[BreedingUI] EnsureCostAndGemUI lỗi: {e.Message}"); }
 
         if (breedButton != null)
             breedButton.onClick.AddListener(OnBreedButtonClicked);
@@ -236,6 +237,96 @@ public class BreedingUIManager : MonoBehaviour
     {
         if (AudioManager.Instance != null) AudioManager.Instance.PlayButtonClickSFX();
         if (BreedingManager.Instance != null) BreedingManager.Instance.FinishActiveWithGems();
+    }
+
+    /// <summary>
+    /// Dựng demo UI nếu chưa gán: cụm "icon coin + số Gold" trên màn CHỌN, và nút
+    /// "icon gem + số Gem" trên màn CHỜ. Mọi element đều ignoreLayout nên KHÔNG làm
+    /// xê dịch layout PNG có sẵn. Icon lấy lại từ HUD tiền (CurrencyUI).
+    /// </summary>
+    private void EnsureCostAndGemUI()
+    {
+        var cur = FindAnyObjectByType<CurrencyUI>();
+        Sprite coinSprite = cur != null ? cur.CoinSprite : null;
+        Sprite gemSprite  = cur != null ? cur.GemSprite  : null;
+
+        // ---- Cụm chi phí (icon coin + số Gold) trên màn CHỌN slime ----
+        if (breedingCostText == null && breedingPanel != null)
+        {
+            var group = CreateAbsGroup("BreedCostGroup", breedingPanel.transform,
+                new Vector2(0.5f, 0f), new Vector2(0f, 140f), new Vector2(240f, 60f));
+            costCoinIcon = CreateIcon("CoinIcon", group.transform, coinSprite, new Vector2(48f, 48f),
+                new Color(1f, 0.85f, 0.2f));
+            breedingCostText = CreateText(group.transform, "BreedCostText", "0");
+            breedingCostText.fontSize = 30;
+            breedingCostText.alignment = TextAnchor.MiddleLeft;
+            breedingCostText.rectTransform.sizeDelta = new Vector2(150f, 52f);
+        }
+
+        // ---- Nút tăng tốc (icon gem + số Gem) trên màn CHỜ đếm ngược ----
+        Transform waitParent = breedingProgressPanel != null ? breedingProgressPanel.transform
+                              : (breedingPanel != null ? breedingPanel.transform : null);
+        if (finishWithGemsButton == null && waitParent != null)
+        {
+            var btnGO = new GameObject("FinishWithGemsButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            btnGO.transform.SetParent(waitParent, false);
+            btnGO.AddComponent<LayoutElement>().ignoreLayout = true;
+            var brt = btnGO.GetComponent<RectTransform>();
+            brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0f);
+            brt.pivot = new Vector2(0.5f, 0f);
+            brt.anchoredPosition = new Vector2(0f, 50f);
+            brt.sizeDelta = new Vector2(240f, 64f);
+            btnGO.GetComponent<Image>().color = new Color(0.55f, 0.32f, 0.9f, 0.95f);
+            finishWithGemsButton = btnGO.GetComponent<Button>();
+
+            var content = new GameObject("Content", typeof(RectTransform));
+            content.transform.SetParent(btnGO.transform, false);
+            var crt = content.GetComponent<RectTransform>();
+            crt.anchorMin = Vector2.zero; crt.anchorMax = Vector2.one;
+            crt.offsetMin = Vector2.zero; crt.offsetMax = Vector2.zero;
+            var hl = content.AddComponent<HorizontalLayoutGroup>();
+            hl.childAlignment = TextAnchor.MiddleCenter; hl.spacing = 6f;
+            hl.childControlWidth = false; hl.childControlHeight = false;
+            hl.childForceExpandWidth = false; hl.childForceExpandHeight = false;
+
+            gemIcon = CreateIcon("GemIcon", content.transform, gemSprite, new Vector2(40f, 40f),
+                new Color(0.62f, 0.85f, 1f));
+            gemCostText = CreateText(content.transform, "GemText", "0");
+            gemCostText.fontSize = 26;
+            gemCostText.alignment = TextAnchor.MiddleCenter;
+            gemCostText.rectTransform.sizeDelta = new Vector2(70f, 46f);
+        }
+    }
+
+    /// <summary>Tạo container tuyệt đối (ignoreLayout) + HorizontalLayoutGroup căn giữa.</summary>
+    private GameObject CreateAbsGroup(string name, Transform parent, Vector2 anchor, Vector2 pos, Vector2 size)
+    {
+        var go = new GameObject(name, typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        go.AddComponent<LayoutElement>().ignoreLayout = true; // không tham gia layout group của cha
+        var rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = rt.anchorMax = anchor;
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = pos;
+        rt.sizeDelta = size;
+        var hl = go.AddComponent<HorizontalLayoutGroup>();
+        hl.childAlignment = TextAnchor.MiddleCenter; hl.spacing = 8f;
+        hl.childControlWidth = false; hl.childControlHeight = false;
+        hl.childForceExpandWidth = false; hl.childForceExpandHeight = false;
+        return go;
+    }
+
+    private Image CreateIcon(string name, Transform parent, Sprite sprite, Vector2 size, Color fallbackColor)
+    {
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        go.transform.SetParent(parent, false);
+        var img = go.GetComponent<Image>();
+        img.sprite = sprite;
+        img.color = sprite != null ? Color.white : fallbackColor; // chưa gán sprite → màu placeholder
+        img.preserveAspect = true;
+        img.raycastTarget = false;
+        go.GetComponent<RectTransform>().sizeDelta = size;
+        return img;
     }
 
     /// <summary>Định dạng giây → mm:ss (hoặc hh:mm:ss nếu ≥ 1 giờ).</summary>

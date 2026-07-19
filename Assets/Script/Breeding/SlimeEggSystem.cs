@@ -43,6 +43,9 @@ public class SlimeEggSystem : MonoBehaviour
     [Range(0f, 1f)] public float eggChance = 0.5f;
     [Min(1)] public int maxUnhatchedEggs = 3;
     [Min(2)] public int requiredSlimes = 2;
+    [Tooltip("BẬT = trứng rơi ngoài world phải đi nhặt (cần SlimeSpawner/Player trong scene). " +
+             "TẮT (mặc định) = trứng sinh thẳng vào túi trứng, không phụ thuộc scene.")]
+    public bool spawnAsWorldEgg = false;
 
     [Header("World egg spawning")]
     [Tooltip("Optional. When empty, Resources/SlimeEgg.prefab is loaded automatically.")]
@@ -114,7 +117,8 @@ public class SlimeEggSystem : MonoBehaviour
             layTimer -= checkIntervalSeconds;
             if (UnityEngine.Random.value < eggChance)
             {
-                SpawnWorldEgg();
+                if (spawnAsWorldEgg) SpawnWorldEgg();
+                else eggs.Add(new Egg { id = Guid.NewGuid().ToString("N") }); // thẳng vào túi trứng
                 SaveAndNotify();
             }
         }

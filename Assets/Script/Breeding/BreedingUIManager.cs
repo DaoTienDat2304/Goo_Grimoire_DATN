@@ -530,17 +530,17 @@ public class BreedingUIManager : MonoBehaviour
         }
         else if (selectedSlime2 == null && selectedSlime1 != slime)
         {
-            selectedSlime2 = slime;
-
-
-            if (CanBreedSelectedSlimes())
+            // Chỉ kiểm tra khả năng GHÉP CẶP (không khóa, không đang lai). KHÔNG chặn vì
+            // thiếu Gold — để người chơi vẫn chọn được 2 slime và xem chi phí; nút Breed
+            // sẽ tự mờ nếu chưa đủ Gold (UpdateBreedButton).
+            bool pairOk = selectedSlime1.CanBreedWith(slime)
+                && (BreedingManager.Instance == null || !BreedingManager.Instance.IsBreeding());
+            if (pairOk)
             {
-                if (breedButton != null)
-                    breedButton.interactable = true;
+                selectedSlime2 = slime;
             }
             else
             {
-
                 ResetSelection();
             }
         }

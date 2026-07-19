@@ -43,9 +43,10 @@ public class SlimeEggSystem : MonoBehaviour
     [Range(0f, 1f)] public float eggChance = 0.5f;
     [Min(1)] public int maxUnhatchedEggs = 3;
     [Min(2)] public int requiredSlimes = 2;
-    [Tooltip("BẬT = trứng rơi ngoài world phải đi nhặt (cần SlimeSpawner/Player trong scene). " +
-             "TẮT (mặc định) = trứng sinh thẳng vào túi trứng, không phụ thuộc scene.")]
-    public bool spawnAsWorldEgg = false;
+    [Tooltip("BẬT (mặc định) = trứng rơi ngoài world phải đi nhặt. Nếu scene không có " +
+             "SlimeSpawner/Player thì trứng rơi trong tầm nhìn camera. " +
+             "TẮT = trứng sinh thẳng vào túi trứng.")]
+    public bool spawnAsWorldEgg = true;
 
     [Header("World egg spawning")]
     [Tooltip("Optional. When empty, Resources/SlimeEgg.prefab is loaded automatically.")]
@@ -150,6 +151,15 @@ public class SlimeEggSystem : MonoBehaviour
         Transform player = null;
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
         if (playerObject != null) player = playerObject.transform;
+
+        // Nếu không có mốc (worldEggSpawnCenter) và không có Player, rơi trứng vào trong
+        // tầm nhìn camera thay vì gốc (0,0,0) — để trứng luôn hiện trên màn hình ở mọi scene.
+        if (worldEggSpawnCenter == null && player == null)
+        {
+            Vector3 camPoint = GetRandomPointInCameraView();
+            if (camPoint != Vector3.zero) return camPoint;
+        }
+
         Vector3 center = worldEggSpawnCenter != null
             ? worldEggSpawnCenter.position
             : player != null ? player.position : transform.position;
@@ -165,6 +175,20 @@ public class SlimeEggSystem : MonoBehaviour
             return candidate;
         }
         return center;
+    }
+
+    /// <summary>Điểm ngẫu nhiên trong vùng nhìn của camera chính, trên mặt phẳng z = 0.</summary>
+    private Vector3 GetRandomPointInCameraView()
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return Vector3.zero;
+        // Chừa lề 20% mỗi bên để trứng không dính sát mép màn hình.
+        float vx = UnityEngine.Random.Range(0.2f, 0.8f);
+        float vy = UnityEngine.Random.Range(0.2f, 0.8f);
+        float depth = cam.orthographic ? Mathf.Abs(cam.transform.position.z) : 10f;
+        Vector3 world = cam.ViewportToWorldPoint(new Vector3(vx, vy, depth));
+        world.z = 0f;
+        return world;
     }
 
     private void CreateWorldEggObject(WorldEggData data)

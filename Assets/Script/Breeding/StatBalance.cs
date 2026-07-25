@@ -28,7 +28,8 @@ public static class StatBalance
             case Rarity.UltraRare: return R(9000, 16000, 900, 1600,  1800, 3200,  3600, 6400,   120, 150, 0.13f, 1.70f);
             case Rarity.Legendary: return R(14000, 25000, 1400, 2500, 2800, 5000, 5600, 10000,  135, 165, 0.16f, 1.90f);
             case Rarity.Mythic:    return R(22000, 50000, 2200, 5000, 4400, 10000, 8800, 20000, 150, 180, 0.20f, 2.20f);
-            case Rarity.Secret:    return R(22000, 50000, 2200, 5000, 4400, 10000, 8800, 20000, 150, 180, 0.25f, 2.50f);
+            // Secret (design "Cân bằng chỉ số": tier gimmick) — HP=UR, ATK=UR/10, Magic=(UR/10)×2, DEF=UR×0.4.
+            case Rarity.Secret:    return R(9000, 16000, 90, 160, 180, 320, 1440, 2560, 120, 150, 0.25f, 2.50f);
             default:               return R(1000, 2000,  100, 200,   200, 400,    400, 800,     80, 100,  0.05f, 1.30f);
         }
     }

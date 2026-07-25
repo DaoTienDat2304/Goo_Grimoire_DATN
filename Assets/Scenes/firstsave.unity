@@ -7139,6 +7139,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2071fca2165486048916db65d84445e5, type: 2}
   breedingManager: {fileID: 1798320931}
   questUIManager: {fileID: 581005835}
+  disabled: 1
 --- !u!4 &639932995
 Transform:
   m_ObjectHideFlags: 0
@@ -7181,6 +7182,8 @@ MonoBehaviour:
   questUIManager: {fileID: 581005835}
   breedingManager: {fileID: 1798320931}
   towerDatabase: {fileID: 0}
+  autoLoadMissionCatalog: 1
+  clearExistingOnLoad: 1
 --- !u!1 &653363083
 GameObject:
   m_ObjectHideFlags: 0
@@ -9772,7 +9775,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1984707624}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.6788
+  m_Size: 0.6787999
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -18655,7 +18658,7 @@ RectTransform:
   m_GameObject: {fileID: 1060201746}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.77903, y: 0.77903, z: 0.77903}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 495461558}
@@ -18665,7 +18668,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -328, y: -120}
+  m_AnchoredPosition: {x: -109, y: -196.42}
   m_SizeDelta: {x: 118, y: 118}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1064359243
@@ -26123,11 +26126,10 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1987317581}
+  - {fileID: 1802375997}
   - {fileID: 1280856157}
   - {fileID: 1564361563}
   - {fileID: 1503652233}
-  - {fileID: 1802375997}
   - {fileID: 99004180}
   - {fileID: 2102842168}
   - {fileID: 529677215}
@@ -26147,6 +26149,7 @@ RectTransform:
   - {fileID: 66973039}
   - {fileID: 8925536736327267097}
   - {fileID: 1958198732}
+  - {fileID: 1987317581}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

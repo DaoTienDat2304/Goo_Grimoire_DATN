@@ -220,6 +220,9 @@ public class TurnSystem : MonoBehaviour
         bossStats.CritRate = slimeData.totalCritRate;
         bossStats.CritDMG = slimeData.totalCritDMG;
         bossStats.isEnemy = true;
+        // Adventure: scale chỉ số boss theo bảng hệ số độ hiếm (design), thay cho ×3 phẳng cũ.
+        bossStats.enemyRarity = slimeData.GetHighestRarity();
+        bossStats.useRarityBossScaling = true;
 
         if (slimeData.body?.skill != null)
             bossStats.bodySkill = slimeData.body.skill;
@@ -1086,6 +1089,9 @@ public class TurnSystem : MonoBehaviour
             FirebaseAnalyticsManager.LogBattleWin(bMode, diff, turnCount, coinsEarned);
         }
 
+        // Đếm lifetime: 1 trận thắng (mọi chế độ) cho Thành tựu "Chiến binh".
+        PlayerStatsManager.Instance?.AddBattleWin();
+
         // Thông báo quest system về trận thắng
         if (QuestManager.Instance != null && BattleDataManager.Instance != null)
             QuestManager.Instance.RegisterBattleWin(BattleDataManager.Instance.GetBattleMode());
@@ -1146,6 +1152,7 @@ public class TurnSystem : MonoBehaviour
                     }
 
                     towerBosses.AdvanceToNextFloor();
+                    PlayerStatsManager.Instance?.RecordTowerFloor(towerBosses.highestFloorReached);
 
                     // Cache kết quả để SaveAndLoadSystem apply sau khi load cloud xong ở firstsave
                     towerBosses.cachedCompletedFloorNumber = currentFloor.floorNumber;
@@ -1207,6 +1214,7 @@ public class TurnSystem : MonoBehaviour
 
                     wildSlimes.tamedSlimes.Add(tamedSlime);
                     wildSlimes.slimes.Remove(wildSlimeTraits);
+                    PlayerStatsManager.Instance?.RecordCapture(tamedSlime.wildSlimeTraits);
 
                     if (SaveAndLoadSystem.Instance != null)
                     {

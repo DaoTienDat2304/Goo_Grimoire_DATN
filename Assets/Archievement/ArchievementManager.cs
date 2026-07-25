@@ -1,36 +1,52 @@
 using System.Collections.Generic;
-using System.Net.Sockets;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/// <summary>
+/// Quản lý Thành tựu — chạy theo AchievementCatalog (định nghĩa bằng code) và chấm điểm
+/// thật từ PlayerStatsManager. Mở khóa → thưởng GEM → lưu. Tái dùng prefab UI cũ.
+/// </summary>
 public class ArchievementManager : MonoBehaviour
 {
-    public List<ArchievementPre> listArchievement;
+    // ── Giữ lại field cũ để không vỡ tham chiếu trong scene ──
+    public List<ArchievementPre> listArchievement; // (không còn dùng cho logic — giữ cho scene)
     public GameObject ArchievementPrefab;
     public GameObject visualprefab;
-    public Dictionary<string,Archievement> disarchievement = new Dictionary<string,Archievement>();
     public CanvasGroup CanvasGroup;
     public SlimeWorldManager slimeWorldManager;
 
     public Sprite unlockSprite;
     public Sprite coin;
     public Sprite gem;
+
     [Header("Sorting")]
-    public int sortingOrder = 9999; // bảo đảm Achievement UI trên cùng
+    public int sortingOrder = 9999;
+
     [Header("Options")]
     [Tooltip("Nếu bật, mỗi lần nhấn Play tất cả thành tựu sẽ được reset (xóa PlayerPrefs).")]
-    public bool resetAchievementsOnPlay = true;
-    private static ArchievementManager instance;
+    public bool resetAchievementsOnPlay = false;
+
     public Button archivementButton;
     public Button closeButton;
+
     public static ArchievementManager Instance { get; private set; }
+
+    private const string PrefKeyPrefix = "ACH_";
+
+    private class Row
+    {
+        public AchievementDef def;
+        public GameObject go;
+        public bool unlocked;
+    }
+
+    private readonly List<Row> rows = new List<Row>();
+    private bool _built;
+    private bool _evaluating;
 
     private void Awake()
     {
-        if(Instance != null && Instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -39,15 +55,14 @@ public class ArchievementManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    private void OnEnable()  { PlayerStatsManager.OnStatsChanged += HandleStatsChanged; }
+    private void OnDisable() { PlayerStatsManager.OnStatsChanged -= HandleStatsChanged; }
 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        archivementButton.onClick.AddListener(hideUI);
-        closeButton.onClick.AddListener(hideUI);
+        if (archivementButton != null) archivementButton.onClick.AddListener(hideUI);
+        if (closeButton != null) closeButton.onClick.AddListener(hideUI);
 
-        // Đồng bộ trạng thái raycast theo alpha hiện tại
         if (CanvasGroup != null)
         {
             bool visible = CanvasGroup.alpha > 0.99f;
@@ -55,168 +70,236 @@ public class ArchievementManager : MonoBehaviour
             CanvasGroup.interactable = visible;
         }
 
-        // Bảo đảm Canvas của Achievement nằm trên cùng và có raycaster
         EnsureTopSorting();
 
-        foreach (ArchievementPre pre in listArchievement)
+        if (resetAchievementsOnPlay) ClearAllPrefs();
+
+        BuildRows();
+        EvaluateAll();
+    }
+
+    // ── Dựng UI từ catalog ──────────────────────────────────────────────
+    private void BuildRows()
+    {
+        if (_built || ArchievementPrefab == null) return;
+
+        var parent = GameObject.Find("general");
+
+        foreach (var def in AchievementCatalog.All)
         {
-            createprefab(pre);
+            GameObject go = Instantiate(ArchievementPrefab);
+            go.name = PrefKeyPrefix + def.Id;
+
+            SetChildText(go, 0, def.Title);
+            SetChildText(go, 1, def.Description);
+            SetChildText(go, 4, $"+{def.GemReward} Gem");
+            SetIconSprite(go, gem);
+
+            if (parent != null)
+            {
+                go.transform.SetParent(parent.transform, false);
+                go.transform.SetAsLastSibling();
+            }
+            go.transform.localScale = Vector3.one;
+
+            var row = new Row
+            {
+                def = def,
+                go = go,
+                unlocked = PlayerPrefs.GetInt(PrefKeyPrefix + def.Id, 0) == 1
+            };
+            rows.Add(row);
+        }
+        _built = true;
+    }
+
+    // ── Chấm điểm & mở khóa ─────────────────────────────────────────────
+    private void HandleStatsChanged() => EvaluateAll();
+
+    public void EvaluateAll()
+    {
+        if (!_built || _evaluating) return;
+        _evaluating = true;
+        bool anyNew = false;
+
+        try
+        {
+            bool changedInPass;
+            do
+            {
+                changedInPass = false;
+                foreach (var row in rows)
+                {
+                    long cur = Current(row.def);
+                    if (!row.unlocked && cur >= row.def.Target)
+                    {
+                        Unlock(row);
+                        anyNew = true;
+                        changedInPass = true; // gem thưởng có thể mở khóa bậc khác → quét lại
+                    }
+                    UpdateRowVisual(row, cur);
+                }
+            } while (changedInPass);
+        }
+        finally
+        {
+            _evaluating = false;
+        }
+
+        if (anyNew)
+        {
+            PlayerPrefs.Save();
+            SaveAndLoadSystem.Instance?.Save();
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Unlock(Row row)
     {
+        row.unlocked = true;
+        PlayerPrefs.SetInt(PrefKeyPrefix + row.def.Id, 1);
 
+        if (row.def.GemReward > 0 && CurrencyManager.Instance != null)
+            CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, row.def.GemReward);
+
+        Debug.Log($"[Achievement] Mở khóa '{row.def.Title}' (+{row.def.GemReward} Gem)");
+    }
+
+    private long Current(AchievementDef def)
+    {
+        var st = PlayerStatsManager.Instance;
+        if (st == null) return 0;
+
+        switch (def.Metric)
+        {
+            case AchievementMetric.TotalBred:      return st.TotalSlimesBred;
+            case AchievementMetric.DistinctTraits: return st.DistinctTraitsCount;
+            case AchievementMetric.CoinsEarned:    return st.TotalCoinsEarned;
+            case AchievementMetric.GemsEarned:     return st.TotalGemsEarned;
+            case AchievementMetric.FarmWins:       return st.TotalFarmWins;
+            case AchievementMetric.Captures:       return st.TotalCaptures;
+            case AchievementMetric.RarityObtained: return st.GetRarityObtained(def.RarityTarget);
+            case AchievementMetric.TowerFloor:     return st.HighestTowerFloor;
+            case AchievementMetric.BattleWins:     return st.TotalBattleWins;
+            case AchievementMetric.Mutations:      return st.TotalMutations;
+            case AchievementMetric.OwnedSlimes:
+                return BreedingManager.Instance != null ? BreedingManager.Instance.GetAllSlimes().Count : 0;
+            default: return 0;
+        }
+    }
+
+    private void UpdateRowVisual(Row row, long cur)
+    {
+        if (row.go == null) return;
+
+        var bg = row.go.GetComponent<Image>();
+        var icon = GetChildImage(row.go, 2);
+
+        if (row.unlocked)
+        {
+            if (bg != null) bg.color = Color.yellow;
+            if (icon != null) icon.color = Color.white;
+            SetChildText(row.go, 1, $"{row.def.Description}  (Đã đạt)");
+        }
+        else
+        {
+            if (bg != null) bg.color = Color.white;
+            if (icon != null) icon.color = new Color(1, 1, 1, 0.4f);
+            long shown = cur > row.def.Target ? row.def.Target : cur;
+            SetChildText(row.go, 1, $"{row.def.Description}  ({shown}/{row.def.Target})");
+        }
+
+        // Đã mở khóa → phủ panel đen mờ che lại.
+        QuestUIEffects.SetDimmed(row.go, row.unlocked);
+    }
+
+    /// <summary>Nạp lại trạng thái mở khóa từ PlayerPrefs (gọi sau khi load save).</summary>
+    public void ReloadUnlockStates()
+    {
+        if (!_built) return;
+        foreach (var row in rows)
+        {
+            row.unlocked = PlayerPrefs.GetInt(PrefKeyPrefix + row.def.Id, 0) == 1;
+        }
+        EvaluateAll();
+    }
+
+    // ── Shim tương thích code cũ (BreedingManager/Quest/BuildingSlot gọi) ──
+    public void GetArchivement(int dex) => EvaluateAll();
+
+    // ── UI helpers ──────────────────────────────────────────────────────
+    private static void SetChildText(GameObject go, int childIndex, string text)
+    {
+        if (go == null || childIndex >= go.transform.childCount) return;
+        var t = go.transform.GetChild(childIndex).GetComponentInChildren<Text>();
+        if (t != null) t.text = text;
+    }
+
+    private static Image GetChildImage(GameObject go, int childIndex)
+    {
+        if (go == null || childIndex >= go.transform.childCount) return null;
+        return go.transform.GetChild(childIndex).GetComponentInChildren<Image>();
+    }
+
+    private void SetIconSprite(GameObject go, Sprite sprite)
+    {
+        if (sprite == null) return;
+        var img = GetChildImage(go, 2);
+        if (img != null) img.sprite = sprite;
+    }
+
+    private void ClearAllPrefs()
+    {
+        foreach (var def in AchievementCatalog.All)
+            PlayerPrefs.DeleteKey(PrefKeyPrefix + def.Id);
+        PlayerPrefs.Save();
     }
 
     [ContextMenu("Reset All Achievements")]
     public void ResetAllAchievements()
     {
-        if (listArchievement == null) return;
-        foreach (ArchievementPre pre in listArchievement)
+        ClearAllPrefs();
+        foreach (var row in rows)
         {
-            if (pre != null && !string.IsNullOrEmpty(pre.name))
-            {
-                PlayerPrefs.DeleteKey(pre.name);
-            }
-        }
-        PlayerPrefs.Save();
-
-        // Cập nhật lại UI nếu đã khởi tạo
-        foreach (var kv in disarchievement)
-        {
-            var a = kv.Value;
-            if (a != null && a.ArchievementRef != null)
-            {
-                var img = a.ArchievementRef.GetComponent<Image>();
-                if (img != null) img.color = Color.white;
-                var icon = a.ArchievementRef.transform.GetChild(2).GetComponentInChildren<Image>();
-                if (icon != null) icon.color = new Color(1,1,1,0.3f);
-            }
-        }
-    }
-
-    void createprefab(ArchievementPre pre,int progresstion = 0)
-    {
-        string progess = progresstion > 0 ? "" : string.Empty ;
-
-        GameObject archieve = Instantiate(ArchievementPrefab);
-        archieve.transform.GetChild(0).GetComponentInChildren<Text>().text = pre.title;
-        archieve.transform.GetChild(1).GetComponentInChildren<Text>().text = pre.description;
-        archieve.transform.GetChild(2).GetComponentInChildren<Image>().sprite = pre.sprite;
-        //archieve.transform.GetChild(3).GetComponentInChildren<Image>().sprite = pre.currencyReward.GetRewardtype() == "Coins" ? coin:gem;
-        archieve.transform.GetChild(4).GetComponentInChildren<Text>().text = pre.currencyReward.GetRewardDescription();
-        archieve.name = pre.name;
-        Archievement newarchievement = new Archievement(pre.name, pre.description, archieve,pre.targetValue);
-        disarchievement.Add(pre.title, newarchievement);
-        var general = GameObject.Find("general");
-        if (general != null)
-        {
-            archieve.transform.SetParent(general.transform, false);
-            archieve.transform.SetAsLastSibling();
-        }
-        archieve.transform.localScale = new Vector3(1, 1, 1);
-        
-        // Lưu reference đến currency reward để sử dụng sau
-        if (pre.currencyReward != null)
-        {
-            // Tạo một component tạm để lưu currency reward
-            var rewardHolder = archieve.AddComponent<AchievementRewardHolder>();
-            rewardHolder.currencyReward = pre.currencyReward;
+            row.unlocked = false;
+            UpdateRowVisual(row, Current(row.def));
         }
     }
 
     private void EnsureTopSorting()
     {
-        // Chỉ áp dụng sorting cho panel của Achievement (CanvasGroup holder)
         var target = CanvasGroup != null ? CanvasGroup.gameObject : this.gameObject;
         var canvas = target.GetComponent<Canvas>();
-        if (canvas == null)
-        {
-            canvas = target.AddComponent<Canvas>();
-        }
+        if (canvas == null) canvas = target.AddComponent<Canvas>();
 
-        // Đảm bảo có GraphicRaycaster để panel chặn click xuống dưới
-        if (target.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
-        {
-            target.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-        }
+        if (target.GetComponent<GraphicRaycaster>() == null)
+            target.AddComponent<GraphicRaycaster>();
 
-        // Không thay đổi render mode của Canvas cha; chỉ overrideSorting tại panel này
-        // Giữ nguyên renderMode hiện tại của canvas con
         canvas.overrideSorting = true;
         canvas.sortingOrder = sortingOrder;
 
-        // Đồng bộ sorting layer với Canvas cha (nếu có) để giữ nguyên layer
-        var parentCanvas = target.transform.parent != null ? target.transform.parent.GetComponentInParent<Canvas>() : null;
-        if (parentCanvas != null)
-        {
-            canvas.sortingLayerID = parentCanvas.sortingLayerID;
-        }
+        var parentCanvas = target.transform.parent != null
+            ? target.transform.parent.GetComponentInParent<Canvas>() : null;
+        if (parentCanvas != null) canvas.sortingLayerID = parentCanvas.sortingLayerID;
 
-        // Đưa panel lên cuối cùng trong hierarchy để đảm bảo ở trên trong cùng layer
         target.transform.SetAsLastSibling();
 
-        // Đảm bảo có EventSystem trong scene để nhận input
         if (UnityEngine.EventSystems.EventSystem.current == null)
         {
-            new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
-        }
-    }
-
-    public void GetArchivement(int dex)
-    {
-        switch(dex)
-        {
-            case 0:
-                EarnArchievement("Breed");
-                EarnArchievement("Breed 2");
-                EarnArchievement("Breed 3");
-                break;
-            case 1:
-                EarnArchievement("secret");
-                EarnArchievement("secret 2");
-                EarnArchievement("secret 3");
-                break;
-            case 2:
-                EarnArchievement("build 2");
-                EarnArchievement("build");
-                break;
-            case 3:
-                EarnArchievement("quest 2");
-                EarnArchievement("quest");
-                Debug.Log("test quest");
-                break;
-        }
-    }    
-
-    void EarnArchievement(string Title)
-    {
-        if (disarchievement[Title].EarnArchievement())
-        {
-            Debug.Log("get Something");
-
-            // Thưởng currency nếu có
-            var achievement = disarchievement[Title];
-            var rewardHolder = achievement.ArchievementRef.GetComponent<AchievementRewardHolder>();
-            if (rewardHolder != null && rewardHolder.currencyReward != null)
-            {
-                achievement.GiveCurrencyReward(rewardHolder.currencyReward);
-                Debug.Log($"Achievement '{Title}' đã thưởng: {rewardHolder.currencyReward.GetRewardDescription()}");
-            }
-
-            SaveAndLoadSystem.Instance?.Save();
+            new GameObject("EventSystem",
+                typeof(UnityEngine.EventSystems.EventSystem),
+                typeof(UnityEngine.EventSystems.StandaloneInputModule));
         }
     }
 
     public void hideUI()
     {
-        if (CanvasGroup != null && CanvasGroup.alpha == 0)
+        if (CanvasGroup == null) return;
+        if (CanvasGroup.alpha == 0)
         {
             CanvasGroup.alpha = 1;
             CanvasGroup.blocksRaycasts = true;
             CanvasGroup.interactable = true;
+            EvaluateAll();
         }
         else
         {
@@ -225,7 +308,4 @@ public class ArchievementManager : MonoBehaviour
             CanvasGroup.interactable = false;
         }
     }
-
-
-    
 }

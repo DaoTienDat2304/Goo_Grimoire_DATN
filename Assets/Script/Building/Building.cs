@@ -19,9 +19,10 @@ public class Building : ScriptableObject
     /// </summary>
     public bool CanAfford()
     {
+        if (BuildingManager.FreeBuildMode) return true; // Tạm thời: bỏ điều kiện tiền.
         if (CurrencyManager.Instance == null) return false;
         if (currencyCosts == null) return true;
-        
+
         return CurrencyManager.Instance.HasEnoughCurrency(currencyCosts.rewards);
     }
 
@@ -30,9 +31,10 @@ public class Building : ScriptableObject
     /// </summary>
     public bool Purchase()
     {
+        if (BuildingManager.FreeBuildMode) return true; // Tạm thời: xây miễn phí, không trừ tiền.
         if (!CanAfford()) return false;
         if (currencyCosts == null) return true;
-        
+
         return CurrencyManager.Instance.SpendCurrency(currencyCosts.rewards);
     }
 

@@ -130,7 +130,13 @@ public class SlimeDisplayBehavior : MonoBehaviour, IPointerClickHandler, IPointe
     private string GetStatsText()
     {
         if (slime == null) return "HP: 0 ATK: 0 DEF: 0";
-        return $"HP: {slime.totalHP} ATK: {slime.totalAttack} DEF: {slime.totalDefense}";
+        // Hiển thị ĐẦY ĐỦ chỉ số, theo đúng giá trị thực chiến (giống trong trận).
+        int effAtk = BattleStatFormula.EffectiveAttack(slime.totalAttack, slime.totalCritRate, slime.totalCritDMG);
+        float finalCritRate = BattleStatFormula.FinalCritRate(slime.totalCritRate);
+        float finalCritDMG = BattleStatFormula.FinalCritDMG(slime.totalCritRate, slime.totalCritDMG);
+        return $"HP: {slime.totalHP}  ATK: {effAtk}  Magic: {slime.totalMagicAttack}\n" +
+               $"DEF: {slime.totalDefense}  SPD: {slime.totalSpeed}\n" +
+               $"Crit Rate: {finalCritRate * 100f:0.#}%  Crit DMG: {finalCritDMG * 100f:0.#}%";
     }
     
     private string GetBreedingStatus()

@@ -109,7 +109,21 @@ public class TraitInstance
         baseCritRate = 0f;
         baseCritDMG = 0f;
 
-        bool isLowRarity = (Rarity == Rarity.Common || Rarity == Rarity.Uncommon);
+        // Secret: slime Secret dùng chỉ số BODY-ONLY (xem Slime.CalculateStats), nên body phải
+        // mang ĐỦ mọi chỉ số. Roll full-block theo chuẩn StatBalance.Secret (khớp GDD/battle) —
+        // đồng thời sửa lỗi cũ khiến Secret bị ATK/Magic/Crit = 0.
+        if (Rarity == Rarity.Secret && TraitType == TraitType.Body)
+        {
+            var rs = StatBalance.Get(Rarity.Secret);
+            baseHP = HP = Random.Range(rs.hpMin, rs.hpMax + 1);
+            baseAttack = attack = Random.Range(rs.atkMin, rs.atkMax + 1);
+            baseMagicAttack = magicAttack = Random.Range(rs.magMin, rs.magMax + 1);
+            baseDefense = defense = Random.Range(rs.defMin, rs.defMax + 1);
+            baseSpeed = speed = Random.Range(rs.spdMin, rs.spdMax + 1);
+            baseCritRate = critRate = rs.critRate;
+            baseCritDMG = critDMG = rs.critDmg;
+            return;
+        }
 
         if (TraitType == TraitType.Body)
         {
@@ -123,45 +137,19 @@ public class TraitInstance
         }
         else if (TraitType == TraitType.Weapon)
         {
+            // Design: MỌI độ hiếm đều có ATK và Magic ATK (bỏ random 50% cho bậc thấp).
             baseAttack = RollGDDATK(Rarity);
             attack = baseAttack;
-
-            if (!isLowRarity)
-            {
-                baseMagicAttack = RollGDDMagicATK(Rarity);
-                magicAttack = baseMagicAttack;
-            }
-            else
-            {
-                if (Random.Range(0, 2) == 0)
-                {
-                    baseMagicAttack = RollGDDMagicATK(Rarity);
-                    magicAttack = baseMagicAttack;
-                }
-            }
+            baseMagicAttack = RollGDDMagicATK(Rarity);
+            magicAttack = baseMagicAttack;
         }
         else if (TraitType == TraitType.Armor || TraitType == TraitType.special)
         {
-            if (!isLowRarity)
-            {
-                baseCritRate = RollGDDCritRate(Rarity);
-                baseCritDMG = RollGDDCritDMG(Rarity);
-                critRate = baseCritRate;
-                critDMG = baseCritDMG;
-            }
-            else
-            {
-                if (Random.Range(0, 2) == 0)
-                {
-                    baseCritRate = RollGDDCritRate(Rarity);
-                    critRate = baseCritRate;
-                }
-                else
-                {
-                    baseCritDMG = RollGDDCritDMG(Rarity);
-                    critDMG = baseCritDMG;
-                }
-            }
+            // Design: MỌI độ hiếm đều có CẢ Crit Rate & Crit Damage (bỏ random chỉ 1 trong 2).
+            baseCritRate = RollGDDCritRate(Rarity);
+            baseCritDMG = RollGDDCritDMG(Rarity);
+            critRate = baseCritRate;
+            critDMG = baseCritDMG;
         }
     }
 
@@ -175,7 +163,7 @@ public class TraitInstance
             case Rarity.SuperRare: return Random.Range(5500, 10001);
             case Rarity.UltraRare: return Random.Range(9000, 16001);
             case Rarity.Legendary: return Random.Range(14000, 25001);
-            case Rarity.Mythic:    return Random.Range(2200, 50001); // Wait, GDD Mythic HP is 22000 - 50000. Let's fix that typo from my thoughts: 22000 to 50001!
+            case Rarity.Mythic:    return Random.Range(22000, 50001); // GDD Mythic HP: 22000 - 50000 (khớp StatBalance)
             case Rarity.Secret:    return Random.Range(9000, 16001);
             default:               return Random.Range(1000, 2001);
         }
@@ -279,11 +267,15 @@ public class TraitInstance
 
     public void RecalculateStats(float newMultiplier)
     {
-        // GDD overrides multipliers, but we keep this for consistency if needed
+        // GDD: chỉ số ATK/DEF/SPD là GIÁ TRỊ CUỐI CÙNG — KHÔNG nhân hệ số độ hiếm nữa.
+        // (Trước đây nhân rarityMultiplier lúc load khiến slime đã-lưu mạnh lệch so với slime
+        //  mới-tạo/battle. Nay mọi nơi đều dùng đúng giá trị GDD/StatBalance.)
+        attack = baseAttack;
+        defense = baseDefense;
+        speed = baseSpeed;
+
+        // Sức mạnh kỹ năng vẫn scale theo độ hiếm như GDD.
         float rarityMultiplier = GetRarityMultiplier(Rarity);
-        attack = Mathf.RoundToInt(baseAttack * rarityMultiplier);
-        defense = Mathf.RoundToInt(baseDefense * rarityMultiplier);
-        speed = Mathf.RoundToInt(baseSpeed * rarityMultiplier);
         if (skill != null) skill.power = rarityMultiplier * 1.5f;
     }
 

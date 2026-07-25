@@ -99,6 +99,7 @@ public class tamingManager : MonoBehaviour
                 Destroy(note.gameObject);
             }
             wildSlimes.tamedSlimes.Add(curSlime);
+            PlayerStatsManager.Instance?.RecordCapture(curSlime.wildSlimeTraits);
             for (int i = slimeSpawner.activeSlimes.Count - 1; i >= 0; i--)
             {
                 var t = slimeSpawner.activeSlimes[i];

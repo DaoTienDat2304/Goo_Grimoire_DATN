@@ -80,17 +80,29 @@ public class SlimeBattleStats : MonoBehaviour
     {
         if (baseStats == null) return;
 
-        // Nếu là boss (enemy), buff stats theo Remote Config (mặc định 3x)
-        float bossMultiplier = RemoteConfigManager.Instance != null
-            ? RemoteConfigManager.Instance.BossStatMultiplier : 3f;
-        float multiplier = baseStats.isEnemy ? bossMultiplier : 1f;
-
-        MaxHP = Mathf.RoundToInt((baseStats.MaxHP + maxHPBonus) * multiplier);
+        if (baseStats.isEnemy && baseStats.useRarityBossScaling)
+        {
+            // Adventure: hệ số Boss theo ĐỘ HIẾM & TỪNG chỉ số (design "Hệ số chỉ số Boss").
+            var m = BossStatScaling.Get(baseStats.enemyRarity);
+            MaxHP = Mathf.RoundToInt((baseStats.MaxHP + maxHPBonus) * m.hp);
+            BattleAttack = Mathf.RoundToInt(baseStats.Attack * m.atk);
+            BattleMagicAttack = Mathf.RoundToInt(baseStats.MagicAttack * m.magic);
+            BattleDefense = Mathf.RoundToInt(baseStats.Defense * m.def);
+            BattleSpeed = Mathf.RoundToInt((baseStats.Speed + speedBonus) * m.speed);
+        }
+        else
+        {
+            // Tower/khác: giữ hệ số phẳng theo Remote Config (mặc định 3x); đồng minh = 1x.
+            float multiplier = baseStats.isEnemy
+                ? (RemoteConfigManager.Instance != null ? RemoteConfigManager.Instance.BossStatMultiplier : 3f)
+                : 1f;
+            MaxHP = Mathf.RoundToInt((baseStats.MaxHP + maxHPBonus) * multiplier);
+            BattleAttack = Mathf.RoundToInt(baseStats.Attack * multiplier);
+            BattleMagicAttack = Mathf.RoundToInt(baseStats.MagicAttack * multiplier);
+            BattleDefense = Mathf.RoundToInt(baseStats.Defense * multiplier);
+            BattleSpeed = Mathf.RoundToInt((baseStats.Speed + speedBonus) * multiplier);
+        }
         CurrentHP = MaxHP;
-        BattleAttack = Mathf.RoundToInt(baseStats.Attack * multiplier);
-        BattleMagicAttack = Mathf.RoundToInt(baseStats.MagicAttack * multiplier);
-        BattleDefense = Mathf.RoundToInt(baseStats.Defense * multiplier);
-        BattleSpeed = Mathf.RoundToInt((baseStats.Speed + speedBonus) * multiplier);
 
         BattleCritRate = baseStats.CritRate;
         BattleCritDMG = baseStats.CritDMG;
@@ -129,54 +141,42 @@ public class SlimeBattleStats : MonoBehaviour
         currentEnergy = Mathf.Max(0, currentEnergy - amount);
     }
 
-    // Dynamic stats computation taking conversion into account
+    // Dynamic stats computation taking conversion into account.
+    // Toàn bộ công thức nằm ở BattleStatFormula để đồng bộ với hiển thị ngoài trận.
     public float GetEffectiveCritRate()
     {
-        float rate = BattleCritRate;
         // critChance is additional buff from skills, represented as percentage (e.g. 10 means +10% or +0.10f)
-        rate += critChance / 100f;
-        return rate;
+        return BattleStatFormula.EffectiveCritRate(BattleCritRate, critChance);
     }
 
     public float GetEffectiveCritDMG()
     {
-        float rate = GetEffectiveCritRate();
-        float excessCritRate = Mathf.Max(0f, rate - 0.75f);
-        float dmg = BattleCritDMG + excessCritRate; // 1:1 conversion
-        return dmg;
+        return BattleStatFormula.EffectiveCritDMG(BattleCritRate, BattleCritDMG, critChance);
     }
 
     public int GetEffectiveAttack()
     {
-        float critDmg = GetEffectiveCritDMG();
-        float excessCritDmg = Mathf.Max(0f, critDmg - 2.50f);
-        int atkBonus = Mathf.RoundToInt(excessCritDmg * 100f * 5f); // 1% excess = 5 ATK
-        return BattleAttack + atkBonus;
+        return BattleStatFormula.EffectiveAttack(BattleAttack, BattleCritRate, BattleCritDMG, critChance);
     }
 
     public int GetEffectiveMagicAttack()
     {
-        float critDmg = GetEffectiveCritDMG();
-        float excessCritDmg = Mathf.Max(0f, critDmg - 2.50f);
-        int matkBonus = Mathf.RoundToInt(excessCritDmg * 100f * 5f); // 1% excess = 5 Magic ATK
-        return BattleMagicAttack + matkBonus;
+        return BattleStatFormula.EffectiveMagicAttack(BattleMagicAttack, BattleCritRate, BattleCritDMG, critChance);
     }
 
     public float GetFinalCritDMG()
     {
-        float critDmg = GetEffectiveCritDMG();
-        return Mathf.Min(2.50f, critDmg); // capped at 250% (2.50)
+        return BattleStatFormula.FinalCritDMG(BattleCritRate, BattleCritDMG, critChance);
     }
 
     public float GetFinalCritRate()
     {
-        float rate = GetEffectiveCritRate();
-        return Mathf.Min(0.75f, rate); // capped at 75% (0.75)
+        return BattleStatFormula.FinalCritRate(BattleCritRate, critChance);
     }
 
     public void TakeDamage(int rawDamage)
     {
-        float defReduction = Mathf.Min(0.80f, BattleDefense * 0.012f);
+        float defReduction = BattleStatFormula.DefenseReduction(BattleDefense);
         float finalDamage = rawDamage * (1f - defReduction);
 
         finalDamage *= (1f - (damageReduction / 100f));

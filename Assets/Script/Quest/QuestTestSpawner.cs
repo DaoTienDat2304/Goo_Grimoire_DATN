@@ -38,8 +38,12 @@ public class QuestTestSpawner : MonoBehaviour
         }
     }
 
+    [Tooltip("Đã thay bằng MissionCatalog nạp qua QuestManager. Giữ tắt để tránh spawn quest trùng.")]
+    public bool disabled = true;
+
     void Start()
     {
+        if (disabled) return; // Nhiệm vụ giờ nạp từ MissionCatalog (QuestManager). Không spawn ở đây.
         foreach (var quest in quests)
         {
             quest.state = Quest.QuestState.Locked;
@@ -53,6 +57,7 @@ public class QuestTestSpawner : MonoBehaviour
 
     void Update()
     {
+        if (disabled) return;
         UnlockQuest();
         
         foreach (var quest in quests)

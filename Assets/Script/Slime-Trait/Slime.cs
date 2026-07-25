@@ -198,6 +198,16 @@ public class Slime
         return trait;
     }
 
+    // Độ hiếm "đại diện" của slime = trait cao nhất (dùng cho hệ số Boss, hiển thị...).
+    public Rarity GetHighestRarity()
+    {
+        Rarity r = Rarity.Common;
+        if (body != null && (int)body.Rarity > (int)r) r = body.Rarity;
+        if (armor != null && (int)armor.Rarity > (int)r) r = armor.Rarity;
+        if (weapon != null && (int)weapon.Rarity > (int)r) r = weapon.Rarity;
+        return r;
+    }
+
     public void CalculateStats()
     {
         if (body != null && body.Rarity == Rarity.Secret)

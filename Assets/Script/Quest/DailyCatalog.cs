@@ -1,0 +1,53 @@
+using System.Collections.Generic;
+
+/// <summary>Chỉ số của 1 daily — đều là counter TÍCH LUỸ để tính "delta trong ngày".</summary>
+public enum DailyMetric
+{
+    TotalBred,
+    BattleWins,
+    Captures,
+    FarmWins,
+    CoinsEarned,
+    TowerFloor,     // dùng HighestTowerFloor (delta = leo cao hơn bao nhiêu tầng so với đầu ngày)
+    RareObtained    // số slime Rare trở lên sở hữu thêm trong ngày
+}
+
+/// <summary>1 nhiệm vụ hàng ngày (data thuần). Thưởng VÀNG.</summary>
+public class DailyDef
+{
+    public int Id;
+    public string Name;
+    public string Description;
+    public DailyMetric Metric;
+    public long Target;
+    public int GoldReward;
+
+    public DailyDef(int id, string name, string desc, DailyMetric metric, long target, int gold)
+    {
+        Id = id; Name = name; Description = desc; Metric = metric; Target = target; GoldReward = gold;
+    }
+}
+
+/// <summary>
+/// Pool nhiệm vụ hàng ngày (code). Mỗi ngày chọn ngẫu nhiên DailyMissionManager.DailyCount cái.
+/// ID bắt đầu từ 2001 để không đụng nhiệm vụ chính (1001+) hay quest asset cũ.
+/// </summary>
+public static class DailyCatalog
+{
+    private static List<DailyDef> _all;
+    public static List<DailyDef> All => _all ??= Build();
+
+    private static List<DailyDef> Build() => new List<DailyDef>
+    {
+        new DailyDef(2001, "Lai một lứa", "Lai tạo 1 slime hôm nay",         DailyMetric.TotalBred,   1,   150),
+        new DailyDef(2002, "Ra sân",      "Thắng 1 trận hôm nay",            DailyMetric.BattleWins,  1,   150),
+        new DailyDef(2003, "Đi săn",      "Bắt 1 slime hoang hôm nay",       DailyMetric.Captures,    1,   200),
+        new DailyDef(2004, "Cày vàng",    "Thắng 1 trận Farm hôm nay",       DailyMetric.FarmWins,    1,   200),
+        new DailyDef(2005, "Kiếm cơm",    "Kiếm 500 vàng hôm nay",           DailyMetric.CoinsEarned, 500, 300),
+        new DailyDef(2006, "Leo một tầng","Vượt thêm 1 tầng tháp hôm nay",   DailyMetric.TowerFloor,  1,   250),
+        new DailyDef(2007, "Săn hiếm",    "Sở hữu thêm 1 slime Rare+ hôm nay",DailyMetric.RareObtained,1,  400),
+        new DailyDef(2008, "Chiến đấu",   "Thắng 3 trận hôm nay",            DailyMetric.BattleWins,  3,   350),
+    };
+
+    public static DailyDef ById(int id) => All.Find(d => d.Id == id);
+}

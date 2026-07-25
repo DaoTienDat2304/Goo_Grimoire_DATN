@@ -87,6 +87,8 @@ public class SaveAndLoadSystem : MonoBehaviour
                 if (BreedingManager.Instance != null)
                     BreedingManager.Instance.CreateInitialSlimes();
             }
+            // Tài khoản mới: khởi tạo bộ daily đầu tiên.
+            DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
             Save(); // lưu ngay để lần sau login/replay có sẵn
         }
 
@@ -155,6 +157,8 @@ public class SaveAndLoadSystem : MonoBehaviour
         SerializeTamedSlimes(data);
         SerializeTowerFloors(data);
         SerializeFarmDifficulties(data);
+        SerializeStats(data);
+        SerializeDaily(data);
 
         var json = JsonUtility.ToJson(data, true);
 
@@ -192,6 +196,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         DeserializeBreedingSession(data); // sau khi slimes đã có (tra bố mẹ theo id)
         DeserializeTeam(data);
         DeserializeBuildings(data);
+        DeserializeDaily(data);   // trước Quests để daily quest có mặt khi khôi phục state
         DeserializeQuests(data);
         DeserializeAchievements(data);
         if (!CurrencyManager.Instance.firstLoadDone)
@@ -202,8 +207,9 @@ public class SaveAndLoadSystem : MonoBehaviour
             DeserializeFarmDifficulties(data);
         }  
         DeserializeResources(data);
+        DeserializeStats(data);
         //DeserializeTamedSlimes(data);
-        
+
         breedingUI.RefreshAllUI();
         SlimeWorldManager.RefreshWorldSlimes();
         slimeInventory.RefreshAllUI();
@@ -245,6 +251,9 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         var bm = BreedingManager.Instance;
         if (bm != null) bm.SetAllSlimes(new List<Slime>());
+
+        // Tài khoản mới → xoá sạch bộ đếm lifetime.
+        PlayerStatsManager.Instance?.ResetAll();
     }
 
     // ---------- Team ----------
@@ -333,6 +342,37 @@ public class SaveAndLoadSystem : MonoBehaviour
         {
             ResourceManager.Instance.SetResource(entry.type, entry.amount);
         }
+    }
+
+    // ---------- Daily missions ----------
+    void SerializeDaily(GameSaveData data)
+    {
+        DailyMissionManager.Instance?.WriteTo(data);
+    }
+
+    void DeserializeDaily(GameSaveData data)
+    {
+        DailyMissionManager.Instance?.ApplyLoad(
+            data.lastDailyResetDate, data.todayDailyIDs, data.todayDailyBaselines, data.dailyStreakClaimed);
+    }
+
+    // ---------- Stats (bộ đếm lifetime cho Thành tựu/Nhiệm vụ) ----------
+    void SerializeStats(GameSaveData data)
+    {
+        var st = PlayerStatsManager.Instance;
+        if (st == null) return;
+        st.WriteTo(data);
+    }
+
+    void DeserializeStats(GameSaveData data)
+    {
+        var st = PlayerStatsManager.Instance;
+        if (st == null) return;
+        st.LoadFrom(data);
+
+        // Bootstrap ledger trait cho save cũ: gộp trait của các slime đang sở hữu.
+        var bm = BreedingManager.Instance;
+        if (bm != null) st.MergeOwnedSlimeTraits(bm.GetAllSlimes());
     }
 
     // ---------- Slimes ----------
@@ -663,43 +703,32 @@ public class SaveAndLoadSystem : MonoBehaviour
     // ---------- Achievements ----------
     void SerializeAchievements(GameSaveData data)
     {
-        var am = ArchievementManager.Instance;
-        if (am == null || am.listArchievement == null) return;
-
-        // Use manager dictionary if initialized; else from prefabs list
-        foreach (var pre in am.listArchievement)
+        // Lưu theo AchievementCatalog (định nghĩa bằng code). Trạng thái mở khóa nằm ở PlayerPrefs "ACH_{id}".
+        foreach (var def in AchievementCatalog.All)
         {
-            if (pre == null) continue;
-            var name = pre.name;
-            bool unlocked = PlayerPrefs.GetInt(name, 0) == 1; // fallback to existing storage
-            data.achievements.Add(new AchievementDTO { name = name, unlocked = unlocked });
+            string key = "ACH_" + def.Id;
+            data.achievements.Add(new AchievementDTO
+            {
+                name = key,
+                unlocked = PlayerPrefs.GetInt(key, 0) == 1
+            });
         }
     }
 
     void DeserializeAchievements(GameSaveData data)
     {
-        var am = ArchievementManager.Instance;
-        if (am == null) return;
-
-        foreach (var a in data.achievements)
+        if (data.achievements != null)
         {
-            PlayerPrefs.SetInt(a.name, a.unlocked ? 1 : 0);
-        }
-        PlayerPrefs.Save();
-
-        // If manager already built UI, reapply visuals
-        if (am.disarchievement != null)
-        {
-            foreach (var kv in am.disarchievement)
+            foreach (var a in data.achievements)
             {
-                var name = kv.Key;
-                var ach = kv.Value;
-                if (PlayerPrefs.GetInt(name, 0) == 1)
-                {
-                    ach.saveArchievement(true);
-                }
+                if (string.IsNullOrEmpty(a.name)) continue;
+                PlayerPrefs.SetInt(a.name, a.unlocked ? 1 : 0);
             }
+            PlayerPrefs.Save();
         }
+
+        // Đồng bộ lại UI/visual thành tựu theo trạng thái vừa nạp.
+        ArchievementManager.Instance?.ReloadUnlockStates();
     }
 
     // ---------- Tamed Slimes ----------

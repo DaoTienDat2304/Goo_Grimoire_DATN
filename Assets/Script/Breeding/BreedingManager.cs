@@ -178,6 +178,7 @@ public class BreedingManager : MonoBehaviour
         var s1 = GetSpecialSlime("", secret[Random.Range(0,secret.Length)], fixed1Armor, fixed1Weapon);
         showslot.SetActive(true);
         if (s1 != null) allSlimes.Add(s1);
+        PlayerStatsManager.Instance?.RecordSecretObtained(s1);
         s1.canBreed = false;
         var slotScript = showslot.GetComponentInChildren<viewslime>();
         if (slotScript != null)
@@ -357,6 +358,7 @@ public class BreedingManager : MonoBehaviour
 
         if (AudioManager.Instance != null) AudioManager.Instance.PlayBreedingSFX();
         if (ArchievementManager.Instance != null) ArchievementManager.Instance.GetArchivement(0);
+        PlayerStatsManager.Instance?.RecordBreed(offspring);
 
         SaveAndLoadSystem.Instance?.Save();
     }

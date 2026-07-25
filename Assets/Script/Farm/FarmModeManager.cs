@@ -317,6 +317,9 @@ public class FarmModeManager : MonoBehaviour
             }
         }
         
+        // Đếm lifetime: 1 lần thắng Farm (cho Thành tựu "Nông dân").
+        PlayerStatsManager.Instance?.AddFarmWin();
+
         // Đánh dấu đã hoàn thành
         if (completedIndex >= 0 && completedIndex < difficulties.Count)
         {

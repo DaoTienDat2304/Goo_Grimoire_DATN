@@ -9,6 +9,12 @@ public class QuestManager : MonoBehaviour
     [Header("Dependencies")]
     public BreedingManager breedingManager;
     public TowerSlimeBosses towerDatabase;
+
+    [Header("Mission Catalog (định nghĩa bằng code)")]
+    [Tooltip("Tự nạp chuỗi nhiệm vụ chính từ MissionCatalog khi Start.")]
+    public bool autoLoadMissionCatalog = true;
+    [Tooltip("Xoá các quest cũ đang có trước khi nạp catalog.")]
+    public bool clearExistingOnLoad = true;
     
     private static QuestManager instance;
     public static QuestManager Instance
@@ -44,7 +50,52 @@ public class QuestManager : MonoBehaviour
     
     void Start()
     {
+        // Tự tìm QuestUIManager nếu chưa gán trong Inspector (để nạp UI không cần wire tay).
+        if (questUIManager == null) questUIManager = FindAnyObjectByType<QuestUIManager>();
+
         InitializeQuests();
+
+        if (autoLoadMissionCatalog) LoadMissionCatalog();
+    }
+
+    /// <summary>
+    /// Nạp chuỗi nhiệm vụ chính từ MissionCatalog (code) thành CatalogQuest runtime.
+    /// Không cần tạo asset trong Unity — tái dùng toàn bộ state machine &amp; UI sẵn có.
+    /// </summary>
+    public void LoadMissionCatalog()
+    {
+        if (clearExistingOnLoad && allQuests != null)
+        {
+            foreach (var old in new List<Quest>(allQuests))
+                if (old != null) RemoveQuest(old);
+        }
+
+        foreach (var def in MissionCatalog.All)
+        {
+            var q = ScriptableObject.CreateInstance<CatalogQuest>();
+            q.questID = def.Id;
+            q.questName = def.Name;
+            q.description = def.Description;
+            q.slimeRequirement = 0;
+            q.questreq = def.PrereqId >= 0 ? new List<int> { def.PrereqId } : new List<int>();
+
+            q.metric = def.Metric;
+            q.rarityTarget = def.RarityTarget;
+            q.target = def.Target;
+
+            q.currencyReward = new CurrencyReward(CurrencyType.Coins, def.GoldReward);
+            q.reward = new QuestReward
+            {
+                rewardType = "coins",
+                amount = def.GoldReward,
+                description = $"{def.GoldReward} vàng"
+            };
+            q.state = Quest.QuestState.Locked;
+
+            AddQuest(q);
+        }
+
+        Debug.Log($"[Mission] Đã nạp {MissionCatalog.All.Count} nhiệm vụ chính từ catalog.");
     }
     
     void Update()
@@ -184,7 +235,12 @@ public class QuestManager : MonoBehaviour
                 towerQuest.towerDatabase = towerDatabase;
             questCompleted = towerQuest.CheckCompletion();
         }
-        
+        else
+        {
+            // CatalogQuest (định nghĩa bằng code) & mọi loại quest khác: chấm trực tiếp.
+            questCompleted = quest.CheckCompletion();
+        }
+
         // Cập nhật UI
         if (questUIManager != null)
         {

@@ -7139,6 +7139,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2071fca2165486048916db65d84445e5, type: 2}
   breedingManager: {fileID: 1798320931}
   questUIManager: {fileID: 581005835}
+  disabled: 1
 --- !u!4 &639932995
 Transform:
   m_ObjectHideFlags: 0
@@ -7181,6 +7182,8 @@ MonoBehaviour:
   questUIManager: {fileID: 581005835}
   breedingManager: {fileID: 1798320931}
   towerDatabase: {fileID: 0}
+  autoLoadMissionCatalog: 1
+  clearExistingOnLoad: 1
 --- !u!1 &653363083
 GameObject:
   m_ObjectHideFlags: 0
@@ -18665,7 +18668,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -85, y: -85}
+  m_AnchoredPosition: {x: -109, y: -196.42}
   m_SizeDelta: {x: 118, y: 118}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1064359243

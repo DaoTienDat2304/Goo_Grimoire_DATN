@@ -22,6 +22,24 @@ public class GameSaveData
     public int towerHighestFloor = 0;    // highestFloorReached của TowerSlimeBosses
     public List<FarmDifficultyDTO> farmDifficulties = new List<FarmDifficultyDTO>(); // Lưu trạng thái farm difficulties
     public BreedingSessionDTO breedingSession; // Phiên lai tạo đang chạy (mục 3), null nếu không có
+
+    // ─── Bộ đếm tích luỹ (lifetime) — nền tảng cho Thành tựu & Nhiệm vụ ───
+    public long totalSlimesBred;
+    public int  totalFarmWins;
+    public int  totalCaptures;
+    public int  totalBattleWins;
+    public int  totalMutations;
+    public long totalCoinsEarned;
+    public long totalGemsEarned;
+    public int  towerHighestFloorStat;                            // tầng tháp cao nhất (cho thành tựu leo tháp)
+    public List<int> rarityObtainedCount = new List<int>();      // đếm theo (int)Rarity, 8 phần tử
+    public List<string> unlockedTraitsEver = new List<string>(); // ledger trait KHÁC NHAU đã-từng-thấy
+
+    // ─── Nhiệm vụ hàng ngày (Daily) ───
+    public string lastDailyResetDate;                            // "yyyy-MM-dd" của bộ daily hiện tại
+    public List<int> todayDailyIDs = new List<int>();            // ID các daily được chọn hôm nay
+    public List<long> todayDailyBaselines = new List<long>();    // baseline counter lúc sang ngày (song song IDs)
+    public bool dailyStreakClaimed;                              // đã nhận bonus hoàn thành cả 3 chưa
 }
 
 [Serializable]

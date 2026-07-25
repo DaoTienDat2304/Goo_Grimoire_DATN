@@ -30,8 +30,10 @@ public class QuestUIManager : MonoBehaviour
         if (general != null)
         {
             newItem.transform.SetParent(general.transform, false);
-            newItem.transform.SetAsLastSibling();
         }
+        // Daily luôn đẩy lên đầu danh sách; nhiệm vụ thường xuống cuối.
+        if (quest is DailyQuest) newItem.transform.SetAsFirstSibling();
+        else newItem.transform.SetAsLastSibling();
 
         // Tìm các component UI
         TMP_Text[] texts = newItem.GetComponentsInChildren<TMP_Text>();
@@ -88,6 +90,7 @@ public class QuestUIManager : MonoBehaviour
             UpdateQuestDisplay(quest, texts, progression, questBackground, progressBar, claimButton);
         }
 
+        QuestUIEffects.SetDimmed(newItem, quest.state == Quest.QuestState.Rewarded);
         questItems.Add(quest.questID, newItem);
     }
 
@@ -104,6 +107,7 @@ public class QuestUIManager : MonoBehaviour
         Button claimButton = questItem.GetComponentInChildren<Button>();
 
         UpdateQuestDisplay(quest, texts, progresion, questBackground, progressBar, claimButton);
+        QuestUIEffects.SetDimmed(questItem, quest.state == Quest.QuestState.Rewarded);
     }
 
     private void UpdateQuestDisplay(Quest quest, TMP_Text[] texts, Text progresion, Image questBackground, Slider progressBar, Button claimButton)

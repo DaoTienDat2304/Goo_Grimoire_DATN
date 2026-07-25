@@ -26,12 +26,15 @@ public class ShowSlime : MonoBehaviour
     public Text DEF;
     public Text ATK;
     public Text SPD;
-    public Text EVA;
+    public Text EVA;       // dùng cho Crit Rate
+    public Text MAGIC;     // Magic ATK — ô Text riêng (kéo-thả trong Inspector)
+    public Text CRITDMG;   // Crit Damage — ô Text riêng (kéo-thả trong Inspector)
 
 
     private Slime slime;
     private TraitSO trait;
     private bool isSelected = false;
+    private bool _statsArranged = false;
 
     public void SetupSlime(Slime newSlime)
     {
@@ -61,6 +64,7 @@ public class ShowSlime : MonoBehaviour
 
     private void UpdateUI()
     {
+        ArrangeStatTexts();
         if(slime.body.Rarity != Rarity.Secret)
         {
             slimeshow.SetActive(true);
@@ -80,11 +84,19 @@ public class ShowSlime : MonoBehaviour
             special.text = $"Name : {slime.slimeName}";
         }
 
+        // Hiển thị theo đúng chỉ số THỰC CHIẾN (giống trong trận, player không có hệ số boss/buff).
+        int effAtk = BattleStatFormula.EffectiveAttack(slime.totalAttack, slime.totalCritRate, slime.totalCritDMG);
+        float finalCritRate = BattleStatFormula.FinalCritRate(slime.totalCritRate);
+        float finalCritDMG = BattleStatFormula.FinalCritDMG(slime.totalCritRate, slime.totalCritDMG);
+
+        // Mỗi chỉ số 1 ô Text RIÊNG, mỗi ô đúng 1 dòng — tự do sắp xếp vị trí trong scene.
         HP.text = $"Health : {slime.totalHP}";
+        ATK.text = $"Attack : {effAtk}";
         DEF.text = $"Defense : {slime.totalDefense}";
-        ATK.text = $"Attack : {slime.totalAttack}";
         SPD.text = $"Speed : {slime.totalSpeed}";
-        EVA.text = $"crit : {slime.totalCritRate:P0} (x{slime.totalCritDMG:0.##})";
+        EVA.text = $"Crit Rate : {finalCritRate:P0}";
+        if (MAGIC != null) MAGIC.text = $"Magic ATK : {slime.totalMagicAttack}";
+        if (CRITDMG != null) CRITDMG.text = $"Crit Damage : {finalCritDMG * 100f:0.#}%";
 
 
         if (slime.body.Rarity != Rarity.Secret)
@@ -114,6 +126,54 @@ public class ShowSlime : MonoBehaviour
             bodyRenderer.sortingOrder = 2;
         }
     }
+    // Tự tạo 2 ô Text còn thiếu (Magic ATK, Crit Damage) & tự xếp 7 ô thành 2 cột dọc: trái 4 — phải 3.
+    // Chạy 1 lần. Lưu ý: chỉ hiệu lực nếu panel KHÔNG dùng Layout Group (nếu có, layout group sẽ đè vị trí).
+    private void ArrangeStatTexts()
+    {
+        if (_statsArranged) return;
+        if (HP == null) return; // cần ô HP làm mẫu
+        _statsArranged = true;
+
+        if (MAGIC == null) MAGIC = CloneStatText("MagicText");
+        if (CRITDMG == null) CRITDMG = CloneStatText("CritDmgText");
+
+        var baseRt = HP.rectTransform;
+        Vector2 start = baseRt.anchoredPosition;
+        float rowH = (baseRt.rect.height > 1f ? baseRt.rect.height : 36f) + 6f;   // khoảng cách dòng
+        float boxW = Mathf.Max(baseRt.rect.width > 1f ? baseRt.rect.width : 200f, 320f); // nới rộng ô cho chữ dài
+        float colW = boxW + 40f;                                                  // khoảng cách 2 cột
+
+        Text[] leftCol  = { HP, ATK, MAGIC, DEF };   // cột trái: 4 chỉ số
+        Text[] rightCol = { SPD, EVA, CRITDMG };     // cột phải: 3 chỉ số
+
+        for (int i = 0; i < leftCol.Length; i++)
+            PlaceStat(leftCol[i], baseRt, start.x, start.y - i * rowH, boxW);
+        for (int i = 0; i < rightCol.Length; i++)
+            PlaceStat(rightCol[i], baseRt, start.x + colW, start.y - i * rowH, boxW);
+    }
+
+    private Text CloneStatText(string newName)
+    {
+        var clone = Instantiate(HP.gameObject, HP.transform.parent);
+        clone.name = newName;
+        return clone.GetComponent<Text>();
+    }
+
+    private void PlaceStat(Text t, RectTransform baseRt, float x, float y, float width)
+    {
+        if (t == null) return;
+        var rt = t.rectTransform;
+        rt.anchorMin = baseRt.anchorMin;
+        rt.anchorMax = baseRt.anchorMax;
+        rt.pivot = baseRt.pivot;
+        rt.sizeDelta = new Vector2(width, baseRt.sizeDelta.y);
+        rt.anchoredPosition = new Vector2(x, y);
+        // Không bao giờ cắt chữ: cho tràn ngang/dọc để chỉ số dài (Crit Damage : 130%) luôn hiện đủ.
+        t.horizontalOverflow = HorizontalWrapMode.Overflow;
+        t.verticalOverflow = VerticalWrapMode.Overflow;
+        t.resizeTextForBestFit = false;
+    }
+
     private void OnEnable()
     {
         if (named != null)

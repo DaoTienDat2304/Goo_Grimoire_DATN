@@ -324,26 +324,28 @@ public class SlimeEggSystem : MonoBehaviour
         }
 
         StatQuality quality = RollQuality(out float roll);
-        StatRange range = GetRange(rarity);
+        // Dùng CHUNG bảng StatBalance (chuẩn GDD) — cùng scale với TraitInstance/battle & hệ lai tạo,
+        // để slime nở-từ-trứng không còn lệch chỉ số so với slime cùng độ hiếm ở nơi khác.
+        StatBalance.Range range = StatBalance.Get(rarity);
 
-        // Một quality roll dùng chung cho mọi chỉ số (God Roll = mạnh đồng đều). Map vào
+        // Một quality roll dùng chung cho mọi chỉ số ranged (God Roll = mạnh đồng đều). Map vào
         // model main: HP/DEF/Speed ở Body, ATK/Magic ở Weapon, Crit ở Armor (Head).
         if (slime.body != null)
         {
             slime.body.HP = slime.body.baseHP = LerpInt(range.hpMin, range.hpMax, roll);
             slime.body.defense = slime.body.baseDefense = LerpInt(range.defMin, range.defMax, roll);
-            slime.body.speed = slime.body.baseSpeed = LerpInt(range.speedMin, range.speedMax, roll);
+            slime.body.speed = slime.body.baseSpeed = LerpInt(range.spdMin, range.spdMax, roll);
         }
         if (slime.weapon != null)
         {
             slime.weapon.attack = slime.weapon.baseAttack = LerpInt(range.atkMin, range.atkMax, roll);
-            slime.weapon.magicAttack = slime.weapon.baseMagicAttack = LerpInt(range.magicMin, range.magicMax, roll);
+            slime.weapon.magicAttack = slime.weapon.baseMagicAttack = LerpInt(range.magMin, range.magMax, roll);
         }
         if (slime.armor != null)
         {
-            // Range crit lưu theo % (15–20, 120–130) → đổi sang đơn vị main: rate=phân số, dmg=hệ số nhân.
-            slime.armor.critRate = slime.armor.baseCritRate = Mathf.Lerp(range.critRateMin, range.critRateMax, roll) / 100f;
-            slime.armor.critDMG = slime.armor.baseCritDMG = Mathf.Lerp(range.critDamageMin, range.critDamageMax, roll) / 100f;
+            // GDD: Crit là giá trị cố định theo độ hiếm, đã đúng đơn vị (rate=phân số, dmg=hệ số nhân).
+            slime.armor.critRate = slime.armor.baseCritRate = range.critRate;
+            slime.armor.critDMG = slime.armor.baseCritDMG = range.critDmg;
         }
         slime.eggStatRollPercent = roll * 100f;
         slime.eggStatQuality = quality.ToString();
@@ -381,26 +383,7 @@ public class SlimeEggSystem : MonoBehaviour
         return quality;
     }
 
-    private struct StatRange
-    {
-        public int hpMin, hpMax, atkMin, atkMax, magicMin, magicMax, defMin, defMax, speedMin, speedMax;
-        public float critRateMin, critRateMax, critDamageMin, critDamageMax;
-    }
-
-    private static StatRange GetRange(Rarity rarity)
-    {
-        switch (rarity)
-        {
-            case Rarity.Uncommon: return R(2000,2700,450,650,600,850,700,1000,88,103,20,28,130,140);
-            case Rarity.Rare: return R(2700,3700,600,850,800,1100,900,1300,95,110,28,36,140,155);
-            case Rarity.SuperRare: return R(3700,5000,800,1100,1050,1450,1200,1700,100,118,36,45,155,170);
-            case Rarity.UltraRare: return R(5000,6500,1000,1400,1350,1850,1600,2300,108,125,45,55,170,190);
-            default: return R(1500,2000,350,500,450,650,500,800,80,95,15,20,120,130);
-        }
-    }
-
-    private static StatRange R(int a,int b,int c,int d,int e,int f,int g,int h,int i,int j,float k,float l,float m,float n)
-    { return new StatRange { hpMin=a,hpMax=b,atkMin=c,atkMax=d,magicMin=e,magicMax=f,defMin=g,defMax=h,speedMin=i,speedMax=j,critRateMin=k,critRateMax=l,critDamageMin=m,critDamageMax=n }; }
+    // Range chỉ số nở-từ-trứng nay lấy từ StatBalance (chuẩn GDD) — xem GenerateEggSlime.
     private static int LerpInt(int min, int max, float t) => Mathf.RoundToInt(Mathf.Lerp(min, max, t));
     private bool TryGetEgg(int index, out Egg egg) { egg = index >= 0 && index < eggs.Count ? eggs[index] : null; return egg != null; }
     private void SaveAndNotify() { SaveState(); EggsChanged?.Invoke(); }

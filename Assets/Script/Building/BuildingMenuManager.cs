@@ -71,11 +71,10 @@ public class BuildingMenuManager : MonoBehaviour
             }
             else
             {
-                if (b.slimeRequirement > breedingManager.GetAllSlimes().Count) b.buildable = false;
-                else
-                {
-                     b.buildable = true;
-                }
+                // Tạm thời: FreeBuildMode → mọi building đều mở khóa (bỏ điều kiện đủ slime).
+                if (BuildingManager.FreeBuildMode) b.buildable = true;
+                else if (breedingManager != null && b.slimeRequirement > breedingManager.GetAllSlimes().Count) b.buildable = false;
+                else b.buildable = true;
             }
 
         }

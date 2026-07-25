@@ -31,9 +31,31 @@ public class SlimeInventory : MonoBehaviour
     private List<GameObject> collectionSlots = new List<GameObject>();
     public float interval = 1f;
     public bool panelBreedingActive;
-    int maxsacrifice = 100;
+    public int maxsacrifice = 100;
     public int sacrifice;
     public Slider Slider;
+    [Tooltip("(Tuỳ chọn) Text hiển thị số điểm hi sinh hiện tại, ví dụ 45/100.")]
+    public Text sacrificeText;
+
+    /// <summary>
+    /// Điểm hi sinh theo độ hiếm của slime. Cộng dồn đủ 100 → summon 1 slime Secret.
+    /// Common 1 · Uncommon 3 · Rare 5 · SuperRare 15 · UltraRare 30 · Legendary 50 · Mythic 100 · Secret 1.
+    /// </summary>
+    public static int SacrificePoints(Rarity r)
+    {
+        switch (r)
+        {
+            case Rarity.Common:    return 1;
+            case Rarity.Uncommon:  return 3;
+            case Rarity.Rare:      return 5;
+            case Rarity.SuperRare: return 15;
+            case Rarity.UltraRare: return 30;
+            case Rarity.Legendary: return 50;
+            case Rarity.Mythic:    return 100;
+            case Rarity.Secret:    return 1;
+            default:               return 1;
+        }
+    }
 
     private void Awake()
     {
@@ -83,19 +105,78 @@ public class SlimeInventory : MonoBehaviour
             // Kiểm tra và refresh nếu có slimes mới được tạo
             CheckAndRefreshIfNeeded();
         }*/
-        if(Slider.value >= 100)
+        // Nút summon chỉ hiện khi ĐÃ chốt đủ 100 điểm (không tính preview).
+        if (button != null) button.gameObject.SetActive(sacrifice >= maxsacrifice);
+
+        if (Slider != null)
         {
-            button.gameObject.SetActive(true);
+            // Preview: thanh dâng lên theo điểm của slime đang chọn (demo). Bỏ chọn → hạ về mốc cũ.
+            float target = Mathf.Min(sacrifice + PreviewPoints(), maxsacrifice);
+            Slider.value = Mathf.MoveTowards(Slider.value, target, 120f * Time.deltaTime);
+
+            // Số X/100 ở vị trí cũ (chữ FUSION) — hoặc sacrificeText nếu đã gán.
+            var disp = GetNumberDisplay();
+            if (disp != null)
+                disp.text = $"{Mathf.Clamp(Mathf.RoundToInt(Slider.value), 0, maxsacrifice)}/{maxsacrifice}";
         }
-        else
+    }
+
+    // Tổng điểm hi sinh của các slime ĐANG được chọn (để preview thanh).
+    private int PreviewPoints()
+    {
+        int sum = 0;
+        if (collectionSlots == null) return 0;
+        foreach (var go in collectionSlots)
         {
-            button.gameObject.SetActive(false);
+            if (go == null) continue;
+            var s = go.GetComponent<InventorySlot>();
+            if (s != null && s.onselect)
+                sum += SacrificePoints(SelectiveBreeding.GetSlimeRarity(s.GetSlime()));
         }
-        
-        if(Slider.value < sacrifice)
-        {
-            Slider.value += 60 * Time.deltaTime;
-        }
+        return sum;
+    }
+
+    private Text cachedNumber;
+
+    // Text hiển thị số X/100: ưu tiên sacrificeText; nếu chưa gán thì TỰ TẠO 1 Text căn GIỮA
+    // bên trong thanh (Slider) — giữ nguyên chữ FUSION.
+    private Text GetNumberDisplay()
+    {
+        if (sacrificeText != null) return sacrificeText;
+        if (cachedNumber != null) return cachedNumber;
+        if (Slider == null) return null;
+
+        var go = new GameObject("SacrificeNumber", typeof(RectTransform), typeof(Text));
+        var rt = go.GetComponent<RectTransform>();
+        rt.SetParent(Slider.transform, false);
+        // Đặt ở ĐÚNG TÂM thanh (anchor + pivot giữa), hộp nhỏ cố định.
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(90f, 28f);
+        rt.anchoredPosition = new Vector2(-5f, 0f); // dịch trái 5 cho khớp tâm thanh
+        rt.localScale = Vector3.one;
+
+        var txt = go.GetComponent<Text>();
+        txt.font = FindAnyFont();
+        txt.alignment = TextAnchor.MiddleCenter;
+        txt.color = Color.white;
+        txt.fontStyle = FontStyle.Bold;
+        txt.raycastTarget = false;
+        // Tự co chữ cho vừa hộp → không bị to.
+        txt.resizeTextForBestFit = true;
+        txt.resizeTextMinSize = 6;
+        txt.resizeTextMaxSize = 16;
+
+        go.transform.SetAsLastSibling(); // nổi trên phần fill để luôn nhìn thấy số
+        cachedNumber = txt;
+        return txt;
+    }
+
+    private Font FindAnyFont()
+    {
+        foreach (var t in GetComponentsInChildren<Text>(true))
+            if (t != null && t.font != null) return t.font;
+        return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
     }
 
     public void summonbutton()

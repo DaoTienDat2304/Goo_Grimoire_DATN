@@ -89,7 +89,9 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
         {
             BreedingManager breedingManager = GameObject.Find("BreedingManager").GetComponent<BreedingManager>();
             breedingManager.removeslime(slime);
-            GetComponentInParent<SlimeInventory>().sacrifice += 30;
+            // Điểm hi sinh theo độ hiếm slime (đủ 100 → summon 1 secret).
+            int points = SlimeInventory.SacrificePoints(SelectiveBreeding.GetSlimeRarity(slime));
+            GetComponentInParent<SlimeInventory>().sacrifice += points;
             
             // Remove slime khỏi team nếu đang trong team
             if (slime != null && slime.isPicked)

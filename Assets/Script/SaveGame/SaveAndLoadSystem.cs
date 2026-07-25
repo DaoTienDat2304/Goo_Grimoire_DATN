@@ -447,6 +447,10 @@ public class SaveAndLoadSystem : MonoBehaviour
             s.id = dto.id;
             list.Add(s);
         }
+
+        // Chuẩn hoá slime cũ về đúng quy chuẩn GDD (Secret/nở-trứng/Mythic-HP). Idempotent.
+        StatStandardMigration.NormalizeAll(list);
+
         bm.SetAllSlimes(list);
 
         // Refresh any world UI/actors that reflect slimes

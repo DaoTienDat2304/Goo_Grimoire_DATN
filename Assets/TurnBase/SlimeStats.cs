@@ -13,6 +13,8 @@ public class SlimeStats : MonoBehaviour
     public float CritRate;
     public float CritDMG;
     public bool isEnemy;
+    public Rarity enemyRarity = Rarity.Common;   // độ hiếm boss (để tra hệ số scale theo design)
+    public bool useRarityBossScaling = false;    // true = dùng bảng BossStatScaling (Adventure); false = giữ hệ số cũ (Tower)
     public SkeletonGraphic skeletonGraphic;
     public Image armor;
     public Image weapon;

@@ -110,7 +110,8 @@ public class WildSlimeTraits : MonoBehaviour
         s.body = bodySo.GenerateInstance();
         s.armor = armorSo.GenerateInstance();
         s.weapon = weaponSo.GenerateInstance();
-        s.CalculateStats();
+        // Enemy Adventure roll chỉ số theo chất lượng design (Good/Excellent/Perfect/God, sàn 40%).
+        AdventureStatRoll.Apply(s); // đã gọi CalculateStats() bên trong
         return s;
     }
     public Sprite CreateDefaultSlimeSprite()

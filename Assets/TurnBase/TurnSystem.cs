@@ -220,6 +220,9 @@ public class TurnSystem : MonoBehaviour
         bossStats.CritRate = slimeData.totalCritRate;
         bossStats.CritDMG = slimeData.totalCritDMG;
         bossStats.isEnemy = true;
+        // Adventure: scale chỉ số boss theo bảng hệ số độ hiếm (design), thay cho ×3 phẳng cũ.
+        bossStats.enemyRarity = slimeData.GetHighestRarity();
+        bossStats.useRarityBossScaling = true;
 
         if (slimeData.body?.skill != null)
             bossStats.bodySkill = slimeData.body.skill;

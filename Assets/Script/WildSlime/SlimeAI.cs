@@ -61,6 +61,14 @@ public class SlimeAI : MonoBehaviour
     public float escapeTargetRefreshTime = 0.45f;
     public float escapeTargetReachDistance = 0.45f;
     public float escapeTargetSideStep = 0.65f;
+
+    [Header("Performance")]
+    [Tooltip("Khoảng thời gian giữa các lần AI quét vật cản khi đi lang thang.")]
+    [SerializeField, Min(0.05f)] private float wanderDecisionInterval = 0.2f;
+    [Tooltip("Khoảng thời gian giữa các lần AI quét vật cản khi chạy trốn.")]
+    [SerializeField, Min(0.03f)] private float escapeDecisionInterval = 0.1f;
+    [Tooltip("Khoảng thời gian giữa các lần kiểm tra bị kẹt bằng physics cast.")]
+    [SerializeField, Min(0.05f)] private float stuckProbeInterval = 0.1f;
     [Header("Fear Learning")]
     [Range(0f, 1f)] public float fearLevel = 0f;
     public float fearGainOnDetect = 0.18f;
@@ -120,6 +128,11 @@ public class SlimeAI : MonoBehaviour
     private float spawnZoneRadius;
     private bool spawnZoneIsRectangle = false;
     private Vector2 spawnZoneSize;
+    private Vector3 cachedMovementDirection;
+    private Vector3 cachedPreferredDirection;
+    private bool cachedDirectionIsEscaping;
+    private float nextMovementDecisionTime;
+    private float nextStuckProbeTime;
 
     void Start()
     {
@@ -133,11 +146,28 @@ public class SlimeAI : MonoBehaviour
         {
             rb.gravityScale = 0;
             rb.freezeRotation = true;
+            // Slime tự điều hướng bằng AI, không cần solver giải va chạm với
+            // tường/player/slime khác. Kinematic + trigger loại bỏ contact storm
+            // khi nhiều slime dồn vào một góc nhưng vẫn nhận được Catcher trigger.
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
+            rb.interpolation = RigidbodyInterpolation2D.None;
         }
+
+        Collider2D slimeCollider = GetComponent<Collider2D>();
+        if (slimeCollider != null)
+            slimeCollider.isTrigger = true;
+
+        // Prefab cũ lưu mask = 0 nên toàn bộ CircleCast trước đây không thấy tường.
+        if (obstacleLayerMask.value == 0)
+            obstacleLayerMask = LayerMask.GetMask("obstacle");
 
         // Khởi tạo vị trí bắt đầu và trạng thái
         startPosition = transform.position;
         currentAngle = Random.Range(0f, 360f);
+        // Chia đều tải AI giữa các frame thay vì để tất cả slime quét physics cùng lúc.
+        nextMovementDecisionTime = Time.time + Random.Range(0f, Mathf.Max(0.05f, wanderDecisionInterval));
+        nextStuckProbeTime = Time.time + Random.Range(0f, Mathf.Max(0.05f, stuckProbeInterval));
         if (player != null) lastPlayerPosition = player.position; // tránh vận tốc player bị sai frame đầu
 
         // Bắt đầu với di chuyển ngẫu nhiên
@@ -265,7 +295,12 @@ public class SlimeAI : MonoBehaviour
         {
             float speed = rb.linearVelocity.magnitude;
             bool wantsToMove = desiredVelocity.magnitude > stuckSpeedThreshold;
-            bool blockedAhead = wantsToMove && IsDirectionBlocked(desiredVelocity.normalized, obstacleDetectionRange * 0.75f);
+            bool blockedAhead = false;
+            if (wantsToMove && Time.time >= nextStuckProbeTime)
+            {
+                nextStuckProbeTime = Time.time + Mathf.Max(0.05f, stuckProbeInterval);
+                blockedAhead = IsDirectionBlocked(desiredVelocity.normalized, obstacleDetectionRange * 0.75f);
+            }
             if ((wantsToMove && speed < stuckSpeedThreshold) || blockedAhead)
             {
                 stuckTimer += Time.fixedDeltaTime;
@@ -691,6 +726,9 @@ public class SlimeAI : MonoBehaviour
         escapeTargetSideStep = Mathf.Clamp01(escapeTargetSideStep);
         panicDistance = Mathf.Min(panicDistance, maxDetectionRange * 0.5f);
         directionSamples = Mathf.Max(8, directionSamples);
+        wanderDecisionInterval = Mathf.Max(0.05f, wanderDecisionInterval);
+        escapeDecisionInterval = Mathf.Max(0.03f, escapeDecisionInterval);
+        stuckProbeInterval = Mathf.Max(0.05f, stuckProbeInterval);
     }
 
     void RefreshFear(float gain)
@@ -824,11 +862,24 @@ public class SlimeAI : MonoBehaviour
         if (preferredDirection.sqrMagnitude <= 0.001f)
             preferredDirection = GetRandomDirection();
 
+        preferredDirection.Normalize();
+        float decisionInterval = escaping ? escapeDecisionInterval : wanderDecisionInterval;
+        bool cacheIsUsable = cachedMovementDirection.sqrMagnitude > 0.001f
+            && cachedDirectionIsEscaping == escaping
+            && Time.time < nextMovementDecisionTime
+            && Vector3.Dot(cachedPreferredDirection, preferredDirection) > 0.65f;
+        if (cacheIsUsable)
+            return cachedMovementDirection;
+
         Vector3 playerPos = player != null ? GetPredictedPlayerPosition() : transform.position;
         float bestScore = -Mathf.Infinity;
-        Vector3 bestDirection = preferredDirection.normalized;
-        int samples = Mathf.Max(8, directionSamples);
-        float leashRadius = GetSoftTerritoryRadius();
+        Vector3 bestDirection = preferredDirection;
+        // 8 hướng đủ cho đi lang thang; lúc chạy trốn cho tối đa 12 hướng.
+        // Giá trị serialized cũ có thể là 16+, nhưng tăng thêm gần như không
+        // cải thiện đường đi trong tilemap trong khi chi phí physics tăng tuyến tính.
+        int samples = escaping
+            ? Mathf.Clamp(directionSamples, 8, 12)
+            : Mathf.Clamp(directionSamples, 8, 8);
 
         for (int i = 0; i < samples; i++)
         {
@@ -856,7 +907,13 @@ public class SlimeAI : MonoBehaviour
             }
         }
 
-        return FindEightDirectionEscape(bestDirection, escaping).normalized;
+        // Vòng quét ở trên đã bao phủ toàn bộ 360 độ. Quét thêm 8 hướng tại đây
+        // chỉ lặp lại physics cast và là nguyên nhân lớn gây spike khi nhiều slime.
+        cachedPreferredDirection = preferredDirection;
+        cachedMovementDirection = bestDirection.normalized;
+        cachedDirectionIsEscaping = escaping;
+        nextMovementDecisionTime = Time.time + Mathf.Max(0.03f, decisionInterval);
+        return cachedMovementDirection;
     }
 
     bool IsDirectionBlocked(Vector3 direction, float distance)

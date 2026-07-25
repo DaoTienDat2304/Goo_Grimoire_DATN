@@ -31418,6 +31418,7 @@ MonoBehaviour:
   minDistanceFromPlayer: 10
   maxDistanceFromPlayer: 30
   maxSpawnAttempts: 30
+  spawnsPerFrame: 2
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -31427,6 +31428,7 @@ MonoBehaviour:
   enableSimulationCulling: 1
   simulationViewportPadding: 0.35
   simulationCullInterval: 0.25
+  maxSimulationActivationsPerPass: 1
   disableRenderersOutsideSimulation: 0
   showDebugGizmos: 1
   spawnAreaColor: {r: 0, g: 1, b: 0, a: 1}
@@ -32343,7 +32345,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &5469993309050902257
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -100072,8 +100072,8 @@ MonoBehaviour:
   slimePrefab: {fileID: 1735325551643414782, guid: 4393ce0e47e4cf34d844a7b3526fb321, type: 3}
   player: {fileID: 358854922}
   spawnRadius: 50
-  minSlimeCount: 19
-  maxSlimeCount: 30
+  minSlimeCount: 8
+  maxSlimeCount: 12
   movementThreshold: 50
   useSpawnerAsZoneCenter: 1
   respawnWhenPlayerMoves: 0
@@ -100084,16 +100084,18 @@ MonoBehaviour:
   minDistanceFromPlayer: 10
   maxDistanceFromPlayer: 30
   maxSpawnAttempts: 30
+  spawnsPerFrame: 2
   obstacleLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 64
   gameplayCamera: {fileID: 0}
   preserveCameraVisibleSlimes: 1
   cameraViewportPadding: 0.08
-  enableSimulationCulling: 0
+  enableSimulationCulling: 1
   simulationViewportPadding: 0.35
-  simulationCullInterval: 0.25
-  disableRenderersOutsideSimulation: 0
+  simulationCullInterval: 0.05
+  maxSimulationActivationsPerPass: 1
+  disableRenderersOutsideSimulation: 1
   showDebugGizmos: 1
   spawnAreaColor: {r: 0, g: 1, b: 0, a: 1}
   minDistanceColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

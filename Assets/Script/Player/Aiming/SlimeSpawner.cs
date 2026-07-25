@@ -1,5 +1,7 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using Spine.Unity;
 
 public class SlimeSpawner : MonoBehaviour
 {
@@ -29,6 +31,7 @@ public class SlimeSpawner : MonoBehaviour
     [SerializeField] private float minDistanceFromPlayer = 10f;
     [SerializeField] private float maxDistanceFromPlayer = 50f;
     [SerializeField] private int maxSpawnAttempts = 50;
+    [SerializeField, Min(1)] private int spawnsPerFrame = 2;
 
     [Header("Spawn Area")]
     [SerializeField] private LayerMask obstacleLayerMask = -1;
@@ -41,8 +44,12 @@ public class SlimeSpawner : MonoBehaviour
     [Header("Simulation Culling")]
     [SerializeField] private bool enableSimulationCulling = true;
     [SerializeField] private float simulationViewportPadding = 0.35f;
-    [SerializeField] private float simulationCullInterval = 0.25f;
-    [SerializeField] private bool disableRenderersOutsideSimulation = false;
+    [SerializeField] private float simulationCullInterval = 0.05f;
+    [SerializeField, Min(1)] private int maxSimulationActivationsPerPass = 1;
+    [SerializeField] private bool disableRenderersOutsideSimulation = true;
+    [SerializeField, Min(1)] private int maxActiveSlimeAI = 4;
+    [SerializeField, Min(1)] private int maxAnimatedSlimes = 6;
+    [SerializeField] private float visualViewportPadding = 0.15f;
 
     [Header("Debug")]
     [SerializeField] private bool showDebugGizmos = false;
@@ -59,6 +66,25 @@ public class SlimeSpawner : MonoBehaviour
     private PlayerMovement playerMovement;
     public int spawnedSlimeCount = 0;
     private float simulationCullTimer = 0f;
+    private Coroutine spawnRoutine;
+    private readonly Dictionary<int, bool> slimeSimulationStates = new Dictionary<int, bool>();
+    private readonly Dictionary<int, bool> slimeVisualStates = new Dictionary<int, bool>();
+    private readonly Dictionary<int, bool> slimeAnimationStates = new Dictionary<int, bool>();
+
+    private void Awake()
+    {
+        // Scene cũ có thể vẫn lưu các giá trị trước khi tối ưu. Ép cấu hình an
+        // toàn ở runtime để mọi map, kể cả map tạo sau này, có cùng hành vi.
+        simulationCullInterval = Mathf.Min(simulationCullInterval, 0.05f);
+        maxSimulationActivationsPerPass = Mathf.Max(1, maxSimulationActivationsPerPass);
+        disableRenderersOutsideSimulation = true;
+        maxActiveSlimeAI = Mathf.Clamp(maxActiveSlimeAI, 1, 4);
+        maxAnimatedSlimes = Mathf.Clamp(maxAnimatedSlimes, maxActiveSlimeAI, 6);
+        // 8 slime hiển thị tốt trên màn hình nhỏ nhưng nhẹ hơn đáng kể so với
+        // 10-12 bộ mesh Spine, collider và trait object ở các scene cũ.
+        maxSlimeCount = Mathf.Min(maxSlimeCount, 8);
+        minSlimeCount = Mathf.Min(minSlimeCount, maxSlimeCount);
+    }
 
     void Start()
     {
@@ -108,6 +134,14 @@ public class SlimeSpawner : MonoBehaviour
 
     void SpawnSlimes()
     {
+        if (spawnRoutine != null)
+            StopCoroutine(spawnRoutine);
+
+        spawnRoutine = StartCoroutine(SpawnSlimesOverFrames());
+    }
+
+    IEnumerator SpawnSlimesOverFrames()
+    {
         CleanupSlimesForRespawn();
 
         int targetSlimeCount = maxSlimeCount;
@@ -115,16 +149,25 @@ public class SlimeSpawner : MonoBehaviour
 
         Debug.Log($"Keeping {activeSlimes.Count} slimes, spawning {slimeCountToSpawn} more...");
 
+        int spawnedThisFrame = 0;
         for (int i = 0; i < slimeCountToSpawn; i++)
         {
             Vector3 spawnPosition = GetRandomSpawnPosition();
             if (spawnPosition != Vector3.zero)
             {
                 SpawnSingleSlime(spawnPosition);
+                spawnedThisFrame++;
+            }
+
+            if (spawnedThisFrame >= Mathf.Max(1, spawnsPerFrame))
+            {
+                spawnedThisFrame = 0;
+                yield return null;
             }
         }
 
         Debug.Log($"Active slimes after spawn: {activeSlimes.Count}");
+        spawnRoutine = null;
     }
 
     public Vector3 GetRandomSpawnPosition()
@@ -208,7 +251,9 @@ public class SlimeSpawner : MonoBehaviour
             Debug.LogWarning("Slime prefab does not have SlimeAI component!");
         }
 
-        ApplySlimeSimulationState(newSlime, ShouldSimulateSlime(newSlime));
+        // Để vòng culling ở Update xử lý sau khi Start của WildSlimeTraits đã
+        // tạo xong renderer và Spine animation. Nếu tắt ngay tại đây, các
+        // component hình ảnh được tạo sau đó sẽ không nhận trạng thái culling.
     }
 
     void CleanupSlimesForRespawn()
@@ -240,6 +285,7 @@ public class SlimeSpawner : MonoBehaviour
             if (IsInsideCameraViewport(slime.transform.position, cam, cameraViewportPadding))
                 continue;
 
+            ForgetSlimeState(slime);
             Destroy(slime);
             activeSlimes.RemoveAt(i);
         }
@@ -278,6 +324,7 @@ public class SlimeSpawner : MonoBehaviour
         {
             if (slime != null)
             {
+                ForgetSlimeState(slime);
                 Destroy(slime);
             }
         }
@@ -369,11 +416,66 @@ public class SlimeSpawner : MonoBehaviour
         simulationCullTimer = Mathf.Max(0.02f, simulationCullInterval);
         activeSlimes.RemoveAll(slime => slime == null);
 
+        Camera cam = GetGameplayCamera();
+        Vector3 focusPosition = player != null
+            ? player.position
+            : (cam != null ? cam.transform.position : transform.position);
+        int activationsLeft = Mathf.Max(1, maxSimulationActivationsPerPass);
         for (int i = 0; i < activeSlimes.Count; i++)
         {
             GameObject slime = activeSlimes[i];
-            ApplySlimeSimulationState(slime, ShouldSimulateSlime(slime));
+            bool shouldRender = cam == null
+                || IsInsideCameraViewport(slime.transform.position, cam, visualViewportPadding);
+            int closerSlimes = CountCloserVisibleSlimes(slime, focusPosition, cam);
+            bool shouldSimulate = shouldRender && closerSlimes < maxActiveSlimeAI;
+            bool shouldAnimate = shouldRender && closerSlimes < maxAnimatedSlimes;
+            int instanceId = slime.GetInstanceID();
+            bool isSimulating = slimeSimulationStates.TryGetValue(instanceId, out bool state) && state;
+
+            // Tắt đối tượng ngoài màn hình ngay, nhưng chỉ bật một số ít slime
+            // mỗi nhịp để tránh AI, physics và Spine cùng khởi động trong một frame.
+            if (shouldSimulate && !isSimulating)
+            {
+                if (activationsLeft <= 0)
+                    continue;
+                activationsLeft--;
+            }
+
+            ApplySlimeSimulationState(slime, shouldSimulate);
+            ApplySlimeVisualState(slime, shouldRender, shouldAnimate);
         }
+    }
+
+    void ForgetSlimeState(GameObject slime)
+    {
+        if (slime == null)
+            return;
+
+        int instanceId = slime.GetInstanceID();
+        slimeSimulationStates.Remove(instanceId);
+        slimeVisualStates.Remove(instanceId);
+        slimeAnimationStates.Remove(instanceId);
+    }
+
+    int CountCloserVisibleSlimes(GameObject target, Vector3 focusPosition, Camera cam)
+    {
+        float targetDistance = ((Vector2)(target.transform.position - focusPosition)).sqrMagnitude;
+        int closerCount = 0;
+
+        for (int i = 0; i < activeSlimes.Count; i++)
+        {
+            GameObject other = activeSlimes[i];
+            if (other == null || other == target)
+                continue;
+            if (cam != null && !IsInsideCameraViewport(other.transform.position, cam, visualViewportPadding))
+                continue;
+
+            float otherDistance = ((Vector2)(other.transform.position - focusPosition)).sqrMagnitude;
+            if (otherDistance < targetDistance)
+                closerCount++;
+        }
+
+        return closerCount;
     }
 
     bool ShouldSimulateSlime(GameObject slime)
@@ -393,6 +495,12 @@ public class SlimeSpawner : MonoBehaviour
         if (slime == null)
             return;
 
+        int instanceId = slime.GetInstanceID();
+        if (slimeSimulationStates.TryGetValue(instanceId, out bool currentState) && currentState == shouldSimulate)
+            return;
+
+        slimeSimulationStates[instanceId] = shouldSimulate;
+
         SlimeAI slimeAI = slime.GetComponent<SlimeAI>();
         if (slimeAI != null && slimeAI.enabled != shouldSimulate)
             slimeAI.enabled = shouldSimulate;
@@ -402,26 +510,45 @@ public class SlimeSpawner : MonoBehaviour
         {
             if (!shouldSimulate)
                 slimeRb.linearVelocity = Vector2.zero;
-
-            if (slimeRb.simulated != shouldSimulate)
-                slimeRb.simulated = shouldSimulate;
+            // Rigidbody kinematic + trigger rất rẻ. Giữ simulated để catcher
+            // vẫn bắt được cả slime đang ở chế độ AI nhẹ.
+            if (!slimeRb.simulated)
+                slimeRb.simulated = true;
         }
-        else
-        {
-            Collider2D[] colliders = slime.GetComponentsInChildren<Collider2D>(true);
-            for (int i = 0; i < colliders.Length; i++)
-            {
-                colliders[i].enabled = shouldSimulate;
-            }
-        }
+    }
 
-        if (disableRenderersOutsideSimulation)
+    void ApplySlimeVisualState(GameObject slime, bool shouldRender, bool shouldAnimate)
+    {
+        if (slime == null)
+            return;
+
+        int instanceId = slime.GetInstanceID();
+        bool visualChanged = !slimeVisualStates.TryGetValue(instanceId, out bool currentVisual)
+            || currentVisual != shouldRender;
+        if (disableRenderersOutsideSimulation && visualChanged)
         {
+            slimeVisualStates[instanceId] = shouldRender;
             Renderer[] renderers = slime.GetComponentsInChildren<Renderer>(true);
             for (int i = 0; i < renderers.Length; i++)
-            {
-                renderers[i].enabled = shouldSimulate;
-            }
+                renderers[i].enabled = shouldRender;
+        }
+
+        bool animationChanged = !slimeAnimationStates.TryGetValue(instanceId, out bool currentAnimation)
+            || currentAnimation != shouldAnimate;
+        if (animationChanged)
+        {
+            slimeAnimationStates[instanceId] = shouldAnimate;
+            SkeletonAnimation[] spineAnimations = slime.GetComponentsInChildren<SkeletonAnimation>(true);
+            for (int i = 0; i < spineAnimations.Length; i++)
+                spineAnimations[i].enabled = shouldAnimate;
+        }
+
+        Rigidbody2D slimeRb = slime.GetComponent<Rigidbody2D>();
+        if (slimeRb != null && slimeRb.simulated != shouldRender)
+        {
+            if (!shouldRender)
+                slimeRb.linearVelocity = Vector2.zero;
+            slimeRb.simulated = shouldRender;
         }
     }
 

@@ -1,0 +1,126 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
+
+/// <summary>
+/// Giữ lại nhiều mesh chunk Tilemap hơn để camera không phải dựng lại chunk
+/// liên tục khi người chơi qua lại giữa các vùng trên mobile.
+/// </summary>
+public static class MobileTilemapOptimizer
+{
+    private const int CachedChunkCount = 32;
+    private const int CachedFrameAge = 120;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Initialize()
+    {
+        ApplyToLoadedTilemaps();
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        ApplyToLoadedTilemaps();
+    }
+
+    private static void ApplyToLoadedTilemaps()
+    {
+        TilemapRenderer[] renderers = Object.FindObjectsByType<TilemapRenderer>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            TilemapRenderer tilemapRenderer = renderers[i];
+            if (tilemapRenderer == null)
+                continue;
+
+            tilemapRenderer.maxChunkCount = Mathf.Max(tilemapRenderer.maxChunkCount, CachedChunkCount);
+            tilemapRenderer.maxFrameAge = Mathf.Max(tilemapRenderer.maxFrameAge, CachedFrameAge);
+        }
+
+        OptimizeObstacleColliders();
+        OptimizePlayerPhysics();
+    }
+
+    /// <summary>
+    /// Các scene cũ có CompositeCollider2D nhưng TilemapCollider2D không gửi
+    /// geometry vào composite. Kết quả là mỗi tile Rock tạo một fixture/contact
+    /// riêng. Khi player tì vào mép nhiều tile, solver phải giải một contact
+    /// storm mỗi FixedUpdate.
+    /// </summary>
+    private static void OptimizeObstacleColliders()
+    {
+        TilemapCollider2D[] tilemapColliders = Object.FindObjectsByType<TilemapCollider2D>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < tilemapColliders.Length; i++)
+        {
+            TilemapCollider2D tilemapCollider = tilemapColliders[i];
+            if (tilemapCollider == null || tilemapCollider.gameObject.layer != LayerMask.NameToLayer("obstacle"))
+                continue;
+
+            GameObject obstacleObject = tilemapCollider.gameObject;
+            Rigidbody2D body = obstacleObject.GetComponent<Rigidbody2D>();
+            if (body == null)
+                body = obstacleObject.AddComponent<Rigidbody2D>();
+
+            body.bodyType = RigidbodyType2D.Static;
+            body.simulated = true;
+            body.useFullKinematicContacts = false;
+            body.interpolation = RigidbodyInterpolation2D.None;
+            body.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
+
+            CompositeCollider2D composite = obstacleObject.GetComponent<CompositeCollider2D>();
+            if (composite == null)
+                composite = obstacleObject.AddComponent<CompositeCollider2D>();
+
+            // Gộp các ô liền nhau và loại bớt vertex cực nhỏ không nhìn thấy.
+            composite.geometryType = CompositeCollider2D.GeometryType.Outlines;
+            composite.vertexDistance = Mathf.Max(composite.vertexDistance, 0.02f);
+            composite.edgeRadius = Mathf.Max(composite.edgeRadius, 0.01f);
+            composite.callbackLayers = 0;
+            composite.contactCaptureLayers = 0;
+
+            tilemapCollider.compositeOperation = Collider2D.CompositeOperation.Merge;
+            tilemapCollider.callbackLayers = 0;
+            tilemapCollider.contactCaptureLayers = 0;
+
+            // Scene không thay tile Rock trong lúc chơi, chỉ dựng geometry một lần.
+            composite.GenerateGeometry();
+        }
+    }
+
+    private static void OptimizePlayerPhysics()
+    {
+        PlayerMovement[] players = Object.FindObjectsByType<PlayerMovement>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < players.Length; i++)
+        {
+            PlayerMovement player = players[i];
+            if (player == null)
+                continue;
+
+            Rigidbody2D body = player.GetComponent<Rigidbody2D>();
+            if (body != null)
+            {
+                body.interpolation = RigidbodyInterpolation2D.Interpolate;
+                body.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
+                body.sleepMode = RigidbodySleepMode2D.StartAwake;
+            }
+
+            Collider2D[] colliders = player.GetComponents<Collider2D>();
+            for (int c = 0; c < colliders.Length; c++)
+            {
+                // Gameplay không dùng OnCollision callbacks trên player; tắt phần
+                // capture/callback nhưng vẫn giữ phản lực va chạm bình thường.
+                colliders[c].callbackLayers = 0;
+                colliders[c].contactCaptureLayers = 0;
+            }
+        }
+    }
+}

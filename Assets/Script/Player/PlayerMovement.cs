@@ -69,7 +69,6 @@ public class PlayerMovement : MonoBehaviour
         HandleInput();
         UpdateMovementState();
         UpdateSpriteFlip();
-        ApplyMovementVelocity();
     }
     
     void FixedUpdate()

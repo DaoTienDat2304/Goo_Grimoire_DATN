@@ -9,11 +9,11 @@ public class MobileUIFeedback : MonoBehaviour,
     IPointerClickHandler, ISelectHandler, IDeselectHandler, ISubmitHandler
 {
     [Header("Motion")]
-    [SerializeField] private float pressedScale = 0.93f;
-    [SerializeField] private float hoverScale = 1.035f;
-    [SerializeField] private float selectedScale = 1.04f;
-    [SerializeField] private float scaleDuration = 0.08f;
-    [SerializeField] private float releaseBounceScale = 1.06f;
+    [SerializeField] private float pressedScale = 0.97f;
+    [SerializeField] private float hoverScale = 1.01f;
+    [SerializeField] private float selectedScale = 1.008f;
+    [SerializeField] private float scaleDuration = 0.14f;
+    [SerializeField] private float releaseBounceScale = 1.012f;
 
     [Header("Visuals")]
     [SerializeField] private bool addShadow = true;
@@ -34,6 +34,7 @@ public class MobileUIFeedback : MonoBehaviour,
     private bool pointerDown;
     private bool selected;
     private bool touchPointerActive;
+    private bool textInput;
     private float lastSoundTime;
 
     private static Sprite circleSprite;
@@ -41,6 +42,13 @@ public class MobileUIFeedback : MonoBehaviour,
     public void SetRippleEnabled(bool enabled)
     {
         useRipple = enabled;
+    }
+
+    public void ConfigureForTextInput(bool enabled)
+    {
+        textInput = enabled;
+        if (enabled)
+            useRipple = false;
     }
 
     private void Awake()
@@ -53,8 +61,8 @@ public class MobileUIFeedback : MonoBehaviour,
         if (addShadow && targetGraphic != null && GetComponent<Shadow>() == null)
         {
             shadow = gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0f, 0f, 0f, 0.18f);
-            shadow.effectDistance = new Vector2(0f, -3f);
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.12f);
+            shadow.effectDistance = new Vector2(0f, -2f);
             shadow.useGraphicAlpha = true;
         }
         else
@@ -79,7 +87,7 @@ public class MobileUIFeedback : MonoBehaviour,
         if (!CanInteract()) return;
         pointerDown = true;
         touchPointerActive = IsTouchPointer(eventData);
-        AnimateScale(pressedScale);
+        AnimateScale(textInput ? 1f : pressedScale);
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -96,7 +104,7 @@ public class MobileUIFeedback : MonoBehaviour,
         if (!CanInteract()) return;
         pointerInside = true;
         if (!pointerDown)
-            AnimateScale(selected ? selectedScale : hoverScale);
+            AnimateScale(textInput && selected ? selectedScale : hoverScale);
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -104,7 +112,7 @@ public class MobileUIFeedback : MonoBehaviour,
         pointerInside = false;
         if (!CanInteract()) return;
         if (!pointerDown)
-            AnimateScale(selected ? selectedScale : 1f);
+            AnimateScale(textInput && selected ? selectedScale : 1f);
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -113,8 +121,9 @@ public class MobileUIFeedback : MonoBehaviour,
         PlayFeedbackSound();
         if (IsTouchPointer(eventData))
             pointerInside = false;
-        StartCoroutine(ClickBounce());
-        if (useRipple)
+        if (!textInput)
+            StartCoroutine(ClickBounce());
+        if (useRipple && !textInput)
             SpawnRipple(eventData.position);
     }
 
@@ -123,7 +132,7 @@ public class MobileUIFeedback : MonoBehaviour,
         if (!CanInteract()) return;
         selected = true;
         if (!pointerDown)
-            AnimateScale(selectedScale);
+            AnimateScale(textInput ? selectedScale : GetRestScale());
     }
 
     public void OnDeselect(BaseEventData eventData)
@@ -137,8 +146,9 @@ public class MobileUIFeedback : MonoBehaviour,
     {
         if (!CanInteract()) return;
         PlayFeedbackSound();
-        StartCoroutine(ClickBounce());
-        if (useRipple)
+        if (!textInput)
+            StartCoroutine(ClickBounce());
+        if (useRipple && !textInput)
             SpawnRipple(null);
     }
 
@@ -159,16 +169,18 @@ public class MobileUIFeedback : MonoBehaviour,
         if (scaleRoutine != null)
             StopCoroutine(scaleRoutine);
 
-        yield return ScaleTo(initialScale * releaseBounceScale, 0.055f);
-        yield return ScaleTo(initialScale * GetRestScale(), 0.09f);
+        yield return ScaleTo(initialScale * releaseBounceScale, 0.1f);
+        yield return ScaleTo(initialScale * GetRestScale(), 0.16f);
         scaleRoutine = null;
     }
 
     private float GetRestScale()
     {
+        if (textInput && selected)
+            return selectedScale;
         if (touchPointerActive)
             return 1f;
-        return selected ? selectedScale : pointerInside ? hoverScale : 1f;
+        return pointerInside ? hoverScale : 1f;
     }
 
     private IEnumerator ScaleTo(Vector3 target, float duration)
@@ -180,7 +192,9 @@ public class MobileUIFeedback : MonoBehaviour,
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            t = 1f - Mathf.Pow(1f - t, 3f);
+            // SmootherStep có vận tốc bằng 0 ở cả hai đầu, tránh cảm giác giật
+            // khi chuyển giữa nhấn, thả và focus.
+            t = t * t * t * (t * (6f * t - 15f) + 10f);
             transform.localScale = Vector3.LerpUnclamped(start, target, t);
             yield return null;
         }

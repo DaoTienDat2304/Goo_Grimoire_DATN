@@ -69,7 +69,9 @@ public sealed class MobileUIFeedbackBootstrap : MonoBehaviour
             if (feedback == null)
                 feedback = selectable.gameObject.AddComponent<MobileUIFeedback>();
 
-            feedback.SetRippleEnabled(!IsTextInput(selectable));
+            bool isTextInput = IsTextInput(selectable);
+            feedback.ConfigureForTextInput(isTextInput);
+            feedback.SetRippleEnabled(!isTextInput);
         }
     }
 

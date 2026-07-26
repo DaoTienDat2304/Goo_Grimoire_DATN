@@ -3442,7 +3442,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1156403012}
+      - m_Target: {fileID: 1156403013}
         m_TargetAssemblyTypeName: TurnSystem, Assembly-CSharp
         m_MethodName: UseWeaponSkill
         m_Mode: 1
@@ -4215,7 +4215,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1156403011}
-  - component: {fileID: 1156403012}
   - component: {fileID: 1156403013}
   m_Layer: 0
   m_Name: TurnManager
@@ -4239,35 +4238,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1156403012
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1156403010}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e4b223e2c7654cb438a7b1910ef85208, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  boss: {fileID: 1975402282}
-  formationManager: {fileID: 829438979}
-  wildSlimes: {fileID: 11400000, guid: 677a4eecd92f6c9408c90b91e7349f58, type: 2}
-  towerBosses: {fileID: 11400000, guid: 21a08e23be9bb2b44bce95dfa50332d6, type: 2}
-  turnCount: 0
-  isBattleStarted: 0
-  skillPanel: {fileID: 850266170}
-  memberPanel: {fileID: 1629681664}
-  curSlimeBody: {fileID: 72392633}
-  curSlimeHat: {fileID: 596235661}
-  curSlimeWeapon: {fileID: 689000808}
-  curSlimeBorder: {fileID: 593208321}
-  avatar: {fileID: 14834835}
-  turnPanel: {fileID: 1540780438}
-  slimeTurn: {fileID: 6895886881244619975, guid: 923b61f8d2b8c354599def59e7eaa679, type: 3}
-  resultPanel: {fileID: 284649546}
-  resultText: {fileID: 1111905415}
 --- !u!114 &1156403013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4877,7 +4847,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 282d456a222c5db409f0b370d4c569e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  turnSystem: {fileID: 1156403012}
+  turnSystem: {fileID: 0}
   formationManager: {fileID: 829438979}
   testSkills:
   - {fileID: 11400000, guid: 77b883b870266ea44b3378cf3017868a, type: 2}
@@ -5236,7 +5206,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1156403012}
+      - m_Target: {fileID: 1156403013}
         m_TargetAssemblyTypeName: TurnSystem, Assembly-CSharp
         m_MethodName: UseBodySkill
         m_Mode: 1
@@ -5853,22 +5823,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1156403012}
+      - m_Target: {fileID: 1156403013}
         m_TargetAssemblyTypeName: TurnSystem, Assembly-CSharp
         m_MethodName: DoAutoAttack
         m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 850266170}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -6359,7 +6317,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1156403012}
+      - m_Target: {fileID: 1156403013}
         m_TargetAssemblyTypeName: TurnSystem, Assembly-CSharp
         m_MethodName: StartGame
         m_Mode: 1
@@ -7324,6 +7282,8 @@ MonoBehaviour:
   CritRate: 0
   CritDMG: 0
   isEnemy: 0
+  enemyRarity: 0
+  useRarityBossScaling: 0
   skeletonGraphic: {fileID: 2059369055}
   armor: {fileID: 1113303097}
   weapon: {fileID: 2054469203}
@@ -7363,6 +7323,7 @@ MonoBehaviour:
     generation: 0
     breedingCooldown: 0
     canBreed: 1
+    breedingLocked: 0
     parents: []
     happiness: 100
     experience: 0
@@ -7447,6 +7408,8 @@ MonoBehaviour:
     totalSpeed: 20
     totalCritRate: 0
     totalCritDMG: 0
+    eggStatRollPercent: 0
+    eggStatQuality: 
 --- !u!1 &1996932705
 GameObject:
   m_ObjectHideFlags: 0
@@ -7604,7 +7567,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1156403012}
+      - m_Target: {fileID: 1156403013}
         m_TargetAssemblyTypeName: TurnSystem, Assembly-CSharp
         m_MethodName: UseHatSkill
         m_Mode: 1

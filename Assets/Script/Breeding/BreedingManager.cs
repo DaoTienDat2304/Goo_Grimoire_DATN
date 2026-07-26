@@ -119,6 +119,7 @@ public class BreedingManager : MonoBehaviour
             slime.armor = slimeTraits.wildSlimeTraits[1].GenerateInstance();
             slime.weapon = slimeTraits.wildSlimeTraits[2].GenerateInstance();
             slime.CalculateStats();
+            slime.RollRandomSkillsMatchingRarity();
             allSlimes.Add(slime);
         }
         wildSlimes.tamedSlimes.Clear();
@@ -169,6 +170,7 @@ public class BreedingManager : MonoBehaviour
         s.armor = armor.GenerateInstance();
         s.weapon = weapon.GenerateInstance();
         s.CalculateStats();
+        s.RollRandomSkillsMatchingRarity();
         return s;
     }
 
@@ -201,6 +203,7 @@ public class BreedingManager : MonoBehaviour
         s.armor = armor.GenerateInstance();
         s.weapon = weapon.GenerateInstance();
         s.CalculateStats();
+        s.RollRandomSkillsMatchingRarity();
         return s;
     }
 

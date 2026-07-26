@@ -128,6 +128,9 @@ public class TraitInstanceDTO
     public int baseSpeed;
     public float baseCritRate;
     public float baseCritDMG;
+
+    // Skill được roll khi tạo slime — lưu theo tên SkillSO
+    public string skillName;
 }
 
 [Serializable]

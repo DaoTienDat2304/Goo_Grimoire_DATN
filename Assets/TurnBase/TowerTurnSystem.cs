@@ -1170,7 +1170,7 @@ public class TowerTurnSystem : TurnSystem
                                 gold = 300; gem = 5;
                                 marshmallowChance = 0.30f; commonChance = 0.30f; uncommonChance = 0.15f; rareChance = 0.08f;
                                 break;
-                        }
+                        }   
 
                         if (CurrencyManager.Instance != null)
                         {
@@ -1217,12 +1217,6 @@ public class TowerTurnSystem : TurnSystem
                     towerBosses.cachedHighestFloor = towerBosses.highestFloorReached;
                     towerBosses.hasPendingResult = true;
                 }
-            }
-
-            if (SaveAndLoadSystem.Instance != null)
-            {
-                // KHÔNG LƯU NGAY LÚC NÀY, để Main scene (SaveAndLoadSystem.ApplyTowerResultCache) lưu 
-                // để tránh bị đè (ghi đè) file JSON rỗng (vì các Manager khác đang null ở scene Battle).
             }
 
             if (BattleDataManager.Instance != null)

@@ -113,7 +113,11 @@ public class TowerUIManager : MonoBehaviour
             go.AddComponent<BattleDataManager>();
         }
         BattleDataManager.Instance.SetBattleMode(BattleMode.Tower);
-        SaveAndLoadSystem.Instance?.Save();
+        if (SaveAndLoadSystem.Instance != null)
+        {
+            SaveAndLoadSystem.Instance.Save();
+            Debug.Log("[TowerUIManager] Đã lưu dữ liệu trước khi vào trận đấu chính.");
+        }
         StartCoroutine(LoadBattleScene());
     }
 
@@ -140,6 +144,11 @@ public class TowerUIManager : MonoBehaviour
             go.AddComponent<BattleDataManager>();
         }
         BattleDataManager.Instance.SetBattleMode(BattleMode.Tower);
+        if (SaveAndLoadSystem.Instance != null)
+        {
+            SaveAndLoadSystem.Instance.Save();
+            Debug.Log("[TowerUIManager] Đã lưu dữ liệu trước khi vào trận chơi lại.");
+        }
         StartCoroutine(LoadBattleScene());
     }
 

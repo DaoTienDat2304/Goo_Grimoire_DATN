@@ -97,10 +97,9 @@ public class TurnSystem : MonoBehaviour
         var spriteRenderer = targetIndicator.AddComponent<SpriteRenderer>();
         // Tải ảnh Arrow từ thư mục Resources
         spriteRenderer.sprite = Resources.Load<Sprite>("Arrow");
-        spriteRenderer.color = Color.white; // Trả về màu gốc của ảnh thay vì màu đỏ
         spriteRenderer.sortingOrder = 100; // Đảm bảo hiển thị trên cùng
-
-        targetIndicator.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f); // Chỉnh lại kích thước cho phù hợp
+        
+        targetIndicator.transform.localScale = new Vector3(4f, 4f, 4f); // Tăng kích cỡ lên 4 lần
         targetIndicator.SetActive(false);
     }
 
@@ -115,12 +114,12 @@ public class TurnSystem : MonoBehaviour
 
         if (targetIndicator == null) CreateTargetIndicator();
 
-        // Di chuyển Indicator lên đầu quái vật
-        targetIndicator.transform.SetParent(newTarget.transform);
-        targetIndicator.transform.localPosition = new Vector3(0, 2.5f, 0); // Hiển thị phía trên đầu (World Space)
-        targetIndicator.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f); // Reset scale
+        // Di chuyển Indicator lên đầu quái vật (nâng cao lên một chút)
+        targetIndicator.transform.SetParent(newTarget.transform, false);
+        targetIndicator.transform.localPosition = new Vector3(0, 100.0f, 0);
+        targetIndicator.transform.localScale = new Vector3(4f, 4f, 4f);
 
-        if (isBattleStarted)
+        if (isBattleStarted == true)
         {
             targetIndicator.SetActive(true);
         }
@@ -377,7 +376,22 @@ public class TurnSystem : MonoBehaviour
     {
         isBattleStarted = true;
 
-        if (boss != null && targetIndicator != null) targetIndicator.SetActive(true);
+        if (boss == null)
+        {
+            var firstEnemy = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None)
+                .FirstOrDefault(s => s.isEnemy && s.gameObject.activeInHierarchy);
+            if (firstEnemy != null) boss = firstEnemy.gameObject;
+        }
+
+        if (boss != null)
+        {
+            SelectTarget(boss);
+        }
+
+        if (targetIndicator != null && boss != null)
+        {
+            targetIndicator.SetActive(true);
+        }
 
         var dragHandlers = FindObjectsByType<SlimeDragHandler>(FindObjectsSortMode.None);
         foreach (var handler in dragHandlers) handler.enabled = false;
@@ -610,6 +624,8 @@ public class TurnSystem : MonoBehaviour
     }
     public void DoAutoAttack()
     {
+        if (!skillPanel.activeSelf) return; // Tránh spam click nhiều lần
+        skillPanel.SetActive(false); // Ẩn ngay lập tức để không click thêm được nữa
         StartCoroutine(AutoAttack());
     }
 

@@ -103,6 +103,7 @@ public class SlimeGen : MonoBehaviour
         s.armor = armorSo.GenerateInstance();
         s.weapon = weaponSo.GenerateInstance();
         s.CalculateStats();
+        s.RollRandomSkillsMatchingRarity();
         return s;
     }
 
@@ -145,6 +146,7 @@ public class SlimeGen : MonoBehaviour
         s.weapon = weaponSo.GenerateInstance();
         s.weapon.Rarity = rarity;
         s.CalculateStats();
+        s.RollRandomSkillsMatchingRarity();
         return s;
     }
 
@@ -158,6 +160,9 @@ public class SlimeGen : MonoBehaviour
             allSkillsDatabase = new List<SkillSO>(Resources.LoadAll<SkillSO>("SkillDB"));
         }
     }
+
+    // Alias public để các hệ thống bên ngoài (SaveAndLoadSystem) có thể gọi trước khi resolve skill
+    public void EnsureSkillDatabasePublic() => EnsureSkillDatabase();
 
     public SkillSO GetRandomSkill(TraitType type, Rarity rarity)
     {

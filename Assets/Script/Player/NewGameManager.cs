@@ -113,6 +113,15 @@ public class NewGameManager : MonoBehaviour
     
     private bool IsNewGame()
     {
+        if (AuthManager.Instance != null)
+        {
+            string localJson = LocalSaveStore.Load(AuthManager.Instance.LocalSaveId);
+            if (!string.IsNullOrEmpty(localJson))
+            {
+                return false;
+            }
+        }
+        
         if (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.CloudCheckDone)
             return !CloudSaveProvider.Instance.HasCloudSave;
         return true; // fallback: chưa check xong → coi như new game

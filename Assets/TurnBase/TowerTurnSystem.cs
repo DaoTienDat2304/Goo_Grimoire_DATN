@@ -215,7 +215,7 @@ public class TowerTurnSystem : TurnSystem
         RectTransform rect = enemyGo.GetComponent<RectTransform>();
         Vector2 offset = Vector2.zero;
 
-        // ĐÃ SỬA: Tăng khoảng cách X và Y để dàn đều quái vật, tránh bị chồng lấp
+        // Tăng khoảng cách X và Y để dàn đều quái vật, tránh bị chồng lấp
         if (totalCount == 2) offset = index == 0 ? new Vector2(0, 150) : new Vector2(0, -150);
         else if (totalCount == 3)
         {
@@ -292,35 +292,54 @@ public class TowerTurnSystem : TurnSystem
         }
 
         rect.anchoredPosition = originalBossPos + offset;
+
+        // LẤY CHỈ SỐ TỪ DATABASE
         TowerStatData eData = GetEnemyStatDatabase(type, level);
 
         var stats = enemyGo.GetComponent<SlimeStats>();
         if (stats == null) stats = enemyGo.AddComponent<SlimeStats>();
-        stats.HP = eData.hp; stats.MaxHP = eData.hp;
-        stats.Attack = eData.atk; stats.MagicAttack = eData.matk;
-        stats.Defense = eData.def; stats.Speed = eData.spd;
-        stats.CritRate = eData.crit; stats.CritDMG = eData.critDMG;
+
+        stats.HP = eData.hp;
+        stats.MaxHP = eData.hp;
+        stats.Attack = eData.atk;
+        stats.MagicAttack = eData.matk;
+        stats.Defense = eData.def;
+        stats.Speed = eData.spd;
+        stats.CritRate = eData.crit;
+        stats.CritDMG = eData.critDMG;
         stats.isEnemy = true;
+        stats.useRarityBossScaling = false;
+
+        Debug.Log($"[TowerTurnSystem] Spawned Clone: {enemyGo.name} | HP: {stats.HP} | ATK: {stats.Attack} | MATK: {stats.MagicAttack} | DEF: {stats.Defense} | SPD: {stats.Speed}");
 
         if (stats.hpbar != null)
         {
             stats.hpbar.interactable = false;
             stats.hpbar.transform.localScale = Vector3.one * (actualScale * 0.7f);
+            stats.hpbar.maxValue = eData.hp;
+            stats.hpbar.value = eData.hp;
 
             var hpRect = stats.hpbar.GetComponent<RectTransform>();
             if (hpRect != null)
             {
-                // ĐÃ SỬA: Thay đổi sang giá trị ÂM (Ví dụ: -120f) để thanh máu di chuyển xuống DƯỚI CHÂN thay vì trên đầu
                 hpRect.anchoredPosition = new Vector2(hpRect.anchoredPosition.x, -120f * actualScale);
             }
         }
 
         var battleStats = enemyGo.GetComponent<SlimeBattleStats>();
         if (battleStats == null) battleStats = enemyGo.AddComponent<SlimeBattleStats>();
-        battleStats.MaxHP = eData.hp; battleStats.CurrentHP = eData.hp;
-        battleStats.BattleAttack = eData.atk; battleStats.BattleMagicAttack = eData.matk;
-        battleStats.BattleDefense = eData.def; battleStats.BattleSpeed = eData.spd;
-        battleStats.BattleCritRate = eData.crit; battleStats.BattleCritDMG = eData.critDMG;
+
+        battleStats.baseStats = stats;
+        battleStats.MaxHP = eData.hp;
+        battleStats.CurrentHP = eData.hp;
+        battleStats.BattleAttack = eData.atk;
+        battleStats.BattleMagicAttack = eData.matk;
+        battleStats.BattleDefense = eData.def;
+        battleStats.BattleSpeed = eData.spd;
+        battleStats.BattleCritRate = eData.crit;
+        battleStats.BattleCritDMG = eData.critDMG;
+
+        battleStats.isInitialized = true;
 
         if (type == TowerEnemyType.SlimeKing || type == TowerEnemyType.GoblinChief)
         {
@@ -1202,7 +1221,8 @@ public class TowerTurnSystem : TurnSystem
 
             if (SaveAndLoadSystem.Instance != null)
             {
-                SaveAndLoadSystem.Instance.Save();
+                // KHÔNG LƯU NGAY LÚC NÀY, để Main scene (SaveAndLoadSystem.ApplyTowerResultCache) lưu 
+                // để tránh bị đè (ghi đè) file JSON rỗng (vì các Manager khác đang null ở scene Battle).
             }
 
             if (BattleDataManager.Instance != null)

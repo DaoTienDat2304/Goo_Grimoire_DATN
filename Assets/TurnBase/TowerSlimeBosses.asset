@@ -14,36 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   floors:
   - floorNumber: 1
-    floorName: Gooey Meadow
+    floorName: SLIME MEADOW
     waves:
     - enemies:
       - enemyType: 0
-        level: 5
-      - enemyType: 1
-        level: 5
-      - enemyType: 2
-        level: 5
-    - enemies:
-      - enemyType: 3
-        level: 5
-      - enemyType: 4
-        level: 5
-      - enemyType: 5
-        level: 5
-    - enemies:
-      - enemyType: 6
-        level: 5
-      - enemyType: 7
-        level: 5
-      - enemyType: 8
-        level: 5
-    - enemies:
-      - enemyType: 11
-        level: 5
-      - enemyType: 12
-        level: 5
-      - enemyType: 13
-        level: 5
+        level: 1
+      - enemyType: 0
+        level: 1
     bodyTrait: {fileID: 11400000, guid: 55ca2b786ef25a54fa6de1c29804f7e5, type: 2}
     armorTrait: {fileID: 11400000, guid: 05e9b027b1e28dd41a7a550f28ae9941, type: 2}
     weaponTrait: {fileID: 11400000, guid: bddb1ef33830a8647a7f7de13a8f7a30, type: 2}
@@ -59,49 +36,15 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 2
-    floorName: Misty Forest
+    floorName: SLIME MEADOW
     waves:
     - enemies:
-      - enemyType: 1
-        level: 5
-      - enemyType: 2
-        level: 5
-      - enemyType: 7
-        level: 5
-      - enemyType: 8
-        level: 5
-      - enemyType: 9
-        level: 5
-      - enemyType: 10
-        level: 5
-      - enemyType: 11
-        level: 5
-      - enemyType: 12
-        level: 5
-      - enemyType: 13
-        level: 5
-    - enemies:
-      - enemyType: 3
-        level: 5
-      - enemyType: 4
-        level: 5
-      - enemyType: 14
-        level: 5
-    - enemies:
-      - enemyType: 5
-        level: 5
-      - enemyType: 6
-        level: 5
-      - enemyType: 21
-        level: 5
-      - enemyType: 22
-        level: 5
-      - enemyType: 23
-        level: 5
-      - enemyType: 24
-        level: 5
-      - enemyType: 25
-        level: 5
+      - enemyType: 0
+        level: 2
+      - enemyType: 0
+        level: 2
+      - enemyType: 0
+        level: 2
     bodyTrait: {fileID: 11400000, guid: 1991813760db73c40b86482135bff2fd, type: 2}
     armorTrait: {fileID: 11400000, guid: 02d456fe043cc774794c4039b3b3a77d, type: 2}
     weaponTrait: {fileID: 11400000, guid: 1e66f1324814e9c40b8e22db7ec3a07a, type: 2}
@@ -112,13 +55,23 @@ MonoBehaviour:
     baseMagicAttack: 50
     baseCritRate: 0.05
     baseCritDMG: 1.3
-    rewardCoins: 65
+    rewardCoins: 70
     rewardGems: 0
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 3
-    floorName: Toxic Mushroom Cave
-    waves: []
+    floorName: SLIME MEADOW
+    waves:
+    - enemies:
+      - enemyType: 0
+        level: 3
+      - enemyType: 0
+        level: 3
+    - enemies:
+      - enemyType: 0
+        level: 3
+      - enemyType: 1
+        level: 3
     bodyTrait: {fileID: 11400000, guid: 77a5eb2bab9bd2849ae2ffa29a2e76f4, type: 2}
     armorTrait: {fileID: 11400000, guid: 02d456fe043cc774794c4039b3b3a77d, type: 2}
     weaponTrait: {fileID: 11400000, guid: ba135bb19c837f343840878a77de0d13, type: 2}
@@ -134,8 +87,22 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 4
-    floorName: Bubble Swamp
-    waves: []
+    floorName: SLIME MEADOW
+    waves:
+    - enemies:
+      - enemyType: 1
+        level: 4
+      - enemyType: 0
+        level: 4
+      - enemyType: 0
+        level: 4
+    - enemies:
+      - enemyType: 1
+        level: 4
+      - enemyType: 1
+        level: 4
+      - enemyType: 0
+        level: 4
     bodyTrait: {fileID: 11400000, guid: 4a87eef57643c7c4b9c03ff753fc2cb5, type: 2}
     armorTrait: {fileID: 11400000, guid: 02d456fe043cc774794c4039b3b3a77d, type: 2}
     weaponTrait: {fileID: 11400000, guid: 4655ab2923dbdd84c9ceed86195be0a0, type: 2}
@@ -151,8 +118,29 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 5
-    floorName: Smoldering Crater
-    waves: []
+    floorName: SLIME MEADOW
+    waves:
+    - enemies:
+      - enemyType: 0
+        level: 5
+      - enemyType: 0
+        level: 5
+      - enemyType: 1
+        level: 5
+    - enemies:
+      - enemyType: 1
+        level: 5
+      - enemyType: 1
+        level: 5
+      - enemyType: 0
+        level: 5
+    - enemies:
+      - enemyType: 0
+        level: 5
+      - enemyType: 2
+        level: 5
+      - enemyType: 0
+        level: 5
     bodyTrait: {fileID: 11400000, guid: 561588790dd302440b7d1059da0dce78, type: 2}
     armorTrait: {fileID: 11400000, guid: 3c30896dacaff0c4891431aa75ef9fbd, type: 2}
     weaponTrait: {fileID: 11400000, guid: 1ab02eacce47f10479aba307ecad91c6, type: 2}

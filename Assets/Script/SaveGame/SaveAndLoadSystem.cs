@@ -513,7 +513,8 @@ public class SaveAndLoadSystem : MonoBehaviour
             baseDefense = ti.baseDefense,
             baseSpeed = ti.baseSpeed,
             baseCritRate = ti.baseCritRate,
-            baseCritDMG = ti.baseCritDMG
+            baseCritDMG = ti.baseCritDMG,
+            skillName = ti.skill?.baseSkill != null ? ti.skill.baseSkill.name : null
         };
     }
 
@@ -560,6 +561,19 @@ public class SaveAndLoadSystem : MonoBehaviour
         // Áp dụng multiplier hiện tại (có thể đã thay đổi qua Remote Config)
         float currentMult = ti.GetRarityMultiplier(dto.rarity);
         ti.RecalculateStats(currentMult);
+
+        // Khôi phục skill từ tên đã lưu
+        if (!string.IsNullOrEmpty(dto.skillName))
+        {
+            var gen = SlimeGen.Instance;
+            if (gen != null)
+            {
+                gen.EnsureSkillDatabasePublic();
+                var skillSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.skillName);
+                if (skillSO != null) ti.skill = new SkillInstance(skillSO);
+            }
+        }
+
         return ti;
     }
 

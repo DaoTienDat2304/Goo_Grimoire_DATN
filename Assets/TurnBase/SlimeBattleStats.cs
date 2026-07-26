@@ -23,6 +23,7 @@ public class SlimeBattleStats : MonoBehaviour
 {
     [Header("Base Stats (from SlimeStats)")]
     public SlimeStats baseStats;
+    public bool isInitialized = false;
 
     [Header("Battle Modifiers")]
     public float critChance = 0f; // buff thêm vào Crit Rate (%)
@@ -73,7 +74,10 @@ public class SlimeBattleStats : MonoBehaviour
 
     private void Start()
     {
-        InitializeBattleStats();
+        if (!isInitialized)
+        {
+            InitializeBattleStats();
+        }
     }
 
     void InitializeBattleStats()
@@ -93,9 +97,14 @@ public class SlimeBattleStats : MonoBehaviour
         else
         {
             // Tower/khác: giữ hệ số phẳng theo Remote Config (mặc định 3x); đồng minh = 1x.
-            float multiplier = baseStats.isEnemy
-                ? (RemoteConfigManager.Instance != null ? RemoteConfigManager.Instance.BossStatMultiplier : 3f)
-                : 1f;
+            bool isTowerMode = UnityEngine.Object.FindAnyObjectByType<TowerTurnSystem>() != null;
+            float multiplier = 1f;
+            
+            if (baseStats.isEnemy && !isTowerMode)
+            {
+                multiplier = (RemoteConfigManager.Instance != null ? RemoteConfigManager.Instance.BossStatMultiplier : 3f);
+            }
+
             MaxHP = Mathf.RoundToInt((baseStats.MaxHP + maxHPBonus) * multiplier);
             BattleAttack = Mathf.RoundToInt(baseStats.Attack * multiplier);
             BattleMagicAttack = Mathf.RoundToInt(baseStats.MagicAttack * multiplier);
@@ -116,6 +125,8 @@ public class SlimeBattleStats : MonoBehaviour
             baseStats.hpbar.maxValue = MaxHP;
             baseStats.hpbar.value = CurrentHP;
         }
+
+        isInitialized = true;
     }
 
     // Tính toán AV khởi đầu dựa trên SPD

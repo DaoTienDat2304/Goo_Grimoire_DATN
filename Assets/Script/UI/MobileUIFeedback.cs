@@ -9,6 +9,7 @@ public class MobileUIFeedback : MonoBehaviour,
     IPointerClickHandler, ISelectHandler, IDeselectHandler, ISubmitHandler
 {
     [Header("Motion")]
+    [SerializeField] private bool useMotion = true;
     [SerializeField] private float pressedScale = 0.97f;
     [SerializeField] private float hoverScale = 1.01f;
     [SerializeField] private float selectedScale = 1.008f;
@@ -42,6 +43,21 @@ public class MobileUIFeedback : MonoBehaviour,
     public void SetRippleEnabled(bool enabled)
     {
         useRipple = enabled;
+    }
+
+    public void SetMotionEnabled(bool enabled)
+    {
+        useMotion = enabled;
+        if (enabled) return;
+
+        if (scaleRoutine != null)
+        {
+            StopCoroutine(scaleRoutine);
+            scaleRoutine = null;
+        }
+
+        if (initialScale != Vector3.zero)
+            transform.localScale = initialScale;
     }
 
     public void ConfigureForTextInput(bool enabled)
@@ -87,7 +103,8 @@ public class MobileUIFeedback : MonoBehaviour,
         if (!CanInteract()) return;
         pointerDown = true;
         touchPointerActive = IsTouchPointer(eventData);
-        AnimateScale(textInput ? 1f : pressedScale);
+        if (useMotion)
+            AnimateScale(textInput ? 1f : pressedScale);
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -96,14 +113,15 @@ public class MobileUIFeedback : MonoBehaviour,
         pointerDown = false;
         if (touchPointerActive)
             pointerInside = false;
-        AnimateScale(GetRestScale());
+        if (useMotion)
+            AnimateScale(GetRestScale());
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (!CanInteract()) return;
         pointerInside = true;
-        if (!pointerDown)
+        if (useMotion && !pointerDown)
             AnimateScale(textInput && selected ? selectedScale : hoverScale);
     }
 
@@ -111,7 +129,7 @@ public class MobileUIFeedback : MonoBehaviour,
     {
         pointerInside = false;
         if (!CanInteract()) return;
-        if (!pointerDown)
+        if (useMotion && !pointerDown)
             AnimateScale(textInput && selected ? selectedScale : 1f);
     }
 
@@ -121,7 +139,7 @@ public class MobileUIFeedback : MonoBehaviour,
         PlayFeedbackSound();
         if (IsTouchPointer(eventData))
             pointerInside = false;
-        if (!textInput)
+        if (useMotion && !textInput)
             StartCoroutine(ClickBounce());
         if (useRipple && !textInput)
             SpawnRipple(eventData.position);
@@ -131,14 +149,14 @@ public class MobileUIFeedback : MonoBehaviour,
     {
         if (!CanInteract()) return;
         selected = true;
-        if (!pointerDown)
+        if (useMotion && !pointerDown)
             AnimateScale(textInput ? selectedScale : GetRestScale());
     }
 
     public void OnDeselect(BaseEventData eventData)
     {
         selected = false;
-        if (!pointerDown)
+        if (useMotion && !pointerDown)
             AnimateScale(pointerInside ? hoverScale : 1f);
     }
 
@@ -146,7 +164,7 @@ public class MobileUIFeedback : MonoBehaviour,
     {
         if (!CanInteract()) return;
         PlayFeedbackSound();
-        if (!textInput)
+        if (useMotion && !textInput)
             StartCoroutine(ClickBounce());
         if (useRipple && !textInput)
             SpawnRipple(null);

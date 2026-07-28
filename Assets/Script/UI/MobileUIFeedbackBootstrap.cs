@@ -70,8 +70,18 @@ public sealed class MobileUIFeedbackBootstrap : MonoBehaviour
                 feedback = selectable.gameObject.AddComponent<MobileUIFeedback>();
 
             bool isTextInput = IsTextInput(selectable);
+            bool isSettingPanelControl = selectable.GetComponentInParent<SettingPanelController>(true) != null;
+            bool isSettingPanelSlider = isSettingPanelControl && selectable is Slider;
+            bool isLoginManagerButton =
+                selectable is Button &&
+                selectable.GetComponentInParent<LoginUIManager>(true) != null;
+
             feedback.ConfigureForTextInput(isTextInput);
-            feedback.SetRippleEnabled(!isTextInput);
+            feedback.SetMotionEnabled(!isSettingPanelSlider);
+            feedback.SetRippleEnabled(
+                !isTextInput &&
+                !isSettingPanelControl &&
+                !isLoginManagerButton);
         }
     }
 

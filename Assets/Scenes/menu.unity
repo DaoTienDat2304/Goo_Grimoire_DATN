@@ -6514,18 +6514,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5755818878670895953}
     m_Modifications:
-    - target: {fileID: 2513198551873750186, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
-      value: 
-      objectReference: {fileID: 3341297011700163907}
-    - target: {fileID: 2513198551873750186, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[2].m_Target
-      value: 
-      objectReference: {fileID: 1276565755}
-    - target: {fileID: 3249250630968270983, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 8255001317399149810}
     - target: {fileID: 3300870562278226573, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
@@ -6536,12 +6524,20 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3934217297162520778, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: m_Name
-      value: Option panel
+      value: Setting Panel
       objectReference: {fileID: 0}
     - target: {fileID: 3934217297162520778, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3934217297162520779, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
+      propertyPath: contentToRestore
+      value:
+      objectReference: {fileID: 3341297011700163907}
+    - target: {fileID: 3934217297162520779, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
+      propertyPath: componentToRestore
+      value:
+      objectReference: {fileID: 1276565755}
     - target: {fileID: 4715095258268454170, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
@@ -6585,18 +6581,6 @@ PrefabInstance:
     - target: {fileID: 4906551563505545668, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: m_SizeDelta.y
       value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 4906551563505545668, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.90276
-      objectReference: {fileID: 0}
-    - target: {fileID: 4906551563505545668, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.90276
-      objectReference: {fileID: 0}
-    - target: {fileID: 4906551563505545668, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.90276
       objectReference: {fileID: 0}
     - target: {fileID: 4906551563505545668, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6654,10 +6638,26 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 7462486685815906819, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 8255001317399149810}
+    - target: {fileID: 8078297934661190033, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8078297934661190033, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8078297934661190033, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9087150610847451089, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9087150610847451089, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9109355048192897831, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
@@ -6782,6 +6782,7 @@ MonoBehaviour:
   breedingSFX: {fileID: 8300000, guid: 3eabe47b974f3ed45b0303acef822e6f, type: 3}
   buttonClickSFX: {fileID: 8300000, guid: b7486f16c8072ef458ed504f812d1446, type: 3}
   buildingClickSFX: {fileID: 8300000, guid: b7486f16c8072ef458ed504f812d1446, type: 3}
+  overallVolume: 0.8
   backgroundMusicVolume: 0.7
   sfxVolume: 1
 --- !u!224 &7423295631763472079

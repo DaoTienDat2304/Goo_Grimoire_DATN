@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Unc_Frenzy
   m_EditorClassIdentifier: 
-  skillName: Frenzy Bite
+  skillName: Frenzy Fang
   type: 1
   description: "260% ATK + 300, H\u1ED3i 3%x2"
-  icon: {fileID: 0}
+  icon: {fileID: -1360405840217365432, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 1
   battlePointCost: 1

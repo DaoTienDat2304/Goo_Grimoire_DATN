@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: B_Rar_Muscl
   m_EditorClassIdentifier: 
-  skillName: Muscle Enhance
+  skillName: Muscle Enhancement
   type: 2
   description: "+3% Xuy\xEAn gi\xE1p team"
-  icon: {fileID: 0}
+  icon: {fileID: 8621886897671426217, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 2
   battlePointCost: 0

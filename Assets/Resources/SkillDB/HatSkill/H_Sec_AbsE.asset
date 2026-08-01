@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Absolute Edict
   type: 1
   description: "T\u1EA5t tr\xFAng, 100% CDMG"
-  icon: {fileID: 0}
+  icon: {fileID: 683794598618230703, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 7
   battlePointCost: 1

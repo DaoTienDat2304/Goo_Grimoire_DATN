@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Doom Sentence
   type: 1
   description: "\u0110\u1ECBch nh\u1EADn th\xEAm ST"
-  icon: {fileID: 0}
+  icon: {fileID: -6321634240710853723, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 4
   battlePointCost: 1

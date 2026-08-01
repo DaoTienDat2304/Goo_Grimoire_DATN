@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_SR_Bastion_A
   m_EditorClassIdentifier: 
-  skillName: Guard Breaker
+  skillName: Bastion Hammer
   type: 1
   description: 165% ATK + 440
-  icon: {fileID: 0}
+  icon: {fileID: 3438784570353844991, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 3
   battlePointCost: 1

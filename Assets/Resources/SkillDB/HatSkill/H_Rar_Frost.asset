@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Frost Hex
   type: 1
   description: "-10 SPD \u0111\u1ECBch, 20% Freeze"
-  icon: {fileID: 0}
+  icon: {fileID: -1025542412921996217, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 2
   battlePointCost: 1

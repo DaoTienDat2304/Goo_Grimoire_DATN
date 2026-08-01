@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: B_UR_DivGA
   m_EditorClassIdentifier: 
-  skillName: Divine Guardian
+  skillName: Divine Guardian Armor
   type: 2
   description: "H\u1ED3i HP team khi b\u1ECB \u0111\xE1nh"
-  icon: {fileID: 0}
+  icon: {fileID: -1609648382523227204, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 4
   battlePointCost: 0

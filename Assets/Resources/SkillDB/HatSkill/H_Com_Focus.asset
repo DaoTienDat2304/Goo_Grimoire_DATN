@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Minor Focus
   type: 1
   description: +5% ATK, +4 SPD
-  icon: {fileID: 0}
+  icon: {fileID: -1836120431684336037, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 0
   battlePointCost: 1

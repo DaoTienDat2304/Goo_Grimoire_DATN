@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Nightmare Shackles
   type: 2
   description: +6% DEF, +3% HP
-  icon: {fileID: 0}
+  icon: {fileID: -5488116229052790007, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 4
   battlePointCost: 0

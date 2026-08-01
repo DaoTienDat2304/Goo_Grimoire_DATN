@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Chrono Overdrive
   type: 1
   description: +20 SPD team
-  icon: {fileID: 0}
+  icon: {fileID: 2918582126004098007, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6
   battlePointCost: 1

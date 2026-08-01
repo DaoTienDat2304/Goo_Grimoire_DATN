@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Purge Light
   type: 1
   description: "G\u1EE1 Debuff, H\u1ED3i 15%"
-  icon: {fileID: 0}
+  icon: {fileID: -4972444280353370351, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 3
   battlePointCost: 1

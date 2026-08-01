@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Rar_Mudfang_A
   m_EditorClassIdentifier: 
-  skillName: Mud Punch
+  skillName: Mudfang Gauntlet
   type: 1
   description: 160% ATK + 300
-  icon: {fileID: 0}
+  icon: {fileID: -2124057790635112801, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 2
   battlePointCost: 1

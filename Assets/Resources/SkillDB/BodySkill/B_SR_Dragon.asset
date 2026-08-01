@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: B_SR_Dragon
   m_EditorClassIdentifier: 
-  skillName: Dragon Scale
+  skillName: Dragon Scale Armor
   type: 2
   description: +4% ATK/DEF/SPD
-  icon: {fileID: 0}
+  icon: {fileID: -1429166744338494186, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 3
   battlePointCost: 0

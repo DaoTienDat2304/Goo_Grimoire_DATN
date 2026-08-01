@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Rallying Banner
   type: 1
   description: +12% ATK, +6% DEF/SPD
-  icon: {fileID: 0}
+  icon: {fileID: 6301256192357584987, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 3
   battlePointCost: 1

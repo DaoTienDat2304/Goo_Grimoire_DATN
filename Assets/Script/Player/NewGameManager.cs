@@ -121,9 +121,15 @@ public class NewGameManager : MonoBehaviour
                 return false;
             }
         }
-        
-        if (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.CloudCheckDone)
-            return !CloudSaveProvider.Instance.HasCloudSave;
+
+        string guestJson = LocalSaveStore.Load("guest");
+        if (!string.IsNullOrEmpty(guestJson)) return false;
+
+        if (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.HasCloudSave)
+            return false;
+
+        if (CloudSaveProvider.Instance != null && !CloudSaveProvider.Instance.CloudCheckDone)
+            return false;
         return true; // fallback: chưa check xong → coi như new game
     }
     

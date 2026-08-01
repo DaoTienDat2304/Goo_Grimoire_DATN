@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Sovereign March
   type: 1
   description: "K\xE9o 100%, +25% ATK"
-  icon: {fileID: 0}
+  icon: {fileID: 2307022817944830302, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 5
   battlePointCost: 1

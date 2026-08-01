@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_UR_Vamp_U
   m_EditorClassIdentifier: 
-  skillName: Eternal Banquet
+  skillName: Vampire Fang Dagger
   type: 3
   description: 350% ATK + 1200
-  icon: {fileID: 0}
+  icon: {fileID: -2727618442776662924, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4
   battlePointCost: 0

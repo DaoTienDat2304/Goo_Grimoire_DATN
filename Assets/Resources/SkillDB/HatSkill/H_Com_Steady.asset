@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Steady Aim
   type: 1
   description: +5% Crit Rate
-  icon: {fileID: 0}
+  icon: {fileID: -2683581536351381293, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 0
   battlePointCost: 1

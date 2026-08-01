@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: B_Leg_DivR
   m_EditorClassIdentifier: 
-  skillName: Divine Resurrect
+  skillName: Divine Resurrection
   type: 2
   description: "\u0110\u1ECBch -8% SPD"
-  icon: {fileID: 0}
+  icon: {fileID: 3279300416085775009, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5
   battlePointCost: 0

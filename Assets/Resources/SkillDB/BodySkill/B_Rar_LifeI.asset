@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Life Infusion
   type: 2
   description: "H\u1ED3i 2% HP team"
-  icon: {fileID: 0}
+  icon: {fileID: 8286172282877560077, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 2
   battlePointCost: 0

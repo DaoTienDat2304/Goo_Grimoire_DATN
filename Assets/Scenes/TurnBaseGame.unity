@@ -487,7 +487,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 496, y: -84.68}
+  m_AnchoredPosition: {x: 496, y: -84.67999}
   m_SizeDelta: {x: 860, y: 564.26}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &89640226
@@ -4794,8 +4794,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -0.0064744}
-  m_SizeDelta: {x: 2092.2, y: 991.06}
+  m_AnchoredPosition: {x: 21.06, y: -5.95}
+  m_SizeDelta: {x: 2323.87, y: 1132.22}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1271791263
 MonoBehaviour:
@@ -5441,8 +5441,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 268.09998, y: 428}
-  m_SizeDelta: {x: -648.71, y: -902.39}
+  m_AnchoredPosition: {x: 321.21, y: 439.6}
+  m_SizeDelta: {x: -542.49, y: -879.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1540780440
 MonoBehaviour:
@@ -5542,8 +5542,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.0011082, y: 0.00052452}
-  m_SizeDelta: {x: 580.49, y: 88.68}
+  m_AnchoredPosition: {x: -0.000015259, y: -15.168}
+  m_SizeDelta: {x: 648.29, y: 113.66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1558942956
 MonoBehaviour:
@@ -6897,8 +6897,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -644, y: 427.99997}
-  m_SizeDelta: {x: -1511.78, y: -902.4}
+  m_AnchoredPosition: {x: -716.01, y: 455.66}
+  m_SizeDelta: {x: -1367.78, y: -847.08}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1841280044
 MonoBehaviour:
@@ -7300,6 +7300,10 @@ MonoBehaviour:
     baseSkill: {fileID: 0}
     currentCooldown: 0
     power: 0
+  weaponUltimateSkill:
+    baseSkill: {fileID: 0}
+    currentCooldown: 0
+    power: 0
   specialSkill:
     baseSkill: {fileID: 0}
     currentCooldown: 0
@@ -7353,6 +7357,10 @@ MonoBehaviour:
         baseSkill: {fileID: 0}
         currentCooldown: 0
         power: 0
+      ultimateSkill:
+        baseSkill: {fileID: 0}
+        currentCooldown: 0
+        power: 0
     armor:
       allTraits: []
       baseTrait: {fileID: 11400000, guid: bd4c330e07c58a24696bfba562ea3133, type: 2}
@@ -7377,6 +7385,10 @@ MonoBehaviour:
         baseSkill: {fileID: 0}
         currentCooldown: 0
         power: 0
+      ultimateSkill:
+        baseSkill: {fileID: 0}
+        currentCooldown: 0
+        power: 0
     weapon:
       allTraits: []
       baseTrait: {fileID: 11400000, guid: 6784457290ff5d44aae778157f818901, type: 2}
@@ -7398,6 +7410,10 @@ MonoBehaviour:
       TraitType: 0
       traitname: 
       skill:
+        baseSkill: {fileID: 0}
+        currentCooldown: 0
+        power: 0
+      ultimateSkill:
         baseSkill: {fileID: 0}
         currentCooldown: 0
         power: 0

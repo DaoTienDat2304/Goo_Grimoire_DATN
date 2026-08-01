@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: World Sanction
   type: 1
   description: "-30% Stats \u0111\u1ECBch"
-  icon: {fileID: 0}
+  icon: {fileID: 9213668117931567693, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6
   battlePointCost: 1

@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Mending Wave
   type: 1
   description: "H\u1ED3i 6% HP team"
-  icon: {fileID: 0}
+  icon: {fileID: 8342553545252336856, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 1
   battlePointCost: 1

@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Vital Growth
   type: 2
   description: +6% HP
-  icon: {fileID: 0}
+  icon: {fileID: -1811983669847110553, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 1
   battlePointCost: 0

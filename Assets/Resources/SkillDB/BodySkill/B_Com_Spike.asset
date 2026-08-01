@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Minor Spikes
   type: 2
   description: "Ph\u1EA3n 3% ST"
-  icon: {fileID: 0}
+  icon: {fileID: -8062578979193767562, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 0
   battlePointCost: 0

@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: World Requiem
   type: 1
   description: "-40% SPD, L\xF9i 40%"
-  icon: {fileID: 0}
+  icon: {fileID: -4487493153248795899, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6
   battlePointCost: 1

@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Priority Protocol
   type: 2
   description: "\u0110i \u0111\u1EA7u, +1 \u0110CK"
-  icon: {fileID: 0}
+  icon: {fileID: 8479447844769535193, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7
   battlePointCost: 0

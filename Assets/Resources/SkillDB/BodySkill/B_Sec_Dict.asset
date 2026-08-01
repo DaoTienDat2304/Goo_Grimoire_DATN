@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Dictator
   type: 2
   description: "+2 \u0110CK"
-  icon: {fileID: 0}
+  icon: {fileID: -3812975195627848998, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7
   battlePointCost: 0

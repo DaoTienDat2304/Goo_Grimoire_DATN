@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Titan's Reprisal
   type: 2
   description: "Ph\u1EA3n 15% ST"
-  icon: {fileID: 0}
+  icon: {fileID: 4671734820620878130, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 6
   battlePointCost: 0

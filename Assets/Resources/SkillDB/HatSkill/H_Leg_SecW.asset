@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Second Wind
   type: 1
   description: "H\u1ED3i sinh 30%"
-  icon: {fileID: 0}
+  icon: {fileID: -1300766929273139628, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 5
   battlePointCost: 1

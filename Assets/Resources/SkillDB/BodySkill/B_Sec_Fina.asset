@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Final Vengeance
   type: 2
   description: "Ch\u1EBFt ph\u1EA3n 200%"
-  icon: {fileID: 0}
+  icon: {fileID: 8635406102852873674, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7
   battlePointCost: 0

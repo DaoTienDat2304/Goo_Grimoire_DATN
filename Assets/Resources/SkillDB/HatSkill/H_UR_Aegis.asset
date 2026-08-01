@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Aegis Barrier
   type: 1
   description: "L\xE1 ch\u1EAFn 12% team"
-  icon: {fileID: 0}
+  icon: {fileID: 7913474985353777573, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 4
   battlePointCost: 1

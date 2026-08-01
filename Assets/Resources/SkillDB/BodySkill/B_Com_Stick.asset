@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Sticky Slime
   type: 2
   description: "Gi\u1EA3m 5% s\xE1t th\u01B0\u01A1ng"
-  icon: {fileID: 0}
+  icon: {fileID: -6199720543617963891, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 0
   battlePointCost: 0

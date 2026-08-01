@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Iron Will
   type: 2
   description: "H\u1ED3i 1.5% HP"
-  icon: {fileID: 0}
+  icon: {fileID: -958220191789875927, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 1
   battlePointCost: 0

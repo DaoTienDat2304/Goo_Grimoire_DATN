@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Overcharge
   type: 1
   description: "+12 N\u0103ng l\u01B0\u1EE3ng team"
-  icon: {fileID: 0}
+  icon: {fileID: -4883564755189203513, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 3
   battlePointCost: 1

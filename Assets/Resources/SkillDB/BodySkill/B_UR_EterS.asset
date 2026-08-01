@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Eternal Suppress
   type: 2
   description: +8% DEF, -4% ST
-  icon: {fileID: 0}
+  icon: {fileID: -8527441699566603794, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 4
   battlePointCost: 0

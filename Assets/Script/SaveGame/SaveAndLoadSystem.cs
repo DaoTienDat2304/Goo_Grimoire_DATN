@@ -71,25 +71,30 @@ public class SaveAndLoadSystem : MonoBehaviour
         }
         else
         {
-            Debug.Log("[Save] Tài khoản mới — bắt đầu game với dữ liệu mặc định.");
-            ResetGameState();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (DevAccountInitializer.IsDevAccount())
+            string fallbackGuestJson = LocalSaveStore.Load("guest");
+            if (!string.IsNullOrEmpty(fallbackGuestJson))
             {
-                DevAccountInitializer.InitializeDevSlimes();
+                Debug.Log("[Save] Tìm thấy fallback local save ('guest'), dùng dữ liệu này để tránh mất dữ liệu!");
+                Load(fallbackGuestJson);
             }
             else
-#endif
             {
-                // Tài khoản mới thường: tạo 2 slime khởi đầu (Starter_1, Starter_2).
-                // ResetGameState() vừa xóa sạch slime nên phải tạo lại ở đây,
-                // nếu không người chơi vào game sau tutorial sẽ không có slime nào.
-                if (BreedingManager.Instance != null)
-                    BreedingManager.Instance.CreateInitialSlimes();
+                Debug.Log("[Save] Tài khoản mới thực sự — bắt đầu game với dữ liệu mặc định.");
+                ResetGameState();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                if (DevAccountInitializer.IsDevAccount())
+                {
+                    DevAccountInitializer.InitializeDevSlimes();
+                }
+                else
+#endif
+                {
+                    if (BreedingManager.Instance != null)
+                        BreedingManager.Instance.CreateInitialSlimes();
+                }
+                DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
+                Save();
             }
-            // Tài khoản mới: khởi tạo bộ daily đầu tiên.
-            DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
-            Save(); // lưu ngay để lần sau login/replay có sẵn
         }
 
         // 4. Nếu có kết quả tower chưa được lưu, apply lên dữ liệu vừa load rồi save lại
@@ -142,6 +147,11 @@ public class SaveAndLoadSystem : MonoBehaviour
     }
     public void Save()
     {
+        if (!_initialized)
+        {
+            Debug.LogWarning("[Save] Bỏ qua Save() vì dữ liệu đang trong quá trình nạp!");
+            return;
+        }
         GameSaveData data = null;
         string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
 

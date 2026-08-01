@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Unc_Rip
   m_EditorClassIdentifier: 
-  skillName: Rending Claw
+  skillName: Rip Claw
   type: 1
   description: 145% ATK + 140, 25% Bleed
-  icon: {fileID: 0}
+  icon: {fileID: 3578675889542686699, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 1
   battlePointCost: 1

@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Empyrean Coronation
   type: 1
   description: +25% ATK, +12 SPD
-  icon: {fileID: 0}
+  icon: {fileID: -5636208650137810090, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6
   battlePointCost: 1

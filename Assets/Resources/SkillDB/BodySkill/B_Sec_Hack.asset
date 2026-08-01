@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Hacker
   type: 2
   description: "T\u1EF1 \u0111\xE1nh 270%"
-  icon: {fileID: 0}
+  icon: {fileID: -7033272953321326325, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7
   battlePointCost: 0

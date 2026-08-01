@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Leg_Star_U
   m_EditorClassIdentifier: 
-  skillName: Supernova Edge
+  skillName: Starforged Blade
   type: 3
   description: 450% ATK + 2000
-  icon: {fileID: 0}
+  icon: {fileID: -8236498686233768915, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 5
   battlePointCost: 0

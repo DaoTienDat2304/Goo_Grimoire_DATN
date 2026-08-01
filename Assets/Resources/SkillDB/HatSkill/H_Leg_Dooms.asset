@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Doomsday Decree
   type: 1
   description: -25% ATK/DEF/SPD
-  icon: {fileID: 0}
+  icon: {fileID: -6956471198021532888, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 5
   battlePointCost: 1

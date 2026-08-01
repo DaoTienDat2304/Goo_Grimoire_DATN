@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Singularity Field
   type: 2
   description: "-15% M\u1ECDi ch\u1EC9 s\u1ED1 \u0111\u1ECBch"
-  icon: {fileID: 0}
+  icon: {fileID: -7286346462937123367, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7
   battlePointCost: 0

@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Curse of Weakness
   type: 1
   description: -10% ATK/DEF
-  icon: {fileID: 0}
+  icon: {fileID: 6036604209445235547, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 2
   battlePointCost: 1

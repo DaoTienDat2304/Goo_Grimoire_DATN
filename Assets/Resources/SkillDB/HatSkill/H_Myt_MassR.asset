@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Mass Resurrection
   type: 1
   description: "H\u1ED3i sinh team 25%"
-  icon: {fileID: 0}
+  icon: {fileID: -1397988140370467828, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6
   battlePointCost: 2

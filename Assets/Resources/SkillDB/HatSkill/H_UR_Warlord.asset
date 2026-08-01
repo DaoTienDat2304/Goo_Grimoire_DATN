@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Warlord's Command
   type: 1
   description: +15% ATK, +8 SPD
-  icon: {fileID: 0}
+  icon: {fileID: -3105475073908435672, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 4
   battlePointCost: 1

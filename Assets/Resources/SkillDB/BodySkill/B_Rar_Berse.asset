@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Berserker Blood
   type: 2
   description: "M\u1EA5t m\xE1u t\u0103ng c\xF4ng"
-  icon: {fileID: 0}
+  icon: {fileID: -1874060938329499830, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 2
   battlePointCost: 0

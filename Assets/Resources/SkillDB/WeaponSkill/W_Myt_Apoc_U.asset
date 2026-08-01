@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Myt_Apoc_U
   m_EditorClassIdentifier: 
-  skillName: Ultimate Psychic Surge
+  skillName: Apocalypse Cannon
   type: 3
   description: 520% ATK + 2750 AoE
-  icon: {fileID: 0}
+  icon: {fileID: -274910689691647653, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6
   battlePointCost: 0

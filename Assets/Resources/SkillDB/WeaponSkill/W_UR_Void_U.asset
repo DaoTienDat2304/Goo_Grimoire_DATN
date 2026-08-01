@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_UR_Void_U
   m_EditorClassIdentifier: 
-  skillName: Black Hole Collapse
+  skillName: Voidmaw Cannon
   type: 3
   description: 360% ATK + 1250 AoE
-  icon: {fileID: 0}
+  icon: {fileID: -7234994728823924128, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4
   battlePointCost: 0

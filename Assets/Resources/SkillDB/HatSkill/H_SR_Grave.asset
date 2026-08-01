@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Grave Seal
   type: 1
   description: "Kho\xE1 Buff"
-  icon: {fileID: 0}
+  icon: {fileID: 8516706120598374142, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 3
   battlePointCost: 1

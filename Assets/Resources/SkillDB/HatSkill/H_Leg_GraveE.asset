@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Grave Edict
   type: 1
   description: "Kho\xE1 Buff, \u0111\u1EA9y l\xF9i 30%"
-  icon: {fileID: 0}
+  icon: {fileID: 6106487895095515954, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 5
   battlePointCost: 1

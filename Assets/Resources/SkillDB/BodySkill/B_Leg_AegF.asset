@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Aegis of Fallen
   type: 2
   description: "\u0110\u1ED3ng minh g\u1EE5c +ATK"
-  icon: {fileID: 0}
+  icon: {fileID: -8562174421231938224, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5
   battlePointCost: 0

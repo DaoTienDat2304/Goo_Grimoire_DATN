@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Slow Metabolism
   type: 2
   description: "H\u1ED3i 1% HP"
-  icon: {fileID: 0}
+  icon: {fileID: -3084783358539065637, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 0
   battlePointCost: 0

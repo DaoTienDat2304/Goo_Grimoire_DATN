@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Sec_Ecli_A
   m_EditorClassIdentifier: 
-  skillName: Eclipse of Eternity
+  skillName: Eclipse Reaver
   type: 1
   description: 200% ATK + 620 AoE
-  icon: {fileID: 0}
+  icon: {fileID: -7135615015325299953, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7
   battlePointCost: 2

@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Stone Wall
   type: 1
   description: +12% DEF team
-  icon: {fileID: 0}
+  icon: {fileID: 8802145076151451675, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 2
   battlePointCost: 1

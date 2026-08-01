@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Tempo Overdrive
   type: 1
   description: +15 SPD team
-  icon: {fileID: 0}
+  icon: {fileID: -7898656746461767137, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 5
   battlePointCost: 1

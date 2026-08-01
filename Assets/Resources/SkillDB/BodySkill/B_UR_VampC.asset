@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Vampiric Core
   type: 2
   description: "H\xFAt m\xE1u 8%"
-  icon: {fileID: 0}
+  icon: {fileID: -4143882448426569371, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 4
   battlePointCost: 0

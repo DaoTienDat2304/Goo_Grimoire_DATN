@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Immortal Sovereign
   type: 2
   description: "Mi\u1EC5n Crit, H\u1ED3i 3%"
-  icon: {fileID: 0}
+  icon: {fileID: 7212422957128434443, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 6
   battlePointCost: 0

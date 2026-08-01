@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Overclock Engine
   type: 2
   description: "Ti\xEAu \u0110CK ho\xE0n \u0110CK"
-  icon: {fileID: 0}
+  icon: {fileID: -1809694882535556203, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7
   battlePointCost: 0

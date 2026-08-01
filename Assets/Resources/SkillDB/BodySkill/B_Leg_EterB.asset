@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Eternal Bulwark
   type: 2
   description: "T\xEDch lu\u1EF9 DEF"
-  icon: {fileID: 0}
+  icon: {fileID: -1513601894735356067, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5
   battlePointCost: 0

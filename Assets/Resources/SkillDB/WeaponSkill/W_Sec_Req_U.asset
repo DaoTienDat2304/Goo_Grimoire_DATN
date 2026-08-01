@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Sec_Req_U
   m_EditorClassIdentifier: 
-  skillName: Requiem Aegis
+  skillName: Requiem Engine
   type: 3
   description: "B\u1EA5t t\u1EED 1 l\u01B0\u1EE3t"
-  icon: {fileID: 0}
+  icon: {fileID: -7035371750225750692, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7
   battlePointCost: 0

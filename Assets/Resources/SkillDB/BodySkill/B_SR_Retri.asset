@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Retribution Plate
   type: 2
   description: "Ph\u1EA3n 8% ST"
-  icon: {fileID: 0}
+  icon: {fileID: 859723408146594934, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 3
   battlePointCost: 0

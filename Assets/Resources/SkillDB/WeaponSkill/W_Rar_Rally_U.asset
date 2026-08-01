@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Rar_Rally_U
   m_EditorClassIdentifier: 
-  skillName: War Anthem
+  skillName: Rallyhorn Trident
   type: 3
   description: +15% ATK team
-  icon: {fileID: 0}
+  icon: {fileID: 2548970649608562601, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 2
   battlePointCost: 0

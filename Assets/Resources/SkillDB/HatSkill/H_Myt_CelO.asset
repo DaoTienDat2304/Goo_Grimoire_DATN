@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: Celestial Overture
   type: 1
   description: "K\xE9o 100%, +8 SPD"
-  icon: {fileID: 0}
+  icon: {fileID: 1828969203469574030, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6
   battlePointCost: 1

@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Myt_Emp_A
   m_EditorClassIdentifier: 
-  skillName: Judgment Ray
+  skillName: Empyrean War Crown
   type: 1
   description: 240% ATK + 1500 AoE
-  icon: {fileID: 0}
+  icon: {fileID: 5251718513075780803, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6
   battlePointCost: 2

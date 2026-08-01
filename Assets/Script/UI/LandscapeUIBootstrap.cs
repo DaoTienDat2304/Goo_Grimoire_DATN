@@ -67,30 +67,15 @@ public sealed class LandscapeUIBootstrap : MonoBehaviour
         {
             scaler = canvas.gameObject.AddComponent<CanvasScaler>();
         }
-        else if (!NeedsRuntimeFix(scaler))
-        {
-            return;
-        }
-
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 0.5f;
         scaler.referencePixelsPerUnit = 100f;
-    }
 
-    private static bool NeedsRuntimeFix(CanvasScaler scaler)
-    {
-        bool isDefaultUnityScaler =
-            scaler.uiScaleMode == CanvasScaler.ScaleMode.ConstantPixelSize &&
-            Mathf.Approximately(scaler.referenceResolution.x, 800f) &&
-            Mathf.Approximately(scaler.referenceResolution.y, 600f);
-
-        bool hasInvalidScaledResolution =
-            scaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize &&
-            (scaler.referenceResolution.x <= 0f || scaler.referenceResolution.y <= 0f);
-
-        return isDefaultUnityScaler || hasInvalidScaledResolution;
+        var safeArea = canvas.GetComponent<CanvasSafeArea>();
+        if (safeArea == null)
+            canvas.gameObject.AddComponent<CanvasSafeArea>();
     }
 
     private static void ConfigureAllCanvases()

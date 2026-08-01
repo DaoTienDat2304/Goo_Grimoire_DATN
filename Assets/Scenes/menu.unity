@@ -6207,8 +6207,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1.2993164, y: -3.897583}
-  m_SizeDelta: {x: 1964.1731, y: 943.7791}
+  m_AnchoredPosition: {x: 4.4278, y: 18.1582}
+  m_SizeDelta: {x: 2213.3298, y: 1166.4496}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &5082661256746048723
 GameObject:
@@ -6532,11 +6532,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3934217297162520779, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: contentToRestore
-      value:
+      value: 
       objectReference: {fileID: 3341297011700163907}
     - target: {fileID: 3934217297162520779, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: componentToRestore
-      value:
+      value: 
       objectReference: {fileID: 1276565755}
     - target: {fileID: 4715095258268454170, guid: 1de1a0468f9905c428c1ca1a8d6501dc, type: 3}
       propertyPath: m_AnchorMax.x
@@ -6901,7 +6901,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96

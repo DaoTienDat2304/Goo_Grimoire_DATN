@@ -1,0 +1,1378 @@
+fileFormatVersion: 2
+guid: 513fecac2afa5904f9ad05f7ad7d5b35
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6199720543617963891
+    second: Body_0
+  - first:
+      213: 7015891759302478486
+    second: Body_1
+  - first:
+      213: -3084783358539065637
+    second: Body_2
+  - first:
+      213: -4657753945814193390
+    second: Body_3
+  - first:
+      213: -8030371550707451800
+    second: Body_4
+  - first:
+      213: -8062578979193767562
+    second: Body_5
+  - first:
+      213: -958220191789875927
+    second: Body_6
+  - first:
+      213: -3406843930107617671
+    second: Body_7
+  - first:
+      213: -1811983669847110553
+    second: Body_8
+  - first:
+      213: 6967925138466521546
+    second: Body_9
+  - first:
+      213: 8471273346247887134
+    second: Body_10
+  - first:
+      213: -3517739430071519151
+    second: Body_11
+  - first:
+      213: -2066378720760693067
+    second: Body_12
+  - first:
+      213: -8234493963338901362
+    second: Body_13
+  - first:
+      213: 8621886897671426217
+    second: Body_14
+  - first:
+      213: 8286172282877560077
+    second: Body_15
+  - first:
+      213: -1874060938329499830
+    second: Body_16
+  - first:
+      213: -6869123177632837056
+    second: Body_17
+  - first:
+      213: -1429166744338494186
+    second: Body_18
+  - first:
+      213: 8884523697578121177
+    second: Body_19
+  - first:
+      213: 2829588060858407925
+    second: Body_20
+  - first:
+      213: 6393107087435189210
+    second: Body_21
+  - first:
+      213: 859723408146594934
+    second: Body_22
+  - first:
+      213: 7728488746179117960
+    second: Body_23
+  - first:
+      213: -5488116229052790007
+    second: Body_24
+  - first:
+      213: -1609648382523227204
+    second: Body_25
+  - first:
+      213: -8527441699566603794
+    second: Body_26
+  - first:
+      213: -4143882448426569371
+    second: Body_27
+  - first:
+      213: 1420219011150851129
+    second: Body_28
+  - first:
+      213: 2014492175077957913
+    second: Body_29
+  - first:
+      213: 920560438444918265
+    second: Body_30
+  - first:
+      213: -3423614793431421515
+    second: Body_31
+  - first:
+      213: 3279300416085775009
+    second: Body_32
+  - first:
+      213: -1513601894735356067
+    second: Body_33
+  - first:
+      213: 3345739701931622181
+    second: Body_34
+  - first:
+      213: -8562174421231938224
+    second: Body_35
+  - first:
+      213: 3339963544287196914
+    second: Body_36
+  - first:
+      213: -4445153650593564858
+    second: Body_37
+  - first:
+      213: 7212422957128434443
+    second: Body_38
+  - first:
+      213: 5476367815067537618
+    second: Body_39
+  - first:
+      213: 4671734820620878130
+    second: Body_40
+  - first:
+      213: 4774651963104729523
+    second: Body_41
+  - first:
+      213: -3812975195627848998
+    second: Body_42
+  - first:
+      213: 8479447844769535193
+    second: Body_43
+  - first:
+      213: -7033272953321326325
+    second: Body_44
+  - first:
+      213: 8635406102852873674
+    second: Body_45
+  - first:
+      213: -1809694882535556203
+    second: Body_46
+  - first:
+      213: -7286346462937123367
+    second: Body_47
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 50
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Sticky Slime
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 894
+        width: 142
+        height: 109
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d88a5fa530b26f9a0800000000000000
+      internalID: -6199720543617963891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Thin Hide
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 894
+        width: 136
+        height: 110
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69a80df12647d5160800000000000000
+      internalID: 7015891759302478486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Slow Metabolism
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 894
+        width: 131
+        height: 110
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd61e3911e5a035d0800000000000000
+      internalID: -3084783358539065637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Soft Body
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 894
+        width: 133
+        height: 109
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21b2290d6755c5fb0800000000000000
+      internalID: -4657753945814193390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Light Step
+      rect:
+        serializedVersion: 2
+        x: 725
+        y: 894
+        width: 127
+        height: 109
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 868fda11f936e8090800000000000000
+      internalID: -8030371550707451800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Minor Spikes
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 894
+        width: 125
+        height: 110
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 679bf93c227fb1090800000000000000
+      internalID: -8062578979193767562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Iron Will
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 772
+        width: 142
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92df1cbffc7b3b2f0800000000000000
+      internalID: -958220191789875927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stone Skin
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 772
+        width: 135
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97e5dbcee7578b0d0800000000000000
+      internalID: -3406843930107617671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Vital Growth
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 772
+        width: 129
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76c44fbd37a8ad6e0800000000000000
+      internalID: -1811983669847110553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adrenaline
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 772
+        width: 133
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac1cfcbeefa03b060800000000000000
+      internalID: 6967925138466521546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Corrosive Slime
+      rect:
+        serializedVersion: 2
+        x: 726
+        y: 772
+        width: 126
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e190756c932009570800000000000000
+      internalID: 8471273346247887134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Barbed Coat
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 772
+        width: 125
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 158b33a40aa7e2fc0800000000000000
+      internalID: -3517739430071519151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stone Armor
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 649
+        width: 144
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bef1a9608fb253e0800000000000000
+      internalID: -2066378720760693067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reinforced Thorn Armor
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 649
+        width: 134
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e88161a5e5339bd80800000000000000
+      internalID: -8234493963338901362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Muscle Enhancement
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 649
+        width: 129
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a0dc45e37817a770800000000000000
+      internalID: 8621886897671426217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Life Infusion
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 649
+        width: 134
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d05ca9c0ac56ef270800000000000000
+      internalID: 8286172282877560077
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Berserker Blood
+      rect:
+        serializedVersion: 2
+        x: 726
+        y: 649
+        width: 126
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a475f6b718ffdf5e0800000000000000
+      internalID: -1874060938329499830
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Guardian Barrier
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 649
+        width: 125
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 042dac63dd8fba0a0800000000000000
+      internalID: -6869123177632837056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dragon Scale Armor
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 524
+        width: 144
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61d07e60b649a2ce0800000000000000
+      internalID: -1429166744338494186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warrior's Fury
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 524
+        width: 135
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d71fa01b3b2c4b70800000000000000
+      internalID: 8884523697578121177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Restoration Aura
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 524
+        width: 129
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5fbd62c7957b44720800000000000000
+      internalID: 2829588060858407925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Diamond Armor
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 524
+        width: 132
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adb4b9d1601e8b850800000000000000
+      internalID: 6393107087435189210
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retribution Plate
+      rect:
+        serializedVersion: 2
+        x: 726
+        y: 528
+        width: 126
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67c7aab72e95eeb00800000000000000
+      internalID: 859723408146594934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Momentum Core
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 524
+        width: 125
+        height: 112
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8834c9e319b114b60800000000000000
+      internalID: 7728488746179117960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Nightmare Shackles
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 407
+        width: 142
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90b8041fd5b46d3b0800000000000000
+      internalID: -5488116229052790007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Divine Guardian Armor
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 407
+        width: 134
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb3cb6a035169a9e0800000000000000
+      internalID: -1609648382523227204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eternal Suppression
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 407
+        width: 129
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee1ba7e54f078a980800000000000000
+      internalID: -8527441699566603794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Vampiric Core
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 407
+        width: 132
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 561fe8e4ed8fd76c0800000000000000
+      internalID: -4143882448426569371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Speed Seal
+      rect:
+        serializedVersion: 2
+        x: 726
+        y: 407
+        width: 126
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93c27ee7aa1a5b310800000000000000
+      internalID: 1420219011150851129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bulwark Aura
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 407
+        width: 125
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9116352c5f9e4fb10800000000000000
+      internalID: 2014492175077957913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Armor of Immortality
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 286
+        width: 142
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f589c767dc76cc00800000000000000
+      internalID: 920560438444918265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heaven's Aegis
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 286
+        width: 134
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bd6fb50c70ec70d0800000000000000
+      internalID: -3423614793431421515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Divine Resurrection
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 286
+        width: 129
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a2559c9a5a628d20800000000000000
+      internalID: 3279300416085775009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eternal Bulwark
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 286
+        width: 132
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5fd0fc981b9efae0800000000000000
+      internalID: -1513601894735356067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bloodlord Dominion
+      rect:
+        serializedVersion: 2
+        x: 726
+        y: 286
+        width: 126
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52f3e8c48847e6e20800000000000000
+      internalID: 3345739701931622181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aegis of the Fallen
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 286
+        width: 125
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 055d88d6abb0d2980800000000000000
+      internalID: -8562174421231938224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heaven's Suppression
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 164
+        width: 142
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f63efbc52fe95e20800000000000000
+      internalID: 3339963544287196914
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Divine Incarnation
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 164
+        width: 134
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 647f6546e44af42c0800000000000000
+      internalID: -4445153650593564858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Immortal Sovereign
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 164
+        width: 129
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b034389677ca71460800000000000000
+      internalID: 7212422957128434443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: World Tree Root
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 164
+        width: 132
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d09b744387fffb40800000000000000
+      internalID: 5476367815067537618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Titan's Reprisal
+      rect:
+        serializedVersion: 2
+        x: 726
+        y: 164
+        width: 126
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2314ee3411655d040800000000000000
+      internalID: 4671734820620878130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ascendant Core
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 164
+        width: 125
+        height: 108
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b99afac9a8f24240800000000000000
+      internalID: 4774651963104729523
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dictator
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 30
+        width: 144
+        height: 119
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adaf937f247951bc0800000000000000
+      internalID: -3812975195627848998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Priority Protocol
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 29
+        width: 140
+        height: 119
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d490f683ec0da570800000000000000
+      internalID: 8479447844769535193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hacker
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 29
+        width: 131
+        height: 119
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b097be8438bc46e90800000000000000
+      internalID: -7033272953321326325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Final Vengeance
+      rect:
+        serializedVersion: 2
+        x: 554
+        y: 29
+        width: 134
+        height: 119
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: acd29c3291027d770800000000000000
+      internalID: 8635406102852873674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Overclock Engine
+      rect:
+        serializedVersion: 2
+        x: 724
+        y: 29
+        width: 128
+        height: 119
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59b30aea71ca2e6e0800000000000000
+      internalID: -1809694882535556203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Singularity Field
+      rect:
+        serializedVersion: 2
+        x: 887
+        y: 29
+        width: 126
+        height: 119
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d575362f72b1ea90800000000000000
+      internalID: -7286346462937123367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: f1568049834d1e94ca174a6eb03c3e58
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Adrenaline: 6967925138466521546
+      Aegis of the Fallen: -8562174421231938224
+      Armor of Immortality: 920560438444918265
+      Ascendant Core: 4774651963104729523
+      Barbed Coat: -3517739430071519151
+      Berserker Blood: -1874060938329499830
+      Bloodlord Dominion: 3345739701931622181
+      Bulwark Aura: 2014492175077957913
+      Corrosive Slime: 8471273346247887134
+      Diamond Armor: 6393107087435189210
+      Dictator: -3812975195627848998
+      Divine Guardian Armor: -1609648382523227204
+      Divine Incarnation: -4445153650593564858
+      Divine Resurrection: 3279300416085775009
+      Dragon Scale Armor: -1429166744338494186
+      Eternal Bulwark: -1513601894735356067
+      Eternal Suppression: -8527441699566603794
+      Final Vengeance: 8635406102852873674
+      Guardian Barrier: -6869123177632837056
+      Hacker: -7033272953321326325
+      Heaven's Aegis: -3423614793431421515
+      Heaven's Suppression: 3339963544287196914
+      Immortal Sovereign: 7212422957128434443
+      Iron Will: -958220191789875927
+      Life Infusion: 8286172282877560077
+      Light Step: -8030371550707451800
+      Minor Spikes: -8062578979193767562
+      Momentum Core: 7728488746179117960
+      Muscle Enhancement: 8621886897671426217
+      Nightmare Shackles: -5488116229052790007
+      Overclock Engine: -1809694882535556203
+      Priority Protocol: 8479447844769535193
+      Reinforced Thorn Armor: -8234493963338901362
+      Restoration Aura: 2829588060858407925
+      Retribution Plate: 859723408146594934
+      Singularity Field: -7286346462937123367
+      Slow Metabolism: -3084783358539065637
+      Soft Body: -4657753945814193390
+      Speed Seal: 1420219011150851129
+      Sticky Slime: -6199720543617963891
+      Stone Armor: -2066378720760693067
+      Stone Skin: -3406843930107617671
+      Thin Hide: 7015891759302478486
+      Titan's Reprisal: 4671734820620878130
+      Vampiric Core: -4143882448426569371
+      Vital Growth: -1811983669847110553
+      Warrior's Fury: 8884523697578121177
+      World Tree Root: 5476367815067537618
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

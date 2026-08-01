@@ -1,4 +1,4 @@
-﻿using Spine.Unity;
+using Spine.Unity;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -88,6 +88,7 @@ public class Member : MonoBehaviour
                 stat.id = s.id;
                 stat.bodySkill = s.body?.skill;
                 stat.weaponSkill = s.weapon?.skill;
+                stat.weaponUltimateSkill = s.weapon?.ultimateSkill;
                 stat.armorSkill = s.armor?.skill;
                 formationManager.slimeFormation.Add(slimeGO);
             }

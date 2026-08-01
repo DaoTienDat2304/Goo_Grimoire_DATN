@@ -58,6 +58,7 @@ public class TowerTurnSystem : TurnSystem
     public int totalWaves = 1;
     public List<GameObject> activeEnemies = new List<GameObject>();
     private Vector2 originalBossPos;
+    private GameObject enemyTemplate; // Template ban đầu dùng để clone enemy
     private int bossTurnCounter = 0;
     private int activeTowerLevel = 1;
     public Text waveText; // UI Text để hiển thị Wave hiện tại
@@ -70,7 +71,12 @@ public class TowerTurnSystem : TurnSystem
     protected override void Start()
     {
         if (resultPanel != null) resultPanel.SetActive(false);
-        if (boss != null) originalBossPos = boss.GetComponent<RectTransform>().anchoredPosition;
+        if (boss != null)
+        {
+            originalBossPos = boss.GetComponent<RectTransform>().anchoredPosition;
+            // Lưu lại boss ban đầu làm template để clone quái
+            enemyTemplate = boss;
+        }
 
         turnList = formationManager.slimeFormation;
 
@@ -124,13 +130,32 @@ public class TowerTurnSystem : TurnSystem
         // Nếu CÓ cấu hình wave, thì mới ẩn/xoá boss mặc định và sinh quái theo wave
         if (hasWaves)
         {
-            // Clear quái hiện tại
+            if (targetIndicator != null)
+            {
+                targetIndicator.SetActive(false);
+                targetIndicator.transform.SetParent(null, false);
+            }
+            if (turnList != null)
+            {
+                turnList.RemoveAll(x => x != null && x.GetComponent<SlimeStats>() != null && x.GetComponent<SlimeStats>().isEnemy);
+                turnList.RemoveAll(x => x == null);
+            }
+            // Clear quái hiện tại (KHÔNG xóa enemyTemplate)
             foreach (var enemy in activeEnemies)
             {
-                if (enemy != null && enemy != boss) Destroy(enemy);
+                if (enemy != null && enemy != enemyTemplate) Destroy(enemy);
             }
             activeEnemies.Clear();
-            if (boss != null) boss.SetActive(false);
+            // Ẩn boss hiện tại nhưng giữ nguyên enemyTemplate để clone wave tiếp
+            if (boss != null && boss != enemyTemplate)
+            {
+                Destroy(boss);
+            }
+            if (enemyTemplate != null)
+            {
+                enemyTemplate.SetActive(false);
+            }
+            boss = null;
 
             totalWaves = currentFloor.waves.Count;
             if (waveIndex >= totalWaves) return;
@@ -146,6 +171,17 @@ public class TowerTurnSystem : TurnSystem
                 var enemySetup = waveConfig.enemies[i];
                 TowerEnemyType type = (TowerEnemyType)((int)enemySetup.enemyType);
                 SpawnEnemy(type, enemySetup.level, i, waveConfig.enemies.Count);
+            }
+            if (activeEnemies.Count > 0)
+            {
+                boss = activeEnemies[0];
+                foreach (var enemy in activeEnemies)
+                {
+                    if (!turnList.Contains(enemy)) turnList.Add(enemy);
+                }
+
+                var firstAliveEnemy = activeEnemies.FirstOrDefault(e => e != null && e.GetComponent<SlimeBattleStats>()?.CurrentHP > 0);
+                if (firstAliveEnemy != null) SelectTarget(firstAliveEnemy);
             }
         }
         else
@@ -193,12 +229,6 @@ public class TowerTurnSystem : TurnSystem
             if (activeEnemies.Count > 0 && boss == null) boss = activeEnemies[0];
         }
 
-        // Cập nhật lại list hành động
-        if (activeEnemies.Count > 0)
-        {
-            SelectTarget(activeEnemies[0]);
-        }
-
         foreach (var enemy in activeEnemies)
         {
             float enemySpd = GetSpeedOf(enemy);
@@ -208,38 +238,66 @@ public class TowerTurnSystem : TurnSystem
 
     private void SpawnEnemy(TowerEnemyType type, int level, int index, int totalCount)
     {
-        GameObject enemyGo = Instantiate(boss, boss.transform.parent);
+        // Dùng enemyTemplate (boss ban đầu trên scene) làm khuôn clone
+        GameObject templateObj = enemyTemplate != null ? enemyTemplate : boss;
+        if (templateObj == null) templateObj = activeEnemies.FirstOrDefault();
+        if (templateObj == null)
+        {
+            Debug.LogError("[TowerTurnSystem] Không tìm thấy template để spawn enemy!");
+            return;
+        }
+
+        GameObject enemyGo = Instantiate(templateObj, templateObj.transform.parent);
         enemyGo.name = $"{type} Lv{level}";
         enemyGo.SetActive(true);
+
+        var spineGraphic = enemyGo.GetComponentInChildren<SkeletonGraphic>(true);
+        if (spineGraphic != null)
+        {
+            spineGraphic.color = Color.white;
+        }
 
         RectTransform rect = enemyGo.GetComponent<RectTransform>();
         Vector2 offset = Vector2.zero;
 
-        // Tăng khoảng cách X và Y để dàn đều quái vật, tránh bị chồng lấp
-        if (totalCount == 2) offset = index == 0 ? new Vector2(0, 150) : new Vector2(0, -150);
+        if (totalCount == 1)
+        {
+            offset = Vector2.zero;
+        }
+        else if (totalCount == 2)
+        {
+            offset = index == 0 ? new Vector2(0, 140) : new Vector2(0, -140);
+        }
         else if (totalCount == 3)
         {
-            if (index == 0) offset = new Vector2(50, 180);
+            if (index == 0) offset = new Vector2(50, 200);
             else if (index == 1) offset = new Vector2(0, 0);
-            else offset = new Vector2(50, -180);
+            else offset = new Vector2(50, -200);
         }
         else if (totalCount == 4)
         {
-            if (index == 0) offset = new Vector2(80, 250);
-            else if (index == 1) offset = new Vector2(40, 85);
-            else if (index == 2) offset = new Vector2(40, -85);
-            else offset = new Vector2(80, -250);
+            if (index == 0) offset = new Vector2(70, 260);
+            else if (index == 1) offset = new Vector2(35, 90);
+            else if (index == 2) offset = new Vector2(35, -90);
+            else offset = new Vector2(70, -260);
         }
         else if (totalCount == 5)
         {
-            if (index == 0) offset = new Vector2(100, 300);
-            else if (index == 1) offset = new Vector2(50, 150);
+            if (index == 0) offset = new Vector2(100, 320);
+            else if (index == 1) offset = new Vector2(50, 160);
             else if (index == 2) offset = new Vector2(0, 0);
-            else if (index == 3) offset = new Vector2(50, -150);
-            else offset = new Vector2(100, -300);
+            else if (index == 3) offset = new Vector2(50, -160);
+            else offset = new Vector2(100, -320);
         }
 
-        var spine = enemyGo.GetComponentInChildren<SkeletonGraphic>();
+        Vector2 originalPos = templateObj.GetComponent<RectTransform>().anchoredPosition;
+        Vector2 baseCenterPosition = originalBossPos + new Vector2(0, -180f);
+
+        var spine = enemyGo.GetComponentInChildren<SkeletonGraphic>(true);
+        if (spine != null) spine.color = Color.white;
+        var staticImg = enemyGo.transform.Find("StaticSprite")?.GetComponent<UnityEngine.UI.Image>();
+        if (staticImg != null) staticImg.color = Color.white;
+
         GameObject imgGo = null;
         float actualScale = 0.7f;
 
@@ -530,21 +588,37 @@ public class TowerTurnSystem : TurnSystem
 
     private void CheckWinLoseAfterEnemyDeath()
     {
-        var nextAlive = activeEnemies.FirstOrDefault(e => e != null && e.GetComponent<SlimeBattleStats>().CurrentHP > 0);
-        if (nextAlive != null) SelectTarget(nextAlive);
+        var nextAlive = activeEnemies.FirstOrDefault(e => e != null && e.GetComponent<SlimeBattleStats>()?.CurrentHP > 0);
+        if (nextAlive != null)
+        {
+            SelectTarget(nextAlive);
+        }
 
         foreach (var enemy in activeEnemies)
         {
-            if (enemy != null)
-            {
-                var stats = enemy.GetComponent<SlimeBattleStats>();
-                if (stats != null && stats.CurrentHP <= 0)
-                {
-                    var spine = enemy.GetComponentInChildren<SkeletonGraphic>();
-                    if (spine != null) spine.color = new Color(0.3f, 0.3f, 0.3f, 1f);
+            if (enemy == null) continue;
 
-                    var img = enemy.transform.Find("StaticSprite")?.GetComponent<UnityEngine.UI.Image>();
-                    if (img != null) img.color = new Color(0.3f, 0.3f, 0.3f, 1f);
+            var stats = enemy.GetComponent<SlimeBattleStats>();
+            if (stats != null && stats.CurrentHP <= 0)
+            {
+                Color darkColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+
+                var spine = enemy.GetComponentInChildren<SkeletonGraphic>(true);
+                if (spine != null)
+                {
+                    spine.color = darkColor;
+                }
+
+                var img = enemy.transform.Find("StaticSprite")?.GetComponent<UnityEngine.UI.Image>();
+                if (img != null)
+                {
+                    img.color = darkColor;
+                }
+
+                var slimeStats = enemy.GetComponent<SlimeStats>();
+                if (slimeStats != null && slimeStats.turnHalo != null)
+                {
+                    slimeStats.turnHalo.SetActive(false);
                 }
             }
         }
@@ -638,6 +712,11 @@ public class TowerTurnSystem : TurnSystem
 
     protected override IEnumerator AutoAttack()
     {
+        if (boss == null)
+        {
+            Debug.LogWarning("[TowerTurnSystem] AutoAttack: boss is null, skipping.");
+            yield break;
+        }
         var target = boss.GetComponent<SlimeBattleStats>();
         var attacker = currentSlime.GetComponent<SlimeBattleStats>();
 

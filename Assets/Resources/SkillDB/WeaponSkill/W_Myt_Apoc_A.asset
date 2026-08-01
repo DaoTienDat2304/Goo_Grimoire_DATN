@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Myt_Apoc_A
   m_EditorClassIdentifier: 
-  skillName: Wrath of Heaven
+  skillName: Wrath of Heaven and Earth
   type: 1
   description: 230% ATK + 1450 AoE
   icon: {fileID: 0}

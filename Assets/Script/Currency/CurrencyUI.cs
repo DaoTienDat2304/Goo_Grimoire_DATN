@@ -248,7 +248,7 @@ public class CurrencyUI : MonoBehaviour
             {
                 SaveAndLoadSystem.Instance.Save();
             }
-            
+
             Debug.Log($"Đã claim {floorsClaimed} màn tower: Tổng {totalCoinsClaimed} Coins, {totalGemsClaimed} Gems");
         }
     }

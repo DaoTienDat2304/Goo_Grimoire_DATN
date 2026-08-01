@@ -131,6 +131,7 @@ public class TraitInstanceDTO
 
     // Skill được roll khi tạo slime — lưu theo tên SkillSO
     public string skillName;
+    public string ultimateSkillName;
 }
 
 [Serializable]

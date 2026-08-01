@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Myt_World_A
   m_EditorClassIdentifier: 
-  skillName: Apocalyptic Annihil.
+  skillName: Apocalyptic Annihilation
   type: 1
   description: 250% ATK + 1500
   icon: {fileID: 0}

@@ -106,7 +106,7 @@ public static class SkillAssetGenerator
         S(WEAPON_DIR, "W_SR_Warlord_U", Ult, "Warlord's Ascension", "+18% ATK team", 0, 0, 100, 0, (bAtkA, 0.18f, 0, 3, 100));
 
         // ULTRA RARE
-        S(WEAPON_DIR, "W_UR_Thunder_A", Act, "Heaven's Thunder", "200% ATK + 620", 2, 0, 0, 25, (d1, 2.0f, 620, 0, 100), (stun1, 1f, 0, 1, 50));
+        S(WEAPON_DIR, "W_UR_Thunder_A", Act, "Heaven's Thunder Strike", "200% ATK + 620", 2, 0, 0, 25, (d1, 2.0f, 620, 0, 100), (stun1, 1f, 0, 1, 50));
         S(WEAPON_DIR, "W_UR_Thunder_U", Ult, "Cataclysm Verdict", "400% ATK + 1350", 0, 0, 100, 0, (d1, 4.0f, 1350, 0, 100), (stun1, 1f, 0, 2, 80));
         S(WEAPON_DIR, "W_UR_Void_A", Act, "Dark Vortex", "175% ATK + 600 AoE", 2, 0, 0, 25, (dA, 1.75f, 600, 0, 100), (psn1, 0.07f, 0, 2, 100));
         S(WEAPON_DIR, "W_UR_Void_U", Ult, "Black Hole Collapse", "360% ATK + 1250 AoE", 0, 0, 100, 0, (dA, 3.6f, 1250, 0, 100), (psn1, 0.1f, 0, 2, 100));
@@ -126,7 +126,7 @@ public static class SkillAssetGenerator
         S(WEAPON_DIR, "W_Leg_Deluge_U", Ult, "Genesis Starfall", "400% ATK + 1900 AoE", 0, 0, 100, 0, (dA, 4.0f, 1900, 0, 100), (stunA, 1f, 0, 2, 80));
         S(WEAPON_DIR, "W_Leg_Chrono_A", Act, "Time Frost", "200% ATK + 950 AoE", 2, 0, 0, 25, (dA, 2.0f, 950, 0, 100), (stunA, 1f, 0, 1, 40));
         S(WEAPON_DIR, "W_Leg_Chrono_U", Ult, "Temporal Lock", "300% ATK + 1500 AoE", 0, 0, 100, 0, (dA, 3.0f, 1500, 0, 100), (stunA, 1f, 0, 2, 100));
-        S(WEAPON_DIR, "W_Leg_Phoen_A", Act, "Dragon Feather Reaver", "235% ATK + 1050", 2, 0, 0, 25, (d1, 2.35f, 1050, 0, 100), (stun1, 1f, 0, 2, 85));
+        S(WEAPON_DIR, "W_Leg_Phoen_A", Act, "Dragon Feather Soul Reaper", "235% ATK + 1050", 2, 0, 0, 25, (d1, 2.35f, 1050, 0, 100), (stun1, 1f, 0, 2, 85));
         S(WEAPON_DIR, "W_Leg_Phoen_U", Ult, "Phoenix Rebirth", "380% ATK AoE, Revive", 0, 0, 100, 0, (dA, 3.8f, 1700, 0, 100), (rvv1, 0.35f, 0, 0, 100), (hA, 0.2f, 0, 0, 100));
         S(WEAPON_DIR, "W_Leg_Titan_A", Act, "Void Executioner", "230% ATK + 1000", 2, 0, 0, 25, (d1, 2.3f, 1000, 0, 100));
         S(WEAPON_DIR, "W_Leg_Titan_U", Ult, "Aegis Eternal", "Lá chắn 30%", 0, 0, 100, 0, (shldA, 0.3f, 0, 3, 100), (bDefA, 0.15f, 0, 3, 100));
@@ -134,9 +134,9 @@ public static class SkillAssetGenerator
         S(WEAPON_DIR, "W_Leg_Celest_U", Ult, "Divine Coronation", "+22% ATK team", 0, 0, 100, 0, (bAtkA, 0.22f, 0, 3, 100), (enGnA, 30f, 0, 0, 100));
 
         // MYTHIC
-        S(WEAPON_DIR, "W_Myt_World_A", Act, "Apocalyptic Annihil.", "250% ATK + 1500", 2, 0, 0, 25, (d1, 2.5f, 1500, 0, 100));
+        S(WEAPON_DIR, "W_Myt_World_A", Act, "Apocalyptic Annihilation", "250% ATK + 1500", 2, 0, 0, 25, (d1, 2.5f, 1500, 0, 100));
         S(WEAPON_DIR, "W_Myt_World_U", Ult, "Extinction Protocol", "550% ATK + 2750", 0, 0, 100, 0, (d1, 5.5f, 2750, 0, 100));
-        S(WEAPON_DIR, "W_Myt_Apoc_A", Act, "Wrath of Heaven", "230% ATK + 1450 AoE", 3, 0, 0, 25, (dA, 2.3f, 1450, 0, 100), (stunA, 1f, 0, 2, 80));
+        S(WEAPON_DIR, "W_Myt_Apoc_A", Act, "Wrath of Heaven and Earth", "230% ATK + 1450 AoE", 3, 0, 0, 25, (dA, 2.3f, 1450, 0, 100), (stunA, 1f, 0, 2, 80));
         S(WEAPON_DIR, "W_Myt_Apoc_U", Ult, "Ultimate Psychic Surge", "520% ATK + 2750 AoE", 0, 0, 100, 0, (dA, 5.2f, 2750, 0, 100), (stunA, 1f, 0, 3, 100));
         S(WEAPON_DIR, "W_Myt_Obli_A", Act, "Blade of the Void", "260% ATK + 1550", 2, 0, 0, 25, (d1, 2.6f, 1550, 0, 100), (stun1, 1f, 0, 2, 85));
         S(WEAPON_DIR, "W_Myt_Obli_U", Ult, "Absolute Silence", "400% ATK + 2200 AoE", 0, 0, 100, 0, (dA, 4.0f, 2200, 0, 100), (stunA, 1f, 0, 3, 100));

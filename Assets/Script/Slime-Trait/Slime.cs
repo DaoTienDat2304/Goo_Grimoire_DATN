@@ -254,8 +254,11 @@ public class Slime
 
         if (weapon != null)
         {
-            var newSkillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Weapon, weapon.Rarity);
-            if (newSkillSO != null) weapon.skill = new SkillInstance(newSkillSO);
+            var activeSkillSO = SlimeGen.Instance.GetRandomWeaponSkill(weapon.Rarity, false);
+            if (activeSkillSO != null) weapon.skill = new SkillInstance(activeSkillSO);
+
+            var ultimateSkillSO = SlimeGen.Instance.GetRandomWeaponSkill(weapon.Rarity, true);
+            if (ultimateSkillSO != null) weapon.ultimateSkill = new SkillInstance(ultimateSkillSO);
         }
 
         AssignSkills();

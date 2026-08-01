@@ -30,6 +30,7 @@ public class TraitInstance
     public TraitType TraitType;
     public string traitname;
     public SkillInstance skill;
+    public SkillInstance ultimateSkill;
 
 
     public Sprite sprite => baseTrait != null ? baseTrait.sprite : null;
@@ -55,6 +56,15 @@ public class TraitInstance
         else
         {
             skill = null;
+        }
+
+        if (so != null && so.ultimateSkill != null && Rarity != Rarity.Common && Rarity != Rarity.Uncommon)
+        {
+            ultimateSkill = new SkillInstance(so.ultimateSkill);
+        }
+        else
+        {
+            ultimateSkill = null;
         }
 
         RollStatsByGDD();
@@ -88,6 +98,11 @@ public class TraitInstance
         {
             skill = new SkillInstance(other.skill.baseSkill);
             skill.power = other.skill.power;
+        }
+        if (other.ultimateSkill != null)
+        {
+            ultimateSkill = new SkillInstance(other.ultimateSkill.baseSkill);
+            ultimateSkill.power = other.ultimateSkill.power;
         }
     }
 

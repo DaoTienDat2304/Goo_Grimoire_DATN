@@ -27,6 +27,7 @@ public class TraitSO : ScriptableObject
     public Vector2Int critRateRange;
     public Vector2Int critDMGRange;
     public SkillSO skill;
+    public SkillSO ultimateSkill;
 
     public TraitInstance GenerateInstance()
     {

@@ -18,7 +18,17 @@ public class SkillUI : MonoBehaviour
 
             UpdateSkillUI(bodySkill, slime.bodySkill, battleStats);
             UpdateSkillUI(armorSkill, slime.armorSkill, battleStats);
-            UpdateSkillUI(weaponSkill, slime.weaponSkill, battleStats);
+
+            SkillInstance weaponSkillToDisplay = slime.weaponSkill;
+            if (battleStats != null && slime.weaponUltimateSkill != null && slime.weaponUltimateSkill.baseSkill != null)
+            {
+                if (battleStats.CurrentEnergy >= slime.weaponUltimateSkill.baseSkill.energyCost)
+                {
+                    weaponSkillToDisplay = slime.weaponUltimateSkill;
+                }
+            }
+
+            UpdateSkillUI(weaponSkill, weaponSkillToDisplay, battleStats);
         }
     }
 

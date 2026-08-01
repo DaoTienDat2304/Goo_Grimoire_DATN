@@ -142,39 +142,52 @@ public class SaveAndLoadSystem : MonoBehaviour
     }
     public void Save()
     {
-        var data = new GameSaveData();
+        GameSaveData data = null;
+        string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
+
+        string existingJson = LocalSaveStore.Load(localId);
+        if (!string.IsNullOrEmpty(existingJson))
+        {
+            try { data = JsonUtility.FromJson<GameSaveData>(existingJson); } catch { }
+        }
+
+        if (data == null) data = new GameSaveData();
         data.lastSavedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        SerializeSlimes(data);
-        SerializeBreedingSession(data);
-        SerializeUnlockedTraits(data);
-        SerializeBuildings(data);
-        SerializeQuests(data);
-        SerializeAchievements(data);
+        string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        bool isMainScene = (currentScene == "firstsave" || currentScene == "adventureSence");
+
+        if (isMainScene)
+        {
+            SerializeSlimes(data);
+            SerializeBreedingSession(data);
+            SerializeUnlockedTraits(data);
+            SerializeBuildings(data);
+            SerializeQuests(data);
+            SerializeTeam(data);
+            SerializeTamedSlimes(data);
+            SerializeDaily(data);
+        }
+        else
+        {
+            Debug.Log($"[Save] Đang ở trận chiến ({currentScene}), giữ nguyên dữ liệu Slime & Building gốc.");
+        }
+
+        // LUÔN LUÔN LƯU (Cập nhật) TIỀN, TÀI NGUYÊN & TIẾN ĐỘ TOWER CHO DÙ Ở BẤT KỲ ĐÂU
         SerializeCurrencies(data);
         SerializeResources(data);
-        SerializeTeam(data);
-        SerializeTamedSlimes(data);
         SerializeTowerFloors(data);
         SerializeFarmDifficulties(data);
         SerializeStats(data);
-        SerializeDaily(data);
+        SerializeAchievements(data);
 
+        //TIẾN HÀNH LƯU JSON XUỐNG MÁY & CLOUD
         var json = JsonUtility.ToJson(data, true);
-
-        // Luôn lưu cục bộ bằng PlayerPrefs — không mất save khi thoát/replay,
-        // kể cả ở offline dev mode khi cloud chưa bật. Dùng LocalSaveId (guest = key
-        // cố định) để save không bị lệch key mỗi phiên đăng nhập ẩn danh.
-        string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
         LocalSaveStore.Save(localId, json);
 
-        // Lưu cloud (khi đã đăng nhập và bật Firebase)
-        if (CloudSaveProvider.Instance != null
-            && AuthManager.Instance != null
-            && AuthManager.Instance.IsLoggedIn)
+        if (CloudSaveProvider.Instance != null && AuthManager.Instance != null && AuthManager.Instance.IsLoggedIn)
         {
-            CloudSaveProvider.Instance.StartSave(
-                AuthManager.Instance.CurrentUserId, json);
+            CloudSaveProvider.Instance.StartSave(AuthManager.Instance.CurrentUserId, json);
             Debug.Log($"[Save] Đang lưu cloud. savedAt={data.lastSavedAt}");
         }
     }
@@ -384,6 +397,8 @@ public class SaveAndLoadSystem : MonoBehaviour
         var all = bm.GetAllSlimes();
         if (all == null) return;
 
+        data.slimes.Clear();
+
         foreach (var s in all)
         {
             if (s == null) continue;
@@ -514,7 +529,8 @@ public class SaveAndLoadSystem : MonoBehaviour
             baseSpeed = ti.baseSpeed,
             baseCritRate = ti.baseCritRate,
             baseCritDMG = ti.baseCritDMG,
-            skillName = ti.skill?.baseSkill != null ? ti.skill.baseSkill.name : null
+            skillName = ti.skill?.baseSkill != null ? ti.skill.baseSkill.name : null,
+            ultimateSkillName = ti.ultimateSkill?.baseSkill != null ? ti.ultimateSkill.baseSkill.name : null
         };
     }
 
@@ -563,14 +579,22 @@ public class SaveAndLoadSystem : MonoBehaviour
         ti.RecalculateStats(currentMult);
 
         // Khôi phục skill từ tên đã lưu
-        if (!string.IsNullOrEmpty(dto.skillName))
+        if (!string.IsNullOrEmpty(dto.skillName) || !string.IsNullOrEmpty(dto.ultimateSkillName))
         {
             var gen = SlimeGen.Instance;
             if (gen != null)
             {
                 gen.EnsureSkillDatabasePublic();
-                var skillSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.skillName);
-                if (skillSO != null) ti.skill = new SkillInstance(skillSO);
+                if (!string.IsNullOrEmpty(dto.skillName))
+                {
+                    var skillSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.skillName);
+                    if (skillSO != null) ti.skill = new SkillInstance(skillSO);
+                }
+                if (!string.IsNullOrEmpty(dto.ultimateSkillName))
+                {
+                    var ultSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.ultimateSkillName);
+                    if (ultSO != null) ti.ultimateSkill = new SkillInstance(ultSO);
+                }
             }
         }
 
@@ -603,6 +627,7 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         var gen = SlimeGen.Instance;
         if (gen == null || gen.allTraits == null) return;
+        data.unlockedTraits.Clear();
         foreach (var t in gen.allTraits)
         {
             if (t != null && t.unlocked)
@@ -629,6 +654,9 @@ public class SaveAndLoadSystem : MonoBehaviour
     void SerializeBuildings(GameSaveData data)
     {
         var slots = FindObjectsByType<BuildingSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (slots.Length == 0) return;
+
+        data.placedBuildings.Clear();
         foreach (var s in slots)
         {
             var dto = new PlacedBuildingDTO
@@ -681,6 +709,8 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         var qm = QuestManager.Instance;
         if (qm == null || qm.allQuests == null) return;
+
+        data.quests.Clear();
 
         foreach (var q in qm.allQuests)
         {

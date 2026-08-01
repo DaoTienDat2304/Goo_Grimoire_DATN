@@ -169,7 +169,7 @@ public class SlimeGen : MonoBehaviour
         EnsureSkillDatabase();
         if (allSkillsDatabase == null) return null;
 
-        var pool = allSkillsDatabase.Where(s => s.targetTrait == type && s.rarity == rarity).ToList();
+        var pool = allSkillsDatabase.Where(s => s.targetTrait == type && s.rarity == rarity && s.type != SkillType.Ultimate).ToList();
 
         if (pool.Count > 0)
         {
@@ -177,8 +177,32 @@ public class SlimeGen : MonoBehaviour
         }
         else
         {
-            // Fallback: nếu không có skill của độ hiếm này, lấy bất kỳ skill nào của bộ phận đó
-            var fallbackPool = allSkillsDatabase.Where(s => s.targetTrait == type).ToList();
+            // Fallback: nếu không có skill của độ hiếm này, lấy bất kỳ skill nào của bộ phận đó (trừ Ultimate)
+            var fallbackPool = allSkillsDatabase.Where(s => s.targetTrait == type && s.type != SkillType.Ultimate).ToList();
+            if (fallbackPool.Count > 0)
+            {
+                return fallbackPool[Random.Range(0, fallbackPool.Count)];
+            }
+        }
+
+        return null;
+    }
+
+    public SkillSO GetRandomWeaponSkill(Rarity rarity, bool isUltimate)
+    {
+        EnsureSkillDatabase();
+        if (allSkillsDatabase == null) return null;
+
+        SkillType targetType = isUltimate ? SkillType.Ultimate : SkillType.Active;
+        var pool = allSkillsDatabase.Where(s => s.targetTrait == TraitType.Weapon && s.rarity == rarity && s.type == targetType).ToList();
+
+        if (pool.Count > 0)
+        {
+            return pool[Random.Range(0, pool.Count)];
+        }
+        else
+        {
+            var fallbackPool = allSkillsDatabase.Where(s => s.targetTrait == TraitType.Weapon && s.type == targetType).ToList();
             if (fallbackPool.Count > 0)
             {
                 return fallbackPool[Random.Range(0, fallbackPool.Count)];

@@ -22,6 +22,7 @@ public class SlimeStats : MonoBehaviour
     public SkillInstance bodySkill;
     public SkillInstance armorSkill;
     public SkillInstance weaponSkill;
+    public SkillInstance weaponUltimateSkill;
     public SkillInstance specialSkill;
     public Slider hpbar;
     public GameObject turnHalo;

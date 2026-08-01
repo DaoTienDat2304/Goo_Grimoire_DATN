@@ -112,14 +112,17 @@ public class TurnSystem : MonoBehaviour
 
         boss = newTarget; // Gán lại biến boss thành mục tiêu mới
 
-        if (targetIndicator == null) CreateTargetIndicator();
+        if (targetIndicator == null)
+        {
+            CreateTargetIndicator();
+        }
 
-        // Di chuyển Indicator lên đầu quái vật (nâng cao lên một chút)
+        // Di chuyển Indicator lên đầu quái vật
         targetIndicator.transform.SetParent(newTarget.transform, false);
         targetIndicator.transform.localPosition = new Vector3(0, 100.0f, 0);
         targetIndicator.transform.localScale = new Vector3(4f, 4f, 4f);
 
-        if (isBattleStarted == true)
+        if (isBattleStarted)
         {
             targetIndicator.SetActive(true);
         }
@@ -229,6 +232,8 @@ public class TurnSystem : MonoBehaviour
             bossStats.armorSkill = slimeData.armor.skill;
         if (slimeData.weapon?.skill != null)
             bossStats.weaponSkill = slimeData.weapon.skill;
+        if (slimeData.weapon?.ultimateSkill != null)
+            bossStats.weaponUltimateSkill = slimeData.weapon.ultimateSkill;
 
         SetupBossVisuals(slimeData);
     }
@@ -298,11 +303,6 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
 
     protected virtual IEnumerator DelayedSetupCombatAnimations()
     {
@@ -717,7 +717,21 @@ public class TurnSystem : MonoBehaviour
 
     public void UseWeaponSkill()
     {
-        ExecuteSkillLogic(currentSlime.GetComponent<SlimeStats>().weaponSkill);
+        var stats = currentSlime.GetComponent<SlimeStats>();
+        if (stats == null) return;
+
+        var battleStats = currentSlime.GetComponent<SlimeBattleStats>();
+        SkillInstance skillToUse = stats.weaponSkill;
+
+        if (battleStats != null && stats.weaponUltimateSkill != null && stats.weaponUltimateSkill.baseSkill != null)
+        {
+            if (battleStats.CurrentEnergy >= stats.weaponUltimateSkill.baseSkill.energyCost)
+            {
+                skillToUse = stats.weaponUltimateSkill;
+            }
+        }
+
+        ExecuteSkillLogic(skillToUse);
     }
 
     private void ExecuteSkillLogic(SkillInstance skillInstance)

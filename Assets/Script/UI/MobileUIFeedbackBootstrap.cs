@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public sealed class MobileUIFeedbackBootstrap : MonoBehaviour
 {
-    private const float ScanInterval = 0.75f;
+    private const float ScanInterval = 3f;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Create()

@@ -10,11 +10,11 @@ public class MobileUIFeedback : MonoBehaviour,
 {
     [Header("Motion")]
     [SerializeField] private bool useMotion = true;
-    [SerializeField] private float pressedScale = 0.97f;
+    [SerializeField] private float pressedScale = 0.965f;
     [SerializeField] private float hoverScale = 1.01f;
     [SerializeField] private float selectedScale = 1.008f;
-    [SerializeField] private float scaleDuration = 0.14f;
-    [SerializeField] private float releaseBounceScale = 1.012f;
+    [SerializeField] private float scaleDuration = 0.065f;
+    [SerializeField] private float releaseBounceScale = 1.008f;
 
     [Header("Visuals")]
     [SerializeField] private bool addShadow = true;
@@ -37,6 +37,10 @@ public class MobileUIFeedback : MonoBehaviour,
     private bool touchPointerActive;
     private bool textInput;
     private float lastSoundTime;
+    private GameObject rippleObject;
+    private RectTransform rippleRect;
+    private Image rippleImage;
+    private Coroutine rippleRoutine;
 
     private static Sprite circleSprite;
 
@@ -95,6 +99,11 @@ public class MobileUIFeedback : MonoBehaviour,
         touchPointerActive = false;
         if (scaleRoutine != null)
             StopCoroutine(scaleRoutine);
+        if (rippleRoutine != null)
+            StopCoroutine(rippleRoutine);
+        rippleRoutine = null;
+        if (rippleObject != null)
+            rippleObject.SetActive(false);
         transform.localScale = initialScale;
     }
 
@@ -104,7 +113,10 @@ public class MobileUIFeedback : MonoBehaviour,
         pointerDown = true;
         touchPointerActive = IsTouchPointer(eventData);
         if (useMotion)
+        {
+            transform.localScale = Vector3.Lerp(transform.localScale, initialScale * pressedScale, 0.65f);
             AnimateScale(textInput ? 1f : pressedScale);
+        }
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -140,7 +152,7 @@ public class MobileUIFeedback : MonoBehaviour,
         if (IsTouchPointer(eventData))
             pointerInside = false;
         if (useMotion && !textInput)
-            StartCoroutine(ClickBounce());
+            StartClickBounce();
         if (useRipple && !textInput)
             SpawnRipple(eventData.position);
     }
@@ -165,7 +177,7 @@ public class MobileUIFeedback : MonoBehaviour,
         if (!CanInteract()) return;
         PlayFeedbackSound();
         if (useMotion && !textInput)
-            StartCoroutine(ClickBounce());
+            StartClickBounce();
         if (useRipple && !textInput)
             SpawnRipple(null);
     }
@@ -184,12 +196,16 @@ public class MobileUIFeedback : MonoBehaviour,
 
     private IEnumerator ClickBounce()
     {
+        yield return ScaleTo(initialScale * releaseBounceScale, 0.045f);
+        yield return ScaleTo(initialScale * GetRestScale(), 0.075f);
+        scaleRoutine = null;
+    }
+
+    private void StartClickBounce()
+    {
         if (scaleRoutine != null)
             StopCoroutine(scaleRoutine);
-
-        yield return ScaleTo(initialScale * releaseBounceScale, 0.1f);
-        yield return ScaleTo(initialScale * GetRestScale(), 0.16f);
-        scaleRoutine = null;
+        scaleRoutine = StartCoroutine(ClickBounce());
     }
 
     private float GetRestScale()
@@ -212,7 +228,7 @@ public class MobileUIFeedback : MonoBehaviour,
             float t = Mathf.Clamp01(elapsed / duration);
             // SmootherStep có vận tốc bằng 0 ở cả hai đầu, tránh cảm giác giật
             // khi chuyển giữa nhấn, thả và focus.
-            t = t * t * t * (t * (6f * t - 15f) + 10f);
+            t = 1f - Mathf.Pow(1f - t, 3f);
             transform.localScale = Vector3.LerpUnclamped(start, target, t);
             yield return null;
         }
@@ -235,15 +251,11 @@ public class MobileUIFeedback : MonoBehaviour,
         if (rectTransform == null)
             return;
 
-        var rippleObject = new GameObject("UIRipple", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-        rippleObject.transform.SetParent(transform, false);
-        rippleObject.transform.SetAsFirstSibling();
-
-        var rippleRect = (RectTransform)rippleObject.transform;
-        var image = rippleObject.GetComponent<Image>();
-        image.sprite = GetCircleSprite();
-        image.color = rippleColor;
-        image.raycastTarget = false;
+        EnsureRipple();
+        if (rippleRoutine != null)
+            StopCoroutine(rippleRoutine);
+        rippleObject.SetActive(true);
+        rippleImage.color = rippleColor;
 
         Vector2 localPoint = Vector2.zero;
         if (screenPosition.HasValue)
@@ -253,7 +265,21 @@ public class MobileUIFeedback : MonoBehaviour,
         float size = Mathf.Max(rectTransform.rect.width, rectTransform.rect.height) * 1.35f;
         rippleRect.sizeDelta = Vector2.one * Mathf.Max(size, 28f);
 
-        StartCoroutine(RippleRoutine(rippleObject, image, rippleRect));
+        rippleRoutine = StartCoroutine(RippleRoutine());
+    }
+
+    private void EnsureRipple()
+    {
+        if (rippleObject != null)
+            return;
+
+        rippleObject = new GameObject("UIRipple", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        rippleObject.transform.SetParent(transform, false);
+        rippleObject.transform.SetAsFirstSibling();
+        rippleRect = (RectTransform)rippleObject.transform;
+        rippleImage = rippleObject.GetComponent<Image>();
+        rippleImage.sprite = GetCircleSprite();
+        rippleImage.raycastTarget = false;
     }
 
     private static bool IsTouchPointer(PointerEventData eventData)
@@ -261,11 +287,11 @@ public class MobileUIFeedback : MonoBehaviour,
         return eventData != null && eventData.pointerId >= 0;
     }
 
-    private IEnumerator RippleRoutine(GameObject rippleObject, Image image, RectTransform rippleRect)
+    private IEnumerator RippleRoutine()
     {
         float duration = 0.28f;
         float elapsed = 0f;
-        Color startColor = image.color;
+        Color startColor = rippleImage.color;
         Vector3 startScale = Vector3.one * 0.18f;
         Vector3 endScale = Vector3.one;
         rippleRect.localScale = startScale;
@@ -275,12 +301,13 @@ public class MobileUIFeedback : MonoBehaviour,
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
             rippleRect.localScale = Vector3.LerpUnclamped(startScale, endScale, 1f - Mathf.Pow(1f - t, 2f));
-            image.color = new Color(startColor.r, startColor.g, startColor.b, Mathf.Lerp(startColor.a, 0f, t));
+            rippleImage.color = new Color(startColor.r, startColor.g, startColor.b, Mathf.Lerp(startColor.a, 0f, t));
             yield return null;
         }
 
         if (rippleObject != null)
-            Destroy(rippleObject);
+            rippleObject.SetActive(false);
+        rippleRoutine = null;
     }
 
     private static Sprite GetCircleSprite()

@@ -7,7 +7,7 @@ public sealed class LandscapeUIBootstrap : MonoBehaviour
 {
     private const float ReferenceWidth = 1920f;
     private const float ReferenceHeight = 1080f;
-    private const float ScanInterval = 0.5f;
+    private const float ScanInterval = 3f;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
     private static void ForceLandscapeBeforeSplash()

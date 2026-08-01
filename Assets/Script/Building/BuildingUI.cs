@@ -17,17 +17,11 @@ public class BuildingUI : MonoBehaviour
         rt.sizeDelta = new Vector2(200f, 200f);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (building != null && buildingImage != null)
-        {
-            transform.GetChild(1).GetComponent<Image>().sprite = building.sprite;
-        }
-    }
     public void SetupBuilding(Building newBuilding)
     {
         building = newBuilding;
+        if (building != null && buildingImage != null)
+            buildingImage.sprite = building.sprite;
         UpdateUI();
     }
     public void UpdateUI()

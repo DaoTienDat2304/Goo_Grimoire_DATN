@@ -27,11 +27,6 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
             buildingMenu.SetActive(false);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
     public void OnPointerClick(PointerEventData eventData)
     {
         AutoWireMissingReferences();

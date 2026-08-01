@@ -55,19 +55,6 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
        
     }
 
-    private void Update()
-    {
-        
-        if (onselect)
-        {
-            backgroundImage.color = Color.black;
-        }
-        else
-        {
-            backgroundImage.color = Color.white;
-        }
-    }
-
     public void OnPointerClick(PointerEventData eventData)
     {
         if (slime != null)
@@ -78,9 +65,16 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
             }
             else
             {
-                onselect = !onselect;
+                SetBreedingSelected(!onselect);
             }
         }
+    }
+
+    public void SetBreedingSelected(bool selected)
+    {
+        onselect = selected;
+        if (backgroundImage != null)
+            backgroundImage.color = onselect ? Color.black : Color.white;
     }
 
     public void removedslime()

@@ -266,6 +266,54 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
+    protected Sprite GetStaticSpriteForTurnDisplay(GameObject go)
+    {
+        if (go == null) return null;
+
+        // Tìm sprite child được tự động tạo trên enemyGo khi SpawnEnemy
+        var staticChild = go.transform.Find("StaticSprite");
+        if (staticChild != null)
+        {
+            var img = staticChild.GetComponent<Image>();
+            if (img != null && img.sprite != null) return img.sprite;
+
+            var sr = staticChild.GetComponent<SpriteRenderer>();
+            if (sr != null && sr.sprite != null) return sr.sprite;
+        }
+
+        // Tìm bất kỳ Image nào đang có trên go
+        var directImg = go.GetComponent<Image>();
+        if (directImg != null && directImg.sprite != null) return directImg.sprite;
+
+        var directSr = go.GetComponent<SpriteRenderer>();
+        if (directSr != null && directSr.sprite != null) return directSr.sprite;
+
+        // Tra cứu từ TowerTurnSystem nếu trận đấu là Tower Mode
+        var towerSystem = this as TowerTurnSystem;
+        if (towerSystem != null && towerSystem.enemyVisualSetups != null)
+        {
+            foreach (var setup in towerSystem.enemyVisualSetups)
+            {
+                if (setup != null && setup.staticSprite != null)
+                {
+                    if (go.name.StartsWith(setup.enemyType.ToString(), System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        return setup.staticSprite;
+                    }
+                }
+            }
+        }
+
+        // Kiểm tra SlimeStats / Skill Icon của TowerBosses nếu có
+        var stats = go.GetComponent<SlimeStats>();
+        if (stats != null && stats.isEnemy)
+        {
+            if (stats.bodySkill?.baseSkill?.icon != null) return stats.bodySkill.baseSkill.icon;
+        }
+
+        return null;
+    }
+
     protected IEnumerator turnDisplay()
     {
         foreach (Transform child in turnPanel.transform)
@@ -277,28 +325,88 @@ public class TurnSystem : MonoBehaviour
         List<GameObject> upcoming = GetUpcomingTurns(5);
         foreach (GameObject go in upcoming)
         {
+            if (go == null) continue;
             GameObject turn = Instantiate(slimeTurn, turnPanel.transform);
             var display = turn.GetComponent<TurnDisplay>();
-            var spine = go.GetComponentInChildren<SkeletonGraphic>(true);
-            if (spine != null && spine.skeletonDataAsset != null)
+            if (display == null) continue;
+
+            Sprite staticSprite = GetStaticSpriteForTurnDisplay(go);
+
+            if (staticSprite != null)
             {
-                display.body.skeletonDataAsset = spine.skeletonDataAsset;
-                display.body.allowMultipleCanvasRenderers = true;
-                display.body.enableSeparatorSlots = true;
-                display.body.Initialize(true);
-                display.body.AnimationState.SetAnimation(0, "animation", true);
-                display.body.timeScale = 2;
+                // Tắt các thành phần Spine & vũ khí mặc định của Slime 3 thành phần
+                if (display.body != null) display.body.gameObject.SetActive(false);
+                if (display.hat != null) display.hat.gameObject.SetActive(false);
+                if (display.weapon != null) display.weapon.gameObject.SetActive(false);
+
+                // Hiển thị Avatar Tĩnh (2D Image)
+                Image avatarImg = display.staticAvatar;
+                if (avatarImg == null)
+                {
+                    Transform staticTrans = display.transform.Find("StaticAvatar");
+                    if (staticTrans != null)
+                    {
+                        avatarImg = staticTrans.GetComponent<Image>();
+                    }
+                    else
+                    {
+                        GameObject avatarGO = new GameObject("StaticAvatar", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                        avatarGO.transform.SetParent(display.transform, false);
+                        avatarGO.transform.SetAsFirstSibling();
+                        avatarImg = avatarGO.GetComponent<Image>();
+                        RectTransform rt = avatarGO.GetComponent<RectTransform>();
+                        rt.sizeDelta = new Vector2(160f, 160f);
+                    }
+                }
+
+                if (avatarImg != null)
+                {
+                    avatarImg.gameObject.SetActive(true);
+                    avatarImg.sprite = staticSprite;
+                    avatarImg.preserveAspect = true;
+                }
             }
             else
             {
-                display.body.gameObject.SetActive(false);
-            }
-            
-            var stats = go.GetComponent<SlimeStats>();
-            if (stats != null)
-            {
-                if (stats.armor != null) display.hat.sprite = stats.armor.sprite;
-                if (stats.weapon != null) display.weapon.sprite = stats.weapon.sprite;
+                // Nếu có staticAvatar UI cũ thì ẩn đi
+                if (display.staticAvatar != null) display.staticAvatar.gameObject.SetActive(false);
+                Transform staticTrans = display.transform.Find("StaticAvatar");
+                if (staticTrans != null) staticTrans.gameObject.SetActive(false);
+
+                // Hiển thị Spine Avatar cho Slime phe ta
+                var spine = go.GetComponentInChildren<SkeletonGraphic>(true);
+                if (spine != null && spine.skeletonDataAsset != null)
+                {
+                    if (display.body != null)
+                    {
+                        display.body.gameObject.SetActive(true);
+                        display.body.skeletonDataAsset = spine.skeletonDataAsset;
+                        display.body.allowMultipleCanvasRenderers = true;
+                        display.body.enableSeparatorSlots = true;
+                        display.body.Initialize(true);
+                        display.body.AnimationState.SetAnimation(0, "animation", true);
+                        display.body.timeScale = 2;
+                    }
+                }
+                else
+                {
+                    if (display.body != null) display.body.gameObject.SetActive(false);
+                }
+
+                var stats = go.GetComponent<SlimeStats>();
+                if (stats != null)
+                {
+                    if (stats.armor != null && display.hat != null)
+                    {
+                        display.hat.gameObject.SetActive(true);
+                        display.hat.sprite = stats.armor.sprite;
+                    }
+                    if (stats.weapon != null && display.weapon != null)
+                    {
+                        display.weapon.gameObject.SetActive(true);
+                        display.weapon.sprite = stats.weapon.sprite;
+                    }
+                }
             }
         }
     }
@@ -1290,7 +1398,7 @@ public class TurnSystem : MonoBehaviour
         }
         else if (isTowerMode)
         {
-            yield return SceneLoader.LoadSceneWithLoadingCoroutine("menu");
+            yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
         }
         else
         {

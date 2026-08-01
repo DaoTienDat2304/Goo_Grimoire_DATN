@@ -32,80 +32,79 @@ public class SaveAndLoadSystem : MonoBehaviour
     /// </summary>
     IEnumerator InitializeAsync()
     {
-        // 1. Chờ AuthManager sẵn sàng và user đã login
+        // Chờ AuthManager sẵn sàng và user đã login
         Debug.Log("[Save] Đang chờ Auth...");
-        yield return new WaitUntil(() =>
-            AuthManager.Instance != null && AuthManager.Instance.IsLoggedIn);
-
+        yield return new WaitUntil(() => AuthManager.Instance != null && AuthManager.Instance.IsLoggedIn);
         Debug.Log($"[Save] Auth xong. uid={AuthManager.Instance.CurrentUserId}");
-
-        // 2. Chờ CloudSaveProvider kiểm tra xong cloud save cho tài khoản này
-        yield return new WaitUntil(() =>
-            CloudSaveProvider.Instance == null || CloudSaveProvider.Instance.CloudCheckDone);
-
+        // Chờ CloudSaveProvider kiểm tra xong cloud save cho tài khoản này
+        yield return new WaitUntil(() => CloudSaveProvider.Instance == null || CloudSaveProvider.Instance.CloudCheckDone);
         // Reset flag để đảm bảo Load() chạy đầy đủ khi đăng nhập lại trong cùng session
         if (CurrencyManager.Instance != null)
             CurrencyManager.Instance.firstLoadDone = false;
-
-        // 3. Chọn save mới hơn giữa cloud và local (PlayerPrefs)
+        // Chọn save tốt nhất (Ưu tiên: Cloud/Local mới nhất -> Local Guest -> Mới tinh)
         string cloudJson = (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.HasCloudSave)
             ? CloudSaveProvider.Instance.GetCachedJson()
             : null;
         string localJson = LocalSaveStore.Load(AuthManager.Instance.LocalSaveId);
-
-        string chosenJson;
-        if (!string.IsNullOrEmpty(cloudJson) && !string.IsNullOrEmpty(localJson))
-        {
-            bool localNewer = LocalSaveStore.GetSavedAt(localJson) > LocalSaveStore.GetSavedAt(cloudJson);
-            chosenJson = localNewer ? localJson : cloudJson;
-            Debug.Log($"[Save] Có cả cloud lẫn local — dùng {(localNewer ? "local" : "cloud")} (mới hơn).");
-        }
-        else
-        {
-            chosenJson = cloudJson ?? localJson;
-        }
-
+        // Phân giải chọn file Save tốt nhất
+        string chosenJson = GetBestSaveJson(cloudJson, localJson);
         if (!string.IsNullOrEmpty(chosenJson))
         {
             Load(chosenJson);
         }
         else
         {
-            string fallbackGuestJson = LocalSaveStore.Load("guest");
-            if (!string.IsNullOrEmpty(fallbackGuestJson))
-            {
-                Debug.Log("[Save] Tìm thấy fallback local save ('guest'), dùng dữ liệu này để tránh mất dữ liệu!");
-                Load(fallbackGuestJson);
-            }
-            else
-            {
-                Debug.Log("[Save] Tài khoản mới thực sự — bắt đầu game với dữ liệu mặc định.");
-                ResetGameState();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                if (DevAccountInitializer.IsDevAccount())
-                {
-                    DevAccountInitializer.InitializeDevSlimes();
-                }
-                else
-#endif
-                {
-                    if (BreedingManager.Instance != null)
-                        BreedingManager.Instance.CreateInitialSlimes();
-                }
-                DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
-                Save();
-            }
+            // Tài khoản hoàn toàn mới
+            InitNewAccountState();
         }
-
-        // 4. Nếu có kết quả tower chưa được lưu, apply lên dữ liệu vừa load rồi save lại
+        // Nếu có kết quả tower chưa được lưu, apply lên dữ liệu vừa load rồi save lại
         ApplyTowerResultCache();
-
-        // 5. Load world
+        // Load world
         yield return StartCoroutine(LoadWorld());
-
-        // 6. Bật auto-save sau khi đã load xong (tránh ghi đè save thật bằng dữ liệu rỗng)
+        // Bật auto-save sau khi đã load xong (tránh ghi đè save thật bằng dữ liệu rỗng)
         _initialized = true;
         if (autoSaveEnabled) StartCoroutine(AutoSaveLoop());
+    }
+
+    private string GetBestSaveJson(string cloudJson, string localJson)
+    {
+        // Có cả Cloud lẫn Local -> Chọn file nào mới hơn
+        if (!string.IsNullOrEmpty(cloudJson) && !string.IsNullOrEmpty(localJson))
+        {
+            bool localNewer = LocalSaveStore.GetSavedAt(localJson) > LocalSaveStore.GetSavedAt(cloudJson);
+            Debug.Log($"[Save] Có cả cloud lẫn local — dùng {(localNewer ? "local" : "cloud")} (mới hơn).");
+            return localNewer ? localJson : cloudJson;
+        }
+        // Có 1 trong 2 (Cloud hoặc Local)
+        if (!string.IsNullOrEmpty(cloudJson)) return cloudJson;
+        if (!string.IsNullOrEmpty(localJson)) return localJson;
+        // Fallback tìm file "guest" dự phòng
+        string guestJson = LocalSaveStore.Load("guest");
+        if (!string.IsNullOrEmpty(guestJson))
+        {
+            Debug.Log("[Save] Dùng fallback local save ('guest') để tránh mất dữ liệu.");
+            return guestJson;
+        }
+        return null;
+    }
+
+    private void InitNewAccountState()
+    {
+        Debug.Log("[Save] Tài khoản mới thực sự — bắt đầu game với dữ liệu mặc định.");
+        ResetGameState();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (DevAccountInitializer.IsDevAccount())
+        {
+            DevAccountInitializer.InitializeDevSlimes();
+        }
+        else
+#endif
+        {
+            if (BreedingManager.Instance != null)
+                BreedingManager.Instance.CreateInitialSlimes();
+        }
+        DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
+        Save(); // Lưu lần đầu tiên
     }
 
     // ---------- Auto Save ----------
@@ -134,13 +133,12 @@ public class SaveAndLoadSystem : MonoBehaviour
 
     void OnApplicationPause(bool paused)
     {
-        // Trên mobile OnApplicationQuit thường không bắn — lưu khi app xuống nền.
         if (paused && _initialized) Save();
     }
 
     IEnumerator LoadWorld()
     {
-        yield return new WaitForSeconds(0.1f); // delay 0.1 gi�y
+        yield return new WaitForSeconds(0.1f);
         if (wildSlimes.tamedSlimes != null) breedingManager.GenTamedSlime();
         SlimeWorldManager.RefreshWorldSlimes();
         breedingUI.RefreshAllUI();
@@ -149,24 +147,16 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         if (!_initialized)
         {
-            Debug.LogWarning("[Save] Bỏ qua Save() vì dữ liệu đang trong quá trình nạp!");
+            Debug.LogWarning("[Save] Bỏ qua Save() vì dữ liệu đang trong quá trình khởi tạo/nạp!");
             return;
         }
-        GameSaveData data = null;
         string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
-
-        string existingJson = LocalSaveStore.Load(localId);
-        if (!string.IsNullOrEmpty(existingJson))
+        GameSaveData data = new GameSaveData
         {
-            try { data = JsonUtility.FromJson<GameSaveData>(existingJson); } catch { }
-        }
-
-        if (data == null) data = new GameSaveData();
-        data.lastSavedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
+            lastSavedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        };
         string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         bool isMainScene = (currentScene == "firstsave" || currentScene == "adventureSence");
-
         if (isMainScene)
         {
             SerializeSlimes(data);
@@ -182,25 +172,21 @@ public class SaveAndLoadSystem : MonoBehaviour
         {
             Debug.Log($"[Save] Đang ở trận chiến ({currentScene}), giữ nguyên dữ liệu Slime & Building gốc.");
         }
-
-        // LUÔN LUÔN LƯU (Cập nhật) TIỀN, TÀI NGUYÊN & TIẾN ĐỘ TOWER CHO DÙ Ở BẤT KỲ ĐÂU
         SerializeCurrencies(data);
         SerializeResources(data);
         SerializeTowerFloors(data);
         SerializeFarmDifficulties(data);
         SerializeStats(data);
         SerializeAchievements(data);
-
-        //TIẾN HÀNH LƯU JSON XUỐNG MÁY & CLOUD
-        var json = JsonUtility.ToJson(data, true);
+        var json = JsonUtility.ToJson(data, false);
         LocalSaveStore.Save(localId, json);
-
         if (CloudSaveProvider.Instance != null && AuthManager.Instance != null && AuthManager.Instance.IsLoggedIn)
         {
             CloudSaveProvider.Instance.StartSave(AuthManager.Instance.CurrentUserId, json);
             Debug.Log($"[Save] Đang lưu cloud. savedAt={data.lastSavedAt}");
         }
     }
+
 
     public void Load(string json)
     {

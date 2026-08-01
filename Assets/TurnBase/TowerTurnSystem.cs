@@ -260,38 +260,26 @@ public class TowerTurnSystem : TurnSystem
         RectTransform rect = enemyGo.GetComponent<RectTransform>();
         Vector2 offset = Vector2.zero;
 
+        Vector2 baseShift = new Vector2(0, -90f); // Tâm vị trí phe địch (dịch xuống nhẹ cho vừa trung tâm bãi cỏ)
+
         if (totalCount == 1)
         {
             offset = Vector2.zero;
         }
         else if (totalCount == 2)
         {
-            offset = index == 0 ? new Vector2(0, 140) : new Vector2(0, -140);
+            // Dãn khoảng cách cho 2 quái
+            offset = index == 0 ? new Vector2(0, 110f) : new Vector2(0, -110f);
         }
-        else if (totalCount == 3)
+        else // totalCount >= 3 (tối đa 3 quái/wave)
         {
-            if (index == 0) offset = new Vector2(50, 200);
-            else if (index == 1) offset = new Vector2(0, 0);
-            else offset = new Vector2(50, -200);
-        }
-        else if (totalCount == 4)
-        {
-            if (index == 0) offset = new Vector2(70, 260);
-            else if (index == 1) offset = new Vector2(35, 90);
-            else if (index == 2) offset = new Vector2(35, -90);
-            else offset = new Vector2(70, -260);
-        }
-        else if (totalCount == 5)
-        {
-            if (index == 0) offset = new Vector2(100, 320);
-            else if (index == 1) offset = new Vector2(50, 160);
-            else if (index == 2) offset = new Vector2(0, 0);
-            else if (index == 3) offset = new Vector2(50, -160);
-            else offset = new Vector2(100, -320);
+            // Dãn rộng khoảng cách dọc và ngang cho 3 quái
+            if (index == 0) offset = new Vector2(40f, 170f);
+            else if (index == 1) offset = new Vector2(0f, 0f);
+            else offset = new Vector2(40f, -170f);
         }
 
         Vector2 originalPos = templateObj.GetComponent<RectTransform>().anchoredPosition;
-        Vector2 baseCenterPosition = originalBossPos + new Vector2(0, -180f);
 
         var spine = enemyGo.GetComponentInChildren<SkeletonGraphic>(true);
         if (spine != null) spine.color = Color.white;
@@ -349,7 +337,7 @@ public class TowerTurnSystem : TurnSystem
             if (spine != null) spine.transform.localScale = Vector3.one * 0.7f;
         }
 
-        rect.anchoredPosition = originalBossPos + offset;
+        rect.anchoredPosition = originalBossPos + baseShift + offset;
 
         // LẤY CHỈ SỐ TỪ DATABASE
         TowerStatData eData = GetEnemyStatDatabase(type, level);

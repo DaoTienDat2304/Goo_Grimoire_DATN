@@ -216,6 +216,11 @@ public class SlimeBattleStats : MonoBehaviour
         CurrentHP -= finalDmgInt;
         CurrentHP = Mathf.Max(0, CurrentHP);
 
+        if (finalDmgInt > 0 && CurrentHP > 0)
+        {
+            AddEnergy(10); // +10 khi bị đánh
+        }
+
         if (baseStats != null)
         {
             baseStats.HP = CurrentHP;

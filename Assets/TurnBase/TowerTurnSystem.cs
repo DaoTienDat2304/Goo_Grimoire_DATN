@@ -710,6 +710,8 @@ public class TowerTurnSystem : TurnSystem
 
         if (attacker != null)
         {
+            attacker.AddEnergy(20); // +20 Energy khi đánh đòn thường
+
             int damage = attacker.GetEffectiveAttack();
             bool isCrit = attacker.TryCriticalHit();
             if (isCrit)
@@ -772,6 +774,12 @@ public class TowerTurnSystem : TurnSystem
 
         if (attacker == null || skill == null)
             yield break;
+
+        if (skill.baseSkill != null && !string.IsNullOrEmpty(skill.baseSkill.skillName))
+        {
+            Color popupColor = skill.baseSkill.type == SkillType.Ultimate ? Color.yellow : Color.cyan;
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, skill.baseSkill.skillName, popupColor);
+        }
 
         if (attackerAnim != null)
             yield return StartCoroutine(attackerAnim.PlayAttackAnimation(target.transform));

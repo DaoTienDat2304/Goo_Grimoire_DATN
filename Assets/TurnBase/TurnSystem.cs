@@ -270,7 +270,15 @@ public class TurnSystem : MonoBehaviour
     {
         if (go == null) return null;
 
-        // Tìm sprite child được tự động tạo trên enemyGo khi SpawnEnemy
+        var stats = go.GetComponent<SlimeStats>();
+
+        // 1. Slime của PHE TA (Player) luôn dùng Spine + nón + vũ khí -> KHÔNG dùng Static Avatar!
+        if (stats != null && !stats.isEnemy)
+        {
+            return null;
+        }
+
+        // 2. Với PHE ĐỊCH (Enemy): Ưu tiên 1 - Child "StaticSprite" được sinh ra từ SpawnEnemy
         var staticChild = go.transform.Find("StaticSprite");
         if (staticChild != null)
         {
@@ -281,14 +289,7 @@ public class TurnSystem : MonoBehaviour
             if (sr != null && sr.sprite != null) return sr.sprite;
         }
 
-        // Tìm bất kỳ Image nào đang có trên go
-        var directImg = go.GetComponent<Image>();
-        if (directImg != null && directImg.sprite != null) return directImg.sprite;
-
-        var directSr = go.GetComponent<SpriteRenderer>();
-        if (directSr != null && directSr.sprite != null) return directSr.sprite;
-
-        // Tra cứu từ TowerTurnSystem nếu trận đấu là Tower Mode
+        // 3. Ưu tiên 2: Tra cứu từ enemyVisualSetups trong TowerTurnSystem theo tên quái
         var towerSystem = this as TowerTurnSystem;
         if (towerSystem != null && towerSystem.enemyVisualSetups != null)
         {
@@ -304,11 +305,14 @@ public class TurnSystem : MonoBehaviour
             }
         }
 
-        // Kiểm tra SlimeStats / Skill Icon của TowerBosses nếu có
-        var stats = go.GetComponent<SlimeStats>();
-        if (stats != null && stats.isEnemy)
+        // 4. Ưu tiên 3: Nếu quái KHÔNG CÓ Spine animation (spine == null hoặc skeletonDataAsset == null)
+        var spine = go.GetComponentInChildren<SkeletonGraphic>(true);
+        if (spine == null || spine.skeletonDataAsset == null)
         {
-            if (stats.bodySkill?.baseSkill?.icon != null) return stats.bodySkill.baseSkill.icon;
+            if (stats != null && stats.bodySkill?.baseSkill?.icon != null)
+            {
+                return stats.bodySkill.baseSkill.icon;
+            }
         }
 
         return null;
@@ -355,6 +359,9 @@ public class TurnSystem : MonoBehaviour
                         avatarGO.transform.SetAsFirstSibling();
                         avatarImg = avatarGO.GetComponent<Image>();
                         RectTransform rt = avatarGO.GetComponent<RectTransform>();
+                        rt.anchorMin = new Vector2(0.5f, 0.5f);
+                        rt.anchorMax = new Vector2(0.5f, 0.5f);
+                        rt.anchoredPosition = Vector2.zero;
                         rt.sizeDelta = new Vector2(160f, 160f);
                     }
                 }
@@ -396,15 +403,17 @@ public class TurnSystem : MonoBehaviour
                 var stats = go.GetComponent<SlimeStats>();
                 if (stats != null)
                 {
-                    if (stats.armor != null && display.hat != null)
+                    if (display.hat != null)
                     {
-                        display.hat.gameObject.SetActive(true);
-                        display.hat.sprite = stats.armor.sprite;
+                        bool hasArmor = stats.armor != null && stats.armor.sprite != null;
+                        display.hat.gameObject.SetActive(hasArmor);
+                        if (hasArmor) display.hat.sprite = stats.armor.sprite;
                     }
-                    if (stats.weapon != null && display.weapon != null)
+                    if (display.weapon != null)
                     {
-                        display.weapon.gameObject.SetActive(true);
-                        display.weapon.sprite = stats.weapon.sprite;
+                        bool hasWeapon = stats.weapon != null && stats.weapon.sprite != null;
+                        display.weapon.gameObject.SetActive(hasWeapon);
+                        if (hasWeapon) display.weapon.sprite = stats.weapon.sprite;
                     }
                 }
             }
@@ -708,8 +717,21 @@ public class TurnSystem : MonoBehaviour
 
         curSlimeBody.AnimationState.SetAnimation(0, "animation", true);
         curSlimeBody.timeScale = 2;
-        curSlimeHat.sprite = currentSlime.GetComponent<SlimeStats>()?.armor.sprite;
-        curSlimeWeapon.sprite = currentSlime.GetComponent<SlimeStats>()?.weapon.sprite;
+
+        var armorSprite = currentSlime.GetComponent<SlimeStats>()?.armor?.sprite;
+        if (curSlimeHat != null)
+        {
+            curSlimeHat.gameObject.SetActive(armorSprite != null);
+            if (armorSprite != null) curSlimeHat.sprite = armorSprite;
+        }
+
+        var weaponSprite = currentSlime.GetComponent<SlimeStats>()?.weapon?.sprite;
+        if (curSlimeWeapon != null)
+        {
+            curSlimeWeapon.gameObject.SetActive(weaponSprite != null);
+            if (weaponSprite != null) curSlimeWeapon.sprite = weaponSprite;
+        }
+
         curSlimeBorder.color = Color.white;
         skillPanel.GetComponent<SkillUI>().slime = currentSlime.gameObject.GetComponent<SlimeStats>();
     }
@@ -744,6 +766,8 @@ public class TurnSystem : MonoBehaviour
 
         if (target != null && attacker != null && attacker.CurrentHP > 0)
         {
+            attacker.AddEnergy(20); // +20 Energy khi đánh đòn thường
+
             // Lấy SimpleCombatAnimation của slime tấn công
             var attackerAnimController = currentSlime.GetComponent<SimpleCombatAnimation>();
             var targetAnimController = boss.GetComponent<SimpleCombatAnimation>();
@@ -886,6 +910,12 @@ public class TurnSystem : MonoBehaviour
 
         if (attacker == null || skill == null)
             yield break;
+
+        if (skill.baseSkill != null && !string.IsNullOrEmpty(skill.baseSkill.skillName))
+        {
+            Color popupColor = skill.baseSkill.type == SkillType.Ultimate ? Color.yellow : Color.cyan;
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, skill.baseSkill.skillName, popupColor);
+        }
 
         // Animation tấn công của caster — play 1 lần trước toàn bộ effects
         if (attackerAnim != null)

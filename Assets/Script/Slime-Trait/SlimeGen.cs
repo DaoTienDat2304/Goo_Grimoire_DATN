@@ -211,4 +211,20 @@ public class SlimeGen : MonoBehaviour
 
         return null;
     }
+
+    public SkillSO GetMatchingUltimateWeaponSkill(SkillSO activeSkill)
+    {
+        if (activeSkill == null) return null;
+        EnsureSkillDatabase();
+        if (allSkillsDatabase == null) return null;
+
+        string targetUltName = activeSkill.name.EndsWith("_A")
+            ? activeSkill.name.Substring(0, activeSkill.name.Length - 2) + "_U"
+            : activeSkill.name + "_U";
+
+        var ultSO = allSkillsDatabase.FirstOrDefault(s => s != null && s.name == targetUltName);
+        if (ultSO != null) return ultSO;
+
+        return GetRandomWeaponSkill(activeSkill.rarity, true);
+    }
 }

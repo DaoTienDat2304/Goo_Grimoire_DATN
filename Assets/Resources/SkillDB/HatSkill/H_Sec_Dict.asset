@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Dictator's Decree
   type: 1
-  description: "N\xE2ng tr\u1EA7n \u0110CK"
+  description: "[\u0110\u1ED8C QUY\u1EC0N] \xB7 1 \u0110CK \xB7 N\xE2ng tr\u1EA7n
+    \u0110CK l\xEAn t\u1ED1i \u0111a 7 \u0111i\u1EC3m chi\u1EBFn ;  s\u1EED d\u1EE5ng
+    s\u1EBD t\u0103ng gi\u1EDBi h\u1EA1n chi\u1EBFn k\u0129 \u0111\u1ED9i  th\xEAm
+    +1 ; +1 \u0110CK/l\u01B0\u1EE3t 2 l\u01B0\u1EE3t."
   icon: {fileID: -4094713072254760127, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 7

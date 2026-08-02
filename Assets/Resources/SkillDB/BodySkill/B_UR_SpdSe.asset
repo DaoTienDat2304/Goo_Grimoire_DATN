@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Speed Seal
   type: 2
-  description: +5% DEF, +6 SPD
+  description: "N\u1ED9i t\u1EA1i \xB7 +5% DEF; \u0111\u1EA7u l\u01B0\u1EE3t n\u1EBFu
+    \u0111i tr\u01B0\u1EDBc \u0111\u1ECBch \u2192 +6 SPD l\u01B0\u1EE3t \u0111\xF3."
   icon: {fileID: 1420219011150851129, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 4

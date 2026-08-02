@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Heaven's Aegis
   type: 2
-  description: +10% DEF
+  description: "N\u1ED9i t\u1EA1i \xB7 +10% DEF; \u22128% s\xE1t th\u01B0\u01A1ng;
+    \u0111\u1EA7u tr\u1EADn l\xE1 ch\u1EAFn 12% HP t\u1ED1i \u0111a."
   icon: {fileID: -3423614793431421515, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5

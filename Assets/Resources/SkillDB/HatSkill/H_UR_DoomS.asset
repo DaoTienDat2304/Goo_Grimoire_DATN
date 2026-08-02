@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Doom Sentence
   type: 1
-  description: "\u0110\u1ECBch nh\u1EADn th\xEAm ST"
+  description: "Debuff \xB7 1 \u0110CK \xB7 To\xE0n \u0111\u1ECBch +18% s\xE1t th\u01B0\u01A1ng
+    ph\u1EA3i ch\u1ECBu; \u221240% h\u1ED3i m\xE1u 3 l\u01B0\u1EE3t."
   icon: {fileID: -6321634240710853723, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 4

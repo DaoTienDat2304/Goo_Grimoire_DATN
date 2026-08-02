@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Empyrean Coronation
   type: 1
-  description: +25% ATK, +12 SPD
+  description: "Buff \xB7 1 \u0110CK \xB7 +25% ATK, +20% Crit Rate, +30% Crit DMG
+    & +12 SPD to\xE0n \u0111\u1ED9i 3 l\u01B0\u1EE3t."
   icon: {fileID: -5636208650137810090, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6

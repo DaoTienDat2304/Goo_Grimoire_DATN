@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Mudfang Gauntlet
   type: 3
-  description: 280% ATK + 700
+  description: "[\u0110\u01A1n] Titan Crash \xB7 280% ATK + 700, \u0111\u01A1n; xuy\xEAn
+    30% gi\xE1p."
   icon: {fileID: -2124057790635112801, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 2

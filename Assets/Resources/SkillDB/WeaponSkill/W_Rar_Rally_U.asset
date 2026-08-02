@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Rallyhorn Trident
   type: 3
-  description: +15% ATK team
+  description: "[Buff] War Anthem \xB7 +15% ATK & +10% Crit Rate to\xE0n \u0111\u1ED9i
+    3 l\u01B0\u1EE3t."
   icon: {fileID: 2548970649608562601, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 2

@@ -132,6 +132,10 @@ public class TurnSystem : MonoBehaviour
     {
         if (enemyGo == null) return;
 
+        var handler = enemyGo.GetComponent<SlimeBattleClickHandler>();
+        if (handler == null) handler = enemyGo.AddComponent<SlimeBattleClickHandler>();
+        handler.Init(this, enemyGo.GetComponent<SlimeStats>());
+
         // 1. Tạo hitbox vô hình để dễ click trên Mobile
         var hitbox = new GameObject("ClickHitbox");
         hitbox.transform.SetParent(enemyGo.transform);
@@ -148,6 +152,11 @@ public class TurnSystem : MonoBehaviour
         var clickEntry = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick };
         clickEntry.callback.AddListener((data) => {
             SelectTarget(enemyGo);
+            if (SlimeStatsInspectorUI.Instance != null)
+            {
+                var stats = enemyGo.GetComponent<SlimeStats>();
+                if (stats != null) SlimeStatsInspectorUI.Instance.InspectSlime(stats);
+            }
         });
         pointerClick.triggers.Add(clickEntry);
     }
@@ -531,7 +540,14 @@ public class TurnSystem : MonoBehaviour
 
         foreach (var s in turnList)
         {
-            var stats = s.GetComponent<SlimeStats>();
+            if (s != null)
+            {
+                var handler = s.GetComponent<SlimeBattleClickHandler>();
+                if (handler == null) handler = s.AddComponent<SlimeBattleClickHandler>();
+                handler.Init(this, s.GetComponent<SlimeStats>());
+            }
+
+            var stats = s != null ? s.GetComponent<SlimeStats>() : null;
             if (stats != null)
             {
                 if (stats.bodySkill != null) stats.bodySkill.currentCooldown = 0;

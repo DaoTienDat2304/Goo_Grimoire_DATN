@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Weakening Shout
   type: 1
-  description: "-7% ATK to\xE0n \u0111\u1ECBch"
+  description: "Debuff \xB7 1 \u0110CK \xB7 \u22127% ATK to\xE0n \u0111\u1ECBch 2
+    l\u01B0\u1EE3t."
   icon: {fileID: 2786292424897580823, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 1

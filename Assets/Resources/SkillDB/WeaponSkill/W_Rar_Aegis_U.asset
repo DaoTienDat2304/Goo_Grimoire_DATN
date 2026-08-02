@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Aegis Core
   type: 3
-  description: "L\xE1 ch\u1EAFn 15% HP to\xE0n \u0111\u1ED9i"
+  description: "[Ph\xF2ng th\u1EE7] Bulwark Surge \xB7 120% ATK + 300, \u0111\u01A1n;
+    l\xE1 ch\u1EAFn 15% HP t\u1ED1i \u0111a to\xE0n \u0111\u1ED9i 2 l\u01B0\u1EE3t."
   icon: {fileID: 4698681188867507813, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 2

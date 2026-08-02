@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Berserker Blood
   type: 2
-  description: "M\u1EA5t m\xE1u t\u0103ng c\xF4ng"
+  description: "N\u1ED9i t\u1EA1i \xB7 M\u1ED7i 10% HP \u0111\xE3 m\u1EA5t \u2192
+    +2% ATK (max +16%)."
   icon: {fileID: -1874060938329499830, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 2

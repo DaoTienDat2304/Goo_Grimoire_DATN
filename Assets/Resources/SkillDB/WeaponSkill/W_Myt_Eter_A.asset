@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Eternal Bloodlord Scythe
   type: 1
-  description: 205% ATK + 1500 AoE
+  description: "Eternal Cataclysm \xB7 2 \u0110CK \xB7 205% ATK + 1500, AoE; h\u1ED3i
+    10% th\xE0nh HP."
   icon: {fileID: 6288156207078249918, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6

@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Field Dressing
   type: 1
-  description: "H\u1ED3i 8% HP"
+  description: "H\u1ED3i m\xE1u \xB7 1 \u0110CK \xB7 H\u1ED3i 8% HP t\u1ED1i \u0111a
+    1 \u0111\u1ED3ng minh."
   icon: {fileID: -4634720409283538282, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 0

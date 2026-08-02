@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Bastion Eternal
   type: 1
-  description: "L\xE1 ch\u1EAFn 25%"
+  description: "Ph\xF2ng th\u1EE7 \xB7 1 \u0110CK \xB7 L\xE1 ch\u1EAFn 25% HP to\xE0n
+    \u0111\u1ED9i 3 l\u01B0\u1EE3t; mi\u1EC5n m\u1ECDi Debuff & Cho\xE1ng 3 l\u01B0\u1EE3t."
   icon: {fileID: -2939758556422263366, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6

@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Divine Aegis Shield
   type: 1
-  description: 185% ATK + 600
+  description: "Shield Bash \xB7 2 \u0110CK \xB7 185% ATK + 600, \u0111\u01A1n; xuy\xEAn
+    30% gi\xE1p."
   icon: {fileID: -3361153209262608455, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4

@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Empyrean War Crown
   type: 3
-  description: "+30% ATK, Full N\u0103ng l\u01B0\u1EE3ng"
+  description: "[Buff] Empyrean Ascension \xB7 +30% ATK, +25% Crit Rate, +40% Crit
+    DMG to\xE0n \u0111\u1ED9i 3 l\u01B0\u1EE3t; h\u1ED3i \u0111\u1EA7y N\u0103ng
+    l\u01B0\u1EE3ng to\xE0n \u0111\u1ED9i (1 l\u1EA7n/tr\u1EADn)."
   icon: {fileID: 5251718513075780803, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6

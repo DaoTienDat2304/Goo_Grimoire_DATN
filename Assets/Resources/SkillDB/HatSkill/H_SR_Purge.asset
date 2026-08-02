@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Purge Light
   type: 1
-  description: "G\u1EE1 Debuff, H\u1ED3i 15%"
+  description: "H\u1ED3i m\xE1u \xB7 1 \u0110CK \xB7 G\u1EE1 to\xE0n b\u1ED9 Debuff
+    1 \u0111\u1ED3ng minh; h\u1ED3i 15% HP."
   icon: {fileID: -4972444280353370351, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 3

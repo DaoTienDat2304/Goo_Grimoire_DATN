@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Judgment Edge
   type: 3
-  description: 200% ATK + 620 AoE
+  description: "[\u0110\u1ED8C QUY\u1EC0N \xB7 Kh\u1ED1ng ch\u1EBF] Fate Reversal
+    \xB7 200% ATK + 620, AoE; x\xF3a to\xE0n b\u1ED9 Buff \u0111\u1ECBch; 3 l\u01B0\u1EE3t
+    k\u1EBF m\u1ECDi \u0111\xF2n \u0111\u1ED3ng minh 100% Crit."
   icon: {fileID: -2730899144895699987, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Oblivion Codex
   type: 1
-  description: 200% ATK + 620
+  description: "Genesis Oblivion \xB7 1 \u0110CK \xB7 200% ATK + 620, \u0111\u01A1n;
+    xuy\xEAn gi\xE1p ho\xE0n to\xE0n; [\u0110\u1ED8C QUY\u1EC0N] v\xF4 hi\u1EC7u
+    n\u1ED9i t\u1EA1i Boss 3 l\u01B0\u1EE3t."
   icon: {fileID: -6661607449087569406, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

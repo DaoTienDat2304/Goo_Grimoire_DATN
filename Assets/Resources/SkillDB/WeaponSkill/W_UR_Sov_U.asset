@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Sovereign War Standard
   type: 3
-  description: "+20% ATK, N\u0103ng l\u01B0\u1EE3ng"
+  description: "[Buff] Imperial Overdrive \xB7 +20% ATK, +15% Crit Rate to\xE0n \u0111\u1ED9i
+    3 l\u01B0\u1EE3t; +25 N\u0103ng l\u01B0\u1EE3ng to\xE0n \u0111\u1ED9i."
   icon: {fileID: 4420930208236911183, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4

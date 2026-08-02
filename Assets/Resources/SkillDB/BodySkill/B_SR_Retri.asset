@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Retribution Plate
   type: 2
-  description: "Ph\u1EA3n 8% ST"
+  description: "N\u1ED9i t\u1EA1i \xB7 Ph\u1EA3n 8% s\xE1t th\u01B0\u01A1ng; b\u1ECB
+    crit ph\u1EA3n th\xEAm 5%."
   icon: {fileID: 859723408146594934, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 3

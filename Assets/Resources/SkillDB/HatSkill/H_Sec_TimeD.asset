@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Time Dilation
   type: 1
-  description: Extra turn
+  description: "[\u0110\u1ED8C QUY\u1EC0N] \xB7 1 \u0110CK \xB7 1 \u0111\u1ED3ng
+    minh h\xE0nh \u0111\u1ED9ng th\xEAm 1 l\u1EA7n ngay (extra turn)."
   icon: {fileID: -5351997051552260301, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 7

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class SkillUI : MonoBehaviour
@@ -9,6 +10,18 @@ public class SkillUI : MonoBehaviour
     public Image weaponSkill;
     public Image fullSetSkill;
     public Sprite border;
+
+    private void Start()
+    {
+        EnsureTooltipTriggers();
+    }
+
+    private void EnsureTooltipTriggers()
+    {
+        if (bodySkill != null) AttachTooltipTrigger(bodySkill.gameObject, null, null);
+        if (armorSkill != null) AttachTooltipTrigger(armorSkill.gameObject, null, null);
+        if (weaponSkill != null) AttachTooltipTrigger(weaponSkill.gameObject, null, null);
+    }
 
     void Update()
     {
@@ -39,6 +52,12 @@ public class SkillUI : MonoBehaviour
         Button btn = skillImage.GetComponent<Button>();
         if (btn == null) btn = skillImage.GetComponentInParent<Button>();
 
+        GameObject targetGO = (btn != null) ? btn.gameObject : skillImage.gameObject;
+
+        // Đảm bảo bật raycastTarget để nhận sự kiện Nhấn Giữ
+        if (skillImage != null) skillImage.raycastTarget = true;
+        if (btn != null && btn.image != null) btn.image.raycastTarget = true;
+
         Text textComp = skillImage.GetComponentInChildren<Text>();
         if (textComp == null && btn != null)
         {
@@ -57,6 +76,9 @@ public class SkillUI : MonoBehaviour
                 textComp.text = "Trống";
                 textComp.color = Color.gray;
             }
+
+            var emptyTrigger = targetGO.GetComponent<SkillTooltipTrigger>();
+            if (emptyTrigger != null) emptyTrigger.Setup(null, null);
             return;
         }
 
@@ -78,7 +100,6 @@ public class SkillUI : MonoBehaviour
         switch (skill.baseSkill.type)
         {
             case SkillType.Passive:
-                // Passive: Luôn không click được, màu sáng thường, chữ Nội tại
                 isInteractable = false;
                 skillInfo += "\n(Nội tại)";
                 textColor = new Color(0.2f, 0.8f, 1f);
@@ -86,7 +107,6 @@ public class SkillUI : MonoBehaviour
                 break;
 
             case SkillType.BasicAttack:
-                // Đánh thường: Thường luôn click được nếu đến lượt, hồi ĐCK
                 isInteractable = true;
                 if (skill.baseSkill.battlePointGain > 0)
                 {
@@ -97,7 +117,6 @@ public class SkillUI : MonoBehaviour
                 break;
 
             case SkillType.Active:
-                // Active (Chiến kỹ): Cần đủ điểm ĐCK
                 if (BattleSystemManager.Instance != null && battleStats != null)
                 {
                     isInteractable = BattleSystemManager.Instance.TeamBattlePoints >= skill.baseSkill.battlePointCost;
@@ -113,7 +132,6 @@ public class SkillUI : MonoBehaviour
                 break;
 
             case SkillType.Ultimate:
-                // Ultimate (Tuyệt kỹ): Cần đủ năng lượng
                 if (battleStats != null)
                 {
                     isInteractable = battleStats.CurrentEnergy >= skill.baseSkill.energyCost;
@@ -144,5 +162,42 @@ public class SkillUI : MonoBehaviour
             textComp.text = skillInfo;
             textComp.color = textColor;
         }
+
+        // Gắn Component SkillTooltipTrigger trực tiếp vào Button và SkillImage để bắt chuẩn sự kiện PointerDown
+        AttachTooltipTrigger(targetGO, skill, battleStats);
+        if (skillImage != null && skillImage.gameObject != targetGO)
+        {
+            AttachTooltipTrigger(skillImage.gameObject, skill, battleStats);
+        }
+    }
+
+    private void AttachTooltipTrigger(GameObject go, SkillInstance skill, SlimeBattleStats battleStats)
+    {
+        if (go == null) return;
+
+        Button btn = go.GetComponent<Button>();
+        if (btn != null && btn.image != null) btn.image.raycastTarget = true;
+        Image img = go.GetComponent<Image>();
+        if (img != null) img.raycastTarget = true;
+
+        var holdTrigger = go.GetComponent<SkillTooltipTrigger>();
+        if (holdTrigger == null) holdTrigger = go.AddComponent<SkillTooltipTrigger>();
+        holdTrigger.Setup(skill, battleStats);
+
+        var eventTrigger = go.GetComponent<EventTrigger>();
+        if (eventTrigger == null) eventTrigger = go.AddComponent<EventTrigger>();
+        eventTrigger.triggers.Clear();
+
+        var downEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+        downEntry.callback.AddListener((data) => {
+            holdTrigger.OnPointerDown((PointerEventData)data);
+        });
+        eventTrigger.triggers.Add(downEntry);
+
+        var upEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
+        upEntry.callback.AddListener((data) => {
+            holdTrigger.OnPointerUp((PointerEventData)data);
+        });
+        eventTrigger.triggers.Add(upEntry);
     }
 }

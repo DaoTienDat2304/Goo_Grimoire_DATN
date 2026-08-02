@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Tidecaller Staff
   type: 3
-  description: 240% ATK + 650 AoE, -10 SPD
+  description: "[AoE] Torrential Roar \xB7 240% ATK + 650, AoE; \u221210 SPD to\xE0n
+    \u0111\u1ECBch 2 l\u01B0\u1EE3t."
   icon: {fileID: 634660655487653927, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 2

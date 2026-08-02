@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Thunderlord Blade
   type: 1
-  description: 200% ATK + 620
+  description: "Heaven's Thunder Strike \xB7 2 \u0110CK \xB7 200% ATK + 620, \u0111\u01A1n;
+    xuy\xEAn 60% gi\xE1p; 50% Cho\xE1ng 1 l\u01B0\u1EE3t."
   icon: {fileID: 6539024827645410970, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4

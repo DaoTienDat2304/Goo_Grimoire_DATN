@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Pebble Sling
   type: 1
-  description: 120% ATK + 75
+  description: "Pebble Toss \xB7 1 \u0110CK \xB7 120% ATK + 75, \u0111\u01A1n."
   icon: {fileID: 1518363075290452430, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 0

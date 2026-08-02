@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Chronofreeze Staff
   type: 1
-  description: 200% ATK + 950 AoE
+  description: "Time Frost \xB7 2 \u0110CK \xB7 200% ATK + 950, AoE; 40% \u0110\xF3ng
+    B\u0103ng."
   icon: {fileID: -7978254507238687681, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 5

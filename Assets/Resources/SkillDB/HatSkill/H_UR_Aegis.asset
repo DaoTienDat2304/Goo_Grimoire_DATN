@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Aegis Barrier
   type: 1
-  description: "L\xE1 ch\u1EAFn 12% team"
+  description: "Ph\xF2ng th\u1EE7 \xB7 1 \u0110CK \xB7 L\xE1 ch\u1EAFn 12% HP to\xE0n
+    \u0111\u1ED9i 3 l\u01B0\u1EE3t; mi\u1EC5n Cho\xE1ng 2 l\u01B0\u1EE3t."
   icon: {fileID: 7913474985353777573, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 4

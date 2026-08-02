@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: B_Leg_Blood
   m_EditorClassIdentifier: 
-  skillName: Bloodlord Domin.
+  skillName: Bloodlord Dominion
   type: 2
-  description: "H\xFAt m\xE1u 12%"
+  description: "N\u1ED9i t\u1EA1i \xB7 H\u1ED3i 12% s\xE1t th\u01B0\u01A1ng th\xE0nh
+    HP; HP \u0111\u1EA7y \u2192 d\u01B0 th\xE0nh l\xE1 ch\u1EAFn (max 15% HP)."
   icon: {fileID: 3345739701931622181, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5

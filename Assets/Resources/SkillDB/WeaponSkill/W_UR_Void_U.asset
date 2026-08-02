@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Voidmaw Cannon
   type: 3
-  description: 360% ATK + 1250 AoE
+  description: "[AoE] Black Hole Collapse \xB7 360% ATK + 1250, AoE; xuy\xEAn 60%
+    gi\xE1p; \u0111\u1ECBch \u221210% HP hi\u1EC7n t\u1EA1i/l\u01B0\u1EE3t 2 l\u01B0\u1EE3t."
   icon: {fileID: -7234994728823924128, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4

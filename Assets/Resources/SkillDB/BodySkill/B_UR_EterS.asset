@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: B_UR_EterS
   m_EditorClassIdentifier: 
-  skillName: Eternal Suppress
+  skillName: Eternal Suppression
   type: 2
-  description: +8% DEF, -4% ST
+  description: "N\u1ED9i t\u1EA1i \xB7 +8% DEF; \u22124% s\xE1t th\u01B0\u01A1ng
+    nh\u1EADn."
   icon: {fileID: -8527441699566603794, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 4

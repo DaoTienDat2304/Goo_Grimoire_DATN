@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Chrono Severance
   type: 1
-  description: 200% ATK + 620
+  description: "Zero-Point Severance \xB7 1 \u0110CK \xB7 200% ATK + 620, \u0111\u01A1n;
+    b\u1ECF qua l\xE1 ch\u1EAFn/buff th\u1EE7; m\u1EDF m\xE0n l\u01B0\u1EE3t \u2192
+    100% Crit."
   icon: {fileID: 1299960053559783728, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

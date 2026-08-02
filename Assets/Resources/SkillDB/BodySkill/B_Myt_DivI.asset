@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Divine Incarnation
   type: 2
-  description: +8% ATK/DEF team
+  description: "N\u1ED9i t\u1EA1i \xB7 To\xE0n \u0111\u1ED9i +8% ATK, +8% DEF, +5%
+    SPD (aura)."
   icon: {fileID: -4445153650593564858, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 6

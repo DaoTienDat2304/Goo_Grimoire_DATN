@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Iron Will
   type: 2
-  description: "H\u1ED3i 1.5% HP"
+  description: "N\u1ED9i t\u1EA1i \xB7 Cu\u1ED1i m\u1ED7i l\u01B0\u1EE3t h\u1ED3i
+    1.5% HP t\u1ED1i \u0111a."
   icon: {fileID: -958220191789875927, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 1

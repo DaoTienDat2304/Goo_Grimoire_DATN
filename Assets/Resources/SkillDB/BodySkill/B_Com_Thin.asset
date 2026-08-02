@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Thin Hide
   type: 2
-  description: +4% HP
+  description: "N\u1ED9i t\u1EA1i \xB7 +4% HP t\u1ED1i \u0111a."
   icon: {fileID: 7015891759302478486, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 0

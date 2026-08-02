@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: B_Leg_AegF
   m_EditorClassIdentifier: 
-  skillName: Aegis of Fallen
+  skillName: Aegis of the Fallen
   type: 2
-  description: "\u0110\u1ED3ng minh g\u1EE5c +ATK"
+  description: "N\u1ED9i t\u1EA1i \xB7 1 \u0111\u1ED3ng minh g\u1EE5c \u2192 to\xE0n
+    \u0111\u1ED9i +10% ATK & \u221210% s\xE1t th\u01B0\u01A1ng nh\u1EADn 3 l\u01B0\u1EE3t."
   icon: {fileID: -8562174421231938224, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5

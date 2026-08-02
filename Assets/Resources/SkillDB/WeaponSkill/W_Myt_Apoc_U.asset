@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Apocalypse Cannon
   type: 3
-  description: 520% ATK + 2750 AoE
+  description: "[AoE] Ultimate Psychic Surge \xB7 520% ATK + 2750, AoE; xuy\xEAn
+    100% gi\xE1p; 100% Cho\xE1ng 3 l\u01B0\u1EE3t."
   icon: {fileID: -274910689691647653, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6

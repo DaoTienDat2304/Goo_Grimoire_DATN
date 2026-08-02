@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Rallying Banner
   type: 1
-  description: +12% ATK, +6% DEF/SPD
+  description: "Buff \xB7 1 \u0110CK \xB7 +12% ATK, +6% DEF & +6 SPD to\xE0n \u0111\u1ED9i
+    3 l\u01B0\u1EE3t; h\u1ED3i 5% HP."
   icon: {fileID: 6301256192357584987, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 3

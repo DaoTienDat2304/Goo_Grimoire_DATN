@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Oblivion Codex
   type: 3
-  description: 260% ATK + 900
+  description: "[\u0110\u1ED8C QUY\u1EC0N \xB7 \u0110\u01A1n] Null Genesis \xB7 260%
+    ATK + 900, \u0111\u01A1n; xuy\xEAn gi\xE1p ho\xE0n to\xE0n; \u0111\xE1nh c\u1EAFp
+    & v\xF4 hi\u1EC7u 1 buff m\u1EA1nh nh\u1EA5t Boss 3 l\u01B0\u1EE3t."
   icon: {fileID: -6661607449087569406, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Absolute Edict
   type: 1
-  description: "T\u1EA5t tr\xFAng, 100% CDMG"
+  description: "[\u0110\u1ED8C QUY\u1EC0N] \xB7 1 \u0110CK \xB7 3 l\u01B0\u1EE3t:
+    m\u1ECDi \u0111\xF2n \u0111\u1ED3ng minh kh\xF4ng b\u1ECB n\xE9/ch\u1EB7n; +100%
+    Crit DMG."
   icon: {fileID: 683794598618230703, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 7

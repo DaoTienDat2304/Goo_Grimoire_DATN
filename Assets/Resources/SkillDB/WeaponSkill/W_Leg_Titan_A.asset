@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Titan Aegis Wall
   type: 1
-  description: 230% ATK + 1000
+  description: "Void Executioner \xB7 2 \u0110CK \xB7 230% ATK + 1000, \u0111\u01A1n;
+    +40% n\u1EBFu m\u1EE5c ti\xEAu <40% HP."
   icon: {fileID: 7068687350162566666, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 5

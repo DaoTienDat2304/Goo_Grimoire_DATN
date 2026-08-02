@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Phoenix Soul Reaver
   type: 3
-  description: 380% ATK AoE, Revive
+  description: "[H\u1ED3i sinh] Phoenix Rebirth \xB7 380% ATK + 1700, AoE; h\u1ED3i
+    20% HP to\xE0n \u0111\u1ED9i; h\u1ED3i sinh 1 \u0111\u1ED3ng minh g\u1EE5c 35%
+    HP."
   icon: {fileID: -4749665841555750840, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 5

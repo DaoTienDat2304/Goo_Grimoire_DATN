@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Grave Seal
   type: 1
-  description: "Kho\xE1 Buff"
+  description: "Debuff \xB7 1 \u0110CK \xB7 Kho\xE1 Buff 1 \u0111\u1ECBch; \u221230%
+    h\u1ED3i m\xE1u nh\u1EADn 2 l\u01B0\u1EE3t."
   icon: {fileID: 8516706120598374142, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 3

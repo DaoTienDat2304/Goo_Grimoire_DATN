@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Twin Fang Dagger
   type: 1
-  description: 155% ATK + 150
+  description: "Twin Fang \xB7 1 \u0110CK \xB7 155% ATK + 150, \u0111\u01A1n."
   icon: {fileID: -8828447702523197711, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 1

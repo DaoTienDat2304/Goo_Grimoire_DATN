@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Singularity Field
   type: 2
-  description: "-15% M\u1ECDi ch\u1EC9 s\u1ED1 \u0111\u1ECBch"
+  description: "N\u1ED9i t\u1EA1i [\u0110\u1ED8C QUY\u1EC0N] \xB7 To\xE0n \u0111\u1ECBch
+    \u221215% m\u1ECDi ch\u1EC9 s\u1ED1 & kh\xF4ng th\u1EC3 t\u1EF1 t\u0103ng ch\u1EC9
+    s\u1ED1 b\u1EB1ng buff/n\u1ED9i t\u1EA1i (aura)."
   icon: {fileID: -7286346462937123367, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7

@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Warrior's Fury
   type: 2
-  description: +2% DEF team
+  description: "N\u1ED9i t\u1EA1i \xB7 To\xE0n \u0111\u1ED9i +2% DEF; b\u1EA3n th\xE2n
+    +4% ATK."
   icon: {fileID: 8884523697578121177, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 3

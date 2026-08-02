@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Mending Wave
   type: 1
-  description: "H\u1ED3i 6% HP team"
+  description: "H\u1ED3i m\xE1u \xB7 1 \u0110CK \xB7 H\u1ED3i 6% HP t\u1ED1i \u0111a
+    to\xE0n \u0111\u1ED9i."
   icon: {fileID: 8342553545252336856, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 1

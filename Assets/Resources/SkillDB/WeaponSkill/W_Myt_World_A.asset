@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: World-Ender Blade
   type: 1
-  description: 250% ATK + 1500
+  description: "Apocalyptic Annihilation \xB7 2 \u0110CK \xB7 250% ATK + 1500, \u0111\u01A1n;
+    xuy\xEAn 80% gi\xE1p; R\u1EA1n V\u1EE1 \u221210% HP t\u1ED1i \u0111a/l\u01B0\u1EE3t
+    3 l\u01B0\u1EE3t."
   icon: {fileID: 1971577198177248361, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6

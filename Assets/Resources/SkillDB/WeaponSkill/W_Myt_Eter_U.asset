@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Eternal Bloodlord Scythe
   type: 3
-  description: 450% ATK AoE, Revive All
+  description: "[H\u1ED3i sinh] Rite of Immortality \xB7 450% ATK + 2400, AoE; h\u1ED3i
+    30% HP to\xE0n \u0111\u1ED9i; h\u1ED3i sinh to\xE0n b\u1ED9 \u0111\u1ED3ng minh
+    g\u1EE5c 30% HP."
   icon: {fileID: 6288156207078249918, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6

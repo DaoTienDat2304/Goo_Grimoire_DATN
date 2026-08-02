@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Vital Growth
   type: 2
-  description: +6% HP
+  description: "N\u1ED9i t\u1EA1i \xB7 +6% HP t\u1ED1i \u0111a."
   icon: {fileID: -1811983669847110553, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 1

@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Chrono Severance
   type: 3
-  description: "Team \u0111i th\xEAm 1 l\u01B0\u1EE3t"
+  description: "[\u0110\u1ED8C QUY\u1EC0N \xB7 H\xE0nh \u0111\u1ED9ng] Time Stop
+    \xB7 to\xE0n \u0111\u1ED9i h\xE0nh \u0111\u1ED9ng th\xEAm 1 l\u01B0\u1EE3t (1
+    l\u1EA7n/tr\u1EADn); \u0111\u1ECBch b\u1ECB b\u1ECF qua 1 l\u01B0\u1EE3t."
   icon: {fileID: 1299960053559783728, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

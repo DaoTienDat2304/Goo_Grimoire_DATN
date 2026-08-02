@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa3193ddcc1daeb4ab863543d2fa912e, type: 3}
   m_Name: W_Leg_Phoen_A
   m_EditorClassIdentifier: 
-  skillName: Dragon Feather Soul Reaper
+  skillName: Phoenix Soul Reaver
   type: 1
-  description: 235% ATK + 1050
+  description: "Dragon Feather Soul Reaper \xB7 2 \u0110CK \xB7 235% ATK + 1050,
+    \u0111\u01A1n; 85% Cho\xE1ng 2 l\u01B0\u1EE3t."
   icon: {fileID: 0}
   targetTrait: 2
   rarity: 5

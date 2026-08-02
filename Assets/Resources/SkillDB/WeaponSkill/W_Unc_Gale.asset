@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Gale Edge
   type: 1
-  description: 125% ATK + 150 AoE
+  description: "Gale Slash \xB7 1 \u0110CK \xB7 125% ATK + 150, AoE."
   icon: {fileID: 4292809995094347320, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 1

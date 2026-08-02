@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Titan's Reprisal
   type: 2
-  description: "Ph\u1EA3n 15% ST"
+  description: "N\u1ED9i t\u1EA1i \xB7 Ph\u1EA3n 15% s\xE1t th\u01B0\u01A1ng; b\u1ECB
+    crit ph\u1EA3n 25%; mi\u1EC5n h\u1EA5t tung/\u0111\u1EA9y l\xF9i."
   icon: {fileID: 4671734820620878130, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 6

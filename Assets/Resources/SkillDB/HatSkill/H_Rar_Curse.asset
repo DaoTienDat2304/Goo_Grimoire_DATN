@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Curse of Weakness
   type: 1
-  description: -10% ATK/DEF
+  description: "Debuff \xB7 1 \u0110CK \xB7 \u221210% ATK & \u22128% DEF 1 \u0111\u1ECBch
+    3 l\u01B0\u1EE3t."
   icon: {fileID: 6036604209445235547, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 2

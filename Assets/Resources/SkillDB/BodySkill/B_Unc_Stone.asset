@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Stone Skin
   type: 2
-  description: +6% DEF
+  description: "N\u1ED9i t\u1EA1i \xB7 +6% DEF."
   icon: {fileID: -3406843930107617671, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 1

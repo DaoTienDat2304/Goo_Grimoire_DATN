@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Light Step
   type: 2
-  description: +3 SPD
+  description: "N\u1ED9i t\u1EA1i \xB7 +3 SPD."
   icon: {fileID: -8030371550707451800, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 0

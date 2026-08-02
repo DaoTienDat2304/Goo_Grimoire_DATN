@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Priority Protocol
   type: 2
-  description: "\u0110i \u0111\u1EA7u, +1 \u0110CK"
+  description: "N\u1ED9i t\u1EA1i [\u0110\u1ED8C QUY\u1EC0N] \xB7 Lu\xF4n h\xE0nh
+    \u0111\u1ED9ng \u0111\u1EA7u ti\xEAn m\u1ED7i l\u01B0\u1EE3t (b\u1ECF qua SPD);
+    \u0111\u1EA7u tr\u1EADn +1 \u0110CK."
   icon: {fileID: 8479447844769535193, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7

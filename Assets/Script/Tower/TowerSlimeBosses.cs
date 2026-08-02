@@ -55,6 +55,16 @@ public class TowerSlimeBosses : ScriptableObject
         // Được fill bởi SaveAndLoadSystem.DeserializeTowerFloors()
         [System.NonSerialized] public bool completed;
         [System.NonSerialized] public bool claimed;
+        [System.NonSerialized] public int stars;
+        [System.NonSerialized] public int bestTurnCount;
+    }
+
+    public static int CalculateStars(int turns)
+    {
+        if (turns <= 0) return 3; // Màn đã thắng nhưng chưa có lượt turn: mặc định 3 sao
+        if (turns <= 50) return 3;
+        if (turns <= 80) return 2;
+        return 1;
     }
 
     [Header("Tower Floors")]
@@ -73,6 +83,35 @@ public class TowerSlimeBosses : ScriptableObject
     [System.NonSerialized] public int cachedCurrentFloor = 0;
     [System.NonSerialized] public int cachedHighestFloor = 0;
     [System.NonSerialized] public int cachedCompletedFloorNumber = 0;
+    [System.NonSerialized] public int cachedCompletedStars = 0;
+    [System.NonSerialized] public int cachedCompletedTurnCount = 0;
+
+    public void EnsureFloorCount(int targetCount)
+    {
+        if (floors == null) floors = new List<TowerFloor>();
+
+        while (floors.Count < targetCount)
+        {
+            int nextNum = floors.Count + 1;
+            TowerFloor template = floors.Count > 0 ? floors[floors.Count - 1] : null;
+
+            TowerFloor newFloor = new TowerFloor
+            {
+                floorNumber = nextNum,
+                floorName = $"FLOOR {nextNum}",
+                baseHP = template != null ? template.baseHP + 20 : 80 + (nextNum * 15),
+                baseAttack = template != null ? template.baseAttack + 5 : 20 + (nextNum * 5),
+                baseDefense = template != null ? template.baseDefense + 3 : 10 + (nextNum * 3),
+                baseSpeed = template != null ? template.baseSpeed + 1 : 12 + nextNum,
+                rewardCoins = 50 + (nextNum * 10),
+                rewardGems = (nextNum % 5 == 0) ? 5 : 0,
+                bodyTrait = template?.bodyTrait,
+                armorTrait = template?.armorTrait,
+                weaponTrait = template?.weaponTrait
+            };
+            floors.Add(newFloor);
+        }
+    }
 
     public TowerFloor GetCurrentFloor()
     {

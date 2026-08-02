@@ -242,13 +242,21 @@ public class SaveAndLoadSystem : MonoBehaviour
         towerDatabase.highestFloorReached = towerDatabase.cachedHighestFloor;
 
         var floor = towerDatabase.GetFloor(completedFloor);
-        if (floor != null) floor.completed = true;
+        if (floor != null)
+        {
+            floor.completed = true;
+            if (towerDatabase.cachedCompletedStars > floor.stars) floor.stars = towerDatabase.cachedCompletedStars;
+            if (floor.bestTurnCount == 0 || (towerDatabase.cachedCompletedTurnCount > 0 && towerDatabase.cachedCompletedTurnCount < floor.bestTurnCount))
+                floor.bestTurnCount = towerDatabase.cachedCompletedTurnCount;
+        }
 
         // Xóa cache trước khi save
         towerDatabase.hasPendingResult         = false;
         towerDatabase.cachedCurrentFloor       = 0;
         towerDatabase.cachedHighestFloor       = 0;
         towerDatabase.cachedCompletedFloorNumber = 0;
+        towerDatabase.cachedCompletedStars     = 0;
+        towerDatabase.cachedCompletedTurnCount = 0;
 
         Save();
         Debug.Log($"[Save] Applied tower cache: floor {completedFloor} completed, currentFloor={towerDatabase.currentFloor}");
@@ -904,7 +912,9 @@ public class SaveAndLoadSystem : MonoBehaviour
             {
                 floorNumber = floor.floorNumber,
                 completed   = floor.completed,
-                claimed     = floor.claimed
+                claimed     = floor.claimed,
+                stars       = floor.stars,
+                bestTurnCount = floor.bestTurnCount
             });
         }
 
@@ -983,6 +993,8 @@ public class SaveAndLoadSystem : MonoBehaviour
             {
                 floor.completed = dto.completed;
                 floor.claimed   = dto.claimed;
+                floor.stars     = dto.stars;
+                floor.bestTurnCount = dto.bestTurnCount;
                 if (dto.claimed) loadedClaimed++;
             }
             else

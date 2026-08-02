@@ -1,34 +1,49 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Quản lý panel Tower trong scene firstsave.
-/// Kéo TowerSlimeBosses asset + các UI element vào Inspector.
-/// </summary>
 public class TowerUIManager : MonoBehaviour
 {
     [Header("Data")]
     public TowerSlimeBosses towerDatabase;
 
-    [Header("Panel")]
-    public GameObject towerPanel;           // Root panel (bật/tắt)
-    public Transform floorListContainer;    // ScrollView / Content object
-    public GameObject floorItemPrefab;      // Prefab có TowerFloorItem
+    [Header("Panel & Horizontal Scroll View")]
+    public GameObject towerPanel;               // Root panel (bật/tắt)
+    public ScrollRect mapScrollRect;            // ScrollRect cuộn ngang
+    public Transform floorListContainer;        // Container chứa nút (tùy chọn)
+    public GameObject floorItemPrefab;          // Prefab nút chọn màn (FloorItem)
+
+    [Header("Map Nodes Trực Tiếp Trên Canvas")]
+    public List<TowerFloorItem> mapNodes = new List<TowerFloorItem>();
+
+    [Header("Auto-Spawn Settings (Nếu chưa kéo nút sẵn)")]
+    public float nodeHorizontalSpacing = 220f;  // Khoảng cách ngang giữa các nút sinh thêm
+    public float nodeZigZagAmplitude = 80f;     // Độ nhấp nhô Ziczac Lên/Xuống theo chiều cao Y
+    public float startMarginX = 150f;           // Lề xuất phát bên trái
+
+    [Header("Sprites Theo Nhóm 5 Màn (Gán chung 1 lần cho Màn 1->5)")]
+    public Sprite[] globalClusterSprites = new Sprite[5]; // 5 Sprite cho Màn 1, 2, 3, 4, 5 (Hoặc 6-10, 11-15)
+
+    [Header("Global Star Sprites (Gán 1 lần cho toàn bộ Nút)")]
+    public Sprite globalActiveStarSprite;      // Sprite Sao Sáng
+    public Sprite globalInactiveStarSprite;    // Sprite Sao Tối
 
     [Header("Header Info")]
-    public Text headerText;                 // "Tower of Slimes"
-    public Text currentFloorText;           // "Tầng hiện tại: 3 / 15"
-    public Text highestFloorText;           // "Cao nhất: 2"
+    public Text headerText;                     // "Tower of Slimes"
+    public Text currentFloorText;               // "Current floor: 3 / 15"
+    public Text highestFloorText;               // "Highest Reached: Floor 2"
 
     [Header("Warning")]
-    public GameObject warningText;          // Hiện khi team chưa có slime
+    public GameObject warningText;              // Hiện khi team chưa có slime hoặc tầng bị khóa
+    public Text warningTextLabel;               // (Tùy chọn) Label thông báo
 
     private static readonly WaitForSeconds WarningDelay = new(3f);
 
     [Header("Reward Popup (tuỳ chọn)")]
-    public GameObject rewardPopup;          // Panel hiện khi claim
-    public Text rewardPopupText;            // Nội dung phần thưởng
+    public GameObject rewardPopup;              // Panel hiện khi claim
+    public Text rewardPopupText;                // Nội dung phần thưởng
     public Button rewardPopupCloseButton;
 
     private void Awake()
@@ -45,16 +60,13 @@ public class TowerUIManager : MonoBehaviour
 
     private void Start()
     {
-        // Refresh UI sau khi save system load xong (ưu tiên sau frame đầu)
         StartCoroutine(RefreshAfterLoad());
     }
 
     private IEnumerator RefreshAfterLoad()
     {
-        // Đợi SaveAndLoadSystem hoàn tất load
         yield return new WaitForSeconds(0.2f);
         Refresh();
-
     }
 
     // ── Public interface ──────────────────────────────────────────────
@@ -63,6 +75,7 @@ public class TowerUIManager : MonoBehaviour
     {
         if (towerPanel != null) towerPanel.SetActive(true);
         Refresh();
+        StartCoroutine(ScrollToCurrentFloorNextFrame());
     }
 
     public void ClosePanel()
@@ -70,7 +83,6 @@ public class TowerUIManager : MonoBehaviour
         if (towerPanel != null) towerPanel.SetActive(false);
     }
 
-    /// <summary>Vẽ lại toàn bộ danh sách floor.</summary>
     public void Refresh()
     {
         if (towerDatabase == null)
@@ -83,36 +95,32 @@ public class TowerUIManager : MonoBehaviour
         RebuildFloorList();
     }
 
-    // ── Gọi từ TowerFloorItem ─────────────────────────────────────────
+    // ── Thao tác Trận đấu & Phần thưởng ───────────────────────────────
 
-    /// <summary>Bắt đầu battle với floor hiện tại.</summary>
     public void OnStartBattle()
     {
         if (towerDatabase == null) return;
 
-        // Kiểm tra team phải có ít nhất 1 slime
         var saveSystem = SaveAndLoadSystem.Instance;
         var team = saveSystem != null ? saveSystem.GetTeam() : null;
         if (team == null || team.team == null || team.team.Count == 0)
         {
-            Debug.LogWarning("Cần ít nhất 1 slime trong team để vào Tower!");
-            ShowWarning();
+            ShowWarning("Cần ít nhất 1 slime trong team để vào Tower!");
             return;
         }
 
         if (warningText != null) warningText.SetActive(false);
 
-        // Đảm bảo currentFloor được đặt đúng khi lần đầu tiên
         if (towerDatabase.currentFloor == 0)
             towerDatabase.currentFloor = 1;
 
-        // TurnSystem tự lấy boss từ towerBosses khi không có boss data
         if (BattleDataManager.Instance == null)
         {
             var go = new GameObject("BattleDataManager");
             go.AddComponent<BattleDataManager>();
         }
         BattleDataManager.Instance.SetBattleMode(BattleMode.Tower);
+
         if (SaveAndLoadSystem.Instance != null)
         {
             SaveAndLoadSystem.Instance.Save();
@@ -121,7 +129,6 @@ public class TowerUIManager : MonoBehaviour
         StartCoroutine(LoadBattleScene());
     }
 
-    /// <summary>Chơi lại tầng đã hoàn thành (không nhận thưởng lại).</summary>
     public void OnReplayFloor(int floorNumber)
     {
         if (towerDatabase == null) return;
@@ -130,7 +137,7 @@ public class TowerUIManager : MonoBehaviour
         var team = saveSystem != null ? saveSystem.GetTeam() : null;
         if (team == null || team.team == null || team.team.Count == 0)
         {
-            ShowWarning();
+            ShowWarning("Cần ít nhất 1 slime trong team để vào Tower!");
             return;
         }
 
@@ -144,15 +151,13 @@ public class TowerUIManager : MonoBehaviour
             go.AddComponent<BattleDataManager>();
         }
         BattleDataManager.Instance.SetBattleMode(BattleMode.Tower);
+
         if (SaveAndLoadSystem.Instance != null)
-        {
             SaveAndLoadSystem.Instance.Save();
-            Debug.Log("[TowerUIManager] Đã lưu dữ liệu trước khi vào trận chơi lại.");
-        }
+
         StartCoroutine(LoadBattleScene());
     }
 
-    /// <summary>Claim reward cho floor đã hoàn thành.</summary>
     public void OnClaimFloor(int floorNumber)
     {
         if (towerDatabase == null) return;
@@ -162,7 +167,6 @@ public class TowerUIManager : MonoBehaviour
 
         floor.claimed = true;
 
-        // Trao tiền tệ
         if (CurrencyManager.Instance != null)
         {
             if (floor.rewardCoins > 0)
@@ -171,7 +175,6 @@ public class TowerUIManager : MonoBehaviour
                 CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, floor.rewardGems);
         }
 
-        // Mở khóa trait nếu có
         if (floor.rewardTraits != null)
         {
             foreach (var trait in floor.rewardTraits)
@@ -181,14 +184,16 @@ public class TowerUIManager : MonoBehaviour
             }
         }
 
-        // Lưu lại
         if (SaveAndLoadSystem.Instance != null)
             SaveAndLoadSystem.Instance.Save();
 
         ShowRewardPopup(floor);
         Refresh();
+    }
 
-        Debug.Log($"Claimed reward cho Tầng {floorNumber}: {floor.rewardCoins} Coins, {floor.rewardGems} Gems");
+    public void OnLockedFloorClicked(int floorNumber)
+    {
+        ShowWarning($"Tầng {floorNumber} chưa mở khóa! Hãy hoàn thành các tầng trước.");
     }
 
     // ── Private helpers ───────────────────────────────────────────────
@@ -205,28 +210,213 @@ public class TowerUIManager : MonoBehaviour
             highestFloorText.text = $"Highest Reached: Floor {highest}";
     }
 
+    private void ApplyGlobalClusterSprites(TowerFloorItem item)
+    {
+        if (item == null) return;
+
+        if (globalClusterSprites != null && HasAnySprite(globalClusterSprites))
+        {
+            if (!HasAnySprite(item.clusterStepSprites))
+                item.clusterStepSprites = globalClusterSprites;
+        }
+
+        if (item.activeStarSprite == null && globalActiveStarSprite != null)
+            item.activeStarSprite = globalActiveStarSprite;
+
+        if (item.inactiveStarSprite == null && globalInactiveStarSprite != null)
+            item.inactiveStarSprite = globalInactiveStarSprite;
+    }
+
+    private bool HasAnySprite(Sprite[] arr)
+    {
+        if (arr == null) return false;
+        foreach (var s in arr) if (s != null) return true;
+        return false;
+    }
+
     private void RebuildFloorList()
     {
-        if (floorListContainer == null || floorItemPrefab == null) return;
+        if (towerDatabase == null) return;
 
-        // Xóa items cũ
-        foreach (Transform child in floorListContainer)
-            Destroy(child.gameObject);
+        int requiredFloors = Mathf.Max(30, mapNodes != null ? mapNodes.Count : 30);
+        towerDatabase.EnsureFloorCount(requiredFloors);
 
         if (towerDatabase.floors == null) return;
 
         int currentFloor = Mathf.Max(1, towerDatabase.currentFloor);
+        int totalFloors = towerDatabase.floors.Count;
 
-        foreach (var floor in towerDatabase.floors)
+        // Container chứa Nút
+        Transform parentContainer = mapScrollRect != null ? mapScrollRect.content : null;
+
+        if ((mapNodes == null || mapNodes.Count == 0) && parentContainer != null)
         {
-            if (floor == null) continue;
+            mapNodes = parentContainer.GetComponentsInChildren<TowerFloorItem>(true).ToList();
+        }
 
-            var go   = Instantiate(floorItemPrefab, floorListContainer);
-            var item = go.GetComponent<TowerFloorItem>();
+        int preplacedCount = mapNodes != null ? mapNodes.Count : 0;
+
+        // Nếu làm sẵn ít nút hơn tổng số tầng, tự động sinh thêm các nút còn lại nối tiếp nút cuối cùng
+        if (preplacedCount < totalFloors && floorItemPrefab != null && parentContainer != null)
+        {
+            float lastX = startMarginX;
+            if (preplacedCount > 0 && mapNodes[preplacedCount - 1] != null)
+            {
+                RectTransform lastRT = mapNodes[preplacedCount - 1].GetComponent<RectTransform>();
+                if (lastRT != null)
+                {
+                    lastX = lastRT.anchoredPosition.x;
+                }
+            }
+
+            for (int i = preplacedCount; i < totalFloors; i++)
+            {
+                var go = Instantiate(floorItemPrefab, parentContainer);
+                go.name = $"FloorNode_{i + 1}";
+                go.SetActive(true);
+
+                var item = go.GetComponent<TowerFloorItem>();
+                if (item == null) item = go.AddComponent<TowerFloorItem>();
+
+                RectTransform rt = go.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    rt.anchorMin = new Vector2(0f, 0.5f);
+                    rt.anchorMax = new Vector2(0f, 0.5f);
+                    rt.pivot     = new Vector2(0.5f, 0.5f);
+
+                    float posX = lastX + ((i - preplacedCount + 1) * nodeHorizontalSpacing);
+                    float posY = (i % 2 == 0) ? nodeZigZagAmplitude : -nodeZigZagAmplitude;
+
+                    rt.anchoredPosition3D = new Vector3(posX, posY, 0f);
+                }
+
+                mapNodes.Add(item);
+            }
+        }
+
+        if (mapNodes == null || mapNodes.Count == 0)
+        {
+            Debug.LogWarning("TowerUIManager: Chưa có nút TowerFloorItem nào!");
+            return;
+        }
+
+        float maxX = 0f;
+
+        // Cài đặt thông số & Hiển thị cho từng Nút
+        for (int i = 0; i < mapNodes.Count; i++)
+        {
+            var item = mapNodes[i];
             if (item == null) continue;
 
-            bool isCurrent = (floor.floorNumber == currentFloor);
-            item.Setup(floor, isCurrent, this);
+            if (i < totalFloors)
+            {
+                item.gameObject.SetActive(true);
+
+                RectTransform rt = item.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    // Chỉ sắp xếp vị trí tự động nếu HOÀN TOÀN KHÔNG CÓ NÚT NÀO ĐẶT SẴN
+                    if (preplacedCount == 0)
+                    {
+                        rt.anchorMin = new Vector2(0f, 0.5f);
+                        rt.anchorMax = new Vector2(0f, 0.5f);
+                        rt.pivot     = new Vector2(0.5f, 0.5f);
+
+                        float posX = startMarginX + (i * nodeHorizontalSpacing);
+                        float posY = (i % 2 == 0) ? nodeZigZagAmplitude : -nodeZigZagAmplitude;
+
+                        rt.anchoredPosition3D = new Vector3(posX, posY, 0f);
+                    }
+
+                    float rightEdge = rt.anchoredPosition.x + (rt.rect.width * 0.5f);
+                    if (rightEdge > maxX) maxX = rightEdge;
+                }
+
+                ApplyGlobalClusterSprites(item);
+                var floor = towerDatabase.floors[i];
+                bool isCurrent = (floor.floorNumber == currentFloor);
+                item.Setup(floor, isCurrent, this);
+            }
+            else
+            {
+                item.gameObject.SetActive(false);
+            }
+        }
+
+        if (parentContainer != null)
+        {
+            RectTransform contentRT = parentContainer as RectTransform;
+            if (contentRT != null)
+            {
+                float targetWidth = 0f;
+                var bgImage = parentContainer.GetComponentInChildren<Image>();
+                if (bgImage != null && bgImage.gameObject != parentContainer.gameObject)
+                {
+                    RectTransform bgRT = bgImage.rectTransform;
+                    if (bgRT != null)
+                    {
+                        targetWidth = Mathf.Max(bgRT.rect.width, bgRT.sizeDelta.x);
+                    }
+                }
+
+                if (targetWidth <= 0f || maxX > targetWidth)
+                {
+                    targetWidth = maxX + 300f;
+                }
+
+                if (targetWidth > 0f)
+                {
+                    contentRT.sizeDelta = new Vector2(targetWidth, contentRT.sizeDelta.y);
+                }
+            }
+        }
+    }
+
+    private IEnumerator ScrollToCurrentFloorNextFrame()
+    {
+        yield return new WaitForEndOfFrame();
+        ScrollToCurrentFloor();
+    }
+
+    public void ScrollToCurrentFloor()
+    {
+        if (mapScrollRect == null || towerDatabase == null || mapNodes == null || mapNodes.Count == 0) return;
+
+        int total = towerDatabase.floors != null ? towerDatabase.floors.Count : mapNodes.Count;
+        if (total <= 0) return;
+
+        int current = Mathf.Clamp(towerDatabase.currentFloor, 1, total);
+        int index = current - 1;
+
+        if (index >= 0 && index < mapNodes.Count && mapNodes[index] != null)
+        {
+            RectTransform nodeRT = mapNodes[index].GetComponent<RectTransform>();
+            RectTransform contentRT = mapScrollRect.content;
+            RectTransform viewportRT = mapScrollRect.viewport != null ? mapScrollRect.viewport : (mapScrollRect.transform as RectTransform);
+
+            if (nodeRT != null && contentRT != null && viewportRT != null)
+            {
+                float nodeX = nodeRT.anchoredPosition.x;
+                float viewportWidth = viewportRT.rect.width;
+                float contentWidth = contentRT.rect.width;
+
+                float maxScrollX = contentWidth - viewportWidth;
+                if (maxScrollX > 0f)
+                {
+                    float targetContentX = nodeX - (viewportWidth * 0.5f);
+                    float normalizedPos = Mathf.Clamp01(targetContentX / maxScrollX);
+                    mapScrollRect.horizontalNormalizedPosition = normalizedPos;
+                }
+                else
+                {
+                    mapScrollRect.horizontalNormalizedPosition = 0f;
+                }
+            }
+        }
+        else
+        {
+            mapScrollRect.horizontalNormalizedPosition = 0f;
         }
     }
 
@@ -252,10 +442,16 @@ public class TowerUIManager : MonoBehaviour
         if (rewardPopup != null) rewardPopup.SetActive(false);
     }
 
-    private void ShowWarning()
+    private void ShowWarning(string message = null)
     {
         if (warningText == null) return;
         StopCoroutine(nameof(HideWarningAfterDelay));
+
+        if (warningTextLabel != null && !string.IsNullOrEmpty(message))
+        {
+            warningTextLabel.text = message;
+        }
+
         warningText.SetActive(true);
         StartCoroutine(nameof(HideWarningAfterDelay));
     }

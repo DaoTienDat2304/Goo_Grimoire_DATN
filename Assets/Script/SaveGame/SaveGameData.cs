@@ -165,6 +165,8 @@ public class TowerFloorProgressDTO
     public int floorNumber;
     public bool completed; // Đã thắng floor này (chờ claim reward)
     public bool claimed;   // Đã nhận thưởng
+    public int stars;      // Số sao đạt được (1, 2, hoặc 3 sao)
+    public int bestTurnCount; // Số lượt tốt nhất
 }
 
 [Serializable]

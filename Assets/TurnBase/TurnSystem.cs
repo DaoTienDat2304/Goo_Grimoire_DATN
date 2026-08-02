@@ -1316,17 +1316,22 @@ public class TurnSystem : MonoBehaviour
                     if (currentFloor != null)
                     {
                         currentFloor.completed = true;
-                        Debug.Log($"Đã hoàn thành màn {currentFloor.floorNumber}: {currentFloor.floorName}");
+                        int newStars = TowerSlimeBosses.CalculateStars(turnCount);
+                        if (newStars > currentFloor.stars) currentFloor.stars = newStars;
+                        if (currentFloor.bestTurnCount == 0 || turnCount < currentFloor.bestTurnCount) currentFloor.bestTurnCount = turnCount;
+
+                        Debug.Log($"Đã hoàn thành màn {currentFloor.floorNumber}: {currentFloor.floorName} trong {turnCount} lượt ({newStars} sao)");
+
+                        towerBosses.cachedCompletedFloorNumber = currentFloor.floorNumber;
+                        towerBosses.cachedCurrentFloor = towerBosses.currentFloor;
+                        towerBosses.cachedHighestFloor = towerBosses.highestFloorReached;
+                        towerBosses.cachedCompletedStars = currentFloor.stars;
+                        towerBosses.cachedCompletedTurnCount = currentFloor.bestTurnCount;
+                        towerBosses.hasPendingResult = true;
                     }
 
                     towerBosses.AdvanceToNextFloor();
                     PlayerStatsManager.Instance?.RecordTowerFloor(towerBosses.highestFloorReached);
-
-                    // Cache kết quả để SaveAndLoadSystem apply sau khi load cloud xong ở firstsave
-                    towerBosses.cachedCompletedFloorNumber = currentFloor.floorNumber;
-                    towerBosses.cachedCurrentFloor = towerBosses.currentFloor;
-                    towerBosses.cachedHighestFloor = towerBosses.highestFloorReached;
-                    towerBosses.hasPendingResult = true;
                 }
             }
 

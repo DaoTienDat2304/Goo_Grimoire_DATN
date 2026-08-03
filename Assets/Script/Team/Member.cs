@@ -95,6 +95,7 @@ public class Member : MonoBehaviour
         stat.CritRate = s.totalCritRate;
         stat.CritDMG = s.totalCritDMG;
         stat.isEnemy = false;
+        stat.enemyRarity = s.GetHighestRarity();
         stat.id = s.id;
         stat.bodySkill = s.body?.skill;
         stat.weaponSkill = s.weapon?.skill;

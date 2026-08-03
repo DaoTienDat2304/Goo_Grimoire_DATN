@@ -53,10 +53,6 @@ public class TowerFloorItem : MonoBehaviour
             {
                 btn.onClick.AddListener(() => uiManager.OnStartBattle());
             }
-            else if (floor.completed && !floor.claimed)
-            {
-                btn.onClick.AddListener(() => uiManager.OnClaimFloor(floor.floorNumber));
-            }
             else if (floor.completed)
             {
                 btn.onClick.AddListener(() => uiManager.OnReplayFloor(floor.floorNumber));

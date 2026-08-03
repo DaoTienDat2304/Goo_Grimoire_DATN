@@ -80,6 +80,7 @@ public class TowerSlimeBosses : ScriptableObject
     // Cache kết quả tower battle — được set bởi TurnSystem sau khi thắng,
     // được apply bởi SaveAndLoadSystem sau khi load cloud xong
     [System.NonSerialized] public bool hasPendingResult = false;
+    [System.NonSerialized] public int pendingRewardFloor = 0;
     [System.NonSerialized] public int cachedCurrentFloor = 0;
     [System.NonSerialized] public int cachedHighestFloor = 0;
     [System.NonSerialized] public int cachedCompletedFloorNumber = 0;

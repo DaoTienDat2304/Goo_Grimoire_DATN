@@ -486,13 +486,23 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
-    private void TurnSorting()
+    protected virtual void TurnSorting()
     {
         var sorted = turnList
             .Where(s => s != null && s.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
             .OrderByDescending(s => {
                 var battleStats = s.GetComponent<SlimeBattleStats>();
-                return battleStats != null ? battleStats.BattleSpeed : s.GetComponent<SlimeStats>().Speed;
+                int spd = battleStats != null ? battleStats.BattleSpeed : (s.GetComponent<SlimeStats>()?.Speed ?? 10);
+                
+                // Priority rule: TinyBat (100k) > GoblinArcher (50k) > Normal Speed
+                var stats = s.GetComponent<SlimeStats>();
+                if (stats != null && stats.isEnemy)
+                {
+                    string n = s.name;
+                    if (n.Contains("TinyBat")) spd += 100000;
+                    else if (n.Contains("GoblinArcher")) spd += 50000;
+                }
+                return spd;
             })
             .ToList();
         turnQueue = new Queue<GameObject>(sorted);

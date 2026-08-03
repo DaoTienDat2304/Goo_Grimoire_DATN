@@ -356,6 +356,10 @@ public class TowerTurnSystem : TurnSystem
         stats.isEnemy = true;
         stats.useRarityBossScaling = false;
 
+        var bStats = enemyGo.GetComponent<SlimeBattleStats>();
+        if (bStats == null) bStats = enemyGo.AddComponent<SlimeBattleStats>();
+        bStats.ReinitializeFromBaseStats();
+
         Debug.Log($"[TowerTurnSystem] Spawned Clone: {enemyGo.name} | HP: {stats.HP} | ATK: {stats.Attack} | MATK: {stats.MagicAttack} | DEF: {stats.Defense} | SPD: {stats.Speed}");
 
         if (stats.hpbar != null)
@@ -950,7 +954,7 @@ public class TowerTurnSystem : TurnSystem
     }
 
     // ==========================================
-    // 3. LOGIC TÌM MỤC TIÊU
+    // 3. LOGIC TÌM MỤC TIÊU DỰA TRÊN TÍNH CÁCH QUÁI
     // ==========================================
     private GameObject GetAIQueryTarget(TowerEnemyType type)
     {
@@ -961,71 +965,669 @@ public class TowerTurnSystem : TurnSystem
 
         switch (type)
         {
-            // Chapter 2: Goblin Archer ưu tiên nhắm nhân vật HP thấp nhất
+            // Goblin Archer & Stone Golem (focus target HP thấp nhất)
             case TowerEnemyType.GoblinArcher:
                 return playerAllies.OrderBy(a => a.GetComponent<SlimeBattleStats>().CurrentHP).First();
 
-            // Chapter 3: Corrupted Goblin ưu tiên nhắm nhân vật DEF thấp nhất
+            // Corrupted Goblin luôn ưu tiên nhắm nhân vật DEF thấp nhất
             case TowerEnemyType.CorruptedGoblin:
             case TowerEnemyType.CorruptedGoblinElite:
                 return playerAllies.OrderBy(a => a.GetComponent<SlimeBattleStats>().BattleDefense).First();
 
-            // Chapter 4 & 5: Stone Goblin/Golem ưu tiên nhắm đứa có Tốc độ (SPD) cao nhất
+            // Stone Goblin & Stone Golem ưu tiên nhắm nhân vật SPD cao nhất
             case TowerEnemyType.StoneGoblin:
             case TowerEnemyType.StoneGolem:
+            case TowerEnemyType.EliteStoneGolem:
                 return playerAllies.OrderByDescending(a => a.GetComponent<SlimeBattleStats>().BattleSpeed).First();
 
             default:
-                // Mặc định phản xạ ngẫu nhiên hàng sau/hàng trước
-                return formationManager.GetRandomRowLastAlive();
+                return formationManager.GetRandomRowLastAlive() ?? playerAllies.First();
         }
     }
 
     // ==========================================
-    // 4.THỰC THI HÀNH VI AI
+    // BẢNG AURA VÀ TÍNH CHẤT NỘI TẠI TOÀN SÂN PHE KẺ ĐỊCH
+    // ==========================================
+    private void UpdateEnemyAuras()
+    {
+        var aliveEnemies = activeEnemies.Where(e => e != null && e.GetComponent<SlimeBattleStats>()?.CurrentHP > 0).ToList();
+        if (aliveEnemies.Count == 0) return;
+
+        bool hasGoblinShaman = aliveEnemies.Any(e => e.name.Contains("GoblinShaman"));
+        bool hasDarkGoblinShaman = aliveEnemies.Any(e => e.name.Contains("DarkGoblinShaman"));
+        bool hasAncientShaman = aliveEnemies.Any(e => e.name.Contains("AncientShaman"));
+        bool hasIronGolem = aliveEnemies.Any(e => e.name.Contains("IronGolem") || e.name.Contains("EliteIronGolem"));
+        bool hasStoneGoblin = aliveEnemies.Any(e => e.name.Contains("StoneGoblin"));
+        bool hasCrystalSlime = aliveEnemies.Any(e => e.name.Contains("CrystalSlime"));
+
+        bool hasStoneGolem = aliveEnemies.Any(e => e.name.Contains("StoneGolem") || e.name.Contains("EliteStoneGolem"));
+        bool hasCrystalGolem = aliveEnemies.Any(e => e.name.Contains("CrystalGolem") || e.name.Contains("EliteCrystalGolem"));
+        int crystalGolemCount = aliveEnemies.Count(e => e.name.Contains("CrystalGolem") || e.name.Contains("EliteCrystalGolem"));
+        bool hasAll3Golems = hasStoneGolem && hasIronGolem && hasCrystalGolem;
+
+        var playerAllies = formationManager.GetAllAliveAllies();
+        int poisonedPlayerCount = playerAllies.Count(a => a != null && a.GetComponent<SlimeBattleStats>()?.GetPoisonStackCount() > 0);
+
+        foreach (var enemy in aliveEnemies)
+        {
+            var stats = enemy.GetComponent<SlimeBattleStats>();
+            if (stats == null || stats.baseStats == null) continue;
+
+            string n = enemy.name;
+            float defMult = 1.0f;
+            float matkMult = 1.0f;
+            float atkMult = 1.0f;
+
+            // Goblin Shaman còn sống -> Goblin Warrior +15% ATK
+            if (hasGoblinShaman && n.Contains("GoblinWarrior")) atkMult *= 1.15f;
+
+            // Dark Goblin Shaman còn sống -> Toàn bộ đồng minh +20% MATK & +15% Crit Rate
+            if (hasDarkGoblinShaman)
+            {
+                matkMult *= 1.20f;
+                stats.critChance = 15f;
+            }
+
+            // Ancient Shaman còn sống -> Tất cả đồng minh +20% DEF
+            if (hasAncientShaman) defMult *= 1.20f;
+
+            // Iron Golem còn sống -> Toàn bộ Golem nhận 15% giảm sát thương
+            if (hasIronGolem && n.Contains("Golem")) stats.damageReduction = 15f;
+
+            // Stone Goblin & Crystal Slime synergy
+            if (n.Contains("CrystalSlime") && hasStoneGoblin) defMult *= 1.15f;
+            if (n.Contains("StoneGoblin") && hasStoneGoblin && hasCrystalSlime) defMult *= 1.10f;
+
+            // Cả 3 loại Golem trên sân -> Toàn đội Golem nhận thêm +10% DEF
+            if (hasAll3Golems && n.Contains("Golem")) defMult *= 1.10f;
+
+            // Nếu còn ≥2 Crystal Golem -> Toàn team enemy +25% DEF
+            if (crystalGolemCount >= 2) defMult *= 1.25f;
+
+            // Poison Slime -> Nếu có ≥2 unit bị Poison -> tăng 20% MATK
+            if (n.Contains("PoisonSlime") && poisonedPlayerCount >= 2) matkMult *= 1.20f;
+
+            // Cập nhật chỉ số thực tế sau khi tính Aura
+            stats.BattleDefense = Mathf.RoundToInt(stats.initialBattleDefense * defMult);
+            stats.BattleMagicAttack = Mathf.RoundToInt(stats.initialBattleMagicAttack * matkMult);
+            stats.BattleAttack = Mathf.RoundToInt(stats.initialBattleAttack * atkMult);
+        }
+    }
+
+    // ==========================================
+    // 4. THỰC THI HÀNH VI AI THEO TỪNG LOẠI QUÁI
     // ==========================================
     private IEnumerator ExecuteEnemyAIBehavior(TowerEnemyType type, EnemyAIState ai, GameObject target)
     {
         var bossStats = currentSlime.GetComponent<SlimeBattleStats>();
         if (bossStats == null) yield break;
 
-        // KIỂM TRA ĐIỀU KIỆN HP ĐỂ KÍCH HOẠT PHASE 2
+        UpdateEnemyAuras();
+
         float hpPercent = (float)bossStats.CurrentHP / bossStats.MaxHP;
-        if (hpPercent < 0.5f && !ai.isPhase2Triggered)
+
+        if (type == TowerEnemyType.CelestialGuardian)
         {
-            ai.isPhase2Triggered = true;
-            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2f, "PHASE 2: BERSERK!", Color.red);
-            // Xóa toàn bộ hiệu ứng bất lợi
-            bossStats.GetType().GetMethod("CleanseDebuffs")?.Invoke(bossStats, null);
+            // Core of the World: Giảm 25% sát thương nhận vào
+            bossStats.damageReduction = 25f;
+
+            // Celestial Pressure: Giảm 10% SPD toàn team player
+            foreach (var pAlly in formationManager.GetAllAliveAllies())
+            {
+                var pStats = pAlly?.GetComponent<SlimeBattleStats>();
+                if (pStats != null && pStats.baseStats != null)
+                {
+                    pStats.BattleSpeed = Mathf.Max(1, Mathf.RoundToInt(pStats.baseStats.Speed * 0.90f));
+                }
+            }
+
+            // Phase 2 Transition (70% -> 40% HP)
+            if (hpPercent <= 0.70f && ai.currentPhase < 2)
+            {
+                ai.currentPhase = 2;
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, "PHASE 2: CELESTIAL AWAKENING!", Color.cyan);
+                bossStats.CleanseDebuffs();
+                bossStats.ApplyBuff(BuffStat.Attack, 1.20f, -1); // +20% ATK
+                bossStats.ApplyBuff(BuffStat.Speed, 1.20f, -1);  // +20% SPD
+                int shieldAmount = Mathf.RoundToInt(bossStats.MaxHP * 0.50f);
+                bossStats.AddShield(shieldAmount); // Shield Rebuild: 50% Max HP
+            }
+            // Phase 3 Transition (40% -> 0% HP)
+            else if (hpPercent <= 0.40f && ai.currentPhase < 3)
+            {
+                ai.currentPhase = 3;
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, "PHASE 3: BERSERK MODE!", Color.red);
+                bossStats.CleanseDebuffs();
+                bossStats.ApplyBuff(BuffStat.Attack, 1.30f, -1); // +30% ATK
+                bossStats.critChance += 20f;                      // +20% Crit Rate
+            }
         }
 
-        // SỬ DỤNG SWITCH-CASE ĐỂ CHIA LOGIC CHO TỪNG LOẠI BOSS
         switch (type)
         {
+            case TowerEnemyType.TinyBat:
+            case TowerEnemyType.TinyBatElite:
+                yield return StartCoroutine(AI_TinyBat(ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.GoblinArcher:
+                yield return StartCoroutine(AI_GoblinArcher(ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.GoblinShaman:
+                yield return StartCoroutine(AI_GoblinShaman(ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.DarkGoblinShaman:
+                yield return StartCoroutine(AI_DarkGoblinShaman(ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.PoisonSlime:
+            case TowerEnemyType.PoisonSlimeElite:
+                yield return StartCoroutine(AI_PoisonSlime(ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.CorruptedGoblin:
+            case TowerEnemyType.CorruptedGoblinElite:
+                yield return StartCoroutine(AI_CorruptedGoblin(ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.StoneGoblin:
+                yield return StartCoroutine(AI_StoneGoblin(ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.CrystalSlime:
+                yield return StartCoroutine(AI_CrystalSlime(ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.AncientShaman:
+                yield return StartCoroutine(AI_AncientShaman(ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.IronGolem:
+            case TowerEnemyType.EliteIronGolem:
+                yield return StartCoroutine(AI_IronGolem(type, ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.StoneGolem:
+            case TowerEnemyType.EliteStoneGolem:
+                yield return StartCoroutine(AI_StoneGolem(type, ai.currentTurnCycle, bossStats, target));
+                break;
+
+            case TowerEnemyType.CrystalGolem:
+            case TowerEnemyType.EliteCrystalGolem:
+                yield return StartCoroutine(AI_CrystalGolem(type, ai.currentTurnCycle, bossStats, target));
+                break;
+
             case TowerEnemyType.SlimeKing:
                 yield return StartCoroutine(AI_SlimeKing(ai.currentTurnCycle, bossStats, target));
                 break;
 
             case TowerEnemyType.GoblinChief:
+            case TowerEnemyType.CorruptedGoblinChief:
                 yield return StartCoroutine(AI_GoblinChief(ai.currentTurnCycle, bossStats, target));
                 break;
 
             case TowerEnemyType.CelestialGuardian:
-                yield return StartCoroutine(AI_CelestialGuardian(ai.currentTurnCycle, ai.isPhase2Triggered, bossStats, target));
+                yield return StartCoroutine(AI_CelestialGuardian(ai.currentTurnCycle, ai.currentPhase, bossStats, target));
                 break;
 
-            // QUÁI THƯỜNG / ELITE: ĐÁNH THƯỜNG HOẶC CAST SKILL THEO TỶ LỆ / TURN ĐẦU
             default:
-                yield return StartCoroutine(AI_NormalEnemy(type, ai.currentTurnCycle, bossStats, target));
+                yield return StartCoroutine(DefaultEnemyAttack(bossStats, target));
                 break;
         }
     }
 
-    // ==========================================
-    // CÁC HÀM AI CHI TIẾT CHO TỪNG CON BOSS
-    // ==========================================
+    // ── AI Tiny Bat ──
+    private IEnumerator AI_TinyBat(int turn, SlimeBattleStats stats, GameObject target)
+    {
+        CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Sonic Bite!", Color.cyan);
+        yield return StartCoroutine(DefaultEnemyAttack(stats, target));
+    }
 
-    // AI Slime King (Chapter 1)
+    // ── AI Goblin Archer ──
+    private IEnumerator AI_GoblinArcher(int turn, SlimeBattleStats stats, GameObject target)
+    {
+        var targetStats = target.GetComponent<SlimeBattleStats>();
+        float targetHpPct = targetStats != null ? (float)targetStats.CurrentHP / targetStats.MaxHP : 1f;
+
+        if (targetHpPct < 0.40f || turn % 2 == 0) // Rapid Shot / Weak Point
+        {
+            float bonus = targetHpPct < 0.40f ? 1.3f : 1.0f; // Weak Point +30% Dmg
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, targetHpPct < 0.40f ? "WEAK POINT RAPID SHOT!" : "Rapid Shot!", Color.red);
+            int hitDmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 0.8f * bonus);
+
+            var animController = currentSlime.GetComponent<SimpleCombatAnimation>();
+            if (animController != null) yield return StartCoroutine(animController.PlayAttackAnimation(target.transform));
+
+            if (targetStats != null) targetStats.TakeDamage(hitDmg, currentSlime);
+            yield return new WaitForSeconds(0.2f);
+            if (targetStats != null) targetStats.TakeDamage(hitDmg, currentSlime);
+        }
+        else
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Arrow Shot!", Color.white);
+            yield return StartCoroutine(DefaultEnemyAttack(stats, target));
+        }
+    }
+
+    // ── AI Goblin Shaman ──
+    private IEnumerator AI_GoblinShaman(int turn, SlimeBattleStats stats, GameObject target)
+    {
+        if (turn == 1) // War Cry
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "War Cry! (+15% ATK)", Color.yellow);
+            foreach (var e in activeEnemies)
+            {
+                if (e != null && e.name.Contains("Goblin"))
+                    e.GetComponent<SlimeBattleStats>()?.ApplyBuff(BuffStat.Attack, 1.15f, 2);
+            }
+            yield return new WaitForSeconds(0.8f);
+        }
+        else
+        {
+            var lowestAlly = activeEnemies.Where(e => e != null && e.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
+                .OrderBy(e => (float)e.GetComponent<SlimeBattleStats>().CurrentHP / e.GetComponent<SlimeBattleStats>().MaxHP).FirstOrDefault();
+            var lowestStats = lowestAlly != null ? lowestAlly.GetComponent<SlimeBattleStats>() : null;
+
+            if (lowestStats != null && (float)lowestStats.CurrentHP / lowestStats.MaxHP < 0.50f)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Minor Heal!", Color.green);
+                int heal = Mathf.RoundToInt(lowestStats.MaxHP * 0.12f);
+                lowestStats.Heal(heal);
+                yield return new WaitForSeconds(0.8f);
+            }
+            else
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Magic Bolt!", Color.magenta);
+                int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 1.1f);
+                target.GetComponent<SlimeBattleStats>()?.TakeDamage(dmg, currentSlime);
+                yield return new WaitForSeconds(0.8f);
+            }
+        }
+    }
+
+    // ── AI Dark Goblin Shaman ──
+    private IEnumerator AI_DarkGoblinShaman(int turn, SlimeBattleStats stats, GameObject target)
+    {
+        if (turn == 1) // Dark Blessing
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Dark Blessing! (+20% MATK)", Color.magenta);
+            foreach (var e in activeEnemies)
+            {
+                e?.GetComponent<SlimeBattleStats>()?.ApplyBuff(BuffStat.Attack, 1.20f, 2);
+            }
+            yield return new WaitForSeconds(0.8f);
+        }
+        else
+        {
+            var lowestAlly = activeEnemies.Where(e => e != null && e.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
+                .OrderBy(e => (float)e.GetComponent<SlimeBattleStats>().CurrentHP / e.GetComponent<SlimeBattleStats>().MaxHP).FirstOrDefault();
+            var lowestStats = lowestAlly != null ? lowestAlly.GetComponent<SlimeBattleStats>() : null;
+
+            if (lowestStats != null && (float)lowestStats.CurrentHP / lowestStats.MaxHP < 0.50f)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Minor Heal!", Color.green);
+                int heal = Mathf.RoundToInt(lowestStats.MaxHP * 0.15f);
+                lowestStats.Heal(heal);
+                yield return new WaitForSeconds(0.8f);
+            }
+            else
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Dark Bolt!", Color.magenta);
+                int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 1.2f);
+                target.GetComponent<SlimeBattleStats>()?.TakeDamage(dmg, currentSlime);
+                yield return new WaitForSeconds(0.8f);
+            }
+        }
+    }
+
+    // ── AI Poison Slime ──
+    private IEnumerator AI_PoisonSlime(int turn, SlimeBattleStats stats, GameObject target)
+    {
+        var playerAllies = formationManager.GetAllAliveAllies();
+        if (turn == 1 || playerAllies.Count >= 2) // Toxic Burst / Poison Splash AoE
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Poison Splash (AoE)!", Color.green);
+            foreach (var ally in playerAllies)
+            {
+                var aStats = ally.GetComponent<SlimeBattleStats>();
+                if (aStats != null)
+                {
+                    int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 1.1f);
+                    aStats.TakeDamage(dmg, currentSlime, isAoE: true);
+                    if (Random.Range(0f, 1f) < 0.40f) aStats.ApplyPoison(2, 3);
+                }
+            }
+            yield return new WaitForSeconds(1f);
+        }
+        else
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Toxic Bite!", Color.green);
+            var tStats = target.GetComponent<SlimeBattleStats>();
+            if (tStats != null)
+            {
+                tStats.TakeDamage(stats.GetEffectiveAttack(), currentSlime);
+                tStats.ApplyPoison(2, 3);
+            }
+            yield return new WaitForSeconds(0.8f);
+        }
+    }
+
+    // ── AI Corrupted Goblin ──
+    private IEnumerator AI_CorruptedGoblin(int turn, SlimeBattleStats stats, GameObject target)
+    {
+        var targetStats = target.GetComponent<SlimeBattleStats>();
+        bool isPoisoned = targetStats != null && targetStats.GetPoisonStackCount() > 0;
+        float targetHpPct = targetStats != null ? (float)targetStats.CurrentHP / targetStats.MaxHP : 1f;
+
+        if (isPoisoned || targetHpPct < 0.50f) // Brutal Strike Execute
+        {
+            float bonus = targetHpPct < 0.50f ? 1.25f : 1.0f;
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "BRUTAL STRIKE!", Color.red);
+            int dmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 1.4f * bonus);
+            targetStats?.TakeDamage(dmg, currentSlime);
+            if (Random.Range(0f, 1f) < 0.20f && targetStats != null) targetStats.ApplyDoT(EffectType.Bleed, Mathf.RoundToInt(targetStats.MaxHP * 0.05f), 2);
+            yield return new WaitForSeconds(0.8f);
+        }
+        else
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Corrupted Slash!", Color.red);
+            yield return StartCoroutine(DefaultEnemyAttack(stats, target));
+        }
+    }
+
+    // ── AI Stone Goblin ──
+    private IEnumerator AI_StoneGoblin(int turn, SlimeBattleStats stats, GameObject target)
+    {
+        if (turn % 2 == 1) // Shield Bash
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Shield Bash (-15 SPD)!", Color.gray);
+            var tStats = target.GetComponent<SlimeBattleStats>();
+            if (tStats != null)
+            {
+                int dmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 1.3f);
+                tStats.TakeDamage(dmg, currentSlime);
+                tStats.ApplyBuff(BuffStat.Speed, 0.85f, 2, true);
+            }
+            yield return new WaitForSeconds(0.8f);
+        }
+        else
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Stone Slash!", Color.gray);
+            yield return StartCoroutine(DefaultEnemyAttack(stats, target));
+        }
+    }
+
+    // ── AI Crystal Slime ──
+    private IEnumerator AI_CrystalSlime(int turn, SlimeBattleStats stats, GameObject target)
+    {
+        float hpPct = (float)stats.CurrentHP / stats.MaxHP;
+        if (turn == 1 || hpPct < 0.70f) // Crystal Barrier
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Crystal Barrier! (+25% DEF)", Color.cyan);
+            stats.ApplyBuff(BuffStat.Defense, 1.25f, 2);
+            stats.isCrystalBarrierActive = true;
+            yield return new WaitForSeconds(0.8f);
+        }
+        else
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Crystal Shot!", Color.cyan);
+            int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 1.2f);
+            target.GetComponent<SlimeBattleStats>()?.TakeDamage(dmg, currentSlime);
+            yield return new WaitForSeconds(0.8f);
+        }
+    }
+
+    // ── AI Ancient Shaman ──
+    private IEnumerator AI_AncientShaman(int turn, SlimeBattleStats stats, GameObject target)
+    {
+        if (turn == 1) // Ancient Blessing
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Ancient Blessing! (+20% DEF)", Color.yellow);
+            foreach (var e in activeEnemies)
+            {
+                e?.GetComponent<SlimeBattleStats>()?.ApplyBuff(BuffStat.Defense, 1.20f, 2);
+            }
+            yield return new WaitForSeconds(0.8f);
+        }
+        else
+        {
+            var lowestAlly = activeEnemies.Where(e => e != null && e.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
+                .OrderBy(e => (float)e.GetComponent<SlimeBattleStats>().CurrentHP / e.GetComponent<SlimeBattleStats>().MaxHP).FirstOrDefault();
+            var lowestStats = lowestAlly != null ? lowestAlly.GetComponent<SlimeBattleStats>() : null;
+
+            if (lowestStats != null && (float)lowestStats.CurrentHP / lowestStats.MaxHP < 0.50f)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Restore!", Color.green);
+                int heal = Mathf.RoundToInt(lowestStats.MaxHP * 0.18f);
+                lowestStats.Heal(heal);
+                yield return new WaitForSeconds(0.8f);
+            }
+            else
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Ancient Bolt!", Color.yellow);
+                int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 1.3f);
+                target.GetComponent<SlimeBattleStats>()?.TakeDamage(dmg, currentSlime);
+                yield return new WaitForSeconds(0.8f);
+            }
+        }
+    }
+
+    // ── AI Iron Golem ──
+    private IEnumerator AI_IronGolem(TowerEnemyType type, int turn, SlimeBattleStats stats, GameObject target)
+    {
+        float hpPct = (float)stats.CurrentHP / stats.MaxHP;
+        bool isElite = (type == TowerEnemyType.EliteIronGolem);
+
+        var crystalGolem = activeEnemies.FirstOrDefault(e => e != null && e.name.Contains("CrystalGolem") && e.GetComponent<SlimeBattleStats>()?.CurrentHP > 0);
+        bool crystalLow = crystalGolem != null && ((float)crystalGolem.GetComponent<SlimeBattleStats>().CurrentHP / crystalGolem.GetComponent<SlimeBattleStats>().MaxHP) < 0.50f;
+
+        if (turn == 1 && isElite) // Elite turn 1 counter stance
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "COUNTER STANCE (READY)", Color.red);
+            stats.isCounterStanceActive = true;
+            yield return new WaitForSeconds(0.8f);
+        }
+        else if (turn == 1) // Iron Guard
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Iron Guard! (+30% DEF)", Color.gray);
+            stats.ApplyBuff(BuffStat.Defense, 1.30f, 2);
+            yield return new WaitForSeconds(0.8f);
+        }
+        else if (hpPct < 0.70f || crystalLow) // Counter Stance / Fortress Mode
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "COUNTER STANCE / FORTRESS!", Color.red);
+            stats.isCounterStanceActive = true;
+            yield return new WaitForSeconds(0.8f);
+        }
+        else
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Iron Slam!", Color.gray);
+            int dmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 1.2f);
+            target.GetComponent<SlimeBattleStats>()?.TakeDamage(dmg, currentSlime);
+            yield return new WaitForSeconds(0.8f);
+        }
+    }
+
+    // ── AI Stone Golem ──
+    private IEnumerator AI_StoneGolem(TowerEnemyType type, int turn, SlimeBattleStats stats, GameObject target)
+    {
+        bool isElite = (type == TowerEnemyType.EliteStoneGolem);
+        if (turn == 1 && isElite) // Gravity Smash
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "GRAVITY SMASH!", Color.red);
+            foreach (var ally in formationManager.GetAllAliveAllies())
+            {
+                var aStats = ally.GetComponent<SlimeBattleStats>();
+                if (aStats != null)
+                {
+                    int dmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 1.5f);
+                    aStats.TakeDamage(dmg, currentSlime, isAoE: true);
+                    aStats.ApplyBuff(BuffStat.Speed, 0.85f, 2, true);
+                }
+            }
+            yield return new WaitForSeconds(1f);
+        }
+        else if (turn % 2 == 1) // Ground Smash
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Ground Smash (-15 SPD)!", Color.red);
+            var tStats = target.GetComponent<SlimeBattleStats>();
+            if (tStats != null)
+            {
+                int dmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 1.5f);
+                tStats.TakeDamage(dmg, currentSlime);
+                tStats.ApplyBuff(BuffStat.Speed, 0.85f, 2, true);
+            }
+            yield return new WaitForSeconds(0.8f);
+        }
+        else
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Rock Punch!", Color.gray);
+            int dmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 1.1f);
+            target.GetComponent<SlimeBattleStats>()?.TakeDamage(dmg, currentSlime);
+            yield return new WaitForSeconds(0.8f);
+        }
+    }
+
+    // ── AI Crystal Golem ──
+    private IEnumerator AI_CrystalGolem(TowerEnemyType type, int turn, SlimeBattleStats stats, GameObject target)
+    {
+        float hpPct = (float)stats.CurrentHP / stats.MaxHP;
+        var playerAllies = formationManager.GetAllAliveAllies();
+
+        var ironGolem = activeEnemies.FirstOrDefault(e => e != null && e.name.Contains("IronGolem"));
+        bool ironCounterActive = ironGolem != null && ironGolem.GetComponent<SlimeBattleStats>()?.isCounterStanceActive == true;
+
+        if (turn == 1 || hpPct < 0.70f) // Crystal Shield
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Crystal Shield! (+25% DEF)", Color.cyan);
+            foreach (var e in activeEnemies)
+            {
+                e?.GetComponent<SlimeBattleStats>()?.ApplyBuff(BuffStat.Defense, 1.25f, 2);
+            }
+            yield return new WaitForSeconds(0.8f);
+        }
+        else if (playerAllies.Count >= 2 || ironCounterActive) // Crystal Nova AoE
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Crystal Nova (AoE)!", Color.cyan);
+            foreach (var ally in playerAllies)
+            {
+                var aStats = ally.GetComponent<SlimeBattleStats>();
+                if (aStats != null)
+                {
+                    int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 1.1f);
+                    aStats.TakeDamage(dmg, currentSlime, isAoE: true);
+                }
+            }
+            yield return new WaitForSeconds(1f);
+        }
+        else
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Crystal Beam!", Color.cyan);
+            int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 1.35f);
+            target.GetComponent<SlimeBattleStats>()?.TakeDamage(dmg, currentSlime);
+            yield return new WaitForSeconds(0.8f);
+        }
+    }
+
+    // ── AI Boss Cuối Celestial Guardian (3-Phase System) ──
+    private IEnumerator AI_CelestialGuardian(int turn, int phase, SlimeBattleStats stats, GameObject target)
+    {
+        var playerAllies = formationManager.GetAllAliveAllies();
+
+        if (phase == 1) // Phase 1 (100% -> 70% HP)
+        {
+            int cycle = (turn - 1) % 3 + 1;
+            if (cycle == 1) // Crystal Armor (+40% DEF)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Crystal Armor! (+40% DEF)", Color.cyan);
+                stats.ApplyBuff(BuffStat.Defense, 1.40f, 2);
+                yield return new WaitForSeconds(0.8f);
+            }
+            else if (cycle == 2) // Heaven Break AOE (180% MATK + -15% SPD)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Heaven Break (AoE 180%)!", Color.red);
+                foreach (var ally in playerAllies)
+                {
+                    var aStats = ally.GetComponent<SlimeBattleStats>();
+                    if (aStats != null)
+                    {
+                        int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 1.80f);
+                        aStats.TakeDamage(dmg, currentSlime, isAoE: true);
+                        aStats.ApplyBuff(BuffStat.Speed, 0.85f, 2, true);
+                    }
+                }
+                yield return new WaitForSeconds(1f);
+            }
+            else // Celestial Strike (140% ATK Single Target)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Celestial Strike (140%)!", Color.yellow);
+                int dmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 1.40f);
+                target.GetComponent<SlimeBattleStats>()?.TakeDamage(dmg, currentSlime);
+                yield return new WaitForSeconds(0.8f);
+            }
+        }
+        else if (phase == 2) // Phase 2 (70% -> 40% HP)
+        {
+            int cycle = (turn - 1) % 3 + 1;
+            if (cycle == 1) // Gravity Collapse (-30% SPD team player)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Gravity Collapse (-30% SPD)!", Color.magenta);
+                foreach (var ally in playerAllies)
+                {
+                    ally.GetComponent<SlimeBattleStats>()?.ApplyBuff(BuffStat.Speed, 0.70f, 2, true);
+                }
+                yield return new WaitForSeconds(0.8f);
+            }
+            else if (cycle == 2) // Starfall AOE (200% MATK)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "STARFALL (AoE 200%)!", Color.red);
+                foreach (var ally in playerAllies)
+                {
+                    var aStats = ally.GetComponent<SlimeBattleStats>();
+                    if (aStats != null)
+                    {
+                        int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 2.00f);
+                        aStats.TakeDamage(dmg, currentSlime, isAoE: true);
+                    }
+                }
+                yield return new WaitForSeconds(1f);
+            }
+            else // Celestial Strike Heavy
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Celestial Strike!", Color.cyan);
+                int dmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 1.50f);
+                target.GetComponent<SlimeBattleStats>()?.TakeDamage(dmg, currentSlime);
+                yield return new WaitForSeconds(0.8f);
+            }
+        }
+        else // Phase 3 (40% -> 0% HP): BERSERK MODE (Hành động 2 lần mỗi 3 turn)
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "BERSERK STARFALL!", Color.red);
+            foreach (var ally in playerAllies)
+            {
+                var aStats = ally.GetComponent<SlimeBattleStats>();
+                if (aStats != null)
+                {
+                    int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 2.00f);
+                    aStats.TakeDamage(dmg, currentSlime, isAoE: true);
+                }
+            }
+            yield return new WaitForSeconds(0.5f);
+
+            // Hành động 2 lần mỗi 3 turn
+            if (turn % 3 == 0)
+            {
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, "EXTRA ACTION: CELESTIAL STRIKE!", Color.yellow);
+                int singleDmg = Mathf.RoundToInt(stats.GetEffectiveAttack() * 2.20f);
+                target.GetComponent<SlimeBattleStats>()?.TakeDamage(singleDmg, currentSlime);
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+    }
+
+    // ── AI Slime King (Chapter 1 Boss) ──
     private IEnumerator AI_SlimeKing(int turn, SlimeBattleStats bossStats, GameObject target)
     {
         int cycleTurn = (turn - 1) % 6 + 1; // Vòng lặp tuần hoàn 6 lượt
@@ -1038,8 +1640,8 @@ public class TowerTurnSystem : TurnSystem
                 var allyStats = ally.GetComponent<SlimeBattleStats>();
                 if (allyStats != null)
                 {
-                    allyStats.TakeDamage(Mathf.RoundToInt(bossStats.BattleMagicAttack * 1.3f));
-                    allyStats.ApplyBuff(BuffStat.Speed, 0.8f, 2, true); // Giảm tốc
+                    allyStats.TakeDamage(Mathf.RoundToInt(bossStats.BattleMagicAttack * 1.3f), currentSlime, isAoE: true);
+                    allyStats.ApplyBuff(BuffStat.Speed, 0.8f, 2, true);
                 }
             }
             yield return new WaitForSeconds(1f);
@@ -1051,7 +1653,6 @@ public class TowerTurnSystem : TurnSystem
             float healPct = 0.12f + (0.05f * minionCount);
             int healAmount = Mathf.RoundToInt(bossStats.MaxHP * healPct);
             bossStats.Heal(healAmount);
-            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.2f, $"+{healAmount} HP", Color.green);
             yield return new WaitForSeconds(1f);
         }
         else if (cycleTurn == 5) // Charge
@@ -1067,8 +1668,8 @@ public class TowerTurnSystem : TurnSystem
                 var allyStats = ally.GetComponent<SlimeBattleStats>();
                 if (allyStats != null)
                 {
-                    allyStats.TakeDamage(Mathf.RoundToInt(bossStats.BattleMagicAttack * 1.5f));
-                    allyStats.ApplyDoT(EffectType.Poison, Mathf.RoundToInt(allyStats.MaxHP * 0.1f), 2);
+                    allyStats.TakeDamage(Mathf.RoundToInt(bossStats.BattleMagicAttack * 1.5f), currentSlime, isAoE: true);
+                    allyStats.ApplyPoison(2, 3);
                 }
             }
             yield return new WaitForSeconds(1f);
@@ -1079,15 +1680,19 @@ public class TowerTurnSystem : TurnSystem
         }
     }
 
-    // AI Goblin Chief (Chapter 2)
+    // ── AI Goblin Chief (Chapter 2 & 3 Boss) ──
     private IEnumerator AI_GoblinChief(int turn, SlimeBattleStats bossStats, GameObject target)
     {
         int cycleTurn = (turn - 1) % 7 + 1; // Chu kỳ 7 lượt
 
         if (cycleTurn == 1) // War Cry
         {
-            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "War Cry!", Color.yellow);
-            // Tăng 20% ATK và 15 SPD cho toàn bộ Goblins phe địch
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "War Cry! (+20% ATK)", Color.yellow);
+            foreach (var e in activeEnemies)
+            {
+                if (e != null && e.name.Contains("Goblin"))
+                    e.GetComponent<SlimeBattleStats>()?.ApplyBuff(BuffStat.Attack, 1.20f, 2);
+            }
             yield return new WaitForSeconds(1f);
         }
         else if (cycleTurn == 3) // Cleave (AOE)
@@ -1095,7 +1700,7 @@ public class TowerTurnSystem : TurnSystem
             CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Cleave AOE!", Color.red);
             foreach (var ally in formationManager.GetAllAliveAllies())
             {
-                ally.GetComponent<SlimeBattleStats>()?.TakeDamage(Mathf.RoundToInt(bossStats.BattleAttack * 1.4f));
+                ally.GetComponent<SlimeBattleStats>()?.TakeDamage(Mathf.RoundToInt(bossStats.BattleAttack * 1.4f), currentSlime, isAoE: true);
             }
             yield return new WaitForSeconds(1f);
         }
@@ -1107,51 +1712,22 @@ public class TowerTurnSystem : TurnSystem
         else if (cycleTurn == 6) // Goblin Frenzy Ultimate
         {
             CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "Goblin Frenzy!", Color.magenta);
-            // Gây sát thương AoE 170% ATK
+            foreach (var ally in formationManager.GetAllAliveAllies())
+            {
+                ally.GetComponent<SlimeBattleStats>()?.TakeDamage(Mathf.RoundToInt(bossStats.BattleAttack * 1.7f), currentSlime, isAoE: true);
+            }
             yield return new WaitForSeconds(1f);
         }
-        else if (cycleTurn == 7) // Execution Strike đơn mục tiêu công mạnh
+        else if (cycleTurn == 7) // Execution Strike
         {
             int dmg = Mathf.RoundToInt(bossStats.BattleAttack * 2.0f);
             var targetStats = target.GetComponent<SlimeBattleStats>();
-            if (targetStats != null && (float)targetStats.CurrentHP / targetStats.MaxHP < 0.5f) dmg = Mathf.RoundToInt(dmg * 1.5f); // Tăng 50% dmg dưới 50% HP
-            targetStats?.TakeDamage(dmg);
+            if (targetStats != null && (float)targetStats.CurrentHP / targetStats.MaxHP < 0.5f) dmg = Mathf.RoundToInt(dmg * 1.5f);
+            targetStats?.TakeDamage(dmg, currentSlime);
             yield return new WaitForSeconds(1f);
         }
         else
         {
-            yield return StartCoroutine(DefaultEnemyAttack(bossStats, target));
-        }
-    }
-
-    // AI Boss Cuối Celestial Guardian (Chapter 6 Tầng 30)
-    private IEnumerator AI_CelestialGuardian(int turn, bool isPhase2, SlimeBattleStats bossStats, GameObject target)
-    {
-        int cycleTurn = (turn - 1) % 8 + 1; // Loop hành động của Boss Cuối
-        // Turn 1: Crystal Armor, Turn 3: Heaven Break, Turn 5: Starfall, v.v...
-        yield return StartCoroutine(DefaultEnemyAttack(bossStats, target)); // Thay thế bằng logic chi tiết
-    }
-
-    // AI Quái thường hoặc Quái Elite
-    private IEnumerator AI_NormalEnemy(TowerEnemyType type, int turn, SlimeBattleStats bossStats, GameObject target)
-    {
-        // Goblin Shaman luôn dùng War Cry ở lượt đầu tiên (turn == 1)
-        if ((type == TowerEnemyType.GoblinShaman || type == TowerEnemyType.DarkGoblinShaman) && turn == 1)
-        {
-            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "War Cry Buff!", Color.yellow);
-            // Thực hiện Buff tăng ATK toàn đội địch...
-            yield return new WaitForSeconds(1f);
-        }
-        // Crystal Slime luôn sử dụng Crystal Barrier ở lượt đầu tiên
-        else if (type == TowerEnemyType.CrystalSlime && turn == 1)
-        {
-            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.5f, "Crystal Barrier!", Color.blue);
-            bossStats.ApplyBuff(BuffStat.Defense, 1.25f, 2, false);
-            yield return new WaitForSeconds(1f);
-        }
-        else
-        {
-            // Mặc định quái thường đánh đơn mục tiêu thông thường
             yield return StartCoroutine(DefaultEnemyAttack(bossStats, target));
         }
     }
@@ -1214,76 +1790,9 @@ public class TowerTurnSystem : TurnSystem
                         currentFloor.completed = true;
                     }
 
-                    if (activeTowerLevel >= 1 && activeTowerLevel <= 5)
+                    if (activeTowerLevel >= 1 && activeTowerLevel <= 30)
                     {
-                        int gold = 50;
-                        int gem = 1;
-                        float marshmallowChance = 0.10f;
-                        float commonChance = 0.10f;
-                        float uncommonChance = 0.00f;
-                        float rareChance = 0.00f;
-
-                        switch (activeTowerLevel)
-                        {
-                            case 1:
-                                gold = 50; gem = 1;
-                                marshmallowChance = 0.10f; commonChance = 0.10f;
-                                break;
-                            case 2:
-                                gold = 70; gem = 1;
-                                marshmallowChance = 0.15f; commonChance = 0.15f; uncommonChance = 0.03f;
-                                break;
-                            case 3:
-                                gold = 100; gem = 2;
-                                marshmallowChance = 0.20f; commonChance = 0.20f; uncommonChance = 0.05f; rareChance = 0.01f;
-                                break;
-                            case 4:
-                                gold = 150; gem = 2;
-                                marshmallowChance = 0.25f; commonChance = 0.25f; uncommonChance = 0.10f; rareChance = 0.03f;
-                                break;
-                            case 5:
-                                gold = 300; gem = 5;
-                                marshmallowChance = 0.30f; commonChance = 0.30f; uncommonChance = 0.15f; rareChance = 0.08f;
-                                break;
-                        }   
-
-                        if (CurrencyManager.Instance != null)
-                        {
-                            CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, gold);
-                            CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, gem);
-                        }
-
-                        if (ResourceManager.Instance != null && Random.Range(0f, 1f) < marshmallowChance)
-                        {
-                            ResourceManager.Instance.AddResource(ResourceType.Marshmallow, 1);
-                            CreateDamagePopup(Vector3.up * 1f, "+1 Marshmallow Ball (S)", Color.green);
-                        }
-
-                        if (SlimeGen.Instance != null && BreedingManager.Instance != null)
-                        {
-                            float roll = Random.Range(0f, 1f);
-                            Slime newSlime = null;
-                            if (roll < rareChance)
-                            {
-                                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Rare", Rarity.Rare);
-                                CreateDamagePopup(Vector3.up * 1.5f, "NEW RARE SLIME!", Color.magenta);
-                            }
-                            else if (roll < rareChance + uncommonChance)
-                            {
-                                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Uncommon", Rarity.Uncommon);
-                                CreateDamagePopup(Vector3.up * 1.5f, "NEW UNCOMMON SLIME!", Color.cyan);
-                            }
-                            else if (roll < rareChance + uncommonChance + commonChance)
-                            {
-                                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Common", Rarity.Common);
-                                CreateDamagePopup(Vector3.up * 1.5f, "NEW COMMON SLIME!", Color.white);
-                            }
-
-                            if (newSlime != null)
-                            {
-                                BreedingManager.Instance.GetAllSlimes().Add(newSlime);
-                            }
-                        }
+                        towerBosses.pendingRewardFloor = activeTowerLevel;
                     }
 
                     towerBosses.AdvanceToNextFloor();

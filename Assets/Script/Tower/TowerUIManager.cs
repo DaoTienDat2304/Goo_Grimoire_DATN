@@ -65,8 +65,16 @@ public class TowerUIManager : MonoBehaviour
 
     private IEnumerator RefreshAfterLoad()
     {
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.3f);
         Refresh();
+
+        if (towerDatabase != null && towerDatabase.pendingRewardFloor > 0)
+        {
+            int floorToReward = towerDatabase.pendingRewardFloor;
+            towerDatabase.pendingRewardFloor = 0;
+            OpenPanel();
+            GrantAndShowReward(floorToReward);
+        }
     }
 
     // ── Public interface ──────────────────────────────────────────────
@@ -158,37 +166,94 @@ public class TowerUIManager : MonoBehaviour
         StartCoroutine(LoadBattleScene());
     }
 
-    public void OnClaimFloor(int floorNumber)
+    /// <summary>
+    /// Phát thưởng ngay khi thắng trận tower + hiện popup.
+    /// Được gọi từ TowerTurnSystem sau khi thắng.
+    /// </summary>
+    public static void GrantAndShowReward(int floorLevel)
     {
-        if (towerDatabase == null) return;
+        GetFloorReward(floorLevel,
+            out int gold, out int gem, out int marshmallowCount, out float marshmallowChance,
+            out float commonChance, out float uncommonChance, out float rareChance,
+            out float superRareChance, out float ultraRareChance, out float legendaryChance, out float mythicChance);
 
-        var floor = towerDatabase.GetFloor(floorNumber);
-        if (floor == null || !floor.completed || floor.claimed) return;
+        string msg = $"FLOOR {floorLevel} — VICTORY!\n";
 
-        floor.claimed = true;
-
+        // ── Gold & Gem (100% guaranteed) ──
         if (CurrencyManager.Instance != null)
         {
-            if (floor.rewardCoins > 0)
-                CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, floor.rewardCoins);
-            if (floor.rewardGems > 0)
-                CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, floor.rewardGems);
+            CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, gold);
+            CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, gem);
+        }
+        msg += $"+{gold} Gold\n+{gem} Gem\n";
+
+        // ── Roll Marshmallow Ball (S) ──
+        if (ResourceManager.Instance != null && Random.Range(0f, 1f) < marshmallowChance)
+        {
+            ResourceManager.Instance.AddResource(ResourceType.Marshmallow, marshmallowCount);
+            msg += $"+{marshmallowCount} Marshmallow Ball (S)\n";
         }
 
-        if (floor.rewardTraits != null)
+        // ── Roll Slime Reward (từ hiếm nhất → phổ thông nhất) ──
+        if (SlimeGen.Instance != null && BreedingManager.Instance != null)
         {
-            foreach (var trait in floor.rewardTraits)
+            float roll = Random.Range(0f, 1f);
+            Slime newSlime = null;
+            string slimeMsg = null;
+
+            if (mythicChance > 0f && roll < mythicChance)
             {
-                if (trait != null)
-                    trait.unlocked = true;
+                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Mythic", Rarity.Mythic);
+                slimeMsg = "Mythic Slime";
+            }
+            else if (legendaryChance > 0f && roll < legendaryChance)
+            {
+                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Legendary", Rarity.Legendary);
+                slimeMsg = "Legendary Slime";
+            }
+            else if (ultraRareChance > 0f && roll < ultraRareChance)
+            {
+                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_UltraRare", Rarity.UltraRare);
+                slimeMsg = "Ultra Rare Slime";
+            }
+            else if (superRareChance > 0f && roll < superRareChance)
+            {
+                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_SuperRare", Rarity.SuperRare);
+                slimeMsg = "Super Rare Slime";
+            }
+            else if (rareChance > 0f && roll < rareChance)
+            {
+                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Rare", Rarity.Rare);
+                slimeMsg = "Rare Slime";
+            }
+            else if (uncommonChance > 0f && roll < uncommonChance)
+            {
+                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Uncommon", Rarity.Uncommon);
+                slimeMsg = "Uncommon Slime";
+            }
+            else if (commonChance > 0f && roll < commonChance)
+            {
+                newSlime = SlimeGen.Instance.GenerateSlimeOfRarity("Slime_Common", Rarity.Common);
+                slimeMsg = "Common Slime";
+            }
+
+            if (newSlime != null)
+            {
+                BreedingManager.Instance.GetAllSlimes().Add(newSlime);
+                msg += $"+1 {slimeMsg}!\n";
             }
         }
 
-        if (SaveAndLoadSystem.Instance != null)
-            SaveAndLoadSystem.Instance.Save();
-
-        ShowRewardPopup(floor);
-        Refresh();
+        // ── Hiện popup phần thưởng (tìm instance trong scene) ──
+        var ui = FindFirstObjectByType<TowerUIManager>();
+        if (ui != null)
+        {
+            ui.ShowRewardPopup(msg.Trim());
+        }
+        else
+        {
+            Debug.Log($"[TowerReward] {msg}");
+        }
     }
 
     public void OnLockedFloorClicked(int floorNumber)
@@ -420,26 +485,74 @@ public class TowerUIManager : MonoBehaviour
         }
     }
 
-    private void ShowRewardPopup(TowerSlimeBosses.TowerFloor floor)
+    public void ShowRewardPopup(string message)
     {
         if (rewardPopup == null) return;
-
-        string msg = $"Floor {floor.floorNumber} — {floor.floorName}\n";
-        if (floor.rewardCoins > 0) msg += $"+{floor.rewardCoins} Coins\n";
-        if (floor.rewardGems  > 0) msg += $"+{floor.rewardGems} Gems\n";
-        if (floor.rewardTraits != null)
-        {
-            foreach (var t in floor.rewardTraits)
-                if (t != null) msg += $"New Trait: {t.name}\n";
-        }
-
-        if (rewardPopupText != null) rewardPopupText.text = msg.Trim();
+        if (rewardPopupText != null) rewardPopupText.text = message;
         rewardPopup.SetActive(true);
     }
 
     private void HideRewardPopup()
     {
         if (rewardPopup != null) rewardPopup.SetActive(false);
+    }
+
+    /// <summary>
+    /// Bảng phần thưởng Tower Mode đầy đủ 30 tầng.
+    /// </summary>
+    public static void GetFloorReward(int level,
+        out int gold, out int gem, out int marshmallowCount, out float marshmallowChance,
+        out float commonChance, out float uncommonChance, out float rareChance,
+        out float superRareChance, out float ultraRareChance, out float legendaryChance, out float mythicChance)
+    {
+        gold = 50; gem = 1; marshmallowCount = 1; marshmallowChance = 0f;
+        commonChance = 0f; uncommonChance = 0f; rareChance = 0f;
+        superRareChance = 0f; ultraRareChance = 0f; legendaryChance = 0f; mythicChance = 0f;
+
+        switch (level)
+        {
+            // ── Khu vực 1: Tầng 1-5 ──
+            case 1:  gold=50;   gem=1;  marshmallowCount=1; marshmallowChance=0.10f; commonChance=0.10f; break;
+            case 2:  gold=70;   gem=1;  marshmallowCount=1; marshmallowChance=0.12f; commonChance=0.15f; uncommonChance=0.03f; break;
+            case 3:  gold=100;  gem=2;  marshmallowCount=1; marshmallowChance=0.15f; commonChance=0.20f; uncommonChance=0.05f; rareChance=0.01f; break;
+            case 4:  gold=140;  gem=2;  marshmallowCount=1; marshmallowChance=0.18f; commonChance=0.25f; uncommonChance=0.08f; rareChance=0.03f; break;
+            case 5:  gold=300;  gem=5;  marshmallowCount=1; marshmallowChance=0.30f; commonChance=0.30f; uncommonChance=0.15f; rareChance=0.08f; break;
+
+            // ── Khu vực 2: Tầng 6-10 ──
+            case 6:  gold=90;   gem=2;  marshmallowCount=1; marshmallowChance=0.20f; commonChance=0.40f; uncommonChance=0.15f; rareChance=0.05f; break;
+            case 7:  gold=110;  gem=2;  marshmallowCount=1; marshmallowChance=0.22f; commonChance=0.45f; uncommonChance=0.18f; rareChance=0.07f; break;
+            case 8:  gold=140;  gem=3;  marshmallowCount=1; marshmallowChance=0.25f; commonChance=0.50f; uncommonChance=0.20f; rareChance=0.08f; superRareChance=0.01f; break;
+            case 9:  gold=180;  gem=3;  marshmallowCount=1; marshmallowChance=0.28f; commonChance=0.55f; uncommonChance=0.25f; rareChance=0.10f; superRareChance=0.02f; break;
+            case 10: gold=450;  gem=8;  marshmallowCount=1; marshmallowChance=0.45f; commonChance=0.60f; uncommonChance=0.30f; rareChance=0.15f; superRareChance=0.05f; break;
+
+            // ── Khu vực 3: Tầng 11-15 ──
+            case 11: gold=220;  gem=4;  marshmallowCount=1; marshmallowChance=0.30f; uncommonChance=0.40f; rareChance=0.18f; superRareChance=0.08f; ultraRareChance=0.02f; break;
+            case 12: gold=260;  gem=4;  marshmallowCount=1; marshmallowChance=0.33f; uncommonChance=0.45f; rareChance=0.22f; superRareChance=0.10f; ultraRareChance=0.03f; break;
+            case 13: gold=310;  gem=5;  marshmallowCount=1; marshmallowChance=0.36f; uncommonChance=0.50f; rareChance=0.25f; superRareChance=0.12f; ultraRareChance=0.04f; break;
+            case 14: gold=360;  gem=5;  marshmallowCount=1; marshmallowChance=0.40f; uncommonChance=0.55f; rareChance=0.30f; superRareChance=0.15f; ultraRareChance=0.05f; break;
+            case 15: gold=700;  gem=12; marshmallowCount=2; marshmallowChance=0.50f; uncommonChance=0.60f; rareChance=0.40f; superRareChance=0.20f; ultraRareChance=0.10f; break;
+
+            // ── Khu vực 4: Tầng 16-20 ──
+            case 16: gold=420;  gem=6;  marshmallowCount=2; marshmallowChance=0.35f; rareChance=0.45f; superRareChance=0.22f; ultraRareChance=0.10f; break;
+            case 17: gold=470;  gem=6;  marshmallowCount=2; marshmallowChance=0.38f; rareChance=0.50f; superRareChance=0.28f; ultraRareChance=0.12f; legendaryChance=0.01f; break;
+            case 18: gold=530;  gem=7;  marshmallowCount=2; marshmallowChance=0.42f; rareChance=0.55f; superRareChance=0.32f; ultraRareChance=0.15f; legendaryChance=0.02f; break;
+            case 19: gold=600;  gem=8;  marshmallowCount=2; marshmallowChance=0.45f; rareChance=0.60f; superRareChance=0.35f; ultraRareChance=0.18f; legendaryChance=0.03f; break;
+            case 20: gold=1000; gem=20; marshmallowCount=3; marshmallowChance=0.60f; rareChance=0.70f; superRareChance=0.45f; ultraRareChance=0.25f; legendaryChance=0.08f; break;
+
+            // ── Khu vực 5: Tầng 21-25 ──
+            case 21: gold=700;  gem=9;  marshmallowCount=2; marshmallowChance=0.45f; superRareChance=0.55f; ultraRareChance=0.25f; legendaryChance=0.05f; break;
+            case 22: gold=800;  gem=10; marshmallowCount=2; marshmallowChance=0.50f; superRareChance=0.60f; ultraRareChance=0.30f; legendaryChance=0.08f; break;
+            case 23: gold=900;  gem=12; marshmallowCount=2; marshmallowChance=0.55f; superRareChance=0.65f; ultraRareChance=0.35f; legendaryChance=0.10f; break;
+            case 24: gold=1000; gem=14; marshmallowCount=3; marshmallowChance=0.60f; superRareChance=0.70f; ultraRareChance=0.40f; legendaryChance=0.12f; break;
+            case 25: gold=1500; gem=30; marshmallowCount=4; marshmallowChance=0.70f; superRareChance=0.80f; ultraRareChance=0.50f; legendaryChance=0.15f; break;
+
+            // ── Khu vực 6: Tầng 26-30 ──
+            case 26: gold=1200; gem=15; marshmallowCount=3; marshmallowChance=0.65f; superRareChance=0.75f; ultraRareChance=0.45f; legendaryChance=0.15f; break;
+            case 27: gold=1350; gem=16; marshmallowCount=3; marshmallowChance=0.70f; superRareChance=0.80f; ultraRareChance=0.50f; legendaryChance=0.18f; break;
+            case 28: gold=1500; gem=18; marshmallowCount=4; marshmallowChance=0.75f; superRareChance=0.85f; ultraRareChance=0.55f; legendaryChance=0.20f; break;
+            case 29: gold=1700; gem=20; marshmallowCount=4; marshmallowChance=0.80f; superRareChance=0.90f; ultraRareChance=0.60f; legendaryChance=0.25f; break;
+            case 30: gold=3000; gem=50; marshmallowCount=5; marshmallowChance=1.00f; superRareChance=1.00f; ultraRareChance=0.70f; legendaryChance=0.30f; mythicChance=0.01f; break;
+        }
     }
 
     private void ShowWarning(string message = null)

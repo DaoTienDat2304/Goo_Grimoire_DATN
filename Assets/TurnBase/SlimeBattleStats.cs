@@ -63,8 +63,43 @@ public class SlimeBattleStats : MonoBehaviour
     private List<ActiveBuff> activeBuffs = new List<ActiveBuff>();
     private List<ActiveDoT> activeDoTs = new List<ActiveDoT>();
 
+    [HideInInspector] public int initialBattleAttack;
+    [HideInInspector] public int initialBattleMagicAttack;
+    [HideInInspector] public int initialBattleDefense;
+    [HideInInspector] public int initialBattleSpeed;
+
+    public void ReinitializeFromBaseStats()
+    {
+        isInitialized = false;
+        InitializeBattleStats();
+    }
+
+    [Header("Special Mechanic Flags")]
+    public bool isCounterStanceActive = false;
+    public bool isCrystalBarrierActive = false;
+
     public int StunTurns { get; private set; }
     public bool IsStunned => StunTurns > 0;
+
+    public int GetPoisonStackCount()
+    {
+        return activeDoTs.Count(d => d.type == EffectType.Poison && d.turnsLeft > 0);
+    }
+
+    public void ApplyPoison(int duration = 2, int maxStacks = 3)
+    {
+        int current = GetPoisonStackCount();
+        if (current < maxStacks)
+        {
+            int poisonDmg = Mathf.Max(1, Mathf.RoundToInt(MaxHP * 0.04f)); // 4% Max HP per stack
+            activeDoTs.Add(new ActiveDoT { type = EffectType.Poison, damagePerTurn = poisonDmg, turnsLeft = duration });
+            TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+            if (turnSys != null)
+            {
+                turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.0f, $"POISON ({current + 1})", Color.green);
+            }
+        }
+    }
 
     private void Awake()
     {
@@ -126,6 +161,11 @@ public class SlimeBattleStats : MonoBehaviour
             baseStats.hpbar.value = CurrentHP;
         }
 
+        initialBattleAttack = BattleAttack;
+        initialBattleMagicAttack = BattleMagicAttack;
+        initialBattleDefense = BattleDefense;
+        initialBattleSpeed = BattleSpeed;
+
         isInitialized = true;
     }
 
@@ -145,6 +185,17 @@ public class SlimeBattleStats : MonoBehaviour
     {
         currentEnergy = Mathf.Clamp(currentEnergy + amount, 0, MAX_ENERGY);
         Debug.Log($"{name} hồi {amount} Năng lượng. Current: {currentEnergy}/100");
+    }
+
+    public void AddShield(int amount)
+    {
+        currentShield += amount;
+        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        if (turnSys != null)
+        {
+            turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.2f, $"+{amount} SHIELD!", Color.cyan);
+        }
+        Debug.Log($"{name} nhận {amount} Lá Chắn. Tổng khiên: {currentShield}");
     }
 
     public void UseEnergy(int amount)
@@ -185,15 +236,33 @@ public class SlimeBattleStats : MonoBehaviour
         return BattleStatFormula.FinalCritRate(BattleCritRate, critChance);
     }
 
-    public void TakeDamage(int rawDamage)
+    public void TakeDamage(int rawDamage, GameObject attacker = null, bool isCrit = false, bool isAoE = false)
     {
         float defReduction = BattleStatFormula.DefenseReduction(BattleDefense);
         float finalDamage = rawDamage * (1f - defReduction);
 
-        finalDamage *= (1f - (damageReduction / 100f));
+        float totalDR = damageReduction + (isCrystalBarrierActive ? 10f : 0f);
+        finalDamage *= (1f - (totalDR / 100f));
         finalDamage = Mathf.Max(1, finalDamage); // Minimum 1 damage
 
         int finalDmgInt = Mathf.RoundToInt(finalDamage);
+
+        // Counter Stance Reflection (Iron Golem / Elite Iron Golem or counter stance flag)
+        bool shouldCounter = isCounterStanceActive || (baseStats != null && baseStats.isEnemy && (gameObject.name.Contains("IronGolem") || gameObject.name.Contains("EliteIronGolem")) && (isCrit || isAoE));
+        if (shouldCounter && attacker != null && attacker != gameObject)
+        {
+            var attackerStats = attacker.GetComponent<SlimeBattleStats>();
+            if (attackerStats != null)
+            {
+                int counterDmg = Mathf.Max(1, Mathf.RoundToInt(finalDmgInt * 0.5f));
+                attackerStats.TakeDamage(counterDmg);
+                TurnSystem counterTurnSys = FindObjectOfType<TurnSystem>();
+                if (counterTurnSys != null)
+                {
+                    counterTurnSys.CreateDamagePopup(transform.position + Vector3.up * 2f, "COUNTER 50%!", Color.red);
+                }
+            }
+        }
 
         AddEnergy(10);
 

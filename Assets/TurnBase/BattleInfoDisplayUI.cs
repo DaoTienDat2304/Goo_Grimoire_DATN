@@ -55,24 +55,11 @@ public class BattleInfoDisplayUI : MonoBehaviour
             infoPanel = gameObject;
         }
 
-        ConfigureTextProperties();
-
         if (infoPanel != null)
             infoPanel.SetActive(false);
     }
 
-    private void ConfigureTextProperties()
-    {
-        if (mainInfoText != null)
-        {
-            mainInfoText.fontSize = 24;
-            mainInfoText.verticalOverflow = VerticalWrapMode.Overflow;
-            mainInfoText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            mainInfoText.resizeTextForBestFit = true;
-            mainInfoText.resizeTextMinSize = 16;
-            mainInfoText.resizeTextMaxSize = 30;
-        }
-    }
+
 
     /// <summary>
     /// Hiển thị thông tin Slime khi người chơi chạm vào Slime (HIỆN nút Close)
@@ -90,7 +77,7 @@ public class BattleInfoDisplayUI : MonoBehaviour
         if (closeButton != null)
             closeButton.gameObject.SetActive(true);
 
-        ConfigureTextProperties();
+
 
         if (headerTitleText != null)
             headerTitleText.text = $"--- SLIME: {slime.gameObject.name.ToUpper()} ---";
@@ -154,7 +141,7 @@ public class BattleInfoDisplayUI : MonoBehaviour
         if (closeButton != null)
             closeButton.gameObject.SetActive(false);
 
-        ConfigureTextProperties();
+
 
         string sName = !string.IsNullOrEmpty(baseSkill.skillName) ? baseSkill.skillName : baseSkill.name;
 

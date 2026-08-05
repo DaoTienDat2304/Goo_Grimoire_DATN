@@ -83,12 +83,15 @@ public class QuestManager : MonoBehaviour
             q.rarityTarget = def.RarityTarget;
             q.target = def.Target;
 
-            q.currencyReward = new CurrencyReward(CurrencyType.Coins, def.GoldReward);
+            // Hệ số thưởng remote (`reward_mult_mission_gold`)
+            int gold = RemoteBalance.ScaleReward(def.GoldReward, RemoteBalance.Reward.missionGold);
+
+            q.currencyReward = new CurrencyReward(CurrencyType.Coins, gold);
             q.reward = new QuestReward
             {
                 rewardType = "coins",
-                amount = def.GoldReward,
-                description = $"{def.GoldReward} vàng"
+                amount = gold,
+                description = $"{gold} vàng"
             };
             q.state = Quest.QuestState.Locked;
 

@@ -9,8 +9,11 @@ using UnityEngine;
 /// </summary>
 public class DailyMissionManager : MonoBehaviour
 {
-    public const int DailyCount = 3;
-    public const int StreakBonusGold = 500;
+    /// <summary>Số daily mỗi ngày — key remote `daily_count` (mặc định 3).</summary>
+    public static int DailyCount => RemoteBalance.Reward.dailyCount;
+
+    /// <summary>Bonus khi xong cả bộ — key remote `daily_streak_bonus_gold` (mặc định 500).</summary>
+    public static int StreakBonusGold => RemoteBalance.Reward.dailyStreakBonusGold;
 
     private static DailyMissionManager _instance;
     public static DailyMissionManager Instance
@@ -123,12 +126,15 @@ public class DailyMissionManager : MonoBehaviour
             q.target = def.Target;
             q.baseline = baselines[i];
 
-            q.currencyReward = new CurrencyReward(CurrencyType.Coins, def.GoldReward);
+            // Hệ số thưởng remote (`reward_mult_daily_gold`)
+            int gold = RemoteBalance.ScaleReward(def.GoldReward, RemoteBalance.Reward.dailyGold);
+
+            q.currencyReward = new CurrencyReward(CurrencyType.Coins, gold);
             q.reward = new QuestReward
             {
                 rewardType = "coins",
-                amount = def.GoldReward,
-                description = $"{def.GoldReward} vàng"
+                amount = gold,
+                description = $"{gold} vàng"
             };
             q.state = Quest.QuestState.Locked;
 

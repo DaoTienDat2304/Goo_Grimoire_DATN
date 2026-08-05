@@ -158,10 +158,13 @@ public class ArchievementManager : MonoBehaviour
         row.unlocked = true;
         PlayerPrefs.SetInt(PrefKeyPrefix + row.def.Id, 1);
 
-        if (row.def.GemReward > 0 && CurrencyManager.Instance != null)
-            CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, row.def.GemReward);
+        // Hệ số thưởng remote (`reward_mult_achievement_gem`)
+        int gem = RemoteBalance.ScaleReward(row.def.GemReward, RemoteBalance.Reward.achievementGem);
 
-        Debug.Log($"[Achievement] Mở khóa '{row.def.Title}' (+{row.def.GemReward} Gem)");
+        if (gem > 0 && CurrencyManager.Instance != null)
+            CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, gem);
+
+        Debug.Log($"[Achievement] Mở khóa '{row.def.Title}' (+{gem} Gem)");
     }
 
     private long Current(AchievementDef def)

@@ -179,7 +179,9 @@ public class TowerUIManager : MonoBehaviour
 
         string msg = $"FLOOR {floorLevel} — VICTORY!\n";
 
-        // ── Gold & Gem (100% guaranteed) ──
+        // ── Gold & Gem (100% guaranteed) — nhân hệ số remote `reward_mult_tower` ──
+        gold = RemoteBalance.ScaleReward(gold, RemoteBalance.Reward.tower);
+        gem = RemoteBalance.ScaleReward(gem, RemoteBalance.Reward.tower);
         if (CurrencyManager.Instance != null)
         {
             CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, gold);

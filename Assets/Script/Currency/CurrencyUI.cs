@@ -219,7 +219,11 @@ public class CurrencyUI : MonoBehaviour
                 {
                     coinsReward = floor.rewardCurrency;
                 }
-                
+
+                // Hệ số thưởng remote (`reward_mult_tower`)
+                coinsReward = RemoteBalance.ScaleReward(coinsReward, RemoteBalance.Reward.tower);
+                gemsReward = RemoteBalance.ScaleReward(gemsReward, RemoteBalance.Reward.tower);
+
                 // Thêm reward
                 if (coinsReward > 0)
                 {

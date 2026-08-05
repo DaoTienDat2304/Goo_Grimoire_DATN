@@ -39,7 +39,7 @@ public class SlimeEggSystem : MonoBehaviour
 
     public enum StatQuality { Poor, Normal, Good, Excellent, Perfect, GodRoll }
 
-    [Header("Egg production")]
+    [Header("Egg production (fallback — Remote Config ghi đè khi có)")]
     [Min(1f)] public float checkIntervalSeconds = 60f;
     [Range(0f, 1f)] public float eggChance = 0.5f;
     [Min(1)] public int maxUnhatchedEggs = 3;
@@ -57,9 +57,17 @@ public class SlimeEggSystem : MonoBehaviour
     [Min(0f)] public float minimumDistanceFromPlayer = 2f;
     public LayerMask worldEggObstacleMask;
 
-    [Header("Incubation")]
+    [Header("Incubation (fallback — Remote Config ghi đè khi có)")]
     [Min(1f)] public float incubationDurationSeconds = 600f;
     [Min(1f)] public float secondsPerGem = 60f;
+
+    // ── Giá trị đang hiệu lực: Remote Config (nhóm key `egg_*`) ưu tiên, Inspector là fallback ──
+    private float CheckInterval      => Mathf.Max(1f, RemoteBalance.FloatOr(RemoteConfigKeys.EggCheckInterval, checkIntervalSeconds));
+    private float EggChance          => Mathf.Clamp01(RemoteBalance.FloatOr(RemoteConfigKeys.EggChance, eggChance));
+    private int   MaxUnhatchedEggs   => Mathf.Max(1, RemoteBalance.IntOr(RemoteConfigKeys.EggMaxUnhatched, maxUnhatchedEggs));
+    private int   RequiredSlimes     => Mathf.Max(1, RemoteBalance.IntOr(RemoteConfigKeys.EggRequiredSlimes, requiredSlimes));
+    private float IncubationDuration => Mathf.Max(1f, RemoteBalance.FloatOr(RemoteConfigKeys.EggIncubationSecs, incubationDurationSeconds));
+    private float SecondsPerGem      => Mathf.Max(1f, RemoteBalance.FloatOr(RemoteConfigKeys.EggSecondsPerGem, secondsPerGem));
 
     [SerializeField] private List<Egg> eggs = new List<Egg>();
     [SerializeField] private List<WorldEggData> worldEggs = new List<WorldEggData>();
@@ -108,9 +116,10 @@ public class SlimeEggSystem : MonoBehaviour
         lastTickUnixMs = now;
 
         TickProduction(dt);
+        float incubation = IncubationDuration;
         foreach (var egg in eggs)
             if (egg.isIncubating)
-                egg.incubationElapsed = Mathf.Min(incubationDurationSeconds, egg.incubationElapsed + dt);
+                egg.incubationElapsed = Mathf.Min(incubation, egg.incubationElapsed + dt);
 
         saveTimer += dt;
         if (saveTimer >= 5f) { saveTimer = 0f; SaveState(); }
@@ -118,18 +127,22 @@ public class SlimeEggSystem : MonoBehaviour
 
     private void TickProduction(float dt)
     {
+        float interval = CheckInterval;
+        int maxEggs = MaxUnhatchedEggs;
+
         // Luôn cộng dồn layTimer (kể cả khi chưa đủ điều kiện) để không mất thời gian offline
         // trong lúc slime chưa load xong. Chặn trần để tránh phình vô hạn và vòng lặp dài.
-        layTimer = Mathf.Min(layTimer + dt, checkIntervalSeconds * (maxUnhatchedEggs + 1));
+        layTimer = Mathf.Min(layTimer + dt, interval * (maxEggs + 1));
 
         var manager = BreedingManager.Instance;
-        if (manager == null || manager.GetCurrentSlimeCount() < requiredSlimes)
+        if (manager == null || manager.GetCurrentSlimeCount() < RequiredSlimes)
             return; // chưa đủ điều kiện: giữ layTimer, chờ lần sau
 
-        while (layTimer >= checkIntervalSeconds && TotalUnhatchedEggCount < maxUnhatchedEggs)
+        float chance = EggChance;
+        while (layTimer >= interval && TotalUnhatchedEggCount < maxEggs)
         {
-            layTimer -= checkIntervalSeconds;
-            if (UnityEngine.Random.value < eggChance)
+            layTimer -= interval;
+            if (UnityEngine.Random.value < chance)
             {
                 if (spawnAsWorldEgg) SpawnWorldEgg();
                 else eggs.Add(new Egg { id = Guid.NewGuid().ToString("N") }); // thẳng vào túi trứng
@@ -138,8 +151,8 @@ public class SlimeEggSystem : MonoBehaviour
         }
 
         // Đã đầy trứng thì không tích thêm layTimer.
-        if (TotalUnhatchedEggCount >= maxUnhatchedEggs)
-            layTimer = Mathf.Min(layTimer, checkIntervalSeconds);
+        if (TotalUnhatchedEggCount >= maxEggs)
+            layTimer = Mathf.Min(layTimer, interval);
     }
 
     private void SpawnWorldEgg()
@@ -227,7 +240,7 @@ public class SlimeEggSystem : MonoBehaviour
     public bool CollectWorldEgg(string eggId, Vector3 worldPosition, Sprite icon)
     {
         int index = worldEggs.FindIndex(item => item != null && item.id == eggId);
-        if (index < 0 || eggs.Count >= maxUnhatchedEggs) return false;
+        if (index < 0 || eggs.Count >= MaxUnhatchedEggs) return false;
 
         worldEggs.RemoveAt(index);
         eggs.Add(new Egg { id = eggId });
@@ -265,13 +278,13 @@ public class SlimeEggSystem : MonoBehaviour
     public float GetRemainingSeconds(int eggIndex)
     {
         return TryGetEgg(eggIndex, out var egg) && egg.isIncubating
-            ? Mathf.Max(0f, incubationDurationSeconds - egg.incubationElapsed)
-            : incubationDurationSeconds;
+            ? Mathf.Max(0f, IncubationDuration - egg.incubationElapsed)
+            : IncubationDuration;
     }
 
     public int GetFinishGemCost(int eggIndex)
     {
-        return Mathf.CeilToInt(GetRemainingSeconds(eggIndex) / Mathf.Max(1f, secondsPerGem));
+        return Mathf.CeilToInt(GetRemainingSeconds(eggIndex) / Mathf.Max(1f, SecondsPerGem));
     }
 
     public bool FinishWithGems(int eggIndex)
@@ -279,14 +292,14 @@ public class SlimeEggSystem : MonoBehaviour
         if (!TryGetEgg(eggIndex, out var egg) || !egg.isIncubating) return false;
         int cost = GetFinishGemCost(eggIndex);
         if (CurrencyManager.Instance == null || !CurrencyManager.Instance.SpendCurrency(CurrencyType.Gems, cost)) return false;
-        egg.incubationElapsed = incubationDurationSeconds;
+        egg.incubationElapsed = IncubationDuration;
         SaveAndNotify();
         return true;
     }
 
     public Slime Hatch(int eggIndex)
     {
-        if (!TryGetEgg(eggIndex, out var egg) || !egg.isIncubating || egg.incubationElapsed < incubationDurationSeconds)
+        if (!TryGetEgg(eggIndex, out var egg) || !egg.isIncubating || egg.incubationElapsed < IncubationDuration)
             return null;
         if (BreedingManager.Instance == null)
         {
@@ -361,6 +374,9 @@ public class SlimeEggSystem : MonoBehaviour
 
     private static Rarity RollRarity()
     {
+        // Remote Config (`egg_rarity_weights`) ghi đè nếu có.
+        if (RemoteBalance.TryRollEggRarity(out var remote)) return remote;
+
         float r = UnityEngine.Random.value * 100f;
         if (r < 45f) return Rarity.Common;
         if (r < 80f) return Rarity.Uncommon;
@@ -371,6 +387,16 @@ public class SlimeEggSystem : MonoBehaviour
 
     private static StatQuality RollQuality(out float roll)
     {
+        // Remote Config (`egg_quality_bands`) ghi đè nếu có.
+        var bands = RemoteBalance.EggQuality;
+        if (bands != null)
+        {
+            string name = bands.Roll(out roll);
+            return Enum.TryParse(name.Replace(" ", string.Empty), true, out StatQuality parsed)
+                ? parsed
+                : StatQuality.Normal;
+        }
+
         float r = UnityEngine.Random.value * 100f;
         float min, max; StatQuality quality;
         if (r < 15f) { quality = StatQuality.Poor; min = 0f; max = .20f; }

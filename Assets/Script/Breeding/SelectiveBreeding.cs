@@ -16,6 +16,9 @@ public static class SelectiveBreeding
 
     public static TierCost GetTierCost(Rarity rarity)
     {
+        // Remote Config (`breeding_tier_table`) ghi đè nếu có.
+        if (RemoteBalance.TryGetBreedingTier(rarity, out var remote)) return remote;
+
         switch (rarity)
         {
             case Rarity.Common:    return new TierCost { gold = 200,   minutes = 1f   };
@@ -36,11 +39,12 @@ public static class SelectiveBreeding
     // ------------------------------------------------------------------
     // 3.2 Tăng tốc bằng Gem: Gem = thời gian còn lại (phút) × 0.8 (làm tròn lên).
     // Bảng đối chiếu: 10p→8, 25p→20, 50p→40, 90p→72, 120p→96, 240p→192.
+    // Hệ số 0.8 chỉnh từ xa qua key `breeding_gem_per_minute`.
     // ------------------------------------------------------------------
     public static int GetGemCostForRemaining(float remainingSeconds)
     {
         float minutes = Mathf.Max(0f, remainingSeconds) / 60f;
-        return Mathf.CeilToInt(minutes * 0.8f);
+        return Mathf.CeilToInt(minutes * RemoteBalance.BreedingGemPerMinute);
     }
 
     // ------------------------------------------------------------------
@@ -48,6 +52,9 @@ public static class SelectiveBreeding
     // ------------------------------------------------------------------
     public static float GetMutationRate(Rarity rarity)
     {
+        // Remote Config (`breeding_tier_table`, cột `mutation`) ghi đè nếu có.
+        if (RemoteBalance.TryGetMutationRate(rarity, out var remote)) return remote;
+
         switch (rarity)
         {
             case Rarity.Common:    return 0.35f;
@@ -101,6 +108,10 @@ public static class SelectiveBreeding
     // ------------------------------------------------------------------
     public static string RollBreedingQuality(out float t)
     {
+        // Remote Config (`breeding_quality_bands`) ghi đè nếu có.
+        var bands = RemoteBalance.BreedingQuality;
+        if (bands != null) return bands.Roll(out t);
+
         float r = Random.value * 100f;
         float min, max; string quality;
         if (r < 55f)      { quality = "Good";      min = .40f; max = .60f; }
@@ -112,7 +123,8 @@ public static class SelectiveBreeding
     }
 
     // Độ mạnh của "thiên lệch roll" khi bố mẹ khác độ hiếm (mục 3.4.3).
-    private const float DifferentRarityRollBias = 0.20f;
+    // Chỉnh từ xa qua key `breeding_diff_rarity_bias`.
+    private static float DifferentRarityRollBias => RemoteBalance.BreedingDiffRarityBias;
 
     /// <summary>
     /// Sinh slime con theo mục 3. eggRarity đã tính = độ hiếm cao nhất của cặp.

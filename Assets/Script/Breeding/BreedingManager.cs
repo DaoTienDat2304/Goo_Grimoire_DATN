@@ -7,16 +7,12 @@ public class BreedingManager : MonoBehaviour
 {
     [Header("Breeding Settings")]
     [Tooltip("Fallback nếu Remote Config chưa sẵn sàng")]
-    public float breedingTime = 5f;
-    public float mutationChance = 0.1f;
     public int maxSlimes = 30;
 
-    // Đọc từ Remote Config nếu có, fallback về field trên nếu chưa sẵn sàng
-    private float BreedingTime     => RemoteConfigManager.Instance != null ? RemoteConfigManager.Instance.BreedingTime     : breedingTime;
-    private float MutationChance   => RemoteConfigManager.Instance != null ? RemoteConfigManager.Instance.MutationChance   : mutationChance;
-    private int   MaxSlimes        => RemoteConfigManager.Instance != null ? RemoteConfigManager.Instance.MaxSlimes        : maxSlimes;
-    private int   BreedingCost     => RemoteConfigManager.Instance != null ? RemoteConfigManager.Instance.BreedingCost     : 1;
-    private float BreedingCooldown => RemoteConfigManager.Instance != null ? RemoteConfigManager.Instance.BreedingCooldown : 2f;
+    // Giá / thời gian / tỷ lệ đột biến của một lứa nay lấy theo BẢNG TIER trong
+    // SelectiveBreeding (đồng bộ Remote Config qua `breeding_tier_table`), không còn
+    // là hằng số toàn cục — nên các key breeding_time/cost/cooldown/mutation cũ đã bị bỏ.
+    private int MaxSlimes => Mathf.Max(1, RemoteBalance.IntOr(RemoteConfigKeys.BreedingMaxSlimes, maxSlimes));
     public WildSlimes wildSlimes;
 
     [Header("UI References")]

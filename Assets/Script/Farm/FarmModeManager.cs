@@ -12,15 +12,20 @@ public class FarmDifficulty
     public string description;
     
     [Header("Boss Stats (Fixed)")]
-    public int bossHP = 100;
-    public int bossAttack = 50;
-    public int bossDefense = 30;
-    public int bossSpeed = 20;
-    public int bossEvade = 10;
-    
+    public int bossHP = 6000;
+    public int bossAttack = 180;
+    public int bossMagicAttack = 360;
+    public int bossDefense = 780;
+    public int bossSpeed = 90;
+    public float bossCritRate = 0.05f;
+    public float bossCritDMG = 1.30f;
+    [Tooltip("Không còn dùng — hệ evade đã bị thay bằng hệ crit. Giữ lại cho tương thích save cũ.")]
+    public int bossEvade = 0;
+
     [Header("Reward")]
-    public int rewardCoins = 50;
-    
+    public int rewardCoins = 500;
+    public int rewardGems = 0;
+
     [Header("Unlock Status")]
     public bool unlocked = false;  // Độ khó đã được mở khóa chưa
     public bool completed = false;  // Đã hoàn thành độ khó này chưa
@@ -44,6 +49,7 @@ public class FarmModeManager : MonoBehaviour
     
     private FarmDifficulty selectedDifficulty;
     private int rewardCoins = 0;
+    private int rewardGems = 0;
 
     /// <summary>Tên độ khó đang được chọn — dùng cho analytics.</summary>
     public string SelectedDifficultyName => selectedDifficulty?.difficultyName ?? "none";
@@ -71,33 +77,44 @@ public class FarmModeManager : MonoBehaviour
         }
     }
 
+    /// <summary>Key Remote Config của từng bậc độ khó, theo đúng thứ tự trong danh sách.</summary>
+    private static readonly string[] DifficultyKeys = { "easy", "medium", "hard", "extreme", "hell" };
+
     /// <summary>
     /// Gọi từ RemoteConfigManager sau khi fetch xong để cập nhật lại stats boss.
+    /// Nguồn: key `farm_difficulty_table` (JSON). Không có bảng → giữ nguyên số hiện tại.
     /// </summary>
     public void RefreshDifficultyStats()
     {
         if (difficulties == null || difficulties.Count == 0) return;
-        var rc = RemoteConfigManager.Instance;
-        if (rc == null) return;
+        if (RemoteBalance.FarmRows == null) return;
 
-        void Apply(int i, int hp, int atk, int def, int spd, int eva, int reward)
+        int applied = 0;
+        for (int i = 0; i < difficulties.Count && i < DifficultyKeys.Length; i++)
         {
-            if (i >= difficulties.Count) return;
-            difficulties[i].bossHP      = hp;
-            difficulties[i].bossAttack  = atk;
-            difficulties[i].bossDefense = def;
-            difficulties[i].bossSpeed   = spd;
-            difficulties[i].bossEvade   = eva;
-            difficulties[i].rewardCoins = reward;
+            var row = RemoteBalance.GetFarmRow(DifficultyKeys[i]) ?? RemoteBalance.GetFarmRowAt(i);
+            if (row == null) continue;
+            ApplyRow(difficulties[i], row);
+            applied++;
         }
 
-        Apply(0, rc.FarmEasyBossHP,    rc.FarmEasyBossAttack,    rc.FarmEasyBossDefense,    rc.FarmEasyBossSpeed,    rc.FarmEasyBossEvade,    rc.FarmEasyReward);
-        Apply(1, rc.FarmMediumBossHP,  rc.FarmMediumBossAttack,  rc.FarmMediumBossDefense,  rc.FarmMediumBossSpeed,  rc.FarmMediumBossEvade,  rc.FarmMediumReward);
-        Apply(2, rc.FarmHardBossHP,    rc.FarmHardBossAttack,    rc.FarmHardBossDefense,    rc.FarmHardBossSpeed,    rc.FarmHardBossEvade,    rc.FarmHardReward);
-        Apply(3, rc.FarmExtremeBossHP, rc.FarmExtremeBossAttack, rc.FarmExtremeBossDefense, rc.FarmExtremeBossSpeed, rc.FarmExtremeBossEvade, rc.FarmExtremeReward);
-        Apply(4, rc.FarmHellBossHP,    rc.FarmHellBossAttack,    rc.FarmHellBossDefense,    rc.FarmHellBossSpeed,    rc.FarmHellBossEvade,    rc.FarmHellReward);
+        Debug.Log($"FarmModeManager: Đã cập nhật {applied} bậc độ khó từ Remote Config.");
+    }
 
-        Debug.Log("FarmModeManager: Đã cập nhật difficulty stats từ Remote Config.");
+    /// <summary>Đổ 1 dòng `farm_difficulty_table` vào 1 bậc độ khó (giữ nguyên tên hiển thị nếu row không có).</summary>
+    private static void ApplyRow(FarmDifficulty target, RcFarmRow row)
+    {
+        if (target == null || row == null) return;
+        if (!string.IsNullOrEmpty(row.name)) target.difficultyName = row.name;
+        target.bossHP          = row.hp;
+        target.bossAttack      = row.atk;
+        target.bossMagicAttack = row.magic;
+        target.bossDefense     = row.def;
+        target.bossSpeed       = row.speed;
+        target.bossCritRate    = row.critRate;
+        target.bossCritDMG     = row.critDmg;
+        target.rewardCoins     = row.coins;
+        target.rewardGems      = row.gems;
     }
     
     void Start()
@@ -106,39 +123,41 @@ public class FarmModeManager : MonoBehaviour
         LoadUnlockStatus();
     }
     
+    /// <summary>
+    /// Bảng mặc định trong code — đã tái cân bằng theo thang chỉ số mới
+    /// (mid-range StatBalance của độ hiếm tương ứng × hệ số BossStatScaling).
+    /// Remote Config `farm_difficulty_table` sẽ ghi đè ngay sau khi fetch xong.
+    /// </summary>
     private void InitializeDefaultDifficulties()
     {
-        var rc = RemoteConfigManager.Instance;
-
         FarmDifficulty Make(string name, string desc,
-            int hp, int atk, int def, int spd, int eva, int reward) =>
+            int hp, int atk, int magic, int def, int spd, float critRate, float critDmg, int coins, int gems) =>
             new FarmDifficulty
             {
-                difficultyName = name,
-                description    = desc,
-                bossHP         = rc != null ? rc.GetFarmStat(name, "hp",      hp)     : hp,
-                bossAttack     = rc != null ? rc.GetFarmStat(name, "attack",   atk)   : atk,
-                bossDefense    = rc != null ? rc.GetFarmStat(name, "defense",  def)   : def,
-                bossSpeed      = rc != null ? rc.GetFarmStat(name, "speed",    spd)   : spd,
-                bossEvade      = rc != null ? rc.GetFarmStat(name, "evade",    eva)   : eva,
-                rewardCoins    = rc != null ? rc.GetFarmStat(name, "reward",   reward): reward,
+                difficultyName  = name,
+                description     = desc,
+                bossHP          = hp,
+                bossAttack      = atk,
+                bossMagicAttack = magic,
+                bossDefense     = def,
+                bossSpeed       = spd,
+                bossCritRate    = critRate,
+                bossCritDMG     = critDmg,
+                rewardCoins     = coins,
+                rewardGems      = gems,
             };
 
         difficulties = new List<FarmDifficulty>
         {
-            Make("easy",    "Boss yếu, reward ít",       100,  30,  20,  15,  5,   50),
-            Make("medium",  "Boss vừa, reward vừa",      200,  60,  40,  25,  10,  150),
-            Make("hard",    "Boss mạnh, reward nhiều",   400,  120, 80,  40,  20,  300),
-            Make("extreme", "Boss cực mạnh, reward lớn", 800,  200, 150, 60,  35,  600),
-            Make("hell",    "Thử thách tối thượng",      1500, 350, 250, 90,  50,  1200),
+            Make("Dễ",         "Boss yếu, reward ít",       6000,  180,  360,  780,  90,  0.05f, 1.30f, 500,   0),
+            Make("Trung Bình", "Boss vừa, reward vừa",      11000, 325,  650,  1480, 105, 0.06f, 1.35f, 1200,  0),
+            Make("Khó",        "Boss mạnh, reward nhiều",   24000, 640,  1290, 2790, 121, 0.08f, 1.45f, 3000,  2),
+            Make("Cực Khó",    "Boss cực mạnh, reward lớn", 46000, 1160, 2325, 5270, 141, 0.10f, 1.55f, 7000,  5),
+            Make("Địa Ngục",   "Thử thách tối thượng",      87000, 2125, 4250, 9500, 162, 0.13f, 1.70f, 15000, 10),
         };
 
-        // Gán tên hiển thị riêng (khác với key RC)
-        difficulties[0].difficultyName = "Dễ";
-        difficulties[1].difficultyName = "Trung Bình";
-        difficulties[2].difficultyName = "Khó";
-        difficulties[3].difficultyName = "Cực Khó";
-        difficulties[4].difficultyName = "Địa Ngục";
+        // Nếu Remote Config đã sẵn sàng ngay lúc này thì áp luôn.
+        RefreshDifficultyStats();
     }
     
     /// <summary>
@@ -172,7 +191,9 @@ public class FarmModeManager : MonoBehaviour
         }
         
         selectedDifficulty = difficulties[difficultyIndex];
-        rewardCoins = selectedDifficulty.rewardCoins;
+        // Hệ số thưởng remote (`reward_mult_farm_coins`) áp ngay lúc chọn độ khó.
+        rewardCoins = RemoteBalance.ScaleReward(selectedDifficulty.rewardCoins, RemoteBalance.Reward.farmCoins);
+        rewardGems = selectedDifficulty.rewardGems;
 
         FirebaseAnalyticsManager.LogFarmDifficultySelect(selectedDifficulty.difficultyName, difficultyIndex);
 
@@ -232,12 +253,12 @@ public class FarmModeManager : MonoBehaviour
         bossSlime.totalAttack = difficulty.bossAttack;
         bossSlime.totalDefense = difficulty.bossDefense;
         bossSlime.totalSpeed = difficulty.bossSpeed;
-        // Hệ evade đã được thay bằng hệ crit — dùng giá trị crit mặc định cho farm boss.
-        // (difficulty.bossEvade vẫn giữ trong config nhưng không còn áp dụng vào combat.)
-        bossSlime.totalMagicAttack = 0;
-        bossSlime.totalCritRate = 0.05f;
-        bossSlime.totalCritDMG = 1.30f;
-        
+        // Hệ evade đã được thay bằng hệ crit — magic/crit nay lấy từ bảng độ khó
+        // (`farm_difficulty_table` trên Remote Config), không còn hardcode.
+        bossSlime.totalMagicAttack = difficulty.bossMagicAttack;
+        bossSlime.totalCritRate = difficulty.bossCritRate;
+        bossSlime.totalCritDMG = difficulty.bossCritDMG;
+
         return bossSlime;
     }
     
@@ -333,11 +354,12 @@ public class FarmModeManager : MonoBehaviour
             }
         }
         
-        // Thêm coins
+        // Thêm coins (+ gems nếu bậc độ khó có)
         if (CurrencyManager.Instance != null)
         {
             CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, rewardCoins);
-            Debug.Log($"Farm Victory! Nhận được {rewardCoins} coins!");
+            if (rewardGems > 0) CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, rewardGems);
+            Debug.Log($"Farm Victory! Nhận được {rewardCoins} coins" + (rewardGems > 0 ? $" + {rewardGems} gems!" : "!"));
         }
         else
         {
@@ -359,6 +381,7 @@ public class FarmModeManager : MonoBehaviour
         // Reset
         selectedDifficulty = null;
         rewardCoins = 0;
+        rewardGems = 0;
     }
     
     /// <summary>

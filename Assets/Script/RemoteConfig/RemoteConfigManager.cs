@@ -10,7 +10,11 @@
 // Khi Firebase đã sẵn sàng:
 //   1. Import Firebase SDK vào project.
 //   2. Project Settings → Player → Scripting Define Symbols → thêm: FIREBASE_REMOTE_CONFIG
-//   → Firebase sẽ init, fetch config, rồi recalculate toàn bộ slime.
+//   → Firebase sẽ init, fetch config, rồi nạp lại toàn bộ bảng cân bằng.
+//
+// Danh sách key: xem REMOTE_CONFIG_KEYS.md (cùng thư mục).
+// Giá trị mặc định: RemoteConfigKeys.BuildDefaults() trong RemoteConfigSchema.cs.
+// Bảng cân bằng sau khi parse nằm ở RemoteBalance.
 // ============================================================
 
 using System.Collections.Generic;
@@ -40,92 +44,59 @@ public class RemoteConfigManager : MonoBehaviour
     [Tooltip("Editor Windows can crash with Firebase SDK 13.5.0 during automatic network fetches. Enable only when testing Remote Config in Editor.")]
     public bool fetchRemoteConfigInEditor = false;
 
-    // ---- Breeding ----
-    public float BreedingTime        => GetFloat("breeding_time_seconds",    5f);
-    public int   BreedingCost        => GetInt  ("breeding_cost_coins",      1);
-    public int   MaxSlimes           => GetInt  ("breeding_max_slimes",      30);
-    public float MutationChance      => GetFloat("breeding_mutation_chance", 0.1f);
-    public float BreedingCooldown    => GetFloat("breeding_cooldown_seconds",2f);
+    // -------------------------------------------------------
+    // Nhóm 0 — Vận hành
+    // -------------------------------------------------------
 
-    // ---- Rarity multipliers ----
-    public float RarityMultCommon    => GetFloat("rarity_mult_common",       1f);
-    public float RarityMultUncommon  => GetFloat("rarity_mult_uncommon",     1.2f);
-    public float RarityMultRare      => GetFloat("rarity_mult_rare",         1.4f);
-    public float RarityMultSuperRare => GetFloat("rarity_mult_super_rare",   1.6f);
-    public float RarityMultUltraRare => GetFloat("rarity_mult_ultra_rare",   1.8f);
-    public float RarityMultLegendary => GetFloat("rarity_mult_legendary",    2f);
-    public float RarityMultMythic    => GetFloat("rarity_mult_mythic",       2.25f);
-    public float RaritySkillPowerMult=> GetFloat("rarity_skill_power_mult",  1.5f);
+    /// <summary>Số hiệu bộ config đang chạy — dùng để đối chiếu log với Console.</summary>
+    public int ConfigVersion => GetInt(RemoteConfigKeys.ConfigVersion, 1);
 
-    // ---- Battle ----
-    public float BossStatMultiplier   => GetFloat("boss_stat_multiplier",    3f);
-    public float CritDamageMultiplier => GetFloat("crit_damage_multiplier",  1.5f);
+    /// <summary>Bật cờ bảo trì. UI chặn màn hình chưa được gắn — hiện chỉ expose + log.</summary>
+    public bool MaintenanceEnabled => GetBool(RemoteConfigKeys.MaintenanceEnabled, false);
+    public string MaintenanceMessage => GetString(RemoteConfigKeys.MaintenanceMessage, "");
 
-    // ---- Farm — Easy ----
-    public int FarmEasyBossHP        => GetInt("farm_easy_boss_hp",              100);
-    public int FarmEasyBossAttack    => GetInt("farm_easy_boss_attack",          30);
-    public int FarmEasyBossDefense   => GetInt("farm_easy_boss_defense",         20);
-    public int FarmEasyBossSpeed     => GetInt("farm_easy_boss_speed",           15);
-    public int FarmEasyBossEvade     => GetInt("farm_easy_boss_evade",           5);
-    public int FarmEasyReward        => GetInt("farm_easy_reward_coins",         50);
-    // ---- Farm — Medium ----
-    public int FarmMediumBossHP      => GetInt("farm_medium_boss_hp",            200);
-    public int FarmMediumBossAttack  => GetInt("farm_medium_boss_attack",        60);
-    public int FarmMediumBossDefense => GetInt("farm_medium_boss_defense",       40);
-    public int FarmMediumBossSpeed   => GetInt("farm_medium_boss_speed",         25);
-    public int FarmMediumBossEvade   => GetInt("farm_medium_boss_evade",         10);
-    public int FarmMediumReward      => GetInt("farm_medium_reward_coins",       150);
-    // ---- Farm — Hard ----
-    public int FarmHardBossHP        => GetInt("farm_hard_boss_hp",              400);
-    public int FarmHardBossAttack    => GetInt("farm_hard_boss_attack",          120);
-    public int FarmHardBossDefense   => GetInt("farm_hard_boss_defense",         80);
-    public int FarmHardBossSpeed     => GetInt("farm_hard_boss_speed",           40);
-    public int FarmHardBossEvade     => GetInt("farm_hard_boss_evade",           20);
-    public int FarmHardReward        => GetInt("farm_hard_reward_coins",         300);
-    // ---- Farm — Extreme ----
-    public int FarmExtremeBossHP     => GetInt("farm_extreme_boss_hp",           800);
-    public int FarmExtremeBossAttack => GetInt("farm_extreme_boss_attack",       200);
-    public int FarmExtremeBossDefense=> GetInt("farm_extreme_boss_defense",      150);
-    public int FarmExtremeBossSpeed  => GetInt("farm_extreme_boss_speed",        60);
-    public int FarmExtremeBossEvade  => GetInt("farm_extreme_boss_evade",        35);
-    public int FarmExtremeReward     => GetInt("farm_extreme_reward_coins",      600);
-    // ---- Farm — Hell ----
-    public int FarmHellBossHP        => GetInt("farm_hell_boss_hp",              1500);
-    public int FarmHellBossAttack    => GetInt("farm_hell_boss_attack",          350);
-    public int FarmHellBossDefense   => GetInt("farm_hell_boss_defense",         250);
-    public int FarmHellBossSpeed     => GetInt("farm_hell_boss_speed",           90);
-    public int FarmHellBossEvade     => GetInt("farm_hell_boss_evade",           50);
-    public int FarmHellReward        => GetInt("farm_hell_reward_coins",         1200);
+    /// <summary>Version tối thiểu được hỗ trợ (vd "1.2.0"). Rỗng = tắt kiểm tra.</summary>
+    public string MinSupportedVersion => GetString(RemoteConfigKeys.MinSupportedVersion, "");
 
-    /// <summary>
-    /// Helper dùng trong InitializeDefaultDifficulties — lấy stat theo tên difficulty và loại stat.
-    /// </summary>
-    public int GetFarmStat(string diffKey, string stat, int fallback)
+    /// <summary>True khi Application.version thấp hơn min_supported_version.</summary>
+    public bool NeedsForceUpdate
     {
-        string key = $"farm_{diffKey}_boss_{stat}";
-        if (stat == "reward") key = $"farm_{diffKey}_reward_coins";
-        return GetInt(key, fallback);
+        get
+        {
+            string min = MinSupportedVersion;
+            if (string.IsNullOrWhiteSpace(min)) return false;
+            return CompareVersion(Application.version, min) < 0;
+        }
     }
 
-    // ---- Shop ----
-    public string ActiveShopId       => GetString("active_shop_id",         "default");
+    /// <summary>Chọn database shop đang hiển thị ("default" | "summer" | ...).</summary>
+    public string ActiveShopId => GetString(RemoteConfigKeys.ActiveShopId, "default");
 
-    // ---- Save integrity ----
     /// <summary>
     /// Salt dùng để derive HMAC key cho save data.
     /// Đặt giá trị thực sự bí mật trên Firebase Remote Config console.
     /// Fallback hardcode trong SaveIntegrity.cs chỉ là lưới an toàn khi offline.
     /// </summary>
-    public string SaveHmacSalt       => GetString("save_hmac_salt",         "GooGrimoire_HmacFallback_v1");
+    public string SaveHmacSalt => GetString(RemoteConfigKeys.SaveHmacSalt, RemoteConfigKeys.DefaultSaveHmacSalt);
 
-    // ---- Dev ----
     /// <summary>Email của tài khoản dev. Set trên Firebase Console. Trống = không có dev account.</summary>
-    public string DevAccountEmail    => GetString("dev_account_email",       "");
+    public string DevAccountEmail => GetString(RemoteConfigKeys.DevAccountEmail, "");
+
+    // -------------------------------------------------------
+    // Nhóm 2 — Giới hạn bộ sưu tập
+    // -------------------------------------------------------
+
+    /// <summary>Giới hạn tối đa slime trong bộ sưu tập.</summary>
+    public int MaxSlimes => GetInt(RemoteConfigKeys.BreedingMaxSlimes, 30);
 
     // Internal override storage (dùng để test mà không cần Firebase)
-    private readonly Dictionary<string, float>  _floats  = new();
-    private readonly Dictionary<string, int>    _ints    = new();
-    private readonly Dictionary<string, string> _strings = new();
+    private readonly Dictionary<string, float> _floats = new Dictionary<string, float>();
+    private readonly Dictionary<string, int> _ints = new Dictionary<string, int>();
+    private readonly Dictionary<string, string> _strings = new Dictionary<string, string>();
+    private readonly Dictionary<string, bool> _bools = new Dictionary<string, bool>();
+
+    // Cache object đã parse từ JSON — tránh parse lại mỗi frame.
+    private readonly Dictionary<string, object> _jsonCache = new Dictionary<string, object>();
 
     // -------------------------------------------------------
     // Lifecycle
@@ -146,10 +117,16 @@ public class RemoteConfigManager : MonoBehaviour
 #if FIREBASE_REMOTE_CONFIG
         InitializeFirebase();
 #else
-        // Không có Firebase — ready ngay với defaults
+        // Không có Firebase — ready ngay với defaults hardcode trong code.
         IsReady = true;
-        Debug.Log("[RemoteConfig] Offline mode — dùng default values.");
+        ReapplyBalance();
+        Debug.Log("[RemoteConfig] Offline mode — dùng default values trong code.");
 #endif
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
 #if FIREBASE_REMOTE_CONFIG
@@ -168,6 +145,7 @@ public class RemoteConfigManager : MonoBehaviour
             {
                 Debug.LogError($"[RemoteConfig] CheckDependencies lỗi: {checkTask.Exception}. Dùng defaults.");
                 IsReady = true;
+                ReapplyBalance();
                 return;
             }
 
@@ -176,6 +154,7 @@ public class RemoteConfigManager : MonoBehaviour
             {
                 Debug.LogError($"[RemoteConfig] Firebase không khởi động được: {status}. Dùng defaults.");
                 IsReady = true;
+                ReapplyBalance();
                 return;
             }
 
@@ -183,90 +162,31 @@ public class RemoteConfigManager : MonoBehaviour
             Debug.Log("[RemoteConfig] ✓ Firebase dependencies OK.");
 
             SetDefaults();
-#if UNITY_EDITOR
-            if (!fetchRemoteConfigInEditor)
-            {
-                Debug.LogWarning("[RemoteConfig] Skipping FetchAndActivate in Editor to avoid Firebase native crash. Player builds still fetch normally.");
-                IsReady = true;
-                return;
-            }
-#endif
-            FetchAndActivate();
         });
     }
 
     void SetDefaults()
     {
-        Debug.Log("[RemoteConfig] Đang set default values...");
-        var defaults = new Dictionary<string, object>
-        {
-            // Breeding
-            { "breeding_time_seconds",    5.0  },
-            { "breeding_cost_coins",      1    },
-            { "breeding_max_slimes",      30   },
-            { "breeding_mutation_chance", 0.1  },
-            { "breeding_cooldown_seconds",2.0  },
-            // Rarity
-            { "rarity_mult_common",       1.0  },
-            { "rarity_mult_uncommon",     1.2  },
-            { "rarity_mult_rare",         1.4  },
-            { "rarity_mult_super_rare",   1.6  },
-            { "rarity_mult_ultra_rare",   1.8  },
-            { "rarity_mult_legendary",    2.0  },
-            { "rarity_mult_mythic",       2.25 },
-            { "rarity_skill_power_mult",  1.5  },
-            // Battle
-            { "boss_stat_multiplier",     3.0  },
-            { "crit_damage_multiplier",   1.5  },
-            // Farm — Easy
-            { "farm_easy_boss_hp",            100  },
-            { "farm_easy_boss_attack",        30   },
-            { "farm_easy_boss_defense",       20   },
-            { "farm_easy_boss_speed",         15   },
-            { "farm_easy_boss_evade",         5    },
-            { "farm_easy_reward_coins",       50   },
-            // Farm — Medium
-            { "farm_medium_boss_hp",          200  },
-            { "farm_medium_boss_attack",      60   },
-            { "farm_medium_boss_defense",     40   },
-            { "farm_medium_boss_speed",       25   },
-            { "farm_medium_boss_evade",       10   },
-            { "farm_medium_reward_coins",     150  },
-            // Farm — Hard
-            { "farm_hard_boss_hp",            400  },
-            { "farm_hard_boss_attack",        120  },
-            { "farm_hard_boss_defense",       80   },
-            { "farm_hard_boss_speed",         40   },
-            { "farm_hard_boss_evade",         20   },
-            { "farm_hard_reward_coins",       300  },
-            // Farm — Extreme
-            { "farm_extreme_boss_hp",         800  },
-            { "farm_extreme_boss_attack",     200  },
-            { "farm_extreme_boss_defense",    150  },
-            { "farm_extreme_boss_speed",      60   },
-            { "farm_extreme_boss_evade",      35   },
-            { "farm_extreme_reward_coins",    600  },
-            // Farm — Hell
-            { "farm_hell_boss_hp",            1500 },
-            { "farm_hell_boss_attack",        350  },
-            { "farm_hell_boss_defense",       250  },
-            { "farm_hell_boss_speed",         90   },
-            { "farm_hell_boss_evade",         50   },
-            { "farm_hell_reward_coins",       1200 },
-            // Shop
-            { "active_shop_id",               "default" },
-            // Save integrity — đặt giá trị bí mật khác trên Firebase Console
-            { "save_hmac_salt",               "GooGrimoire_HmacFallback_v1" },
-            // Dev account — đặt email trên Firebase Console, để trống ở đây
-            { "dev_account_email",            "" },
-        };
+        var defaults = RemoteConfigKeys.BuildDefaults();
+        Debug.Log($"[RemoteConfig] Đang set {defaults.Count} default values...");
 
         FirebaseRemoteConfig.DefaultInstance
             .SetDefaultsAsync(defaults)
             .ContinueWithOnMainThread(_ =>
             {
                 IsReady = true;
+                _jsonCache.Clear();
+                ReapplyBalance();
                 Debug.Log($"[RemoteConfig] ✓ Defaults set ({defaults.Count} keys) — game sẵn sàng chạy.");
+
+#if UNITY_EDITOR
+                if (!fetchRemoteConfigInEditor)
+                {
+                    Debug.LogWarning("[RemoteConfig] Skipping FetchAndActivate in Editor to avoid Firebase native crash. Player builds still fetch normally.");
+                    return;
+                }
+#endif
+                FetchAndActivate();
             });
     }
 
@@ -309,8 +229,6 @@ public class RemoteConfigManager : MonoBehaviour
                         Debug.Log($"[RemoteConfig] ✓ Fetch xong ({elapsed:F0}ms) — đã lấy config MỚI từ server.");
                     else
                         Debug.Log($"[RemoteConfig] ✓ Fetch xong ({elapsed:F0}ms) — dùng CACHED config (không có thay đổi mới).");
-
-                    LogAllValues();
                 }
 
                 IsReady = true;
@@ -318,37 +236,65 @@ public class RemoteConfigManager : MonoBehaviour
             });
         });
     }
+#endif
 
+    // -------------------------------------------------------
+    // Áp dụng config
+    // -------------------------------------------------------
 
-    void LogAllValues()
+    /// <summary>
+    /// Nạp lại toàn bộ bảng cân bằng vào RemoteBalance.
+    /// Gọi thủ công sau khi dùng SetFloat/SetInt/SetString/SetJson để test trong Editor.
+    /// </summary>
+    public void ReapplyBalance()
     {
-        var rc = FirebaseRemoteConfig.DefaultInstance;
-        Debug.Log("[RemoteConfig] ══════════ Giá trị hiện tại ══════════");
-        Debug.Log($"[RemoteConfig] [Breeding] time={rc.GetValue("breeding_time_seconds").DoubleValue}s | cost={rc.GetValue("breeding_cost_coins").LongValue} coins | max={rc.GetValue("breeding_max_slimes").LongValue} slimes | mutation={rc.GetValue("breeding_mutation_chance").DoubleValue:P0} | cooldown={rc.GetValue("breeding_cooldown_seconds").DoubleValue}s");
-        Debug.Log($"[RemoteConfig] [Rarity]   common={rc.GetValue("rarity_mult_common").DoubleValue} | uncommon={rc.GetValue("rarity_mult_uncommon").DoubleValue} | rare={rc.GetValue("rarity_mult_rare").DoubleValue} | SR={rc.GetValue("rarity_mult_super_rare").DoubleValue} | UR={rc.GetValue("rarity_mult_ultra_rare").DoubleValue} | legend={rc.GetValue("rarity_mult_legendary").DoubleValue} | mythic={rc.GetValue("rarity_mult_mythic").DoubleValue}");
-        Debug.Log($"[RemoteConfig] [Battle]   boss_mult={rc.GetValue("boss_stat_multiplier").DoubleValue}x | crit_mult={rc.GetValue("crit_damage_multiplier").DoubleValue}x");
-        Debug.Log($"[RemoteConfig] [Farm] Easy    HP={rc.GetValue("farm_easy_boss_hp").LongValue} ATK={rc.GetValue("farm_easy_boss_attack").LongValue} DEF={rc.GetValue("farm_easy_boss_defense").LongValue} SPD={rc.GetValue("farm_easy_boss_speed").LongValue} EVA={rc.GetValue("farm_easy_boss_evade").LongValue} → {rc.GetValue("farm_easy_reward_coins").LongValue} coins");
-        Debug.Log($"[RemoteConfig] [Farm] Medium  HP={rc.GetValue("farm_medium_boss_hp").LongValue} ATK={rc.GetValue("farm_medium_boss_attack").LongValue} DEF={rc.GetValue("farm_medium_boss_defense").LongValue} SPD={rc.GetValue("farm_medium_boss_speed").LongValue} EVA={rc.GetValue("farm_medium_boss_evade").LongValue} → {rc.GetValue("farm_medium_reward_coins").LongValue} coins");
-        Debug.Log($"[RemoteConfig] [Farm] Hard    HP={rc.GetValue("farm_hard_boss_hp").LongValue} ATK={rc.GetValue("farm_hard_boss_attack").LongValue} DEF={rc.GetValue("farm_hard_boss_defense").LongValue} SPD={rc.GetValue("farm_hard_boss_speed").LongValue} EVA={rc.GetValue("farm_hard_boss_evade").LongValue} → {rc.GetValue("farm_hard_reward_coins").LongValue} coins");
-        Debug.Log($"[RemoteConfig] [Farm] Extreme HP={rc.GetValue("farm_extreme_boss_hp").LongValue} ATK={rc.GetValue("farm_extreme_boss_attack").LongValue} DEF={rc.GetValue("farm_extreme_boss_defense").LongValue} SPD={rc.GetValue("farm_extreme_boss_speed").LongValue} EVA={rc.GetValue("farm_extreme_boss_evade").LongValue} → {rc.GetValue("farm_extreme_reward_coins").LongValue} coins");
-        Debug.Log($"[RemoteConfig] [Farm] Hell    HP={rc.GetValue("farm_hell_boss_hp").LongValue} ATK={rc.GetValue("farm_hell_boss_attack").LongValue} DEF={rc.GetValue("farm_hell_boss_defense").LongValue} SPD={rc.GetValue("farm_hell_boss_speed").LongValue} EVA={rc.GetValue("farm_hell_boss_evade").LongValue} → {rc.GetValue("farm_hell_reward_coins").LongValue} coins");
-        Debug.Log($"[RemoteConfig] [Shop]     active_shop_id=\"{rc.GetValue("active_shop_id").StringValue}\"");
-        var rawSalt = rc.GetValue("save_hmac_salt").StringValue;
-        var saltPreview = rawSalt.Length > 4 ? rawSalt[..4] + "****" : "****";
-        Debug.Log($"[RemoteConfig] [Integrity] save_hmac_salt=\"{saltPreview}\" (length={rawSalt.Length})");
-        Debug.Log("[RemoteConfig] ════════════════════════════════════");
+        _jsonCache.Clear();
+        RemoteBalance.Apply(this);
     }
 
     void OnConfigFetched()
     {
+        _jsonCache.Clear();
+        RemoteBalance.Apply(this);
+        LogAllValues();
+
         var bm = BreedingManager.Instance;
         int slimeCount = (bm != null && bm.GetAllSlimes() != null) ? bm.GetAllSlimes().Count : 0;
         Debug.Log($"[RemoteConfig] Áp dụng config mới — recalculate {slimeCount} slimes + farm difficulties...");
+
         RecalculateAllSlimes();
         if (FarmModeManager.Instance != null) FarmModeManager.Instance.RefreshDifficultyStats();
+
+        if (MaintenanceEnabled)
+            Debug.LogWarning($"[RemoteConfig] ⚠ CHẾ ĐỘ BẢO TRÌ đang BẬT: \"{MaintenanceMessage}\"");
+        if (NeedsForceUpdate)
+            Debug.LogWarning($"[RemoteConfig] ⚠ Bản build {Application.version} thấp hơn min_supported_version {MinSupportedVersion}.");
+
         Debug.Log("[RemoteConfig] ✓ Áp dụng xong.");
     }
-#endif
+
+    void LogAllValues()
+    {
+        var b = RemoteBalance.Battle;
+        var r = RemoteBalance.Reward;
+
+        Debug.Log("[RemoteConfig] ══════════ Giá trị hiện tại ══════════");
+        Debug.Log($"[RemoteConfig] [Meta]     config_version={ConfigVersion} | maintenance={MaintenanceEnabled} | min_version=\"{MinSupportedVersion}\" | shop=\"{ActiveShopId}\"");
+        Debug.Log($"[RemoteConfig] [Battle]   critRateCap={b.critRateCap:P0} critDmgCap={b.critDmgCap:F2} defPerPoint={b.defReductionPerPoint} maxDefRed={b.maxDefReduction:P0} overflow→ATK={b.critOverflowToAtk} skillPower={b.skillPowerMult}");
+        Debug.Log($"[RemoteConfig] [Breeding] maxSlimes={MaxSlimes} gemPerMinute={RemoteBalance.BreedingGemPerMinute} diffBias={RemoteBalance.BreedingDiffRarityBias}");
+        // Nhóm egg_* / starting_* dùng Inspector làm fallback nên log giá trị THÔ từ server.
+        Debug.Log($"[RemoteConfig] [Egg]      interval={GetFloat(RemoteConfigKeys.EggCheckInterval, 60f)}s chance={GetFloat(RemoteConfigKeys.EggChance, 0.5f):P0} max={GetInt(RemoteConfigKeys.EggMaxUnhatched, 3)} required={GetInt(RemoteConfigKeys.EggRequiredSlimes, 2)} incubation={GetFloat(RemoteConfigKeys.EggIncubationSecs, 600f)}s gemPer={GetFloat(RemoteConfigKeys.EggSecondsPerGem, 60f)}s");
+        Debug.Log($"[RemoteConfig] [Reward]   mission×{r.missionGold} daily×{r.dailyGold} achievement×{r.achievementGem} farm×{r.farmCoins} tower×{r.tower} | dailyCount={r.dailyCount} streak={r.dailyStreakBonusGold} | start={GetInt(RemoteConfigKeys.StartingCoins, 5000)} vàng / {GetInt(RemoteConfigKeys.StartingGems, 5000)} gem");
+
+        if (RemoteBalance.FarmRows != null)
+            foreach (var row in RemoteBalance.FarmRows)
+                Debug.Log($"[RemoteConfig] [Farm] {row.key,-8} HP={row.hp} ATK={row.atk} MAG={row.magic} DEF={row.def} SPD={row.speed} → {row.coins} vàng + {row.gems} gem");
+
+        var salt = SaveHmacSalt;
+        var saltPreview = salt.Length > 4 ? salt.Substring(0, 4) + "****" : "****";
+        Debug.Log($"[RemoteConfig] [Integrity] save_hmac_salt=\"{saltPreview}\" (length={salt.Length})");
+        Debug.Log("[RemoteConfig] ════════════════════════════════════");
+    }
 
     // -------------------------------------------------------
     // Recalculate slime stats
@@ -372,72 +318,129 @@ public class RemoteConfigManager : MonoBehaviour
         foreach (var slime in allSlimes)
         {
             if (slime == null) continue;
-            RecalculateTrait(slime.body);
-            RecalculateTrait(slime.armor);
-            RecalculateTrait(slime.weapon);
+            slime.body?.RecalculateStats();
+            slime.armor?.RecalculateStats();
+            slime.weapon?.RecalculateStats();
             slime.CalculateStats();
         }
 
         Debug.Log($"[RemoteConfig] ✓ Recalculated {allSlimes.Count} slimes.");
     }
 
-    void RecalculateTrait(TraitInstance ti)
-    {
-        if (ti == null) return;
-        ti.RecalculateStats(GetRarityMultiplier(ti.Rarity));
-    }
-
-    public float GetRarityMultiplier(Rarity rarity) => rarity switch
-    {
-        Rarity.Common    => RarityMultCommon,
-        Rarity.Uncommon  => RarityMultUncommon,
-        Rarity.Rare      => RarityMultRare,
-        Rarity.SuperRare => RarityMultSuperRare,
-        Rarity.UltraRare => RarityMultUltraRare,
-        Rarity.Legendary => RarityMultLegendary,
-        Rarity.Mythic    => RarityMultMythic,
-        Rarity.Secret    => RarityMultLegendary,
-        _                => 1f
-    };
-
     // -------------------------------------------------------
-    // Helpers
+    // Đọc giá trị (public — RemoteBalance và code game dùng chung)
     // -------------------------------------------------------
-    float GetFloat(string key, float fallback)
+    public float GetFloat(string key, float fallback)
     {
+        if (_floats.TryGetValue(key, out var over)) return over;
 #if FIREBASE_REMOTE_CONFIG
         if (!IsReady) return fallback;
         var v = FirebaseRemoteConfig.DefaultInstance.GetValue(key);
         return v.Source != ValueSource.StaticValue ? (float)v.DoubleValue : fallback;
 #else
-        return _floats.TryGetValue(key, out var val) ? val : fallback;
+        return fallback;
 #endif
     }
 
-    int GetInt(string key, int fallback)
+    public int GetInt(string key, int fallback)
     {
+        if (_ints.TryGetValue(key, out var over)) return over;
 #if FIREBASE_REMOTE_CONFIG
         if (!IsReady) return fallback;
         var v = FirebaseRemoteConfig.DefaultInstance.GetValue(key);
         return v.Source != ValueSource.StaticValue ? (int)v.LongValue : fallback;
 #else
-        return _ints.TryGetValue(key, out var val) ? val : fallback;
+        return fallback;
 #endif
     }
 
-    string GetString(string key, string fallback)
+    public string GetString(string key, string fallback)
     {
+        if (_strings.TryGetValue(key, out var over)) return over;
 #if FIREBASE_REMOTE_CONFIG
         if (!IsReady) return fallback;
         var v = FirebaseRemoteConfig.DefaultInstance.GetValue(key);
         return v.Source != ValueSource.StaticValue ? v.StringValue : fallback;
 #else
-        return _strings.TryGetValue(key, out var val) ? val : fallback;
+        return fallback;
 #endif
     }
 
-    // Override thủ công — dùng để test trong Editor không cần Firebase
-    public void SetFloat(string key, float value)  => _floats[key]  = value;
-    public void SetInt(string key, int value)       => _ints[key]    = value;
-    public void SetString(string key, string value) => _strings[key] = value;
+    public bool GetBool(string key, bool fallback)
+    {
+        if (_bools.TryGetValue(key, out var over)) return over;
+#if FIREBASE_REMOTE_CONFIG
+        if (!IsReady) return fallback;
+        var v = FirebaseRemoteConfig.DefaultInstance.GetValue(key);
+        return v.Source != ValueSource.StaticValue ? v.BooleanValue : fallback;
+#else
+        return fallback;
+#endif
+    }
+
+    /// <summary>
+    /// Đọc 1 key kiểu JSON và parse thành T. Trả null khi key trống / JSON hỏng
+    /// — nơi gọi phải tự rơi về bảng hardcode.
+    /// </summary>
+    public T GetJson<T>(string key) where T : class
+    {
+        if (_jsonCache.TryGetValue(key, out var cached)) return cached as T;
+
+        T result = null;
+        string raw = GetString(key, null);
+        if (!string.IsNullOrWhiteSpace(raw))
+        {
+            try
+            {
+                result = JsonUtility.FromJson<T>(raw);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[RemoteConfig] Key \"{key}\" không parse được thành {typeof(T).Name}: {ex.Message}. Dùng bảng hardcode.");
+                result = null;
+            }
+        }
+
+        _jsonCache[key] = result;
+        return result;
+    }
+
+    // -------------------------------------------------------
+    // Override thủ công — dùng để test trong Editor không cần Firebase.
+    // Nhớ gọi ReapplyBalance() sau khi set xong.
+    // -------------------------------------------------------
+    public void SetFloat(string key, float value) { _floats[key] = value; }
+    public void SetInt(string key, int value) { _ints[key] = value; }
+    public void SetString(string key, string value) { _strings[key] = value; _jsonCache.Remove(key); }
+    public void SetBool(string key, bool value) { _bools[key] = value; }
+    /// <summary>Override 1 key JSON bằng chuỗi thô.</summary>
+    public void SetJson(string key, string json) { SetString(key, json); }
+
+    public void ClearOverrides()
+    {
+        _floats.Clear();
+        _ints.Clear();
+        _strings.Clear();
+        _bools.Clear();
+        _jsonCache.Clear();
+    }
+
+    // -------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------
+
+    /// <summary>So sánh version dạng "1.2.3". &lt;0 nghĩa là a cũ hơn b.</summary>
+    private static int CompareVersion(string a, string b)
+    {
+        string[] pa = (a ?? "").Split('.');
+        string[] pb = (b ?? "").Split('.');
+        int len = Mathf.Max(pa.Length, pb.Length);
+        for (int i = 0; i < len; i++)
+        {
+            int va = i < pa.Length && int.TryParse(pa[i], out var x) ? x : 0;
+            int vb = i < pb.Length && int.TryParse(pb[i], out var y) ? y : 0;
+            if (va != vb) return va < vb ? -1 : 1;
+        }
+        return 0;
+    }
 }

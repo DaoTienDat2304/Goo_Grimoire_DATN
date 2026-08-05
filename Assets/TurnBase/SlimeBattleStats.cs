@@ -86,12 +86,15 @@ public class SlimeBattleStats : MonoBehaviour
         return activeDoTs.Count(d => d.type == EffectType.Poison && d.turnsLeft > 0);
     }
 
-    public void ApplyPoison(int duration = 2, int maxStacks = 3)
+    /// <param name="maxStacks">-1 = lấy từ Remote Config (`battle_poison_max_stacks`, mặc định 3).</param>
+    public void ApplyPoison(int duration = 2, int maxStacks = -1)
     {
+        if (maxStacks < 0) maxStacks = RemoteBalance.Battle.poisonMaxStacks;
         int current = GetPoisonStackCount();
         if (current < maxStacks)
         {
-            int poisonDmg = Mathf.Max(1, Mathf.RoundToInt(MaxHP * 0.04f)); // 4% Max HP per stack
+            // % Max HP mỗi stack — key `battle_poison_percent_hp` (mặc định 4%).
+            int poisonDmg = Mathf.Max(1, Mathf.RoundToInt(MaxHP * RemoteBalance.Battle.poisonPercentHp));
             activeDoTs.Add(new ActiveDoT { type = EffectType.Poison, damagePerTurn = poisonDmg, turnsLeft = duration });
             TurnSystem turnSys = FindObjectOfType<TurnSystem>();
             if (turnSys != null)
@@ -137,7 +140,8 @@ public class SlimeBattleStats : MonoBehaviour
             
             if (baseStats.isEnemy && !isTowerMode)
             {
-                multiplier = (RemoteConfigManager.Instance != null ? RemoteConfigManager.Instance.BossStatMultiplier : 3f);
+                // Hệ số phẳng cho enemy KHÔNG dùng rarity scaling — key `battle_legacy_boss_multiplier`.
+                multiplier = RemoteBalance.Battle.legacyBossMultiplier;
             }
 
             MaxHP = Mathf.RoundToInt((baseStats.MaxHP + maxHPBonus) * multiplier);
@@ -264,7 +268,7 @@ public class SlimeBattleStats : MonoBehaviour
             }
         }
 
-        AddEnergy(10);
+        AddEnergy(RemoteBalance.Battle.energyPerAction);
 
         // Trừ khiên trước
         if (currentShield > 0)
@@ -287,7 +291,7 @@ public class SlimeBattleStats : MonoBehaviour
 
         if (finalDmgInt > 0 && CurrentHP > 0)
         {
-            AddEnergy(10); // +10 khi bị đánh
+            AddEnergy(RemoteBalance.Battle.energyPerAction); // +10 khi bị đánh (key `battle_energy_per_action`)
         }
 
         if (baseStats != null)

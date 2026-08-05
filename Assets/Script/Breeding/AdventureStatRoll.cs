@@ -9,6 +9,10 @@ public static class AdventureStatRoll
 {
     public static float RollQuality()
     {
+        // Remote Config (`adventure_quality_bands`) ghi đè nếu có.
+        var bands = RemoteBalance.AdventureQuality;
+        if (bands != null) { bands.Roll(out float rt); return rt; }
+
         float r = Random.value * 100f;
         if (r < 55f) return Random.Range(0.40f, 0.60f);
         if (r < 83f) return Random.Range(0.60f, 0.80f);

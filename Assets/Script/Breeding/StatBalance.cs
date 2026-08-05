@@ -19,6 +19,9 @@ public static class StatBalance
 
     public static Range Get(Rarity rarity)
     {
+        // Remote Config (`stat_balance_table`) ghi đè nếu có; không có → bảng gốc bên dưới.
+        if (RemoteBalance.TryGetStatRange(rarity, out var remote)) return remote;
+
         switch (rarity)
         {
             case Rarity.Common:    return R(1000, 2000,  100, 200,   200, 400,    400, 800,     80, 100,  0.05f, 1.30f);

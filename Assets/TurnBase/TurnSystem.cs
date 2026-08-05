@@ -203,17 +203,17 @@ public class TurnSystem : MonoBehaviour
         if (slimeData.body != null && (slimeData.body.skill == null || slimeData.body.skill.baseSkill == null) && slimeData.body.baseTrait != null && slimeData.body.baseTrait.skill != null)
         {
             slimeData.body.skill = new SkillInstance(slimeData.body.baseTrait.skill);
-            slimeData.body.skill.power = slimeData.body.GetRarityMultiplier(slimeData.body.Rarity) * 1.5f;
+            slimeData.body.skill.power = slimeData.body.GetSkillPower();
         }
         if (slimeData.armor != null && (slimeData.armor.skill == null || slimeData.armor.skill.baseSkill == null) && slimeData.armor.baseTrait != null && slimeData.armor.baseTrait.skill != null)
         {
             slimeData.armor.skill = new SkillInstance(slimeData.armor.baseTrait.skill);
-            slimeData.armor.skill.power = slimeData.armor.GetRarityMultiplier(slimeData.armor.Rarity) * 1.5f;
+            slimeData.armor.skill.power = slimeData.armor.GetSkillPower();
         }
         if (slimeData.weapon != null && (slimeData.weapon.skill == null || slimeData.weapon.skill.baseSkill == null) && slimeData.weapon.baseTrait != null && slimeData.weapon.baseTrait.skill != null)
         {
             slimeData.weapon.skill = new SkillInstance(slimeData.weapon.baseTrait.skill);
-            slimeData.weapon.skill.power = slimeData.weapon.GetRarityMultiplier(slimeData.weapon.Rarity) * 1.5f;
+            slimeData.weapon.skill.power = slimeData.weapon.GetSkillPower();
         }
 
         SlimeStats bossStats = boss.GetComponent<SlimeStats>();

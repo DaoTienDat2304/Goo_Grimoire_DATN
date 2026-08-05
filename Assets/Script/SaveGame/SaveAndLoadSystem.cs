@@ -578,9 +578,9 @@ public class SaveAndLoadSystem : MonoBehaviour
             ti.baseCritDMG      = dto.baseCritDMG;
         }
 
-        // Áp dụng multiplier hiện tại (có thể đã thay đổi qua Remote Config)
-        float currentMult = ti.GetRarityMultiplier(dto.rarity);
-        ti.RecalculateStats(currentMult);
+        // Chuẩn hoá lại chỉ số về đúng base đã lưu + tính lại sức mạnh kỹ năng
+        // (hệ số kỹ năng có thể đã đổi qua Remote Config `battle_skill_power_mult`).
+        ti.RecalculateStats();
 
         // Khôi phục skill từ tên đã lưu
         if (!string.IsNullOrEmpty(dto.skillName) || !string.IsNullOrEmpty(dto.ultimateSkillName))

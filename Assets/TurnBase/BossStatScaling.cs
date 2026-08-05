@@ -11,6 +11,9 @@ public static class BossStatScaling
 
     public static Mult Get(Rarity r)
     {
+        // Remote Config (`boss_scaling_table`) ghi đè nếu có; không có → bảng gốc bên dưới.
+        if (RemoteBalance.TryGetBossMult(r, out var remote)) return remote;
+
         switch (r)
         {
             case Rarity.Common:    return M(4.0f, 1.2f, 1.2f, 1.3f, 1.00f);

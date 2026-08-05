@@ -7,11 +7,13 @@ using UnityEngine;
 // Nếu cần cân bằng lại, chỉ sửa DUY NHẤT ở đây.
 public static class BattleStatFormula
 {
-    public const float CritRateCap = 0.75f;          // Crit Rate tối đa 75%
-    public const float CritDMGCap = 2.50f;           // Crit DMG tối đa 250%
-    public const float MaxDefReduction = 0.80f;      // Giảm sát thương tối đa 80% (design cap 75–80%)
-    public const float DefReductionPerPoint = 0.008f; // 1 DEF = 0.8% giảm sát thương (theo design: DEF×0.008)
-    public const float CritOverflowToAtk = 5f;        // 1% Crit DMG vượt cap = 5 ATK/Magic ATK
+    // Các hằng số này có thể chỉnh từ xa qua Remote Config (nhóm `battle_*`).
+    // Không có Remote Config → RemoteBalance.Battle giữ đúng giá trị gốc bên dưới.
+    public static float CritRateCap => RemoteBalance.Battle.critRateCap;                   // Crit Rate tối đa 75%
+    public static float CritDMGCap => RemoteBalance.Battle.critDmgCap;                     // Crit DMG tối đa 250%
+    public static float MaxDefReduction => RemoteBalance.Battle.maxDefReduction;           // Giảm sát thương tối đa 80% (design cap 75–80%)
+    public static float DefReductionPerPoint => RemoteBalance.Battle.defReductionPerPoint; // 1 DEF = 0.8% giảm sát thương (theo design: DEF×0.008)
+    public static float CritOverflowToAtk => RemoteBalance.Battle.critOverflowToAtk;       // 1% Crit DMG vượt cap = 5 ATK/Magic ATK
 
     // Crit Rate hiệu dụng (chưa cap). critChanceBonus là buff cộng thêm dạng % (vd 10 = +10%).
     public static float EffectiveCritRate(float baseCritRate, float critChanceBonus = 0f)

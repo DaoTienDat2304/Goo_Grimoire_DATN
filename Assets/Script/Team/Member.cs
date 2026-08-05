@@ -38,17 +38,17 @@ public class Member : MonoBehaviour
         if (s.body != null && (s.body.skill == null || s.body.skill.baseSkill == null) && s.body.baseTrait != null && s.body.baseTrait.skill != null)
         {
             s.body.skill = new SkillInstance(s.body.baseTrait.skill);
-            s.body.skill.power = s.body.GetRarityMultiplier(s.body.Rarity) * 1.5f;
+            s.body.skill.power = s.body.GetSkillPower();
         }
         if (s.armor != null && (s.armor.skill == null || s.armor.skill.baseSkill == null) && s.armor.baseTrait != null && s.armor.baseTrait.skill != null)
         {
             s.armor.skill = new SkillInstance(s.armor.baseTrait.skill);
-            s.armor.skill.power = s.armor.GetRarityMultiplier(s.armor.Rarity) * 1.5f;
+            s.armor.skill.power = s.armor.GetSkillPower();
         }
         if (s.weapon != null && (s.weapon.skill == null || s.weapon.skill.baseSkill == null) && s.weapon.baseTrait != null && s.weapon.baseTrait.skill != null)
         {
             s.weapon.skill = new SkillInstance(s.weapon.baseTrait.skill);
-            s.weapon.skill.power = s.weapon.GetRarityMultiplier(s.weapon.Rarity) * 1.5f;
+            s.weapon.skill.power = s.weapon.GetSkillPower();
         }
 
         GameObject slimeGO = Instantiate(slimePrefab, this.transform);

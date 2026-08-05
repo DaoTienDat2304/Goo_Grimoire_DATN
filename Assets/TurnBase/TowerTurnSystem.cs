@@ -1296,7 +1296,7 @@ public class TowerTurnSystem : TurnSystem
                 {
                     int dmg = Mathf.RoundToInt(stats.GetEffectiveMagicAttack() * 1.1f);
                     aStats.TakeDamage(dmg, currentSlime, isAoE: true);
-                    if (Random.Range(0f, 1f) < 0.40f) aStats.ApplyPoison(2, 3);
+                    if (Random.Range(0f, 1f) < 0.40f) aStats.ApplyPoison(2);
                 }
             }
             yield return new WaitForSeconds(1f);
@@ -1308,7 +1308,7 @@ public class TowerTurnSystem : TurnSystem
             if (tStats != null)
             {
                 tStats.TakeDamage(stats.GetEffectiveAttack(), currentSlime);
-                tStats.ApplyPoison(2, 3);
+                tStats.ApplyPoison(2);
             }
             yield return new WaitForSeconds(0.8f);
         }
@@ -1669,7 +1669,7 @@ public class TowerTurnSystem : TurnSystem
                 if (allyStats != null)
                 {
                     allyStats.TakeDamage(Mathf.RoundToInt(bossStats.BattleMagicAttack * 1.5f), currentSlime, isAoE: true);
-                    allyStats.ApplyPoison(2, 3);
+                    allyStats.ApplyPoison(2);
                 }
             }
             yield return new WaitForSeconds(1f);

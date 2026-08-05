@@ -280,7 +280,10 @@ public class TraitInstance
         }
     }
 
-    public void RecalculateStats(float newMultiplier)
+    /// <param name="newMultiplier">
+    /// Không còn dùng — giữ tham số để các call site cũ không phải sửa.
+    /// </param>
+    public void RecalculateStats(float newMultiplier = 1f)
     {
         // GDD: chỉ số ATK/DEF/SPD là GIÁ TRỊ CUỐI CÙNG — KHÔNG nhân hệ số độ hiếm nữa.
         // (Trước đây nhân rarityMultiplier lúc load khiến slime đã-lưu mạnh lệch so với slime
@@ -290,20 +293,28 @@ public class TraitInstance
         speed = baseSpeed;
 
         // Sức mạnh kỹ năng vẫn scale theo độ hiếm như GDD.
-        float rarityMultiplier = GetRarityMultiplier(Rarity);
-        if (skill != null) skill.power = rarityMultiplier * 1.5f;
+        if (skill != null) skill.power = GetSkillPower();
     }
+
+    /// <summary>
+    /// Sức mạnh kỹ năng = thang độ hiếm × hệ số remote `battle_skill_power_mult` (mặc định 1.5).
+    /// Dùng chung ở TurnSystem/Member để mọi nơi cùng một công thức.
+    /// </summary>
+    public float GetSkillPower()
+        => GetRarityMultiplier(Rarity) * RemoteBalance.Battle.skillPowerMult;
 
     public TraitInstance Clone()
     {
         return new TraitInstance(this);
     }
 
+    /// <summary>
+    /// Thang độ hiếm dùng cho SỨC MẠNH KỸ NĂNG và ĐỘ KHÓ THUẦN HOÁ.
+    /// KHÔNG còn nhân vào chỉ số (HP/ATK/DEF/SPD) — chỉ số nay lấy thẳng từ StatBalance,
+    /// nên các key `rarity_mult_*` cũ trên Remote Config đã bị loại bỏ.
+    /// </summary>
     public float GetRarityMultiplier(Rarity rarity)
     {
-        if (RemoteConfigManager.Instance != null && RemoteConfigManager.Instance.IsReady)
-            return RemoteConfigManager.Instance.GetRarityMultiplier(rarity);
-
         switch (rarity)
         {
             case Rarity.Common:    return 1f;

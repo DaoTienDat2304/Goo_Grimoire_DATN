@@ -70,6 +70,7 @@ public class SlimeSpawner : MonoBehaviour
     private readonly Dictionary<int, bool> slimeSimulationStates = new Dictionary<int, bool>();
     private readonly Dictionary<int, bool> slimeVisualStates = new Dictionary<int, bool>();
     private readonly Dictionary<int, bool> slimeAnimationStates = new Dictionary<int, bool>();
+    private readonly Collider2D[] spawnOverlapResults = new Collider2D[16];
 
     private void Awake()
     {
@@ -84,6 +85,12 @@ public class SlimeSpawner : MonoBehaviour
         // 10-12 bộ mesh Spine, collider và trait object ở các scene cũ.
         maxSlimeCount = Mathf.Min(maxSlimeCount, 8);
         minSlimeCount = Mathf.Min(minSlimeCount, maxSlimeCount);
+
+        if (obstacleLayerMask.value == -1 || obstacleLayerMask.value == 0)
+        {
+            int obstacleMask = LayerMask.GetMask("obstacle", "Obstacle", "Obstacles");
+            obstacleLayerMask = obstacleMask;
+        }
     }
 
     void Start()
@@ -198,13 +205,38 @@ public class SlimeSpawner : MonoBehaviour
         }
 
         Debug.LogWarning("Could not find valid spawn position after " + maxSpawnAttempts + " attempts");
-        return Vector3.zero;
+        return GetFallbackSpawnPosition(spawnCenter);
     }
 
     bool IsPositionValid(Vector3 position)
     {
-        Collider2D obstacle = Physics2D.OverlapCircle(position, 1f, obstacleLayerMask);
-        return obstacle == null;
+        if (obstacleLayerMask.value == 0)
+            return true;
+
+        int hitCount = Physics2D.OverlapCircleNonAlloc(position, 1f, spawnOverlapResults, obstacleLayerMask);
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D obstacle = spawnOverlapResults[i];
+            if (obstacle != null && !obstacle.isTrigger)
+                return false;
+        }
+
+        return true;
+    }
+
+    Vector3 GetFallbackSpawnPosition(Vector3 spawnCenter)
+    {
+        if (player == null)
+            return spawnCenter;
+
+        Vector2 direction = ((Vector2)(spawnCenter - player.position)).normalized;
+        if (direction.sqrMagnitude <= 0.001f)
+            direction = Random.insideUnitCircle.normalized;
+        if (direction.sqrMagnitude <= 0.001f)
+            direction = Vector2.right;
+
+        float distance = Mathf.Max(minDistanceFromPlayer, 1f);
+        return player.position + (Vector3)(direction * distance);
     }
 
     public void SpawnSingleSlime(Vector3 position)

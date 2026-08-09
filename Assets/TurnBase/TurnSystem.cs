@@ -40,9 +40,32 @@ public class TurnSystem : MonoBehaviour
     // Các biến cho hệ thống Chọn Mục tiêu
     protected GameObject targetIndicator;
 
+    // ── Performance Cache ──
+    // Cache Canvas để tránh FindObjectOfType mỗi lần tạo popup
+    private Canvas _cachedCanvas;
+    // Object Pool cho damage popup — tái sử dụng thay vì Instantiate/Destroy
+    private readonly Queue<GameObject> _popupPool = new Queue<GameObject>();
+    private const int POPUP_POOL_SIZE = 10;
+    // List tái sử dụng tránh tạo allocation mỗi NextTurn
+    private readonly List<GameObject> _activeParticipantsCache = new List<GameObject>();
+
     protected virtual void Start()
     {
-        // Ẩn result panel khi bắt đầu
+        // Warm-up Canvas cache ngay khi start
+        _cachedCanvas = GetComponentInParent<Canvas>();
+        if (_cachedCanvas == null) _cachedCanvas = FindObjectOfType<Canvas>();
+
+        // Pre-warm damage popup pool
+        if (_cachedCanvas != null)
+        {
+            for (int i = 0; i < POPUP_POOL_SIZE; i++)
+            {
+                var go = CreatePopupObject();
+                go.SetActive(false);
+                go.transform.SetParent(_cachedCanvas.transform, false);
+                _popupPool.Enqueue(go);
+            }
+        }
         if (resultPanel != null)
         {
             resultPanel.SetActive(false);
@@ -95,11 +118,10 @@ public class TurnSystem : MonoBehaviour
 
         targetIndicator = new GameObject("TargetIndicator");
         var spriteRenderer = targetIndicator.AddComponent<SpriteRenderer>();
-        // Tải ảnh Arrow từ thư mục Resources
         spriteRenderer.sprite = Resources.Load<Sprite>("Arrow");
-        spriteRenderer.sortingOrder = 100; // Đảm bảo hiển thị trên cùng
+        spriteRenderer.sortingOrder = 1;
         
-        targetIndicator.transform.localScale = new Vector3(4f, 4f, 4f); // Tăng kích cỡ lên 4 lần
+        targetIndicator.transform.localScale = new Vector3(4f, 4f, 4f);
         targetIndicator.SetActive(false);
     }
 
@@ -488,24 +510,28 @@ public class TurnSystem : MonoBehaviour
 
     protected virtual void TurnSorting()
     {
-        var sorted = turnList
-            .Where(s => s != null && s.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
-            .OrderByDescending(s => {
-                var battleStats = s.GetComponent<SlimeBattleStats>();
-                int spd = battleStats != null ? battleStats.BattleSpeed : (s.GetComponent<SlimeStats>()?.Speed ?? 10);
-                
-                // Priority rule: TinyBat (100k) > GoblinArcher (50k) > Normal Speed
-                var stats = s.GetComponent<SlimeStats>();
-                if (stats != null && stats.isEnemy)
-                {
-                    string n = s.name;
-                    if (n.Contains("TinyBat")) spd += 100000;
-                    else if (n.Contains("GoblinArcher")) spd += 50000;
-                }
-                return spd;
-            })
-            .ToList();
-        turnQueue = new Queue<GameObject>(sorted);
+        // Tạo list tạm thời — chỉ một GetComponent mỗi slime
+        var scored = new List<(GameObject go, int score)>(turnList.Count);
+        for (int i = 0; i < turnList.Count; i++)
+        {
+            var s = turnList[i];
+            if (s == null || !s.activeInHierarchy) continue;
+            var bStats = s.GetComponent<SlimeBattleStats>();
+            if (bStats == null || bStats.CurrentHP <= 0) continue;
+            int spd = bStats.BattleSpeed;
+            var sStats = s.GetComponent<SlimeStats>();
+            if (sStats != null && sStats.isEnemy)
+            {
+                string n = s.name;
+                if (n.Contains("TinyBat")) spd += 100000;
+                else if (n.Contains("GoblinArcher")) spd += 50000;
+            }
+            scored.Add((s, spd));
+        }
+        scored.Sort((a, b) => b.score.CompareTo(a.score));
+        turnQueue = new Queue<GameObject>(scored.Count);
+        for (int i = 0; i < scored.Count; i++)
+            turnQueue.Enqueue(scored[i].go);
     }
 
     public void StartGame()
@@ -646,18 +672,35 @@ public class TurnSystem : MonoBehaviour
         if (currentSlime != null) currentSlime.GetComponent<SlimeStats>().turnHalo.SetActive(false);
         yield return new WaitForSeconds(0.3f);
 
-        // Lọc danh sách còn sống và active
-        var activeParticipants = remainingAV.Keys
-            .Where(s => s != null && s.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
-            .ToList();
+        // Lọc danh sách còn sống và active — tái sử dụng list, không tạo mới
+        _activeParticipantsCache.Clear();
+        foreach (var kvp in remainingAV)
+        {
+            var s = kvp.Key;
+            if (s != null && s.activeInHierarchy)
+            {
+                var bs = s.GetComponent<SlimeBattleStats>();
+                if (bs != null && bs.CurrentHP > 0)
+                    _activeParticipantsCache.Add(s);
+            }
+        }
+        var activeParticipants = _activeParticipantsCache;
 
         if (activeParticipants.Count == 0)
         {
             // Reset nếu trống
             InitializeAVSystem();
-            activeParticipants = remainingAV.Keys
-                .Where(s => s != null && s.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
-                .ToList();
+        _activeParticipantsCache.Clear();
+            foreach (var kvp in remainingAV)
+            {
+                var s = kvp.Key;
+                if (s != null && s.activeInHierarchy)
+                {
+                    var bs = s.GetComponent<SlimeBattleStats>();
+                    if (bs != null && bs.CurrentHP > 0)
+                        _activeParticipantsCache.Add(s);
+                }
+            }
         }
 
         // Chọn nhân vật có Action Value (AV) nhỏ nhất để đi tiếp
@@ -733,34 +776,48 @@ public class TurnSystem : MonoBehaviour
     {
         turnCount++;
         skillPanel.SetActive(true);
-        currentSlime.GetComponent<SlimeStats>().turnHalo.SetActive(true);
-        curSlimeBody.skeletonDataAsset = currentSlime.GetComponentInChildren<SkeletonGraphic>().skeletonDataAsset;
-        curSlimeBody.allowMultipleCanvasRenderers = true;
-        curSlimeBody.enableSeparatorSlots = true;
 
-        // Khởi tạo lại Skeleton
-        curSlimeBody.Initialize(true);
-
-        curSlimeBody.AnimationState.SetAnimation(0, "animation", true);
-        curSlimeBody.timeScale = 2;
-
-        var armorSprite = currentSlime.GetComponent<SlimeStats>()?.armor?.sprite;
-        if (curSlimeHat != null)
+        // Cache GetComponent — tránh gọi 3 lần trên cùng một object
+        var slimeStats = currentSlime.GetComponent<SlimeStats>();
+        if (slimeStats != null)
         {
-            curSlimeHat.gameObject.SetActive(armorSprite != null);
-            if (armorSprite != null) curSlimeHat.sprite = armorSprite;
+            if (slimeStats.turnHalo != null) slimeStats.turnHalo.SetActive(true);
+            var armorSprite = slimeStats.armor?.sprite;
+            if (curSlimeHat != null)
+            {
+                curSlimeHat.gameObject.SetActive(armorSprite != null);
+                if (armorSprite != null) curSlimeHat.sprite = armorSprite;
+            }
+            var weaponSprite = slimeStats.weapon?.sprite;
+            if (curSlimeWeapon != null)
+            {
+                curSlimeWeapon.gameObject.SetActive(weaponSprite != null);
+                if (weaponSprite != null) curSlimeWeapon.sprite = weaponSprite;
+            }
         }
 
-        var weaponSprite = currentSlime.GetComponent<SlimeStats>()?.weapon?.sprite;
-        if (curSlimeWeapon != null)
+        var spine = currentSlime.GetComponentInChildren<SkeletonGraphic>();
+        if (spine != null)
         {
-            curSlimeWeapon.gameObject.SetActive(weaponSprite != null);
-            if (weaponSprite != null) curSlimeWeapon.sprite = weaponSprite;
+            curSlimeBody.skeletonDataAsset = spine.skeletonDataAsset;
+            curSlimeBody.allowMultipleCanvasRenderers = true;
+            curSlimeBody.enableSeparatorSlots = true;
+            curSlimeBody.Initialize(true);
+            curSlimeBody.AnimationState.SetAnimation(0, "animation", true);
+            curSlimeBody.timeScale = 2;
         }
 
         curSlimeBorder.color = Color.white;
-        skillPanel.GetComponent<SkillUI>().slime = currentSlime.gameObject.GetComponent<SlimeStats>();
+
+        // Cập nhật SkillUI — event-driven thay vì Update() mỗi frame
+        var skillUI = skillPanel.GetComponent<SkillUI>();
+        if (skillUI != null)
+        {
+            skillUI.slime = slimeStats;
+            skillUI.ForceRefresh();
+        }
     }
+
 
     private void TickCooldowns(GameObject slime)
     {
@@ -824,7 +881,9 @@ public class TurnSystem : MonoBehaviour
                 CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
             }
 
+#if UNITY_EDITOR
             Debug.Log($"{currentSlime.name} attacks {boss.name} for {damage} damage!");
+#endif
 
             // Chơi animation bị đánh cho target
             if (targetAnimController != null && targetAnimController.gameObject.activeInHierarchy)
@@ -834,24 +893,20 @@ public class TurnSystem : MonoBehaviour
 
             if (target.CurrentHP <= 0)
             {
+#if UNITY_EDITOR
                 Debug.Log($"{boss.name} died!");
-                var allEnemies = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None).Where(s => s != null && s.isEnemy && s.gameObject.activeInHierarchy).ToList();
-                var nextAlive = allEnemies.FirstOrDefault(e => {
-                    var bStats = e.GetComponent<SlimeBattleStats>();
-                    return bStats != null && bStats.CurrentHP > 0;
-                });
-                if (nextAlive != null) SelectTarget(nextAlive.gameObject);
+#endif
+                var nextAlive = formationManager.GetAllAliveEnemies(boss).FirstOrDefault();
+                if (nextAlive != null) SelectTarget(nextAlive);
             }
 
             if (CheckWinCondition())
             {
-                // Thắng - thuần hóa slime và quay về adventure scene
                 yield return StartCoroutine(HandleVictory());
                 yield break;
             }
             else
             {
-                // Kiểm tra xem team còn sống không
                 if (CheckLoseCondition())
                 {
                     yield return StartCoroutine(HandleDefeat());
@@ -900,7 +955,6 @@ public class TurnSystem : MonoBehaviour
             return;
         }
 
-        // 1. Chặn Nội tại
         if (skillInstance.baseSkill.type == SkillType.Passive)
         {
             Debug.Log("Kỹ năng nội tại không thể kích hoạt chủ động.");
@@ -909,7 +963,7 @@ public class TurnSystem : MonoBehaviour
 
         var caster = currentSlime.GetComponent<SlimeBattleStats>();
 
-        // 2. Kiểm tra tài nguyên ĐCK / NL thông qua BattleSystemManager
+        // Kiểm tra tài nguyên ĐCK / NL thông qua BattleSystemManager
         if (BattleSystemManager.Instance != null)
         {
             if (!BattleSystemManager.Instance.CanUseSkill(skillInstance.baseSkill, caster))
@@ -918,7 +972,7 @@ public class TurnSystem : MonoBehaviour
                 return;
             }
 
-            // 3. Trừ điểm ngay lập tức nếu đủ điều kiện
+            // Trừ điểm ngay lập tức nếu đủ điều kiện
             BattleSystemManager.Instance.ExecuteSkill(skillInstance.baseSkill, caster);
         }
 
@@ -1188,9 +1242,7 @@ public class TurnSystem : MonoBehaviour
             {
                 var combatAnim = slime.GetComponent<SimpleCombatAnimation>();
                 if (combatAnim != null)
-                {
                     combatAnim.ForceSetOriginalScale();
-                }
             }
         }
 
@@ -1198,40 +1250,17 @@ public class TurnSystem : MonoBehaviour
         {
             var bossAnim = boss.GetComponent<SimpleCombatAnimation>();
             if (bossAnim != null)
-            {
                 bossAnim.ForceSetOriginalScale();
-            }
         }
     }
 
     protected virtual bool CheckWinCondition()
     {
-        // Kiểm tra xem còn bất kỳ kẻ địch nào sống sót không
-        bool hasAliveEnemy = false;
-
-        // Nếu có TowerTurnSystem hoặc danh sách kẻ địch, nên dùng logic của mode đó.
-        // Ở TurnSystem cơ bản, ta tìm tất cả các SlimeStats có isEnemy = true trên scene.
-        var allStats = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None);
-        foreach (var stat in allStats)
-        {
-            if (stat != null && stat.isEnemy && stat.gameObject.activeInHierarchy)
-            {
-                var battleStats = stat.GetComponent<SlimeBattleStats>();
-                if (battleStats != null && battleStats.CurrentHP > 0)
-                {
-                    hasAliveEnemy = true;
-                    break;
-                }
-                else if (battleStats == null && stat.HP > 0)
-                {
-                    hasAliveEnemy = true;
-                    break;
-                }
-            }
-        }
-
-        return !hasAliveEnemy;
+        // Dùng formationManager để kiểm tra enemy còn sống — tránh FindObjectsByType
+        var aliveEnemies = formationManager.GetAllAliveEnemies(boss);
+        return aliveEnemies == null || aliveEnemies.Count == 0;
     }
+
 
     // Kiểm tra điều kiện thua (tất cả team slimes HP = 0)
     protected bool CheckLoseCondition()
@@ -1429,6 +1458,11 @@ public class TurnSystem : MonoBehaviour
         yield return SceneLoader.LoadSceneWithLoadingCoroutine("adventureSence");
     }
 
+    public void TriggerDefeat()
+    {
+        StartCoroutine(HandleDefeat());
+    }
+
     protected IEnumerator HandleDefeat()
     {
         // Log analytics khi thua
@@ -1495,38 +1529,60 @@ public class TurnSystem : MonoBehaviour
     }
 
     // ── Popup damage & stats indicator ──────────────────────────────────
-    public void CreateDamagePopup(Vector3 worldPosition, string text, Color color)
+    // Tạo sẵn một popup object (dùng cho pool)
+    private GameObject CreatePopupObject()
     {
-        Canvas parentCanvas = FindObjectOfType<Canvas>();
-        if (parentCanvas == null) return;
-
-        GameObject popupGO = new GameObject("BattlePopupText");
-        popupGO.transform.SetParent(parentCanvas.transform, false);
-
-        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector3.zero;
-        Vector2 localPos;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            parentCanvas.transform as RectTransform,
-            screenPos,
-            parentCanvas.worldCamera,
-            out localPos
-        );
-
-        RectTransform rectTransform = popupGO.AddComponent<RectTransform>();
-        rectTransform.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f)); // Random offset
-        rectTransform.sizeDelta = new Vector2(300, 80);
-
-        Text textComponent = popupGO.AddComponent<Text>();
-        textComponent.text = text;
-        textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textComponent.fontSize = 28;
-        textComponent.fontStyle = FontStyle.Bold;
-        textComponent.alignment = TextAnchor.MiddleCenter;
-        textComponent.color = color;
-
-        Outline outline = popupGO.AddComponent<Outline>();
+        var go = new GameObject("BattlePopupText");
+        go.AddComponent<RectTransform>().sizeDelta = new Vector2(300, 80);
+        var txt = go.AddComponent<Text>();
+        txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        txt.fontSize = 28;
+        txt.fontStyle = FontStyle.Bold;
+        txt.alignment = TextAnchor.MiddleCenter;
+        var outline = go.AddComponent<Outline>();
         outline.effectColor = Color.black;
         outline.effectDistance = new Vector2(2, -2);
+        return go;
+    }
+
+    public void CreateDamagePopup(Vector3 worldPosition, string text, Color color)
+    {
+        if (_cachedCanvas == null)
+        {
+            _cachedCanvas = FindObjectOfType<Canvas>();
+            if (_cachedCanvas == null) return;
+        }
+
+        // Lấy từ pool hoặc tạo mới nếu hết
+        GameObject popupGO;
+        if (_popupPool.Count > 0)
+        {
+            popupGO = _popupPool.Dequeue();
+            popupGO.SetActive(true);
+            popupGO.transform.SetParent(_cachedCanvas.transform, false);
+        }
+        else
+        {
+            popupGO = CreatePopupObject();
+            popupGO.transform.SetParent(_cachedCanvas.transform, false);
+        }
+
+        // Cập nhật nội dung
+        var textComponent = popupGO.GetComponent<Text>();
+        textComponent.text = text;
+        textComponent.color = color;
+
+        // Cập nhật vị trí
+        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector2.zero;
+        Vector2 localPos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            _cachedCanvas.transform as RectTransform,
+            screenPos,
+            _cachedCanvas.worldCamera,
+            out localPos
+        );
+        var rt = popupGO.GetComponent<RectTransform>();
+        rt.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f));
 
         StartCoroutine(AnimatePopupText(popupGO, textComponent));
     }
@@ -1535,26 +1591,27 @@ public class TurnSystem : MonoBehaviour
     {
         float duration = 1.2f;
         float elapsed = 0f;
-        Vector2 startPos = go.GetComponent<RectTransform>().anchoredPosition;
-        Vector2 endPos = startPos + new Vector2(0, 80); // Float up
+        var rt = go.GetComponent<RectTransform>(); // cache trước, tránh GetComponent mỗi frame
+        Vector2 startPos = rt.anchoredPosition;
+        Vector2 endPos = startPos + new Vector2(0, 80);
         Color startColor = textComponent.color;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-
             if (go == null) yield break;
 
-            go.GetComponent<RectTransform>().anchoredPosition = Vector2.Lerp(startPos, endPos, t);
+            rt.anchoredPosition = Vector2.Lerp(startPos, endPos, t);
             textComponent.color = new Color(startColor.r, startColor.g, startColor.b, 1f - t);
-
             yield return null;
         }
 
         if (go != null)
         {
-            Destroy(go);
+            // Trả về pool thay vì Destroy
+            go.SetActive(false);
+            _popupPool.Enqueue(go);
         }
     }
 }

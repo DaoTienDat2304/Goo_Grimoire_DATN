@@ -33,22 +33,17 @@ public class SlimeStats : MonoBehaviour
         if (hpbar != null)
         {
             hpbar.maxValue = MaxHP;
+            hpbar.value = HP;
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    // Đã xóa Update() polling HP mỗi frame.
+    // HP bar được cập nhật trực tiếp khi HP thay đổi (bởi SlimeBattleStats.TakeDamage/Heal).
+    // Màu xám khi HP = 0 cũng được xử lý tại điểm gây chết thay vì kiểm tra mỗi frame.
+    public void SetDeadVisual()
     {
-        if(hpbar != null)
-        {
-            hpbar.value = HP;
-        }
-
-        if (HP <= 0)
-        {
-            skeletonGraphic.color = Color.gray;
-            armor.color = Color.gray;
-            weapon.color = Color.gray;
-        }
+        if (skeletonGraphic != null) skeletonGraphic.color = Color.gray;
+        if (armor != null) armor.color = Color.gray;
+        if (weapon != null) weapon.color = Color.gray;
     }
 }

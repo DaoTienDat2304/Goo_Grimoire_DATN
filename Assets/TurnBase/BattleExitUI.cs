@@ -48,14 +48,23 @@ public class BattleExitUI : MonoBehaviour
     {
         if (confirmPopup != null) confirmPopup.SetActive(false);
 
-        // Xóa dữ liệu boss tạm nếu có
-        if (BattleDataManager.Instance != null)
+        Debug.Log("[BattleExitUI] Người chơi bỏ cuộc, xử lý như thua cuộc.");
+        
+        // Gọi xử lý thua cuộc từ TurnSystem
+        TurnSystem turnSystem = FindObjectOfType<TurnSystem>();
+        if (turnSystem != null)
         {
-            BattleDataManager.Instance.ClearBossData();
+            turnSystem.TriggerDefeat();
         }
-
-        Debug.Log("[BattleExitUI] Người chơi bỏ cuộc, trở về firstsave scene.");
-        StartCoroutine(LoadFirstSaveScene());
+        else
+        {
+            // Fallback nếu không tìm thấy TurnSystem
+            if (BattleDataManager.Instance != null)
+            {
+                BattleDataManager.Instance.ClearBossData();
+            }
+            StartCoroutine(LoadFirstSaveScene());
+        }
     }
 
     public void OnCancelExit()

@@ -33,17 +33,18 @@ public class CurrencyManager : MonoBehaviour
 
     private void InitializeCurrencies()
     {
-        // Luôn reset về giá trị ban đầu mỗi khi nhấn Play
+        // Use starting values only when no saved value exists.
         currencies[CurrencyType.Coins] = startingCoins;
         currencies[CurrencyType.Gems] = startingGems;
+        LoadCurrencyData();
         
-        // Không load dữ liệu đã lưu - luôn bắt đầu với giá trị ban đầu
-        // LoadCurrencyData(); // Đã comment out
+        // Saved values override the defaults above when they exist.
         
-        // Lưu giá trị ban đầu
+        // Persist defaults for a new installation and preserve loaded values.
         SaveCurrencyData();
+        firstLoadDone = true;
         
-        Debug.Log($"Currency reset về giá trị ban đầu: {startingCoins} Coins, {startingGems} Gems");
+        Debug.Log($"Currency loaded: {GetCurrency(CurrencyType.Coins)} Coins, {GetCurrency(CurrencyType.Gems)} Gems");
     }
 
     /// <summary>

@@ -127,7 +127,10 @@ public static class BreedingUIFlowWiring
     private static GameObject EnsureLayer(Transform parent, string layerName)
     {
         Transform existing = parent.Find(layerName);
-        GameObject layer = existing != null ? existing.gameObject : new GameObject(layerName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        if (existing != null)
+            return existing.gameObject;
+
+        GameObject layer = new GameObject(layerName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         RectTransform rect = layer.GetComponent<RectTransform>();
         rect.SetParent(parent, false);
         rect.anchorMin = Vector2.zero;

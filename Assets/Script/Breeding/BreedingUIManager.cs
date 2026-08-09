@@ -653,7 +653,6 @@ public class BreedingUIManager : MonoBehaviour
         if (target == null) return;
         target.sprite = sprite;
         target.enabled = sprite != null;
-        target.preserveAspect = true;
     }
 
     private void AutoWireSelectedSlimeLayers(Transform root, string containerName, ref Image body, ref Image armor, ref Image weapon)

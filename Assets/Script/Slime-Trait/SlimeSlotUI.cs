@@ -111,7 +111,6 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
             {
                 slimeImage.sprite = slime.body?.sprite;
                 slimeImage.enabled = slimeImage.sprite != null;
-                slimeImage.preserveAspect = true;
             }
             return;
         }
@@ -178,7 +177,6 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
         if (image == null) return;
         image.sprite = value;
         image.enabled = value != null;
-        image.preserveAspect = true;
     }
 
     private void ResolveSimpleCardReferences()

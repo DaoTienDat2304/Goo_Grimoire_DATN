@@ -5,6 +5,7 @@ using Spine.Unity;
 
 public class SlimeWorldManager : MonoBehaviour
 {
+    private static Sprite cachedDefaultSlimeSprite;
     private const int BackgroundUiSortingOrder = -100;
     private const int BuildingUiSortingOrder = -90;
     private const int WorldSlimeSortingOrder = -50;
@@ -306,11 +307,9 @@ public class SlimeWorldManager : MonoBehaviour
         // Thêm CircleCollider2D để click
         var collider = slimeGO.AddComponent<CircleCollider2D>();
         collider.radius = 5.5f;
-        collider.isTrigger = false;
-        //Them Rigidbody2D de co the tuong tac
-        var rb = slimeGO.AddComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Dynamic;
-        rb.gravityScale = 0;
+        // Slime nay duoc di chuyen truc tiep bang Transform. Collider trigger van
+        // click/raycast duoc ma khong bat physics solver xu ly contact lien tuc.
+        collider.isTrigger = true;
         // Thêm tên slime
         var nameText = CreateSlimeNameText(slime != null ? slime.slimeName : "Slime");
         nameText.transform.SetParent(slimeGO.transform);
@@ -419,6 +418,9 @@ public class SlimeWorldManager : MonoBehaviour
 
     public Sprite CreateDefaultSlimeSprite()
     {
+        if (cachedDefaultSlimeSprite != null)
+            return cachedDefaultSlimeSprite;
+
         int size = 64;
         Texture2D texture = new Texture2D(size, size);
 
@@ -440,7 +442,9 @@ public class SlimeWorldManager : MonoBehaviour
         }
 
         texture.Apply();
-        return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+        cachedDefaultSlimeSprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+        cachedDefaultSlimeSprite.name = "DefaultSlimeSprite_Cached";
+        return cachedDefaultSlimeSprite;
     }
 
     public void ClearWorldSlimes()

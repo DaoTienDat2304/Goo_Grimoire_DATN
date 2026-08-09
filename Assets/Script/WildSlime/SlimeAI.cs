@@ -43,6 +43,10 @@ public class SlimeAI : MonoBehaviour
     public float obstacleDetectionRange = 2f; // Khoảng cách phát hiện obstacles
     public float avoidanceForce = 1.5f;      // Lực tránh obstacles
     public float bodyRadius = 0.3f;          // Bán kính thân để circle cast
+    [Header("Crowd Avoidance")]
+    [SerializeField, Min(0.1f)] private float separationRadius = 0.9f;
+    [SerializeField, Range(0f, 1f)] private float separationStrength = 0.65f;
+    [SerializeField, Min(0.05f)] private float separationUpdateInterval = 0.12f;
     [Header("Stuck Handling")]
     public float stuckSpeedThreshold = 0.5f; // Nếu tốc độ thực < ngưỡng này → coi như kẹt
     public float stuckCheckTime = 0.2f;      // Kiểm tra kẹt sau thời gian này
@@ -133,6 +137,9 @@ public class SlimeAI : MonoBehaviour
     private bool cachedDirectionIsEscaping;
     private float nextMovementDecisionTime;
     private float nextStuckProbeTime;
+    private float nextSeparationUpdateTime;
+    private Vector2 cachedSeparation;
+    private readonly Collider2D[] separationHits = new Collider2D[12];
 
     void Start()
     {
@@ -284,10 +291,12 @@ public class SlimeAI : MonoBehaviour
     void FixedUpdate()
     {
         if (rb == null) return;
-        float acceleration = desiredVelocity.sqrMagnitude > rb.linearVelocity.sqrMagnitude
+        Vector2 steeringVelocity = ApplyImmediateObstacleSlide(desiredVelocity);
+        steeringVelocity = ApplySlimeSeparation(steeringVelocity);
+        float acceleration = steeringVelocity.sqrMagnitude > rb.linearVelocity.sqrMagnitude
             ? velocityAcceleration
             : velocityDeceleration;
-        rb.linearVelocity = Vector2.MoveTowards(rb.linearVelocity, desiredVelocity, acceleration * Time.fixedDeltaTime);
+        rb.linearVelocity = Vector2.MoveTowards(rb.linearVelocity, steeringVelocity, acceleration * Time.fixedDeltaTime);
 
         // Stuck detection khi đang né/chạy
         bool escaping = isPanicking || isFleeing || isEvading || isChaotic;
@@ -327,6 +336,51 @@ public class SlimeAI : MonoBehaviour
         {
             stuckTimer = 0f;
         }
+    }
+
+    Vector2 ApplyImmediateObstacleSlide(Vector2 velocity)
+    {
+        float speed = velocity.magnitude;
+        if (speed <= 0.01f) return velocity;
+
+        float probeDistance = Mathf.Max(bodyRadius * 1.5f, speed * Time.fixedDeltaTime * 1.5f);
+        RaycastHit2D hit = Physics2D.CircleCast(transform.position, bodyRadius, velocity / speed, probeDistance, obstacleLayerMask);
+        if (!IsObstacleCollider(hit.collider)) return velocity;
+
+        Vector2 tangent = Vector2.Perpendicular(hit.normal).normalized;
+        if (Vector2.Dot(tangent, velocity) < 0f) tangent = -tangent;
+        cachedMovementDirection = Vector3.zero;
+        nextMovementDecisionTime = 0f;
+        return tangent * speed * 0.8f;
+    }
+
+    Vector2 ApplySlimeSeparation(Vector2 velocity)
+    {
+        if (separationStrength <= 0f || separationRadius <= 0f) return velocity;
+        if (Time.time >= nextSeparationUpdateTime)
+        {
+            nextSeparationUpdateTime = Time.time + separationUpdateInterval + Random.Range(0f, 0.03f);
+            cachedSeparation = Vector2.zero;
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, separationRadius, separationHits);
+            for (int i = 0; i < count; i++)
+            {
+                Collider2D other = separationHits[i];
+                if (other == null || other.transform == transform || other.GetComponent<SlimeAI>() == null) continue;
+                Vector2 away = (Vector2)transform.position - (Vector2)other.transform.position;
+                float distance = away.magnitude;
+                if (distance <= 0.001f)
+                    away = Random.insideUnitCircle.normalized;
+                else
+                    away /= distance;
+                cachedSeparation += away * (1f - Mathf.Clamp01(distance / separationRadius));
+            }
+            if (cachedSeparation.sqrMagnitude > 1f) cachedSeparation.Normalize();
+        }
+
+        float speed = velocity.magnitude;
+        if (speed <= 0.01f || cachedSeparation.sqrMagnitude <= 0.001f) return velocity;
+        Vector2 blended = Vector2.Lerp(velocity.normalized, cachedSeparation.normalized, separationStrength * cachedSeparation.magnitude);
+        return blended.sqrMagnitude > 0.001f ? blended.normalized * speed : velocity;
     }
 
     void StartFleeing()

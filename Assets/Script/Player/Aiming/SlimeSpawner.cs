@@ -72,15 +72,31 @@ public class SlimeSpawner : MonoBehaviour
     private readonly Dictionary<int, bool> slimeAnimationStates = new Dictionary<int, bool>();
     private readonly Collider2D[] spawnOverlapResults = new Collider2D[16];
 
+    public void SetSustainedPerformanceMode(bool enabled)
+    {
+        if (!Application.isMobilePlatform) return;
+        // Chi giam tan suat tac vu culling nen khong lam slime dang hien thi
+        // bi dung AI/animation trong mot phien choi dai.
+        simulationCullInterval = enabled ? Mathf.Max(simulationCullInterval, 0.25f) : Mathf.Max(simulationCullInterval, 0.15f);
+        simulationCullTimer = 0f;
+    }
+
     private void Awake()
     {
         // Scene cũ có thể vẫn lưu các giá trị trước khi tối ưu. Ép cấu hình an
         // toàn ở runtime để mọi map, kể cả map tạo sau này, có cùng hành vi.
-        simulationCullInterval = Mathf.Min(simulationCullInterval, 0.05f);
+        simulationCullInterval = Application.isMobilePlatform
+            ? Mathf.Max(simulationCullInterval, 0.15f)
+            : Mathf.Min(simulationCullInterval, 0.05f);
         maxSimulationActivationsPerPass = Mathf.Max(1, maxSimulationActivationsPerPass);
         disableRenderersOutsideSimulation = true;
         maxActiveSlimeAI = Mathf.Clamp(maxActiveSlimeAI, 1, 4);
         maxAnimatedSlimes = Mathf.Clamp(maxAnimatedSlimes, maxActiveSlimeAI, 6);
+        if (Application.isMobilePlatform)
+        {
+            maxActiveSlimeAI = Mathf.Min(maxActiveSlimeAI, 3);
+            maxAnimatedSlimes = Mathf.Min(maxAnimatedSlimes, 4);
+        }
         // 8 slime hiển thị tốt trên màn hình nhỏ nhưng nhẹ hơn đáng kể so với
         // 10-12 bộ mesh Spine, collider và trait object ở các scene cũ.
         maxSlimeCount = Mathf.Min(maxSlimeCount, 8);

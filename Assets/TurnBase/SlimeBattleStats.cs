@@ -96,18 +96,38 @@ public class SlimeBattleStats : MonoBehaviour
             // % Max HP mỗi stack — key `battle_poison_percent_hp` (mặc định 4%).
             int poisonDmg = Mathf.Max(1, Mathf.RoundToInt(MaxHP * RemoteBalance.Battle.poisonPercentHp));
             activeDoTs.Add(new ActiveDoT { type = EffectType.Poison, damagePerTurn = poisonDmg, turnsLeft = duration });
-            TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+            var turnSys = GetTurnSys();
             if (turnSys != null)
-            {
                 turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.0f, $"POISON ({current + 1})", Color.green);
-            }
         }
+    }
+
+    // ── Cached references (thay thế FindObjectOfType mỗi lần gọi) ──
+    private static TurnSystem _cachedTurnSys;
+    private static bool _isTowerModeCached = false;
+    private static bool _isTowerModeValue = false;
+
+    private static TurnSystem GetTurnSys()
+    {
+        if (_cachedTurnSys == null)
+            _cachedTurnSys = UnityEngine.Object.FindAnyObjectByType<TurnSystem>();
+        return _cachedTurnSys;
+    }
+
+    // Gọi khi scene mới load để reset cache
+    public static void ClearTurnSysCache()
+    {
+        _cachedTurnSys = null;
+        _isTowerModeCached = false;
     }
 
     private void Awake()
     {
         if (baseStats == null)
             baseStats = GetComponent<SlimeStats>();
+        // Warm-up cache ngay khi Awake để tránh tìm trong mid-combat
+        if (_cachedTurnSys == null)
+            _cachedTurnSys = UnityEngine.Object.FindAnyObjectByType<TurnSystem>();
     }
 
     private void Start()
@@ -135,7 +155,12 @@ public class SlimeBattleStats : MonoBehaviour
         else
         {
             // Tower/khác: giữ hệ số phẳng theo Remote Config (mặc định 3x); đồng minh = 1x.
-            bool isTowerMode = UnityEngine.Object.FindAnyObjectByType<TowerTurnSystem>() != null;
+            if (!_isTowerModeCached)
+            {
+                _isTowerModeValue = UnityEngine.Object.FindAnyObjectByType<TowerTurnSystem>() != null;
+                _isTowerModeCached = true;
+            }
+            bool isTowerMode = _isTowerModeValue;
             float multiplier = 1f;
             
             if (baseStats.isEnemy && !isTowerMode)
@@ -188,18 +213,22 @@ public class SlimeBattleStats : MonoBehaviour
     public void AddEnergy(int amount)
     {
         currentEnergy = Mathf.Clamp(currentEnergy + amount, 0, MAX_ENERGY);
+#if UNITY_EDITOR
         Debug.Log($"{name} hồi {amount} Năng lượng. Current: {currentEnergy}/100");
+#endif
     }
 
     public void AddShield(int amount)
     {
         currentShield += amount;
-        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        var turnSys = GetTurnSys();
         if (turnSys != null)
         {
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.2f, $"+{amount} SHIELD!", Color.cyan);
         }
+#if UNITY_EDITOR
         Debug.Log($"{name} nhận {amount} Lá Chắn. Tổng khiên: {currentShield}");
+#endif
     }
 
     public void UseEnergy(int amount)
@@ -260,11 +289,9 @@ public class SlimeBattleStats : MonoBehaviour
             {
                 int counterDmg = Mathf.Max(1, Mathf.RoundToInt(finalDmgInt * 0.5f));
                 attackerStats.TakeDamage(counterDmg);
-                TurnSystem counterTurnSys = FindObjectOfType<TurnSystem>();
-                if (counterTurnSys != null)
-                {
-                    counterTurnSys.CreateDamagePopup(transform.position + Vector3.up * 2f, "COUNTER 50%!", Color.red);
-                }
+                var cTurnSys = GetTurnSys();
+                if (cTurnSys != null)
+                    cTurnSys.CreateDamagePopup(transform.position + Vector3.up * 2f, "COUNTER 50%!", Color.red);
             }
         }
 
@@ -276,7 +303,9 @@ public class SlimeBattleStats : MonoBehaviour
             if (currentShield >= finalDmgInt)
             {
                 currentShield -= finalDmgInt;
+#if UNITY_EDITOR
                 Debug.Log($"{name} bị đánh {finalDmgInt} nhưng khiên đã đỡ hết!");
+#endif
                 return;
             }
             else
@@ -289,27 +318,22 @@ public class SlimeBattleStats : MonoBehaviour
         CurrentHP -= finalDmgInt;
         CurrentHP = Mathf.Max(0, CurrentHP);
 
-        if (finalDmgInt > 0 && CurrentHP > 0)
-        {
-            AddEnergy(RemoteBalance.Battle.energyPerAction); // +10 khi bị đánh (key `battle_energy_per_action`)
-        }
-
         if (baseStats != null)
         {
             baseStats.HP = CurrentHP;
             if (baseStats.hpbar != null)
-            {
                 baseStats.hpbar.value = CurrentHP;
-            }
+            // Đổi màu xám ngay khi chết — thay thế SlimeStats.Update() polling
+            if (CurrentHP <= 0) baseStats.SetDeadVisual();
         }
 
-        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        var turnSys = GetTurnSys();
         if (turnSys != null)
-        {
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, $"-{finalDmgInt}", Color.red);
-        }
 
+#if UNITY_EDITOR
         Debug.Log($"{name} takes {finalDmgInt} damage! HP: {CurrentHP}/{MaxHP}");
+#endif
     }
 
     // Kéo lượt (Tiến) hoặc Đẩy lùi
@@ -321,12 +345,16 @@ public class SlimeBattleStats : MonoBehaviour
         if (isAdvance)
         {
             currentAV = Mathf.Max(0, currentAV - changeAmount); // Tiến
+#if UNITY_EDITOR
             Debug.Log($"{name} được kéo lượt {percentage}%, AV giảm còn {currentAV}");
+#endif
         }
         else
         {
             currentAV += changeAmount; // Lùi
+#if UNITY_EDITOR
             Debug.Log($"{name} bị đẩy lùi {percentage}%, AV tăng lên {currentAV}");
+#endif
         }
     }
 
@@ -339,18 +367,16 @@ public class SlimeBattleStats : MonoBehaviour
         {
             baseStats.HP = CurrentHP;
             if (baseStats.hpbar != null)
-            {
                 baseStats.hpbar.value = CurrentHP;
-            }
         }
 
-        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        var turnSys = GetTurnSys();
         if (turnSys != null)
-        {
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, $"+{healAmount} HP", Color.green);
-        }
 
+#if UNITY_EDITOR
         Debug.Log($"{name} heals for {healAmount}! HP: {CurrentHP}/{MaxHP}");
+#endif
     }
 
     public void ApplyBuff(BuffStat stat, float multiplier, int duration, bool isDebuff = false)
@@ -382,7 +408,7 @@ public class SlimeBattleStats : MonoBehaviour
             });
         }
 
-        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        var turnSys = GetTurnSys();
         if (turnSys != null)
         {
             string symbol = isDebuff ? "-" : "+";
@@ -423,13 +449,13 @@ public class SlimeBattleStats : MonoBehaviour
         if (duration > StunTurns)
             StunTurns = duration;
 
-        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        var turnSys = GetTurnSys();
         if (turnSys != null)
-        {
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.8f, "STUNNED!", Color.magenta);
-        }
 
+#if UNITY_EDITOR
         Debug.Log($"{name} bị stun {duration} lượt!");
+#endif
     }
 
     public void TickStun()
@@ -482,14 +508,16 @@ public class SlimeBattleStats : MonoBehaviour
     public void ApplyDoT(EffectType type, int damagePerTurn, int duration)
     {
         activeDoTs.Add(new ActiveDoT { type = type, damagePerTurn = damagePerTurn, turnsLeft = duration });
-        TurnSystem turnSys = FindObjectOfType<TurnSystem>();
+        var turnSys = GetTurnSys();
         if (turnSys != null)
         {
             string effectName = type == EffectType.Poison ? "POISONED!" : "BLEEDING!";
             Color color = type == EffectType.Poison ? Color.green : new Color(0.6f, 0f, 0f);
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.0f, effectName, color);
         }
+#if UNITY_EDITOR
         Debug.Log($"{name} bị dính {type} gây {damagePerTurn} sát thương mỗi lượt trong {duration} lượt!");
+#endif
     }
 
     public void TickDoTs()
@@ -503,12 +531,12 @@ public class SlimeBattleStats : MonoBehaviour
             TakeDamage(dot.damagePerTurn);
 
             // Hiện popup sát thương DoT
-            TurnSystem turnSys = FindObjectOfType<TurnSystem>();
-            if (turnSys != null)
+            var dotTurnSys = GetTurnSys();
+            if (dotTurnSys != null)
             {
                 Color color = dot.type == EffectType.Poison ? Color.green : new Color(0.6f, 0f, 0f);
                 string suffix = dot.type == EffectType.Poison ? " Poison" : " Bleed";
-                turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, dot.damagePerTurn.ToString() + suffix, color);
+                dotTurnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, dot.damagePerTurn.ToString() + suffix, color);
             }
 
             if (dot.turnsLeft <= 0)

@@ -171,15 +171,7 @@ public class FormationManager : MonoBehaviour
         Debug.Log($"Team display refresh completed. Displayed {i} slimes.");
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        // Kiểm tra nếu team thay đổi và cần refresh
-        if (teamSlimes != null && teamSlimes.team != null)
-        {
-            // Có thể thêm logic kiểm tra thay đổi team ở đây nếu cần
-        }
-    }
+    // Update() đã được xóa — không có logic nào cần chạy mỗi frame.
     
     // Method để refresh team từ bên ngoài
     public void ForceRefreshTeam()

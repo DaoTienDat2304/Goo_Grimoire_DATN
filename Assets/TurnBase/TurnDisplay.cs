@@ -14,9 +14,5 @@ public class TurnDisplay : MonoBehaviour
         
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    // Update() đã xóa — không có logic nào cần chạy mỗi frame.
 }

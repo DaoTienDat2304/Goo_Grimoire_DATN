@@ -990,69 +990,77 @@ public class TowerTurnSystem : TurnSystem
     // ==========================================
     private void UpdateEnemyAuras()
     {
-        var aliveEnemies = activeEnemies.Where(e => e != null && e.GetComponent<SlimeBattleStats>()?.CurrentHP > 0).ToList();
-        if (aliveEnemies.Count == 0) return;
+        if (activeEnemies == null || activeEnemies.Count == 0) return;
 
-        bool hasGoblinShaman = aliveEnemies.Any(e => e.name.Contains("GoblinShaman"));
-        bool hasDarkGoblinShaman = aliveEnemies.Any(e => e.name.Contains("DarkGoblinShaman"));
-        bool hasAncientShaman = aliveEnemies.Any(e => e.name.Contains("AncientShaman"));
-        bool hasIronGolem = aliveEnemies.Any(e => e.name.Contains("IronGolem") || e.name.Contains("EliteIronGolem"));
-        bool hasStoneGoblin = aliveEnemies.Any(e => e.name.Contains("StoneGoblin"));
-        bool hasCrystalSlime = aliveEnemies.Any(e => e.name.Contains("CrystalSlime"));
+        // --- Pass 1: thu thập flags bằng vòng for duy nhất (thay thế 9 LINQ queries) ---
+        bool hasGoblinShaman = false, hasDarkGoblinShaman = false, hasAncientShaman = false;
+        bool hasIronGolem = false, hasStoneGoblin = false, hasCrystalSlime = false;
+        bool hasStoneGolem = false, hasCrystalGolem = false;
+        int crystalGolemCount = 0;
 
-        bool hasStoneGolem = aliveEnemies.Any(e => e.name.Contains("StoneGolem") || e.name.Contains("EliteStoneGolem"));
-        bool hasCrystalGolem = aliveEnemies.Any(e => e.name.Contains("CrystalGolem") || e.name.Contains("EliteCrystalGolem"));
-        int crystalGolemCount = aliveEnemies.Count(e => e.name.Contains("CrystalGolem") || e.name.Contains("EliteCrystalGolem"));
+        for (int i = 0; i < activeEnemies.Count; i++)
+        {
+            var e = activeEnemies[i];
+            if (e == null) continue;
+            var bs = e.GetComponent<SlimeBattleStats>();
+            if (bs == null || bs.CurrentHP <= 0) continue;
+
+            string n = e.name;
+            if (!hasGoblinShaman && n.Contains("GoblinShaman"))      hasGoblinShaman = true;
+            if (!hasDarkGoblinShaman && n.Contains("DarkGoblinShaman")) hasDarkGoblinShaman = true;
+            if (!hasAncientShaman && n.Contains("AncientShaman"))    hasAncientShaman = true;
+            if (!hasIronGolem && (n.Contains("IronGolem") || n.Contains("EliteIronGolem"))) hasIronGolem = true;
+            if (!hasStoneGoblin && n.Contains("StoneGoblin"))        hasStoneGoblin = true;
+            if (!hasCrystalSlime && n.Contains("CrystalSlime"))      hasCrystalSlime = true;
+            if (!hasStoneGolem && (n.Contains("StoneGolem") || n.Contains("EliteStoneGolem"))) hasStoneGolem = true;
+            if (n.Contains("CrystalGolem") || n.Contains("EliteCrystalGolem"))
+            {
+                hasCrystalGolem = true;
+                crystalGolemCount++;
+            }
+        }
         bool hasAll3Golems = hasStoneGolem && hasIronGolem && hasCrystalGolem;
 
+        // Tính số player bị poison — vòng for đơn giản
         var playerAllies = formationManager.GetAllAliveAllies();
-        int poisonedPlayerCount = playerAllies.Count(a => a != null && a.GetComponent<SlimeBattleStats>()?.GetPoisonStackCount() > 0);
-
-        foreach (var enemy in aliveEnemies)
+        int poisonedPlayerCount = 0;
+        for (int i = 0; i < playerAllies.Count; i++)
         {
+            var a = playerAllies[i];
+            if (a == null) continue;
+            var aStats = a.GetComponent<SlimeBattleStats>();
+            if (aStats != null && aStats.GetPoisonStackCount() > 0) poisonedPlayerCount++;
+        }
+
+        // --- Pass 2: áp dụng aura cho từng enemy (chỉ dùng stats đã lấy từ Pass 1) ---
+        for (int i = 0; i < activeEnemies.Count; i++)
+        {
+            var enemy = activeEnemies[i];
+            if (enemy == null) continue;
             var stats = enemy.GetComponent<SlimeBattleStats>();
             if (stats == null || stats.baseStats == null) continue;
+            var bsHP = stats.CurrentHP;
+            if (bsHP <= 0) continue;
 
             string n = enemy.name;
-            float defMult = 1.0f;
-            float matkMult = 1.0f;
-            float atkMult = 1.0f;
+            float defMult = 1.0f, matkMult = 1.0f, atkMult = 1.0f;
 
-            // Goblin Shaman còn sống -> Goblin Warrior +15% ATK
             if (hasGoblinShaman && n.Contains("GoblinWarrior")) atkMult *= 1.15f;
-
-            // Dark Goblin Shaman còn sống -> Toàn bộ đồng minh +20% MATK & +15% Crit Rate
-            if (hasDarkGoblinShaman)
-            {
-                matkMult *= 1.20f;
-                stats.critChance = 15f;
-            }
-
-            // Ancient Shaman còn sống -> Tất cả đồng minh +20% DEF
+            if (hasDarkGoblinShaman) { matkMult *= 1.20f; stats.critChance = 15f; }
             if (hasAncientShaman) defMult *= 1.20f;
-
-            // Iron Golem còn sống -> Toàn bộ Golem nhận 15% giảm sát thương
             if (hasIronGolem && n.Contains("Golem")) stats.damageReduction = 15f;
-
-            // Stone Goblin & Crystal Slime synergy
             if (n.Contains("CrystalSlime") && hasStoneGoblin) defMult *= 1.15f;
             if (n.Contains("StoneGoblin") && hasStoneGoblin && hasCrystalSlime) defMult *= 1.10f;
-
-            // Cả 3 loại Golem trên sân -> Toàn đội Golem nhận thêm +10% DEF
             if (hasAll3Golems && n.Contains("Golem")) defMult *= 1.10f;
-
-            // Nếu còn ≥2 Crystal Golem -> Toàn team enemy +25% DEF
             if (crystalGolemCount >= 2) defMult *= 1.25f;
-
-            // Poison Slime -> Nếu có ≥2 unit bị Poison -> tăng 20% MATK
             if (n.Contains("PoisonSlime") && poisonedPlayerCount >= 2) matkMult *= 1.20f;
 
-            // Cập nhật chỉ số thực tế sau khi tính Aura
             stats.BattleDefense = Mathf.RoundToInt(stats.initialBattleDefense * defMult);
             stats.BattleMagicAttack = Mathf.RoundToInt(stats.initialBattleMagicAttack * matkMult);
             stats.BattleAttack = Mathf.RoundToInt(stats.initialBattleAttack * atkMult);
         }
     }
+
 
     // ==========================================
     // 4. THỰC THI HÀNH VI AI THEO TỪNG LOẠI QUÁI

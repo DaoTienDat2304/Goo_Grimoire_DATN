@@ -312,8 +312,13 @@ public class BreedingUIManager : MonoBehaviour
     {
         if (AudioManager.Instance != null) AudioManager.Instance.PlayButtonClickSFX();
         panelBreedingActive = false;
-        if (breedingUIRoot != null) breedingUIRoot.SetActive(false);
-        else gameObject.SetActive(false);
+        SlimeWorldManager worldManager = FindFirstObjectByType<SlimeWorldManager>();
+        if (worldManager != null)
+            worldManager.StartWorldView();
+        else if (breedingUIRoot != null)
+            breedingUIRoot.SetActive(false);
+        else
+            gameObject.SetActive(false);
     }
 
     private void OnFinishWithGemsClicked()

@@ -153,17 +153,19 @@ public class SlimeAI : MonoBehaviour
         {
             rb.gravityScale = 0;
             rb.freezeRotation = true;
-            // Slime tự điều hướng bằng AI, không cần solver giải va chạm với
-            // tường/player/slime khác. Kinematic + trigger loại bỏ contact storm
-            // khi nhiều slime dồn vào một góc nhưng vẫn nhận được Catcher trigger.
-            rb.bodyType = RigidbodyType2D.Kinematic;
-            rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
-            rb.interpolation = RigidbodyInterpolation2D.None;
+            // Dynamic body giu va cham vat ly voi cong trinh. Va cham slime-slime
+            // va player duoc ignore ben duoi de tranh contact storm.
+            rb.bodyType = RigidbodyType2D.Dynamic;
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         }
 
         Collider2D slimeCollider = GetComponent<Collider2D>();
         if (slimeCollider != null)
-            slimeCollider.isTrigger = true;
+        {
+            slimeCollider.isTrigger = false;
+            IgnoreNonBuildingCollisions(slimeCollider);
+        }
 
         // Prefab cũ lưu mask = 0 nên toàn bộ CircleCast trước đây không thấy tường.
         if (obstacleLayerMask.value == 0)
@@ -336,6 +338,40 @@ public class SlimeAI : MonoBehaviour
         {
             stuckTimer = 0f;
         }
+    }
+
+    private void IgnoreNonBuildingCollisions(Collider2D ownCollider)
+    {
+        SlimeAI[] slimes = FindObjectsByType<SlimeAI>(FindObjectsSortMode.None);
+        foreach (SlimeAI other in slimes)
+        {
+            if (other == null || other == this) continue;
+            Collider2D otherCollider = other.GetComponent<Collider2D>();
+            if (otherCollider != null) Physics2D.IgnoreCollision(ownCollider, otherCollider, true);
+        }
+
+        if (player != null)
+        {
+            Collider2D[] playerColliders = player.GetComponentsInChildren<Collider2D>(true);
+            foreach (Collider2D playerCollider in playerColliders)
+                Physics2D.IgnoreCollision(ownCollider, playerCollider, true);
+        }
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.collider == null || collision.collider.GetComponent<SlimeAI>() != null) return;
+        if (player != null && collision.collider.transform.IsChildOf(player)) return;
+
+        Vector2 normal = collision.contactCount > 0 ? collision.GetContact(0).normal : Vector2.zero;
+        if (normal.sqrMagnitude <= 0.001f) return;
+        Vector2 tangent = Vector2.Perpendicular(normal).normalized;
+        if (Vector2.Dot(tangent, desiredVelocity) < 0f) tangent = -tangent;
+        float speed = Mathf.Max(desiredVelocity.magnitude, wanderSpeed * 0.7f);
+        desiredVelocity = tangent * speed;
+        cachedMovementDirection = Vector3.zero;
+        nextMovementDecisionTime = 0f;
+        stuckTimer = 0f;
     }
 
     Vector2 ApplyImmediateObstacleSlide(Vector2 velocity)

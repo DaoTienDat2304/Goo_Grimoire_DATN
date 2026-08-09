@@ -162,7 +162,8 @@ public class SlimeWorldManager : MonoBehaviour
         if (breedingUI != null)
         {
             breedingUI.panelBreedingActive = false;
-            breedingUI.gameObject.SetActive(false);
+            if (breedingUI.breedingUIRoot != null)
+                breedingUI.breedingUIRoot.SetActive(false);
         }
         if (breedUI != null)
         {
@@ -179,6 +180,7 @@ public class SlimeWorldManager : MonoBehaviour
             traitCollection.gameObject.SetActive(true);
         }
 
+        ClearWorldSlimes();
         CreateWorldSlimes();
     }
 
@@ -188,7 +190,8 @@ public class SlimeWorldManager : MonoBehaviour
         if (breedingUI != null)
         {
             breedingUI.panelBreedingActive = false;
-            breedingUI.gameObject.SetActive(false);
+            if (breedingUI.breedingUIRoot != null)
+                breedingUI.breedingUIRoot.SetActive(false);
         }
         if (breedUI != null)
         {
@@ -211,6 +214,9 @@ public class SlimeWorldManager : MonoBehaviour
         if (breedingUI != null)
         {
             breedingUI.gameObject.SetActive(true);
+            if (breedingUI.breedingUIRoot != null)
+                breedingUI.breedingUIRoot.SetActive(true);
+            breedingUI.ShowBreedingPanel();
         }
         if (breedUI != null)
         {

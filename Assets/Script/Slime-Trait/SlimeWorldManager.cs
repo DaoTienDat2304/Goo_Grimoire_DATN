@@ -39,6 +39,9 @@ public class SlimeWorldManager : MonoBehaviour
     private float[] slimeBounceOffsets;
     private float[] slimeBounceTimes;
     private Slime[] slimeData;
+    private int[] slimeAvoidanceSides;
+    private Vector3[] slimeAvoidanceWaypoints;
+    private float[] slimeAvoidanceUntil;
     public GameObject breedUI;
     public Button traitCollection;
 
@@ -48,6 +51,9 @@ public class SlimeWorldManager : MonoBehaviour
     // Cached movement area colliders
     private CircleCollider2D areaCircleCollider;
     private BoxCollider2D areaBoxCollider;
+    private BuildingSlot[] buildingSlots;
+    private readonly Vector3[] buildingWorldCorners = new Vector3[4];
+    [SerializeField, Min(0f)] private float buildingAvoidancePaddingPixels = 24f;
     private void Start()
     {
         InitializeWorld();
@@ -69,6 +75,7 @@ public class SlimeWorldManager : MonoBehaviour
         }
 
         ConfigureWorldViewSorting();
+        buildingSlots = FindObjectsByType<BuildingSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
         // Cache movement area colliders if provided
         if (movementArea != null)
@@ -84,6 +91,11 @@ public class SlimeWorldManager : MonoBehaviour
         slimeBounceOffsets = new float[maxWorldSlimes];
         slimeBounceTimes = new float[maxWorldSlimes];
         slimeData = new Slime[maxWorldSlimes];
+        slimeAvoidanceSides = new int[maxWorldSlimes];
+        slimeAvoidanceWaypoints = new Vector3[maxWorldSlimes];
+        slimeAvoidanceUntil = new float[maxWorldSlimes];
+        for (int i = 0; i < slimeAvoidanceSides.Length; i++)
+            slimeAvoidanceSides[i] = (i & 1) == 0 ? 1 : -1;
 
         // Tạo vị trí ban đầu
         CreateInitialPositions();
@@ -485,26 +497,234 @@ public class SlimeWorldManager : MonoBehaviour
             float bounce = Mathf.Sin(slimeBounceTimes[i] + slimeBounceOffsets[i]) * slimeBounceHeight;
 
             // Cập nhật vị trí
-            Vector3 currentPos = worldSlimes[i].transform.position;
-            Vector3 targetPos = slimeTargets[i] + Vector3.up * bounce;
+            // Navigation uses a stable ground position. Visual bounce must not
+            // feed back into collision and boundary steering.
+            Vector3 currentPos = slimePositions[i];
+            Vector3 targetPos = slimeTargets[i];
+            bool turnedAtFarmEdge = false;
 
             // Di chuyển đến vị trí mục tiêu
             if (Vector3.Distance(currentPos, targetPos) > 0.1f)
             {
-                Vector3 newPos = Vector3.MoveTowards(currentPos, targetPos, slimeMoveSpeed * Time.deltaTime);
-                worldSlimes[i].transform.position = newPos;
+                Vector3 moveTarget = GetBuildingSafeMoveTarget(i, currentPos, targetPos);
+                Vector3 newPos = Vector3.MoveTowards(currentPos, moveTarget, slimeMoveSpeed * Time.deltaTime);
+                if (IsInsideMovementArea(newPos))
+                {
+                    slimePositions[i] = newPos;
+                }
+                else
+                {
+                    TurnAwayFromFarmEdge(i, currentPos);
+                    turnedAtFarmEdge = true;
+                }
             }
+
+            worldSlimes[i].transform.position = slimePositions[i] + Vector3.up * bounce;
 
             // Xoay slime
             worldSlimes[i].transform.Rotate(0, 0, slimeRotationSpeed * Time.deltaTime);
 
             // Thay đổi vị trí mục tiêu ngẫu nhiên
-            if (Random.Range(0f, 1f) < 0.005f)
+            if (!turnedAtFarmEdge && Random.Range(0f, 1f) < 0.005f)
             {
                 Vector3 newTarget = GetRandomPointInArea();
                 slimeTargets[i] = newTarget;
             }
         }
+    }
+
+    private bool IsInsideMovementArea(Vector3 worldPosition)
+    {
+        if (useAreaCollider)
+        {
+            Collider2D areaCollider = areaCircleCollider != null
+                ? areaCircleCollider
+                : areaBoxCollider;
+            if (areaCollider != null && areaCollider.enabled)
+                return areaCollider.OverlapPoint(worldPosition);
+        }
+
+        Vector3 center = movementArea != null ? movementArea.position : transform.position;
+        return ((Vector2)(worldPosition - center)).sqrMagnitude <= worldRadius * worldRadius;
+    }
+
+    private void TurnAwayFromFarmEdge(int slimeIndex, Vector3 currentPosition)
+    {
+        Vector3 center = movementArea != null ? movementArea.position : transform.position;
+        Vector2 inward = ((Vector2)(center - currentPosition)).normalized;
+        if (inward.sqrMagnitude < 0.001f)
+            inward = Random.insideUnitCircle.normalized;
+
+        int side = slimeAvoidanceSides != null && slimeIndex < slimeAvoidanceSides.Length
+            ? slimeAvoidanceSides[slimeIndex]
+            : 1;
+        Vector2 tangent = new Vector2(-inward.y, inward.x) * side;
+        Vector2 turnDirection = (inward + tangent * Random.Range(0.25f, 0.65f)).normalized;
+        float turnDistance = Mathf.Max(2f, worldRadius * 0.35f);
+        Vector3 newTarget = currentPosition + (Vector3)(turnDirection * turnDistance);
+
+        if (!IsInsideMovementArea(newTarget))
+            newTarget = GetRandomPointInArea();
+
+        slimeTargets[slimeIndex] = newTarget;
+        if (slimeAvoidanceSides != null && slimeIndex < slimeAvoidanceSides.Length)
+            slimeAvoidanceSides[slimeIndex] = -side;
+        if (slimeAvoidanceUntil != null && slimeIndex < slimeAvoidanceUntil.Length)
+            slimeAvoidanceUntil[slimeIndex] = 0f;
+    }
+
+    private Vector3 GetBuildingSafeMoveTarget(int slimeIndex, Vector3 currentWorld, Vector3 desiredWorld)
+    {
+        if (mainCamera == null || buildingSlots == null || buildingSlots.Length == 0)
+            return desiredWorld;
+
+        if (slimeAvoidanceUntil != null && slimeIndex < slimeAvoidanceUntil.Length
+            && Time.time < slimeAvoidanceUntil[slimeIndex])
+        {
+            Vector3 waypoint = slimeAvoidanceWaypoints[slimeIndex];
+            if ((waypoint - currentWorld).sqrMagnitude > 0.04f)
+                return waypoint;
+        }
+
+        Vector3 currentScreen3 = mainCamera.WorldToScreenPoint(currentWorld);
+        Vector3 desiredScreen3 = mainCamera.WorldToScreenPoint(desiredWorld);
+        Vector2 currentScreen = currentScreen3;
+        Vector2 desiredScreen = desiredScreen3;
+        Vector2 travel = desiredScreen - currentScreen;
+        if (travel.sqrMagnitude <= 0.001f)
+            return desiredWorld;
+
+        float lookAheadPixels = Mathf.Max(18f, travel.magnitude * Mathf.Clamp01(slimeMoveSpeed * Time.deltaTime));
+        Vector2 nextScreen = currentScreen + travel.normalized * lookAheadPixels;
+
+        foreach (BuildingSlot slot in buildingSlots)
+        {
+            bool hasVisibleBuilding = slot != null && slot.placedBuildingIcon != null
+                && slot.placedBuildingIcon.enabled && slot.placedBuildingIcon.sprite != null;
+            if (slot == null || (!slot.isOccupied && !hasVisibleBuilding) || !slot.gameObject.activeInHierarchy)
+                continue;
+
+            RectTransform obstacle = slot.placedBuildingIcon != null
+                ? slot.placedBuildingIcon.rectTransform
+                : slot.GetComponent<RectTransform>();
+            if (obstacle == null || !obstacle.gameObject.activeInHierarchy)
+                continue;
+
+            Rect screenRect = GetScreenRect(obstacle);
+            screenRect.xMin -= buildingAvoidancePaddingPixels;
+            screenRect.xMax += buildingAvoidancePaddingPixels;
+            screenRect.yMin -= buildingAvoidancePaddingPixels;
+            screenRect.yMax += buildingAvoidancePaddingPixels;
+
+            if (screenRect.Contains(currentScreen))
+            {
+                Vector2 exit = GetNearestOutsidePoint(currentScreen, screenRect, 3f);
+                return SetAvoidanceWaypoint(slimeIndex, exit, currentScreen3.z, 0.35f);
+            }
+
+            if (!screenRect.Contains(nextScreen) && !SegmentIntersectsRect(currentScreen, nextScreen, screenRect))
+                continue;
+
+            int side = slimeAvoidanceSides != null && slimeIndex < slimeAvoidanceSides.Length
+                ? slimeAvoidanceSides[slimeIndex]
+                : 1;
+            const float cornerClearance = 18f;
+            Vector2 chosen;
+            if (Mathf.Abs(travel.x) >= Mathf.Abs(travel.y))
+            {
+                chosen.x = travel.x > 0f ? screenRect.xMin - cornerClearance : screenRect.xMax + cornerClearance;
+                chosen.y = side > 0 ? screenRect.yMax + cornerClearance : screenRect.yMin - cornerClearance;
+            }
+            else
+            {
+                chosen.x = side > 0 ? screenRect.xMax + cornerClearance : screenRect.xMin - cornerClearance;
+                chosen.y = travel.y > 0f ? screenRect.yMin - cornerClearance : screenRect.yMax + cornerClearance;
+            }
+
+            // Commit to one corner briefly. Recalculating the tangent every frame
+            // made slimes oscillate at the building edge.
+            return SetAvoidanceWaypoint(slimeIndex, chosen, currentScreen3.z, 0.8f);
+        }
+
+        return desiredWorld;
+    }
+
+    private Vector3 SetAvoidanceWaypoint(int slimeIndex, Vector2 screenPoint, float depth, float duration)
+    {
+        Vector3 waypoint = ScreenToWorldAtDepth(screenPoint, depth);
+        if (slimeAvoidanceWaypoints != null && slimeIndex < slimeAvoidanceWaypoints.Length)
+        {
+            slimeAvoidanceWaypoints[slimeIndex] = waypoint;
+            slimeAvoidanceUntil[slimeIndex] = Time.time + duration;
+        }
+        return waypoint;
+    }
+
+    private Rect GetScreenRect(RectTransform rect)
+    {
+        rect.GetWorldCorners(buildingWorldCorners);
+        Canvas canvas = rect.GetComponentInParent<Canvas>();
+        Camera uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? (canvas.worldCamera != null ? canvas.worldCamera : mainCamera)
+            : null;
+        Vector2 min = RectTransformUtility.WorldToScreenPoint(uiCamera, buildingWorldCorners[0]);
+        Vector2 max = min;
+        for (int i = 1; i < buildingWorldCorners.Length; i++)
+        {
+            Vector2 point = RectTransformUtility.WorldToScreenPoint(uiCamera, buildingWorldCorners[i]);
+            min = Vector2.Min(min, point);
+            max = Vector2.Max(max, point);
+        }
+        return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+    }
+
+    private Vector3 ScreenToWorldAtDepth(Vector2 screen, float depth)
+    {
+        Vector3 world = mainCamera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
+        world.z = 0f;
+        return world;
+    }
+
+    private static Vector2 GetNearestOutsidePoint(Vector2 point, Rect rect, float margin)
+    {
+        float left = Mathf.Abs(point.x - rect.xMin);
+        float right = Mathf.Abs(rect.xMax - point.x);
+        float bottom = Mathf.Abs(point.y - rect.yMin);
+        float top = Mathf.Abs(rect.yMax - point.y);
+        float nearest = Mathf.Min(left, right, bottom, top);
+        if (nearest == left) point.x = rect.xMin - margin;
+        else if (nearest == right) point.x = rect.xMax + margin;
+        else if (nearest == bottom) point.y = rect.yMin - margin;
+        else point.y = rect.yMax + margin;
+        return point;
+    }
+
+    private static bool SegmentIntersectsRect(Vector2 from, Vector2 to, Rect rect)
+    {
+        Vector2 direction = to - from;
+        float enter = 0f;
+        float exit = 1f;
+        return Clip(-direction.x, from.x - rect.xMin, ref enter, ref exit)
+            && Clip(direction.x, rect.xMax - from.x, ref enter, ref exit)
+            && Clip(-direction.y, from.y - rect.yMin, ref enter, ref exit)
+            && Clip(direction.y, rect.yMax - from.y, ref enter, ref exit);
+    }
+
+    private static bool Clip(float denominator, float numerator, ref float enter, ref float exit)
+    {
+        if (Mathf.Approximately(denominator, 0f)) return numerator >= 0f;
+        float t = numerator / denominator;
+        if (denominator < 0f)
+        {
+            if (t > exit) return false;
+            if (t > enter) enter = t;
+        }
+        else
+        {
+            if (t < enter) return false;
+            if (t < exit) exit = t;
+        }
+        return true;
     }
 
     public void RefreshWorldSlimes()

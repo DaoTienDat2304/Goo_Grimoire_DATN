@@ -160,7 +160,9 @@ public class SaveAndLoadSystem : MonoBehaviour
         SerializeStats(data);
         SerializeDaily(data);
 
-        var json = JsonUtility.ToJson(data, true);
+        // Compact JSON is substantially cheaper to allocate and persist on mobile.
+        // Pretty printing is useful for diagnostics, but this is a runtime save path.
+        var json = JsonUtility.ToJson(data, false);
 
         // Luôn lưu cục bộ bằng PlayerPrefs — không mất save khi thoát/replay,
         // kể cả ở offline dev mode khi cloud chưa bật. Dùng LocalSaveId (guest = key
@@ -667,6 +669,8 @@ public class SaveAndLoadSystem : MonoBehaviour
                     slot.placedBuildingIcon.enabled = true;
                 }
             }
+
+            slot.RefreshBuildingCollider();
         }
     }
 

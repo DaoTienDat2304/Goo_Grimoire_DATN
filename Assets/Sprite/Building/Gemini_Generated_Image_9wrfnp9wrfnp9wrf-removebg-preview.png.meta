@@ -129,17 +129,33 @@ TextureImporter:
       name: Gemini_Generated_Image_9wrfnp9wrfnp9wrf-removebg-preview_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 421
-        height: 500
+        x: 86
+        y: 9
+        width: 335
+        height: 491
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 88, y: 5, z: 0, w: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
-      physicsShape: []
-      tessellationDetail: -1
+      physicsShape:
+      - - {x: 126.5, y: -77}
+        - {x: 137.5, y: 8}
+        - {x: 173.5, y: 31}
+        - {x: 73.5, y: 111}
+        - {x: 50.5, y: 212}
+        - {x: 38.5, y: 176}
+        - {x: 5.5, y: 112}
+        - {x: -17.5, y: 102}
+        - {x: -22.5, y: 144}
+        - {x: -33.5, y: 135}
+        - {x: -32.5, y: 100}
+        - {x: -42.5, y: 59}
+        - {x: -62.5, y: 43}
+        - {x: -31.5, y: -56}
+        - {x: -52.5, y: -208}
+        - {x: 148.5, y: -205}
+      tessellationDetail: 0
       bones: []
       spriteID: 259d5764f966d5710800000000000000
       internalID: 1683614669974395218

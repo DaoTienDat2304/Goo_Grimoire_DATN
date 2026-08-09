@@ -18,11 +18,13 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
     private void Awake()
     {
         AutoWireMissingReferences();
+        RefreshBuildingCollider();
     }
 
     private void Start()
     {
         AutoWireMissingReferences();
+        RefreshBuildingCollider();
         if (buildingMenu != null)
             buildingMenu.SetActive(false);
     }
@@ -127,6 +129,7 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
                         placedBuildingIcon.enabled = true;
                         isOccupied = true;
                         slotID = building.buildingID;
+                        RefreshBuildingCollider();
 
                         Debug.Log($"Đã xây dựng {building.buildingName} với chi phí: {building.GetCostDescription()}");
 
@@ -155,6 +158,9 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
 
     private void AutoWireMissingReferences()
     {
+        if (placedBuildingIcon == null)
+            placedBuildingIcon = GetComponent<Image>();
+
         if (buildingMenuManager == null)
             buildingMenuManager = FindAnyObjectByType<BuildingMenuManager>(FindObjectsInactive.Include);
 
@@ -174,6 +180,86 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
 
         if (shop == null)
             shop = FindSceneObjectByName("shop") ?? FindSceneObjectByName("Shop");
+    }
+
+    public void RefreshBuildingCollider()
+    {
+        if (placedBuildingIcon == null)
+            return;
+
+        PolygonCollider2D polygon = GetComponent<PolygonCollider2D>();
+        Sprite sprite = placedBuildingIcon.sprite;
+        bool visible = isOccupied && placedBuildingIcon.enabled && sprite != null;
+        foreach (CircleCollider2D circle in GetComponents<CircleCollider2D>())
+            circle.enabled = false;
+
+        if (!visible)
+        {
+            if (polygon != null) polygon.enabled = false;
+            return;
+        }
+
+        if (polygon == null)
+            polygon = gameObject.AddComponent<PolygonCollider2D>();
+
+        int obstacleLayer = LayerMask.NameToLayer("obstacle");
+        if (obstacleLayer >= 0)
+            gameObject.layer = obstacleLayer;
+
+        Rect rect = placedBuildingIcon.rectTransform.rect;
+        Vector2 spriteSize = sprite.bounds.size;
+        Vector2 displaySize = rect.size;
+        if (placedBuildingIcon.preserveAspect && sprite.rect.width > 0f && sprite.rect.height > 0f)
+        {
+            float spriteAspect = sprite.rect.width / sprite.rect.height;
+            float rectAspect = rect.width / rect.height;
+            if (spriteAspect > rectAspect)
+                displaySize.y = rect.width / spriteAspect;
+            else
+                displaySize.x = rect.height * spriteAspect;
+        }
+
+        Vector2 shapeScale = new Vector2(
+            spriteSize.x > 0f ? displaySize.x / spriteSize.x : 1f,
+            spriteSize.y > 0f ? displaySize.y / spriteSize.y : 1f);
+        Vector2 centerOffset = sprite.pixelsPerUnit > 0f
+            ? (sprite.pivot - sprite.rect.size * 0.5f) / sprite.pixelsPerUnit
+            : Vector2.zero;
+        int shapeCount = sprite.GetPhysicsShapeCount();
+
+        if (shapeCount > 0)
+        {
+            polygon.pathCount = shapeCount;
+            var points = new System.Collections.Generic.List<Vector2>();
+            for (int i = 0; i < shapeCount; i++)
+            {
+                points.Clear();
+                sprite.GetPhysicsShape(i, points);
+                for (int p = 0; p < points.Count; p++)
+                {
+                    points[p] = Vector2.Scale(points[p] + centerOffset, shapeScale);
+                }
+                polygon.SetPath(i, points);
+            }
+        }
+        else
+        {
+            float halfWidth = displaySize.x * 0.5f;
+            float halfHeight = displaySize.y * 0.5f;
+            polygon.pathCount = 1;
+            Vector2[] box =
+            {
+                new Vector2(-halfWidth, -halfHeight),
+                new Vector2(-halfWidth, halfHeight),
+                new Vector2(halfWidth, halfHeight),
+                new Vector2(halfWidth, -halfHeight)
+            };
+            polygon.SetPath(0, box);
+        }
+
+        polygon.offset = Vector2.zero;
+        polygon.isTrigger = false;
+        polygon.enabled = true;
     }
 
     private void ClearWorldSlimesIfAvailable()

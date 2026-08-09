@@ -73,9 +73,6 @@ public sealed class LandscapeUIBootstrap : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
         scaler.referencePixelsPerUnit = 100f;
 
-        var safeArea = canvas.GetComponent<CanvasSafeArea>();
-        if (safeArea == null)
-            canvas.gameObject.AddComponent<CanvasSafeArea>();
     }
 
     private static void ConfigureAllCanvases()

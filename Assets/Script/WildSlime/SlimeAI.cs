@@ -164,7 +164,7 @@ public class SlimeAI : MonoBehaviour
         if (slimeCollider != null)
         {
             slimeCollider.isTrigger = false;
-            IgnoreNonBuildingCollisions(slimeCollider);
+            IgnoreOtherSlimeCollisions(slimeCollider);
         }
 
         // Prefab cũ lưu mask = 0 nên toàn bộ CircleCast trước đây không thấy tường.
@@ -340,7 +340,7 @@ public class SlimeAI : MonoBehaviour
         }
     }
 
-    private void IgnoreNonBuildingCollisions(Collider2D ownCollider)
+    private void IgnoreOtherSlimeCollisions(Collider2D ownCollider)
     {
         SlimeAI[] slimes = FindObjectsByType<SlimeAI>(FindObjectsSortMode.None);
         foreach (SlimeAI other in slimes)
@@ -350,18 +350,11 @@ public class SlimeAI : MonoBehaviour
             if (otherCollider != null) Physics2D.IgnoreCollision(ownCollider, otherCollider, true);
         }
 
-        if (player != null)
-        {
-            Collider2D[] playerColliders = player.GetComponentsInChildren<Collider2D>(true);
-            foreach (Collider2D playerCollider in playerColliders)
-                Physics2D.IgnoreCollision(ownCollider, playerCollider, true);
-        }
     }
 
     private void OnCollisionStay2D(Collision2D collision)
     {
         if (collision.collider == null || collision.collider.GetComponent<SlimeAI>() != null) return;
-        if (player != null && collision.collider.transform.IsChildOf(player)) return;
 
         Vector2 normal = collision.contactCount > 0 ? collision.GetContact(0).normal : Vector2.zero;
         if (normal.sqrMagnitude <= 0.001f) return;

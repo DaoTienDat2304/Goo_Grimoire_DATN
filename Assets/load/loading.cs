@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 public class loading : MonoBehaviour
 {
+    private const float MinimumLoadingScreenTime = 0.15f;
+    private const float ProgressSpeed = 4f;
+
     public static loading Instance;
     public Animator animator;
     public Slider slider;
@@ -77,14 +80,32 @@ public class loading : MonoBehaviour
         }
 
         scene.allowSceneActivation = false;
+        float startedAt = Time.realtimeSinceStartup;
 
-        while (slider != null && slider.value < 1f)
+        // Unity reports an async scene as ready for activation at 0.9.
+        // Drive the UI from real loading progress instead of imposing a fixed delay.
+        while (scene.progress < 0.9f ||
+               Time.realtimeSinceStartup - startedAt < MinimumLoadingScreenTime)
         {
-            slider.value += 0.4f * Time.deltaTime;
+            if (slider != null)
+            {
+                float progress = Mathf.Clamp01(scene.progress / 0.9f);
+                slider.value = Mathf.MoveTowards(
+                    slider.value,
+                    progress,
+                    ProgressSpeed * Time.unscaledDeltaTime);
+            }
+
             await Task.Yield();
         }
 
+        if (slider != null)
+            slider.value = 1f;
+
         scene.allowSceneActivation = true;
+
+        while (!scene.isDone)
+            await Task.Yield();
     }
 
     private int GetSceneIndexByName(string sceneName)

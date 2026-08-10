@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      3-drag-knob_0: 2388896442417962859
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

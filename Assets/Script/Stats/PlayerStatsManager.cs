@@ -219,6 +219,10 @@ public class PlayerStatsManager : MonoBehaviour
         Changed();
     }
 
+    /// <summary>Trả về bản sao read-only của trait ledger — dùng cho Collection Book.</summary>
+    public IReadOnlyCollection<string> GetTraitLedger() => traitLedger;
+
+
     /// <summary>Gộp thêm trait từ các slime đang sở hữu vào ledger (bootstrap save cũ chưa có ledger).</summary>
     public void MergeOwnedSlimeTraits(IEnumerable<Slime> slimes)
     {

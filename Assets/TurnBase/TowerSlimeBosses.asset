@@ -156,8 +156,20 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 6
-    floorName: Frozen Spire
-    waves: []
+    floorName: GOBLIN CAMP
+    waves:
+    - enemies:
+      - enemyType: 3
+        level: 6
+      - enemyType: 3
+        level: 6
+    - enemies:
+      - enemyType: 3
+        level: 6
+      - enemyType: 3
+        level: 6
+      - enemyType: 3
+        level: 6
     bodyTrait: {fileID: 11400000, guid: cc970834a17fa9f4d873dd4314358b16, type: 2}
     armorTrait: {fileID: 11400000, guid: 23c2a39ac0824eb40a395b3cf3fde8b1, type: 2}
     weaponTrait: {fileID: 11400000, guid: 61838f2bc4599ca488d94588d633bec4, type: 2}
@@ -173,8 +185,22 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 7
-    floorName: Ancient Canopy
-    waves: []
+    floorName: GOBLIN CAMP
+    waves:
+    - enemies:
+      - enemyType: 3
+        level: 7
+      - enemyType: 3
+        level: 7
+      - enemyType: 4
+        level: 7
+    - enemies:
+      - enemyType: 3
+        level: 7
+      - enemyType: 3
+        level: 7
+      - enemyType: 3
+        level: 7
     bodyTrait: {fileID: 11400000, guid: 783e615c6f3b95b4fb2a66a0f8b380b0, type: 2}
     armorTrait: {fileID: 11400000, guid: 42da0d4731844494aa7c76dd892049ce, type: 2}
     weaponTrait: {fileID: 11400000, guid: 6784457290ff5d44aae778157f818901, type: 2}
@@ -190,8 +216,22 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 8
-    floorName: Cloud Sea
-    waves: []
+    floorName: GOBLIN CAMP
+    waves:
+    - enemies:
+      - enemyType: 3
+        level: 8
+      - enemyType: 3
+        level: 8
+      - enemyType: 5
+        level: 8
+    - enemies:
+      - enemyType: 3
+        level: 8
+      - enemyType: 3
+        level: 8
+      - enemyType: 4
+        level: 8
     bodyTrait: {fileID: 11400000, guid: ad614bc1ca8aeae4ab54f3ff0f5ff9f5, type: 2}
     armorTrait: {fileID: 11400000, guid: 862cc878bc5e4de4eb577d0bcdfa97f8, type: 2}
     weaponTrait: {fileID: 11400000, guid: dfb995b956011c34aa74fbbe9430b29a, type: 2}
@@ -207,8 +247,22 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 9
-    floorName: Crystal Labyrinth
-    waves: []
+    floorName: GOBLIN CAMP
+    waves:
+    - enemies:
+      - enemyType: 3
+        level: 9
+      - enemyType: 3
+        level: 9
+      - enemyType: 4
+        level: 9
+    - enemies:
+      - enemyType: 3
+        level: 9
+      - enemyType: 4
+        level: 9
+      - enemyType: 5
+        level: 9
     bodyTrait: {fileID: 11400000, guid: 8b336888577601946a74480d0c87d35a, type: 2}
     armorTrait: {fileID: 11400000, guid: e09e12108a4a45c4abe337f2d88081c3, type: 2}
     weaponTrait: {fileID: 11400000, guid: 78c7bb4a61ffb0e419d6d02dfddd3227, type: 2}
@@ -224,8 +278,29 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 10
-    floorName: Golden Citadel
-    waves: []
+    floorName: GOBLIN CAMP
+    waves:
+    - enemies:
+      - enemyType: 3
+        level: 10
+      - enemyType: 3
+        level: 10
+      - enemyType: 4
+        level: 10
+    - enemies:
+      - enemyType: 3
+        level: 10
+      - enemyType: 3
+        level: 10
+      - enemyType: 5
+        level: 10
+    - enemies:
+      - enemyType: 3
+        level: 10
+      - enemyType: 6
+        level: 10
+      - enemyType: 5
+        level: 10
     bodyTrait: {fileID: 11400000, guid: 2f6f0ec2709469e4cb8d5261406d69c3, type: 2}
     armorTrait: {fileID: 11400000, guid: e09e12108a4a45c4abe337f2d88081c3, type: 2}
     weaponTrait: {fileID: 11400000, guid: 1ab02eacce47f10479aba307ecad91c6, type: 2}
@@ -241,8 +316,20 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 11
-    floorName: Eternal Abyss
-    waves: []
+    floorName: CORRUPTED FOREST
+    waves:
+    - enemies:
+      - enemyType: 7
+        level: 11
+      - enemyType: 7
+        level: 11
+      - enemyType: 7
+        level: 11
+    - enemies:
+      - enemyType: 8
+        level: 11
+      - enemyType: 8
+        level: 11
     bodyTrait: {fileID: 11400000, guid: c90745c27738f5442855e105dbe2cc2b, type: 2}
     armorTrait: {fileID: 11400000, guid: 42da0d4731844494aa7c76dd892049ce, type: 2}
     weaponTrait: {fileID: 11400000, guid: 7d890049e297818458eafb5f78b1bcd3, type: 2}
@@ -258,8 +345,22 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 12
-    floorName: Thunder Peak
-    waves: []
+    floorName: CORRUPTED FOREST
+    waves:
+    - enemies:
+      - enemyType: 7
+        level: 12
+      - enemyType: 9
+        level: 12
+      - enemyType: 7
+        level: 12
+    - enemies:
+      - enemyType: 7
+        level: 12
+      - enemyType: 8
+        level: 12
+      - enemyType: 8
+        level: 12
     bodyTrait: {fileID: 11400000, guid: 958219f62c0dfb84bad4dedf312fd6f6, type: 2}
     armorTrait: {fileID: 11400000, guid: 3c30896dacaff0c4891431aa75ef9fbd, type: 2}
     weaponTrait: {fileID: 11400000, guid: 0c216a1e94690aa4b9e9a97ababa1399, type: 2}
@@ -275,8 +376,22 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 13
-    floorName: Galactic Shore
-    waves: []
+    floorName: CORRUPTED FOREST
+    waves:
+    - enemies:
+      - enemyType: 8
+        level: 13
+      - enemyType: 8
+        level: 13
+      - enemyType: 9
+        level: 13
+    - enemies:
+      - enemyType: 7
+        level: 13
+      - enemyType: 7
+        level: 13
+      - enemyType: 8
+        level: 13
     bodyTrait: {fileID: 11400000, guid: afb02652650285241a50c025ee59d500, type: 2}
     armorTrait: {fileID: 11400000, guid: bd4c330e07c58a24696bfba562ea3133, type: 2}
     weaponTrait: {fileID: 11400000, guid: 7bc6acbe8cff56a4687b55096a50a69a, type: 2}
@@ -292,8 +407,22 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 14
-    floorName: Void Gate
-    waves: []
+    floorName: CORRUPTED FOREST
+    waves:
+    - enemies:
+      - enemyType: 10
+        level: 14
+      - enemyType: 10
+        level: 14
+      - enemyType: 7
+        level: 14
+    - enemies:
+      - enemyType: 10
+        level: 14
+      - enemyType: 10
+        level: 14
+      - enemyType: 9
+        level: 14
     bodyTrait: {fileID: 11400000, guid: afb02652650285241a50c025ee59d500, type: 2}
     armorTrait: {fileID: 11400000, guid: bd4c330e07c58a24696bfba562ea3133, type: 2}
     weaponTrait: {fileID: 11400000, guid: 0c216a1e94690aa4b9e9a97ababa1399, type: 2}
@@ -309,8 +438,29 @@ MonoBehaviour:
     rewardCurrency: 0
     rewardTraits: []
   - floorNumber: 15
-    floorName: Grimoire Throne
-    waves: []
+    floorName: CORRUPTED FOREST
+    waves:
+    - enemies:
+      - enemyType: 7
+        level: 15
+      - enemyType: 7
+        level: 15
+      - enemyType: 8
+        level: 15
+    - enemies:
+      - enemyType: 8
+        level: 15
+      - enemyType: 9
+        level: 15
+      - enemyType: 8
+        level: 15
+    - enemies:
+      - enemyType: 7
+        level: 15
+      - enemyType: 10
+        level: 15
+      - enemyType: 8
+        level: 15
     bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
     armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
     weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
@@ -322,6 +472,526 @@ MonoBehaviour:
     baseCritRate: 0.05
     baseCritDMG: 1.3
     rewardCoins: 620
+    rewardGems: 5
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 16
+    floorName: ANCIENT RUINS
+    waves:
+    - enemies:
+      - enemyType: 11
+        level: 16
+      - enemyType: 11
+        level: 16
+    - enemies:
+      - enemyType: 11
+        level: 16
+      - enemyType: 11
+        level: 16
+      - enemyType: 12
+        level: 16
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1060
+    baseAttack: 225
+    baseDefense: 136
+    baseSpeed: 48
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 210
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 17
+    floorName: ANCIENT RUINS
+    waves:
+    - enemies:
+      - enemyType: 11
+        level: 17
+      - enemyType: 11
+        level: 17
+      - enemyType: 13
+        level: 17
+    - enemies:
+      - enemyType: 11
+        level: 17
+      - enemyType: 11
+        level: 17
+      - enemyType: 12
+        level: 17
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1080
+    baseAttack: 230
+    baseDefense: 139
+    baseSpeed: 49
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 220
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 18
+    floorName: ANCIENT RUINS
+    waves:
+    - enemies:
+      - enemyType: 11
+        level: 18
+      - enemyType: 11
+        level: 18
+      - enemyType: 12
+        level: 18
+    - enemies:
+      - enemyType: 11
+        level: 18
+      - enemyType: 11
+        level: 18
+      - enemyType: 13
+        level: 18
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1100
+    baseAttack: 235
+    baseDefense: 142
+    baseSpeed: 50
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 230
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 19
+    floorName: ANCIENT RUINS
+    waves:
+    - enemies:
+      - enemyType: 11
+        level: 19
+      - enemyType: 11
+        level: 19
+      - enemyType: 12
+        level: 19
+    - enemies:
+      - enemyType: 11
+        level: 19
+      - enemyType: 11
+        level: 19
+      - enemyType: 13
+        level: 19
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1120
+    baseAttack: 240
+    baseDefense: 145
+    baseSpeed: 51
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 240
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 20
+    floorName: ANCIENT RUINS
+    waves:
+    - enemies:
+      - enemyType: 11
+        level: 20
+      - enemyType: 11
+        level: 20
+      - enemyType: 12
+        level: 20
+    - enemies:
+      - enemyType: 11
+        level: 20
+      - enemyType: 11
+        level: 20
+      - enemyType: 13
+        level: 20
+    - enemies:
+      - enemyType: 11
+        level: 20
+      - enemyType: 14
+        level: 20
+      - enemyType: 13
+        level: 20
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1140
+    baseAttack: 245
+    baseDefense: 148
+    baseSpeed: 52
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 250
+    rewardGems: 5
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 21
+    floorName: FORGOTTEN GOLEM SANCTUARY
+    waves:
+    - enemies:
+      - enemyType: 15
+        level: 21
+      - enemyType: 15
+        level: 21
+    - enemies:
+      - enemyType: 15
+        level: 21
+      - enemyType: 15
+        level: 21
+      - enemyType: 16
+        level: 21
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1160
+    baseAttack: 250
+    baseDefense: 151
+    baseSpeed: 53
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 260
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 22
+    floorName: FORGOTTEN GOLEM SANCTUARY
+    waves:
+    - enemies:
+      - enemyType: 15
+        level: 22
+      - enemyType: 15
+        level: 22
+      - enemyType: 17
+        level: 22
+    - enemies:
+      - enemyType: 16
+        level: 22
+      - enemyType: 16
+        level: 22
+      - enemyType: 17
+        level: 22
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1180
+    baseAttack: 255
+    baseDefense: 154
+    baseSpeed: 54
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 270
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 23
+    floorName: FORGOTTEN GOLEM SANCTUARY
+    waves:
+    - enemies:
+      - enemyType: 15
+        level: 23
+      - enemyType: 15
+        level: 23
+      - enemyType: 16
+        level: 23
+    - enemies:
+      - enemyType: 17
+        level: 23
+      - enemyType: 17
+        level: 23
+      - enemyType: 15
+        level: 23
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1200
+    baseAttack: 260
+    baseDefense: 157
+    baseSpeed: 55
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 280
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 24
+    floorName: FORGOTTEN GOLEM SANCTUARY
+    waves:
+    - enemies:
+      - enemyType: 15
+        level: 24
+      - enemyType: 15
+        level: 24
+      - enemyType: 17
+        level: 24
+    - enemies:
+      - enemyType: 16
+        level: 24
+      - enemyType: 16
+        level: 24
+      - enemyType: 17
+        level: 24
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1220
+    baseAttack: 265
+    baseDefense: 160
+    baseSpeed: 56
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 290
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 25
+    floorName: FORGOTTEN GOLEM SANCTUARY
+    waves:
+    - enemies:
+      - enemyType: 15
+        level: 25
+      - enemyType: 15
+        level: 25
+      - enemyType: 17
+        level: 25
+    - enemies:
+      - enemyType: 16
+        level: 25
+      - enemyType: 16
+        level: 25
+      - enemyType: 17
+        level: 25
+    - enemies:
+      - enemyType: 15
+        level: 25
+      - enemyType: 18
+        level: 25
+      - enemyType: 17
+        level: 25
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1240
+    baseAttack: 270
+    baseDefense: 163
+    baseSpeed: 57
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 300
+    rewardGems: 5
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 26
+    floorName: Celestial Sanctuary
+    waves:
+    - enemies:
+      - enemyType: 19
+        level: 26
+      - enemyType: 19
+        level: 26
+      - enemyType: 23
+        level: 26
+    - enemies:
+      - enemyType: 20
+        level: 26
+      - enemyType: 20
+        level: 26
+      - enemyType: 22
+        level: 26
+    - enemies:
+      - enemyType: 21
+        level: 26
+      - enemyType: 19
+        level: 26
+      - enemyType: 22
+        level: 26
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1260
+    baseAttack: 275
+    baseDefense: 166
+    baseSpeed: 58
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 310
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 27
+    floorName: Celestial Sanctuary
+    waves:
+    - enemies:
+      - enemyType: 19
+        level: 27
+      - enemyType: 19
+        level: 27
+      - enemyType: 24
+        level: 27
+    - enemies:
+      - enemyType: 20
+        level: 27
+      - enemyType: 20
+        level: 27
+      - enemyType: 23
+        level: 27
+    - enemies:
+      - enemyType: 21
+        level: 27
+      - enemyType: 21
+        level: 27
+      - enemyType: 22
+        level: 27
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1280
+    baseAttack: 280
+    baseDefense: 169
+    baseSpeed: 59
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 320
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 28
+    floorName: Celestial Sanctuary
+    waves:
+    - enemies:
+      - enemyType: 19
+        level: 28
+      - enemyType: 19
+        level: 28
+      - enemyType: 23
+        level: 28
+    - enemies:
+      - enemyType: 20
+        level: 28
+      - enemyType: 20
+        level: 28
+      - enemyType: 22
+        level: 28
+    - enemies:
+      - enemyType: 21
+        level: 28
+      - enemyType: 22
+        level: 28
+      - enemyType: 24
+        level: 28
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1300
+    baseAttack: 285
+    baseDefense: 172
+    baseSpeed: 60
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 330
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 29
+    floorName: Celestial Sanctuary
+    waves:
+    - enemies:
+      - enemyType: 19
+        level: 29
+      - enemyType: 19
+        level: 29
+      - enemyType: 22
+        level: 29
+    - enemies:
+      - enemyType: 20
+        level: 29
+      - enemyType: 20
+        level: 29
+      - enemyType: 23
+        level: 29
+    - enemies:
+      - enemyType: 21
+        level: 29
+      - enemyType: 22
+        level: 29
+      - enemyType: 24
+        level: 29
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1320
+    baseAttack: 290
+    baseDefense: 175
+    baseSpeed: 61
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 340
+    rewardGems: 0
+    rewardCurrency: 0
+    rewardTraits: []
+  - floorNumber: 30
+    floorName: FLOOR 30
+    waves:
+    - enemies:
+      - enemyType: 19
+        level: 30
+      - enemyType: 19
+        level: 30
+      - enemyType: 20
+        level: 30
+    - enemies:
+      - enemyType: 21
+        level: 30
+      - enemyType: 21
+        level: 30
+      - enemyType: 22
+        level: 30
+    - enemies:
+      - enemyType: 22
+        level: 30
+      - enemyType: 23
+        level: 30
+      - enemyType: 19
+        level: 30
+    - enemies:
+      - enemyType: 24
+        level: 30
+      - enemyType: 22
+        level: 30
+      - enemyType: 20
+        level: 30
+    - enemies:
+      - enemyType: 25
+        level: 30
+    bodyTrait: {fileID: 11400000, guid: 1552d24191914474bb90e07e4fa5c451, type: 2}
+    armorTrait: {fileID: 11400000, guid: be2f9bdf4ff4a5f42bd4dd6f2d43971d, type: 2}
+    weaponTrait: {fileID: 11400000, guid: 410d82c6871e30f4e9d5a1abfd46bc24, type: 2}
+    baseHP: 1340
+    baseAttack: 295
+    baseDefense: 178
+    baseSpeed: 62
+    baseMagicAttack: 50
+    baseCritRate: 0.05
+    baseCritDMG: 1.3
+    rewardCoins: 350
     rewardGems: 5
     rewardCurrency: 0
     rewardTraits: []

@@ -25,6 +25,8 @@ public class SlimeWorldManager : MonoBehaviour
     public float slimeRotationSpeed = 25f;
     public float slimeBounceHeight = 0.4f;
     public float slimeBounceSpeed = 1.5f;
+    [SerializeField, Min(0f)] private float slimeMinHorizontalTargetDistance = 2.5f;
+    [SerializeField, Range(0f, 1f)] private float slimeVerticalTargetTolerance = 0.65f;
 
     [Header("UI Integration")]
     public BreedingUIManager breedingUI;
@@ -96,7 +98,7 @@ public class SlimeWorldManager : MonoBehaviour
         {
             Vector3 position = GetRandomPointInArea();
             slimePositions[i] = position;
-            slimeTargets[i] = position;
+            slimeTargets[i] = GetRandomMovementTarget(position);
             slimeBounceOffsets[i] = Random.Range(0f, 2f * Mathf.PI);
             slimeBounceTimes[i] = 0f;
         }
@@ -477,9 +479,17 @@ public class SlimeWorldManager : MonoBehaviour
             // Cập nhật vị trí
             Vector3 currentPos = slimePositions[i];
             Vector3 targetPos = slimeTargets[i];
+            float distanceToTarget = Vector3.Distance(currentPos, targetPos);
+
+            if (distanceToTarget <= 0.1f)
+            {
+                slimeTargets[i] = GetRandomMovementTarget(currentPos);
+                targetPos = slimeTargets[i];
+                distanceToTarget = Vector3.Distance(currentPos, targetPos);
+            }
 
             // Di chuyển đến vị trí mục tiêu
-            if (Vector3.Distance(currentPos, targetPos) > 0.1f)
+            if (distanceToTarget > 0.1f)
             {
                 Vector3 newPos = Vector3.MoveTowards(currentPos, targetPos, slimeMoveSpeed * Time.deltaTime);
                 slimePositions[i] = newPos;
@@ -493,10 +503,38 @@ public class SlimeWorldManager : MonoBehaviour
             // Thay đổi vị trí mục tiêu ngẫu nhiên
             if (Random.Range(0f, 1f) < 0.005f)
             {
-                Vector3 newTarget = GetRandomPointInArea();
+                Vector3 newTarget = GetRandomMovementTarget(slimePositions[i]);
                 slimeTargets[i] = newTarget;
             }
         }
+    }
+
+    private Vector3 GetRandomMovementTarget(Vector3 currentPosition)
+    {
+        Vector3 bestCandidate = GetRandomPointInArea();
+        float bestHorizontalDistance = Mathf.Abs(bestCandidate.x - currentPosition.x);
+
+        for (int attempt = 0; attempt < 16; attempt++)
+        {
+            Vector3 candidate = GetRandomPointInArea();
+            Vector3 delta = candidate - currentPosition;
+            float horizontalDistance = Mathf.Abs(delta.x);
+            float verticalDistance = Mathf.Abs(delta.y);
+
+            if (horizontalDistance > bestHorizontalDistance)
+            {
+                bestCandidate = candidate;
+                bestHorizontalDistance = horizontalDistance;
+            }
+
+            if (horizontalDistance >= slimeMinHorizontalTargetDistance
+                && horizontalDistance >= verticalDistance * slimeVerticalTargetTolerance)
+            {
+                return candidate;
+            }
+        }
+
+        return bestCandidate;
     }
 
     private void RefreshBuildingObstacles()

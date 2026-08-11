@@ -89,6 +89,13 @@ public class TowerUIManager : MonoBehaviour
     public void ClosePanel()
     {
         if (towerPanel != null) towerPanel.SetActive(false);
+
+        // Khôi phục lại world slimes khi đóng bảng Tower
+        var worldManager = Object.FindFirstObjectByType<SlimeWorldManager>();
+        if (worldManager != null)
+        {
+            worldManager.StartWorldView();
+        }
     }
 
     public void Refresh()

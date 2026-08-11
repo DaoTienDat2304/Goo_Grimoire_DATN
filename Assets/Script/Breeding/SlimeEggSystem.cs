@@ -56,6 +56,9 @@ public class SlimeEggSystem : MonoBehaviour
     [Min(0.5f)] public float worldEggSpawnRadius = 4f;
     [Min(0f)] public float minimumDistanceFromPlayer = 2f;
     public LayerMask worldEggObstacleMask;
+    
+    [Header("Hierarchy Optimization")]
+    [SerializeField] private Transform eggsContainer; // Kéo thả WorldEggsContainer từ Scene vào đây
 
     [Header("Incubation (fallback — Remote Config ghi đè khi có)")]
     [Min(1f)] public float incubationDurationSeconds = 600f;
@@ -230,6 +233,10 @@ public class SlimeEggSystem : MonoBehaviour
         GameObject eggObject = prefab != null
             ? Instantiate(prefab, data.position, Quaternion.identity)
             : new GameObject("SlimeEgg");
+        if (eggsContainer != null)
+        {
+            eggObject.transform.SetParent(eggsContainer, false);
+        }
         eggObject.name = $"SlimeEgg_{data.id.Substring(0, Mathf.Min(6, data.id.Length))}";
         WorldEggPickup pickup = eggObject.GetComponent<WorldEggPickup>();
         if (pickup == null) pickup = eggObject.AddComponent<WorldEggPickup>();

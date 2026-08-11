@@ -203,5 +203,12 @@ public class CollectionBookUI : MonoBehaviour
     private void CloseBook()
     {
         gameObject.SetActive(false);
+
+        // Khôi phục lại world slimes khi đóng bách khoa toàn thư
+        var worldManager = Object.FindFirstObjectByType<SlimeWorldManager>();
+        if (worldManager != null)
+        {
+            worldManager.StartWorldView();
+        }
     }
 }

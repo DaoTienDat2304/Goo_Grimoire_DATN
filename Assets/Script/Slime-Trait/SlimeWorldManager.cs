@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Spine.Unity;
@@ -42,6 +42,9 @@ public class SlimeWorldManager : MonoBehaviour
     private Slime[] slimeData;
     public GameObject breedUI;
     public Button traitCollection;
+    
+    [Header("Hierarchy Optimization")]
+    [SerializeField] private Transform slimesContainer; // Kéo thả WorldSlimesContainer từ Scene vào đây
 
     public bool isWorldViewActive = false;
     private Camera mainCamera;
@@ -269,6 +272,10 @@ public class SlimeWorldManager : MonoBehaviour
         // Tạo GameObject cho slime
 
         GameObject slimeGO = new GameObject($"WorldSlime_{index}");
+        if (slimesContainer != null)
+        {
+            slimeGO.transform.SetParent(slimesContainer, false);
+        }
         slimeGO.transform.position = slimePositions[index];
 
         // Thêm SlimeAnimationController để quản lý body

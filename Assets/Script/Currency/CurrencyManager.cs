@@ -6,11 +6,11 @@ public class CurrencyManager : MonoBehaviour
 {
     public static CurrencyManager Instance { get; private set; }
 
-    [Header("Starting Currency (fallback — Remote Config ghi đè khi có)")]
+    [Header("Starting Currency (fallback - Remote Config overrides when available)")]
     [SerializeField] private int startingCoins = 5000;
     [SerializeField] private int startingGems = 5000;
 
-    // Key remote: `starting_coins` / `starting_gems` — không có thì dùng giá trị Inspector.
+    // Remote keys: `starting_coins` / `starting_gems`; fall back to Inspector values.
     private int StartingCoins => Mathf.Max(0, RemoteBalance.IntOr(RemoteConfigKeys.StartingCoins, startingCoins));
     private int StartingGems => Mathf.Max(0, RemoteBalance.IntOr(RemoteConfigKeys.StartingGems, startingGems));
 
@@ -37,19 +37,18 @@ public class CurrencyManager : MonoBehaviour
 
     private void InitializeCurrencies()
     {
-        // Luôn reset về giá trị ban đầu mỗi khi nhấn Play
-        int coins = StartingCoins;
-        int gems = StartingGems;
-        currencies[CurrencyType.Coins] = coins;
-        currencies[CurrencyType.Gems] = gems;
-
-        // Không load dữ liệu đã lưu - luôn bắt đầu với giá trị ban đầu
-        // LoadCurrencyData(); // Đã comment out
-
-        // Lưu giá trị ban đầu
+        // Use starting values only when no saved value exists.
+        currencies[CurrencyType.Coins] = StartingCoins;
+        currencies[CurrencyType.Gems] = StartingGems;
+        LoadCurrencyData();
+        
+        // Saved values override the defaults above when they exist.
+        
+        // Persist defaults for a new installation and preserve loaded values.
         SaveCurrencyData();
-
-        Debug.Log($"Currency reset về giá trị ban đầu: {coins} Coins, {gems} Gems");
+        firstLoadDone = true;
+        
+        Debug.Log($"Currency loaded: {GetCurrency(CurrencyType.Coins)} Coins, {GetCurrency(CurrencyType.Gems)} Gems");
     }
 
     /// <summary>

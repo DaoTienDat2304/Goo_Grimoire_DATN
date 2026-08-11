@@ -3,93 +3,82 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Helper class để load scene với loading screen
-/// </summary>
 public static class SceneLoader
 {
-    /// <summary>
-    /// Load scene với loading screen bằng tên scene
-    /// </summary>
+    private const float SceneLoadClickCooldown = 0.2f;
+    private static bool isLoadingScene;
+    private static float lastSceneLoadRequestTime = -SceneLoadClickCooldown;
+
+    static SceneLoader()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    public static bool TryBeginSceneLoad()
+    {
+        if (isLoadingScene)
+            return false;
+
+        if (Time.unscaledTime - lastSceneLoadRequestTime < SceneLoadClickCooldown)
+            return false;
+
+        isLoadingScene = true;
+        lastSceneLoadRequestTime = Time.unscaledTime;
+        return true;
+    }
+
+    public static void EndSceneLoadRequest()
+    {
+        isLoadingScene = false;
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        EndSceneLoadRequest();
+    }
+
     public static async Task LoadSceneWithLoading(string sceneName)
     {
         if (loading.Instance != null)
         {
-            loading.Instance.gameObject.SetActive(true);
             await loading.Instance.LoadSceneByName(sceneName);
+            return;
         }
-        else
-        {
-            // Fallback nếu không có loading instance
-            Debug.LogWarning("Loading instance not found! Loading scene without loading screen.");
-            SceneManager.LoadScene(sceneName);
-        }
+
+        if (!TryBeginSceneLoad())
+            return;
+
+        Debug.LogWarning("Loading instance not found. Loading scene without loading screen.");
+        SceneManager.LoadScene(sceneName);
     }
-    
-    /// <summary>
-    /// Load scene với loading screen bằng index
-    /// </summary>
+
     public static async Task LoadSceneWithLoading(int sceneIndex)
     {
         if (loading.Instance != null)
         {
-            loading.Instance.gameObject.SetActive(true);
             await loading.Instance.onplay(sceneIndex);
+            return;
         }
-        else
-        {
-            // Fallback nếu không có loading instance
-            Debug.LogWarning("Loading instance not found! Loading scene without loading screen.");
-            SceneManager.LoadScene(sceneIndex);
-        }
+
+        if (!TryBeginSceneLoad())
+            return;
+
+        Debug.LogWarning("Loading instance not found. Loading scene without loading screen.");
+        SceneManager.LoadScene(sceneIndex);
     }
-    
-    /// <summary>
-    /// Coroutine version để load scene với loading (dùng cho IEnumerator)
-    /// </summary>
+
     public static IEnumerator LoadSceneWithLoadingCoroutine(string sceneName)
     {
-        if (loading.Instance != null)
-        {
-            loading.Instance.gameObject.SetActive(true);
-            
-            // Chuyển async Task thành coroutine
-            var task = loading.Instance.LoadSceneByName(sceneName);
-            while (!task.IsCompleted)
-            {
-                yield return null;
-            }
-        }
-        else
-        {
-            // Fallback nếu không có loading instance
-            Debug.LogWarning("Loading instance not found! Loading scene without loading screen.");
-            SceneManager.LoadScene(sceneName);
-        }
+        Task task = LoadSceneWithLoading(sceneName);
+        while (!task.IsCompleted)
+            yield return null;
     }
-    
-    /// <summary>
-    /// Coroutine version để load scene với loading bằng index (dùng cho IEnumerator)
-    /// </summary>
+
     public static IEnumerator LoadSceneWithLoadingCoroutine(int sceneIndex)
     {
-        if (loading.Instance != null)
-        {
-            loading.Instance.gameObject.SetActive(true);
-            
-            // Chuyển async Task thành coroutine
-            var task = loading.Instance.onplay(sceneIndex);
-            while (!task.IsCompleted)
-            {
-                yield return null;
-            }
-        }
-        else
-        {
-            // Fallback nếu không có loading instance
-            Debug.LogWarning("Loading instance not found! Loading scene without loading screen.");
-            SceneManager.LoadScene(sceneIndex);
-        }
+        Task task = LoadSceneWithLoading(sceneIndex);
+        while (!task.IsCompleted)
+            yield return null;
     }
 }
-

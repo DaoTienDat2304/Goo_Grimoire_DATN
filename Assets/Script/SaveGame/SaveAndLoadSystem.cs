@@ -32,79 +32,75 @@ public class SaveAndLoadSystem : MonoBehaviour
     /// </summary>
     IEnumerator InitializeAsync()
     {
-        // Chờ AuthManager sẵn sàng và user đã login
+        // 1. Chờ AuthManager sẵn sàng và user đã login
         Debug.Log("[Save] Đang chờ Auth...");
-        yield return new WaitUntil(() => AuthManager.Instance != null && AuthManager.Instance.IsLoggedIn);
+        yield return new WaitUntil(() =>
+            AuthManager.Instance != null && AuthManager.Instance.IsLoggedIn);
+
         Debug.Log($"[Save] Auth xong. uid={AuthManager.Instance.CurrentUserId}");
-        // Chờ CloudSaveProvider kiểm tra xong cloud save cho tài khoản này
-        yield return new WaitUntil(() => CloudSaveProvider.Instance == null || CloudSaveProvider.Instance.CloudCheckDone);
+
+        // 2. Chờ CloudSaveProvider kiểm tra xong cloud save cho tài khoản này
+        yield return new WaitUntil(() =>
+            CloudSaveProvider.Instance == null || CloudSaveProvider.Instance.CloudCheckDone);
+
         // Reset flag để đảm bảo Load() chạy đầy đủ khi đăng nhập lại trong cùng session
         if (CurrencyManager.Instance != null)
             CurrencyManager.Instance.firstLoadDone = false;
-        // Chọn save tốt nhất (Ưu tiên: Cloud/Local mới nhất -> Local Guest -> Mới tinh)
+
+        // 3. Chọn save mới hơn giữa cloud và local (PlayerPrefs)
         string cloudJson = (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.HasCloudSave)
             ? CloudSaveProvider.Instance.GetCachedJson()
             : null;
         string localJson = LocalSaveStore.Load(AuthManager.Instance.LocalSaveId);
-        // Phân giải chọn file Save tốt nhất
-        string chosenJson = GetBestSaveJson(cloudJson, localJson);
+
+        string chosenJson;
+        if (!string.IsNullOrEmpty(cloudJson) && !string.IsNullOrEmpty(localJson))
+        {
+            bool localNewer = LocalSaveStore.GetSavedAt(localJson) > LocalSaveStore.GetSavedAt(cloudJson);
+            chosenJson = localNewer ? localJson : cloudJson;
+            Debug.Log($"[Save] Có cả cloud lẫn local — dùng {(localNewer ? "local" : "cloud")} (mới hơn).");
+        }
+        else
+        {
+            chosenJson = cloudJson ?? localJson;
+        }
+
         if (!string.IsNullOrEmpty(chosenJson))
         {
             Load(chosenJson);
         }
         else
         {
-            // Tài khoản hoàn toàn mới
-            InitNewAccountState();
+            Debug.Log("[Save] Tài khoản mới — bắt đầu game với dữ liệu mặc định.");
+            ResetGameState();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (DevAccountInitializer.IsDevAccount())
+            {
+                DevAccountInitializer.InitializeDevSlimes();
+            }
+            else
+#endif
+            {
+                // Tài khoản mới thường: tạo 2 slime khởi đầu (Starter_1, Starter_2).
+                // ResetGameState() vừa xóa sạch slime nên phải tạo lại ở đây,
+                // nếu không người chơi vào game sau tutorial sẽ không có slime nào.
+                if (BreedingManager.Instance != null)
+                    BreedingManager.Instance.CreateInitialSlimes();
+            }
+            // Tài khoản mới: khởi tạo bộ daily đầu tiên.
+            DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
+            Save(); // lưu ngay để lần sau login/replay có sẵn
         }
-        // Nếu có kết quả tower chưa được lưu, apply lên dữ liệu vừa load rồi save lại
+
+        // 4. Nếu có kết quả tower chưa được lưu, apply lên dữ liệu vừa load rồi save lại
         ApplyTowerResultCache();
-        // Load world
+
+        // 5. Load world
         yield return StartCoroutine(LoadWorld());
-        // Bật auto-save sau khi đã load xong (tránh ghi đè save thật bằng dữ liệu rỗng)
+
+        // 6. Bật auto-save sau khi đã load xong (tránh ghi đè save thật bằng dữ liệu rỗng)
         _initialized = true;
         if (autoSaveEnabled) StartCoroutine(AutoSaveLoop());
-    }
-
-    private string GetBestSaveJson(string cloudJson, string localJson)
-    {
-        // Có cả Cloud lẫn Local -> Chọn file nào mới hơn
-        if (!string.IsNullOrEmpty(cloudJson) && !string.IsNullOrEmpty(localJson))
-        {
-            bool localNewer = LocalSaveStore.GetSavedAt(localJson) > LocalSaveStore.GetSavedAt(cloudJson);
-            Debug.Log($"[Save] Có cả cloud lẫn local — dùng {(localNewer ? "local" : "cloud")} (mới hơn).");
-            return localNewer ? localJson : cloudJson;
-        }
-        // Có 1 trong 2 (Cloud hoặc Local)
-        if (!string.IsNullOrEmpty(cloudJson)) return cloudJson;
-        if (!string.IsNullOrEmpty(localJson)) return localJson;
-        // Fallback tìm file "guest" dự phòng
-        string guestJson = LocalSaveStore.Load("guest");
-        if (!string.IsNullOrEmpty(guestJson))
-        {
-            Debug.Log("[Save] Dùng fallback local save ('guest') để tránh mất dữ liệu.");
-            return guestJson;
-        }
-        return null;
-    }
-
-    private void InitNewAccountState()
-    {
-        Debug.Log("[Save] Tài khoản mới thực sự — bắt đầu game với dữ liệu mặc định.");
-        ResetGameState();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (DevAccountInitializer.IsDevAccount())
-        {
-            DevAccountInitializer.InitializeDevSlimes();
-        }
-        else
-#endif
-        {
-            if (BreedingManager.Instance != null)
-                BreedingManager.Instance.CreateInitialSlimes();
-        }
-        DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
-        Save(); // Lưu lần đầu tiên
     }
 
     // ---------- Auto Save ----------
@@ -133,60 +129,57 @@ public class SaveAndLoadSystem : MonoBehaviour
 
     void OnApplicationPause(bool paused)
     {
+        // Trên mobile OnApplicationQuit thường không bắn — lưu khi app xuống nền.
         if (paused && _initialized) Save();
     }
 
     IEnumerator LoadWorld()
     {
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.1f); // delay 0.1 gi�y
         if (wildSlimes.tamedSlimes != null) breedingManager.GenTamedSlime();
         SlimeWorldManager.RefreshWorldSlimes();
         breedingUI.RefreshAllUI();
     }
     public void Save()
     {
-        if (!_initialized)
-        {
-            Debug.LogWarning("[Save] Bỏ qua Save() vì dữ liệu đang trong quá trình khởi tạo/nạp!");
-            return;
-        }
-        string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
-        GameSaveData data = new GameSaveData
-        {
-            lastSavedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-        };
-        string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        bool isMainScene = (currentScene == "firstsave" || currentScene == "adventureSence");
-        if (isMainScene)
-        {
-            SerializeSlimes(data);
-            SerializeBreedingSession(data);
-            SerializeUnlockedTraits(data);
-            SerializeBuildings(data);
-            SerializeQuests(data);
-            SerializeTeam(data);
-            SerializeTamedSlimes(data);
-            SerializeDaily(data);
-        }
-        else
-        {
-            Debug.Log($"[Save] Đang ở trận chiến ({currentScene}), giữ nguyên dữ liệu Slime & Building gốc.");
-        }
+        var data = new GameSaveData();
+        data.lastSavedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+        SerializeSlimes(data);
+        SerializeBreedingSession(data);
+        SerializeUnlockedTraits(data);
+        SerializeBuildings(data);
+        SerializeQuests(data);
+        SerializeAchievements(data);
         SerializeCurrencies(data);
         SerializeResources(data);
+        SerializeTeam(data);
+        SerializeTamedSlimes(data);
         SerializeTowerFloors(data);
         SerializeFarmDifficulties(data);
         SerializeStats(data);
-        SerializeAchievements(data);
+        SerializeDaily(data);
+
+        // Compact JSON is substantially cheaper to allocate and persist on mobile.
+        // Pretty printing is useful for diagnostics, but this is a runtime save path.
         var json = JsonUtility.ToJson(data, false);
+
+        // Luôn lưu cục bộ bằng PlayerPrefs — không mất save khi thoát/replay,
+        // kể cả ở offline dev mode khi cloud chưa bật. Dùng LocalSaveId (guest = key
+        // cố định) để save không bị lệch key mỗi phiên đăng nhập ẩn danh.
+        string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
         LocalSaveStore.Save(localId, json);
-        if (CloudSaveProvider.Instance != null && AuthManager.Instance != null && AuthManager.Instance.IsLoggedIn)
+
+        // Lưu cloud (khi đã đăng nhập và bật Firebase)
+        if (CloudSaveProvider.Instance != null
+            && AuthManager.Instance != null
+            && AuthManager.Instance.IsLoggedIn)
         {
-            CloudSaveProvider.Instance.StartSave(AuthManager.Instance.CurrentUserId, json);
+            CloudSaveProvider.Instance.StartSave(
+                AuthManager.Instance.CurrentUserId, json);
             Debug.Log($"[Save] Đang lưu cloud. savedAt={data.lastSavedAt}");
         }
     }
-
 
     public void Load(string json)
     {
@@ -242,21 +235,13 @@ public class SaveAndLoadSystem : MonoBehaviour
         towerDatabase.highestFloorReached = towerDatabase.cachedHighestFloor;
 
         var floor = towerDatabase.GetFloor(completedFloor);
-        if (floor != null)
-        {
-            floor.completed = true;
-            if (towerDatabase.cachedCompletedStars > floor.stars) floor.stars = towerDatabase.cachedCompletedStars;
-            if (floor.bestTurnCount == 0 || (towerDatabase.cachedCompletedTurnCount > 0 && towerDatabase.cachedCompletedTurnCount < floor.bestTurnCount))
-                floor.bestTurnCount = towerDatabase.cachedCompletedTurnCount;
-        }
+        if (floor != null) floor.completed = true;
 
         // Xóa cache trước khi save
         towerDatabase.hasPendingResult         = false;
         towerDatabase.cachedCurrentFloor       = 0;
         towerDatabase.cachedHighestFloor       = 0;
         towerDatabase.cachedCompletedFloorNumber = 0;
-        towerDatabase.cachedCompletedStars     = 0;
-        towerDatabase.cachedCompletedTurnCount = 0;
 
         Save();
         Debug.Log($"[Save] Applied tower cache: floor {completedFloor} completed, currentFloor={towerDatabase.currentFloor}");
@@ -401,8 +386,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         var all = bm.GetAllSlimes();
         if (all == null) return;
 
-        data.slimes.Clear();
-
         foreach (var s in all)
         {
             if (s == null) continue;
@@ -533,8 +516,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             baseSpeed = ti.baseSpeed,
             baseCritRate = ti.baseCritRate,
             baseCritDMG = ti.baseCritDMG,
-            skillName = ti.skill?.baseSkill != null ? ti.skill.baseSkill.name : null,
-            ultimateSkillName = ti.ultimateSkill?.baseSkill != null ? ti.ultimateSkill.baseSkill.name : null
+            skillName = ti.skill?.baseSkill != null ? ti.skill.baseSkill.name : null
         };
     }
 
@@ -578,27 +560,19 @@ public class SaveAndLoadSystem : MonoBehaviour
             ti.baseCritDMG      = dto.baseCritDMG;
         }
 
-        // Chuẩn hoá lại chỉ số về đúng base đã lưu + tính lại sức mạnh kỹ năng
-        // (hệ số kỹ năng có thể đã đổi qua Remote Config `battle_skill_power_mult`).
-        ti.RecalculateStats();
+        // Áp dụng multiplier hiện tại (có thể đã thay đổi qua Remote Config)
+        float currentMult = ti.GetRarityMultiplier(dto.rarity);
+        ti.RecalculateStats(currentMult);
 
         // Khôi phục skill từ tên đã lưu
-        if (!string.IsNullOrEmpty(dto.skillName) || !string.IsNullOrEmpty(dto.ultimateSkillName))
+        if (!string.IsNullOrEmpty(dto.skillName))
         {
             var gen = SlimeGen.Instance;
             if (gen != null)
             {
                 gen.EnsureSkillDatabasePublic();
-                if (!string.IsNullOrEmpty(dto.skillName))
-                {
-                    var skillSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.skillName);
-                    if (skillSO != null) ti.skill = new SkillInstance(skillSO);
-                }
-                if (!string.IsNullOrEmpty(dto.ultimateSkillName))
-                {
-                    var ultSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.ultimateSkillName);
-                    if (ultSO != null) ti.ultimateSkill = new SkillInstance(ultSO);
-                }
+                var skillSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.skillName);
+                if (skillSO != null) ti.skill = new SkillInstance(skillSO);
             }
         }
 
@@ -631,7 +605,6 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         var gen = SlimeGen.Instance;
         if (gen == null || gen.allTraits == null) return;
-        data.unlockedTraits.Clear();
         foreach (var t in gen.allTraits)
         {
             if (t != null && t.unlocked)
@@ -658,9 +631,6 @@ public class SaveAndLoadSystem : MonoBehaviour
     void SerializeBuildings(GameSaveData data)
     {
         var slots = FindObjectsByType<BuildingSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        if (slots.Length == 0) return;
-
-        data.placedBuildings.Clear();
         foreach (var s in slots)
         {
             var dto = new PlacedBuildingDTO
@@ -699,6 +669,8 @@ public class SaveAndLoadSystem : MonoBehaviour
                     slot.placedBuildingIcon.enabled = true;
                 }
             }
+
+            slot.RefreshBuildingCollider();
         }
     }
 
@@ -713,8 +685,6 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         var qm = QuestManager.Instance;
         if (qm == null || qm.allQuests == null) return;
-
-        data.quests.Clear();
 
         foreach (var q in qm.allQuests)
         {
@@ -912,9 +882,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             {
                 floorNumber = floor.floorNumber,
                 completed   = floor.completed,
-                claimed     = floor.claimed,
-                stars       = floor.stars,
-                bestTurnCount = floor.bestTurnCount
+                claimed     = floor.claimed
             });
         }
 
@@ -993,8 +961,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             {
                 floor.completed = dto.completed;
                 floor.claimed   = dto.claimed;
-                floor.stars     = dto.stars;
-                floor.bestTurnCount = dto.bestTurnCount;
                 if (dto.claimed) loadedClaimed++;
             }
             else

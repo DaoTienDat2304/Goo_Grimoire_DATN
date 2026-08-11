@@ -73,7 +73,7 @@ public class SlimeAnimationController : MonoBehaviour
         {
             spriteRenderer.sprite = sprite;
         }
-        if (skeletonAnimation != null)
+        if (skeletonAnimation != null && spriteRenderer != null)
         {
             Color c = spriteRenderer.color; // lấy màu hiện tại
             c.a = 0f;                        // alpha = 0 → trong suốt

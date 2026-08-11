@@ -191,7 +191,7 @@ public class SlimeInventory : MonoBehaviour
         foreach (GameObject inventorySlot in collectionSlots)
         {
             InventorySlot i = inventorySlot.GetComponent<InventorySlot>();
-            i.onselect = false;
+            i.SetBreedingSelected(false);
             Debug.Log("can not");
         }
         RefreshCollectionGrid();

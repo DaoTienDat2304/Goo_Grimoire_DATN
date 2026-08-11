@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Spine.Unity;
@@ -7,7 +7,7 @@ public class SlimeWorldManager : MonoBehaviour
 {
     private const int BackgroundUiSortingOrder = -100;
     private const int BuildingUiSortingOrder = -90;
-    private const int WorldSlimeSortingOrder = -50;
+    private const int WorldSlimeSortingOrder = -95;
 
     [Header("World Display")]
     public bool showSlimesInWorld = true;
@@ -25,6 +25,8 @@ public class SlimeWorldManager : MonoBehaviour
     public float slimeRotationSpeed = 25f;
     public float slimeBounceHeight = 0.4f;
     public float slimeBounceSpeed = 1.5f;
+    [SerializeField, Min(0f)] private float slimeMinHorizontalTargetDistance = 2.5f;
+    [SerializeField, Range(0f, 1f)] private float slimeVerticalTargetTolerance = 0.65f;
 
     [Header("UI Integration")]
     public BreedingUIManager breedingUI;
@@ -47,6 +49,7 @@ public class SlimeWorldManager : MonoBehaviour
     // Cached movement area colliders
     private CircleCollider2D areaCircleCollider;
     private BoxCollider2D areaBoxCollider;
+    private BuildingSlot[] buildingSlots;
     private void Start()
     {
         InitializeWorld();
@@ -68,6 +71,7 @@ public class SlimeWorldManager : MonoBehaviour
         }
 
         ConfigureWorldViewSorting();
+        RefreshBuildingObstacles();
 
         // Cache movement area colliders if provided
         if (movementArea != null)
@@ -94,7 +98,7 @@ public class SlimeWorldManager : MonoBehaviour
         {
             Vector3 position = GetRandomPointInArea();
             slimePositions[i] = position;
-            slimeTargets[i] = position;
+            slimeTargets[i] = GetRandomMovementTarget(position);
             slimeBounceOffsets[i] = Random.Range(0f, 2f * Mathf.PI);
             slimeBounceTimes[i] = 0f;
         }
@@ -155,6 +159,7 @@ public class SlimeWorldManager : MonoBehaviour
     public void StartWorldView()
     {
         ConfigureWorldViewSorting();
+        RefreshBuildingObstacles();
         isWorldViewActive = true;
 
         // Ẩn breeding UI
@@ -306,11 +311,8 @@ public class SlimeWorldManager : MonoBehaviour
         // Thêm CircleCollider2D để click
         var collider = slimeGO.AddComponent<CircleCollider2D>();
         collider.radius = 5.5f;
-        collider.isTrigger = false;
-        //Them Rigidbody2D de co the tuong tac
-        var rb = slimeGO.AddComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Dynamic;
-        rb.gravityScale = 0;
+        collider.isTrigger = true;
+
         // Thêm tên slime
         var nameText = CreateSlimeNameText(slime != null ? slime.slimeName : "Slime");
         nameText.transform.SetParent(slimeGO.transform);
@@ -475,15 +477,25 @@ public class SlimeWorldManager : MonoBehaviour
             float bounce = Mathf.Sin(slimeBounceTimes[i] + slimeBounceOffsets[i]) * slimeBounceHeight;
 
             // Cập nhật vị trí
-            Vector3 currentPos = worldSlimes[i].transform.position;
-            Vector3 targetPos = slimeTargets[i] + Vector3.up * bounce;
+            Vector3 currentPos = slimePositions[i];
+            Vector3 targetPos = slimeTargets[i];
+            float distanceToTarget = Vector3.Distance(currentPos, targetPos);
+
+            if (distanceToTarget <= 0.1f)
+            {
+                slimeTargets[i] = GetRandomMovementTarget(currentPos);
+                targetPos = slimeTargets[i];
+                distanceToTarget = Vector3.Distance(currentPos, targetPos);
+            }
 
             // Di chuyển đến vị trí mục tiêu
-            if (Vector3.Distance(currentPos, targetPos) > 0.1f)
+            if (distanceToTarget > 0.1f)
             {
                 Vector3 newPos = Vector3.MoveTowards(currentPos, targetPos, slimeMoveSpeed * Time.deltaTime);
-                worldSlimes[i].transform.position = newPos;
+                slimePositions[i] = newPos;
             }
+
+            worldSlimes[i].transform.position = slimePositions[i] + Vector3.up * bounce;
 
             // Xoay slime
             worldSlimes[i].transform.Rotate(0, 0, slimeRotationSpeed * Time.deltaTime);
@@ -491,10 +503,63 @@ public class SlimeWorldManager : MonoBehaviour
             // Thay đổi vị trí mục tiêu ngẫu nhiên
             if (Random.Range(0f, 1f) < 0.005f)
             {
-                Vector3 newTarget = GetRandomPointInArea();
+                Vector3 newTarget = GetRandomMovementTarget(slimePositions[i]);
                 slimeTargets[i] = newTarget;
             }
         }
+    }
+
+    private Vector3 GetRandomMovementTarget(Vector3 currentPosition)
+    {
+        Vector3 bestCandidate = GetRandomPointInArea();
+        float bestHorizontalDistance = Mathf.Abs(bestCandidate.x - currentPosition.x);
+
+        for (int attempt = 0; attempt < 16; attempt++)
+        {
+            Vector3 candidate = GetRandomPointInArea();
+            Vector3 delta = candidate - currentPosition;
+            float horizontalDistance = Mathf.Abs(delta.x);
+            float verticalDistance = Mathf.Abs(delta.y);
+
+            if (horizontalDistance > bestHorizontalDistance)
+            {
+                bestCandidate = candidate;
+                bestHorizontalDistance = horizontalDistance;
+            }
+
+            if (horizontalDistance >= slimeMinHorizontalTargetDistance
+                && horizontalDistance >= verticalDistance * slimeVerticalTargetTolerance)
+            {
+                return candidate;
+            }
+        }
+
+        return bestCandidate;
+    }
+
+    private void RefreshBuildingObstacles()
+    {
+        buildingSlots = FindObjectsByType<BuildingSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < buildingSlots.Length; i++)
+        {
+            if (buildingSlots[i] != null)
+                buildingSlots[i].RefreshBuildingCollider();
+        }
+    }
+
+    private bool IsInsideMovementArea(Vector3 worldPosition)
+    {
+        if (useAreaCollider)
+        {
+            Collider2D areaCollider = areaCircleCollider != null
+                ? areaCircleCollider
+                : areaBoxCollider;
+            if (areaCollider != null && areaCollider.enabled)
+                return areaCollider.OverlapPoint(worldPosition);
+        }
+
+        Vector3 center = movementArea != null ? movementArea.position : transform.position;
+        return ((Vector2)(worldPosition - center)).sqrMagnitude <= worldRadius * worldRadius;
     }
 
     public void RefreshWorldSlimes()

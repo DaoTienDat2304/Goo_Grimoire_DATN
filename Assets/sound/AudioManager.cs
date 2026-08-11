@@ -22,9 +22,11 @@ public class AudioManager : MonoBehaviour
 
     [Header("Volume Settings")]
     [Range(0f, 1f)]
-    [SerializeField] private float backgroundMusicVolume = 0.7f;
+    [SerializeField] private float overallVolume = 0.8f;
     [Range(0f, 1f)]
-    [SerializeField] private float sfxVolume = 1f;
+    [SerializeField] private float backgroundMusicVolume = 0.8f;
+    [Range(0f, 1f)]
+    [SerializeField] private float sfxVolume = 0.8f;
 
     private AudioClip generatedButtonClickSFX;
     private AudioClip generatedBuildingClickSFX;
@@ -45,6 +47,7 @@ public class AudioManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             EnsureAudioSourceDefaults();
+            SettingPanelController.ApplySavedSettings(this);
             SceneManager.activeSceneChanged += OnActiveSceneChanged;
         }
         else
@@ -150,12 +153,18 @@ public class AudioManager : MonoBehaviour
     {
         if (backgroundAudioSource != null)
         {
-            backgroundAudioSource.volume = backgroundMusicVolume;
+            backgroundAudioSource.volume = overallVolume * backgroundMusicVolume;
         }
         if (sfxAudioSource != null)
         {
-            sfxAudioSource.volume = sfxVolume;
+            sfxAudioSource.volume = overallVolume * sfxVolume;
         }
+    }
+
+    public void SetOverallVolume(float volume)
+    {
+        overallVolume = Mathf.Clamp01(volume);
+        UpdateVolumeSettings();
     }
 
     public void SetBackgroundMusicVolume(float volume)
@@ -163,7 +172,7 @@ public class AudioManager : MonoBehaviour
         backgroundMusicVolume = Mathf.Clamp01(volume);
         if (backgroundAudioSource != null)
         {
-            backgroundAudioSource.volume = backgroundMusicVolume;
+            backgroundAudioSource.volume = overallVolume * backgroundMusicVolume;
         }
     }
 
@@ -172,7 +181,7 @@ public class AudioManager : MonoBehaviour
         sfxVolume = Mathf.Clamp01(volume);
         if (sfxAudioSource != null)
         {
-            sfxAudioSource.volume = sfxVolume;
+            sfxAudioSource.volume = overallVolume * sfxVolume;
         }
     }
 
@@ -186,12 +195,17 @@ public class AudioManager : MonoBehaviour
         return sfxVolume;
     }
 
+    public float GetOverallVolume()
+    {
+        return overallVolume;
+    }
+
     // Sound Effect Methods
     public void PlayCatcherThrowSFX()
     {
         if (catcherThrowSFX != null && sfxAudioSource != null)
         {
-            sfxAudioSource.PlayOneShot(catcherThrowSFX, sfxVolume);
+            sfxAudioSource.PlayOneShot(catcherThrowSFX);
         }
     }
 
@@ -199,7 +213,7 @@ public class AudioManager : MonoBehaviour
     {
         if (breedingSFX != null && sfxAudioSource != null)
         {
-            sfxAudioSource.PlayOneShot(breedingSFX, sfxVolume);
+            sfxAudioSource.PlayOneShot(breedingSFX);
         }
     }
 
@@ -222,7 +236,7 @@ public class AudioManager : MonoBehaviour
     {
         if (clip != null && sfxAudioSource != null)
         {
-            sfxAudioSource.PlayOneShot(clip, sfxVolume);
+            sfxAudioSource.PlayOneShot(clip);
         }
     }
 
@@ -230,7 +244,7 @@ public class AudioManager : MonoBehaviour
     {
         if (clip != null && sfxAudioSource != null)
         {
-            sfxAudioSource.PlayOneShot(clip, sfxVolume * volumeScale);
+            sfxAudioSource.PlayOneShot(clip, volumeScale);
         }
     }
 

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
+using TMPro;
 
 public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
 {
@@ -15,6 +16,9 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
     public Image backgroundImage;
     public Image selectionBorder;
     public Button teamButton;
+    [Header("Simple Collection Card")]
+    public Image slimeImage;
+    public TMP_Text slimeNameText;
 
     [Header("Colors")]
     public Color normalColor = Color.white;
@@ -28,6 +32,12 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
     public event Action<Slime> OnSlimeSelected;
     public SlimeWorldManager worldManager;
     public Team teamSlime;
+
+    private void Awake()
+    {
+        ResolveSimpleCardReferences();
+    }
+
     public void PickTeam()
     {
         if (!slime.isPicked)
@@ -62,17 +72,48 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
 
     public void SetupSlime(Slime newSlime)
     {
+        ResolveSimpleCardReferences();
         slime = newSlime;
         UpdateUI();
     }
 
     private void UpdateUI()
     {
-        if (slime == null) return;
+        if (slime == null)
+        {
+            if (nameText != null) nameText.text = "Chua chon";
+            if (slimeNameText != null) slimeNameText.text = string.Empty;
+            if (slimeImage != null)
+            {
+                slimeImage.sprite = null;
+                slimeImage.enabled = false;
+            }
+            if (breedingStatusText != null) breedingStatusText.text = string.Empty;
+            SetSprite(slimeBody, null);
+            SetSprite(SlimeArmor, null);
+            SetSprite(SlimeWeapon, null);
+            if (selectionBorder != null) selectionBorder.gameObject.SetActive(false);
+            return;
+        }
 
         // Update name
         if (nameText != null)
             nameText.text = slime.slimeName;
+        if (slimeNameText != null)
+            slimeNameText.text = slime.slimeName;
+        if (IsSimpleCollectionCard())
+        {
+            if (HasCompositeSlime())
+            {
+                UpdateCompositeSlime();
+            }
+            else if (slimeImage != null)
+            {
+                slimeImage.sprite = slime.body?.sprite;
+                slimeImage.enabled = slimeImage.sprite != null;
+            }
+            return;
+        }
         
 
         // Update breeding status
@@ -103,26 +144,73 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
         }
             // Chống NullReference: nếu 1 slot lỗi (thiếu renderer/worldManager) thì cả grid
             // sẽ dừng dựng và mất hình slime. Guard từng phần để luôn dựng xong.
-            var bodyRenderer = slimeBody?.GetComponent<Image>();
-            var armorRenderer = SlimeArmor?.GetComponent<Image>();
-            var weaponRenderer = SlimeWeapon?.GetComponent<Image>();
-            Sprite fallback = worldManager != null ? worldManager.CreateDefaultSlimeSprite() : null;
+            UpdateCompositeSlime();
+    }
 
-            if (bodyRenderer != null)
-            {
-                bodyRenderer.transform.localScale = Vector3.one * 1.3f;
-                bodyRenderer.sprite = (slime != null ? slime.body?.sprite : null) ?? fallback;
-            }
-            if (armorRenderer != null)
-            {
-                armorRenderer.transform.localScale = Vector3.one;
-                armorRenderer.sprite = (slime != null ? slime.armor?.sprite : null) ?? fallback;
-            }
-            if (weaponRenderer != null)
-            {
-                weaponRenderer.transform.localScale = Vector3.one;
-                weaponRenderer.sprite = (slime != null ? slime.weapon?.sprite : null) ?? fallback;
-            }
+    private static void SetSprite(GameObject target, Sprite value)
+    {
+        Image image = target != null ? target.GetComponent<Image>() : null;
+        if (image != null) image.sprite = value;
+    }
+
+    private bool IsSimpleCollectionCard()
+    {
+        return slimeImage != null || slimeNameText != null;
+    }
+
+    private bool HasCompositeSlime()
+    {
+        return slimeBody != null || SlimeArmor != null || SlimeWeapon != null;
+    }
+
+    private void UpdateCompositeSlime()
+    {
+        SetLayerSprite(slimeBody, slime?.body?.sprite);
+        SetLayerSprite(SlimeArmor, slime?.armor?.sprite);
+        SetLayerSprite(SlimeWeapon, slime?.weapon?.sprite);
+    }
+
+    private static void SetLayerSprite(GameObject target, Sprite value)
+    {
+        if (target == null) return;
+        Image image = target.GetComponent<Image>();
+        if (image == null) return;
+        image.sprite = value;
+        image.enabled = value != null;
+    }
+
+    private void ResolveSimpleCardReferences()
+    {
+        if (slimeImage == null)
+        {
+            Transform slimeTransform = transform.Find("Slime");
+            if (slimeTransform != null)
+                slimeImage = slimeTransform.GetComponent<Image>();
+        }
+
+        if (slimeNameText == null)
+        {
+            Transform nameTransform = transform.Find("Name");
+            if (nameTransform != null)
+                slimeNameText = nameTransform.GetComponent<TMP_Text>();
+        }
+
+
+        if (slimeBody == null)
+            slimeBody = FindChild("slimeBody")?.gameObject;
+        if (SlimeArmor == null)
+            SlimeArmor = FindChild("SlimeArmor")?.gameObject;
+        if (SlimeWeapon == null)
+            SlimeWeapon = FindChild("SlimeWeapon")?.gameObject;
+    }
+
+
+    private Transform FindChild(string childName)
+    {
+        Transform[] children = GetComponentsInChildren<Transform>(true);
+        foreach (Transform child in children)
+            if (child.name == childName) return child;
+        return null;
     }
 
     public void OnPointerClick(PointerEventData eventData)

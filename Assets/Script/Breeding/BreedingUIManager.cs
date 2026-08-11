@@ -1,15 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class BreedingUIManager : MonoBehaviour
 {
     [Header("UI Panels")]
+    public GameObject breedingUIRoot;
     public GameObject breedingPanel;
     public GameObject slimeCollectionPanel;
     public GameObject breedingProgressPanel;
+    public Button closeButton;
 
     [Header("Breeding UI")]
     public Transform slimeGridParent;
@@ -17,11 +20,27 @@ public class BreedingUIManager : MonoBehaviour
     public Button breedButton;
     public Button cancelButton;
     public Sprite slotsprite;
+    public Image selectedSlime1Image;
+    public Image selectedSlime2Image;
+    public Image selectedSlime1Body;
+    public Image selectedSlime1Armor;
+    public Image selectedSlime1Weapon;
+    public Image selectedSlime2Body;
+    public Image selectedSlime2Armor;
+    public Image selectedSlime2Weapon;
+    public TMP_Text mutationPercentText;
+    public TMP_Text energyCostText;
 
     [Header("Progress UI")]
     public Slider breedingProgressBar;
     public Text breedingStatusText;
     public Text selectedSlimesText;
+    [Tooltip("Tom tat cap dang chon: rarity, chi phi va thoi gian du kien.")]
+    public Text breedingPreviewText;
+
+    [Header("Runtime Safety")]
+    [Tooltip("Chi bat khi scene khong co UI duoc gan san. Tat trong firstsave de tranh tu sinh object long xong.")]
+    public bool createMissingUIAtRuntime;
 
     [Header("Chi phí lai — kéo vào Inspector cho khớp UI PNG (màn CHỌN slime)")]
     [Tooltip("Icon coin của bạn, hiện cạnh số Gold. Chỉ bật khi đã chọn đủ 2 slime.")]
@@ -40,6 +59,12 @@ public class BreedingUIManager : MonoBehaviour
     [Header("Collection UI")]
     public Transform collectionGridParent;
     public GameObject collectionSlotPrefab;
+    public Button previousPageButton;
+    public Button nextPageButton;
+    public Image[] pageDots;
+    public Sprite activePageDotSprite;
+    public Sprite inactivePageDotSprite;
+    [Min(1)] public int collectionPageSize = 9;
 
     [Header("Slime Counter UI")]
     public Text slimeCounterText;
@@ -51,11 +76,13 @@ public class BreedingUIManager : MonoBehaviour
     public float interval = 1f;
     private float timer = 0f;
     private bool currentlyBreeding = false;
+    private int currentCollectionPage;
     public bool panelBreedingActive;
     private void Awake()
     {
         AutoWireIfNeeded();
-        EnsureRuntimeFallbacks();
+        if (createMissingUIAtRuntime)
+            EnsureRuntimeFallbacks();
     }
 
     private void Start()
@@ -160,6 +187,16 @@ public class BreedingUIManager : MonoBehaviour
             var t = FindChildRecursive(root, "CancelButton");
             if (t != null) cancelButton = t.GetComponent<Button>();
         }
+        if (selectedSlime1Image == null)
+            selectedSlime1Image = FindChildRecursive(root, "Slime1")?.GetComponent<Image>();
+        if (selectedSlime2Image == null)
+            selectedSlime2Image = FindChildRecursive(root, "Slime2")?.GetComponent<Image>();
+        AutoWireSelectedSlimeLayers(root, "Slime1", ref selectedSlime1Body, ref selectedSlime1Armor, ref selectedSlime1Weapon);
+        AutoWireSelectedSlimeLayers(root, "Slime2", ref selectedSlime2Body, ref selectedSlime2Armor, ref selectedSlime2Weapon);
+        if (mutationPercentText == null)
+            mutationPercentText = FindChildRecursive(root, "SoPhanTram")?.GetComponent<TMP_Text>();
+        if (energyCostText == null)
+            energyCostText = FindChildRecursive(root, "SoNangLuong")?.GetComponent<TMP_Text>();
 
         if (breedingProgressBar == null)
         {
@@ -185,7 +222,24 @@ public class BreedingUIManager : MonoBehaviour
         if (collectionGridParent == null)
         {
             var t = FindChildRecursive(root, "CollectionGridParent");
+            if (t == null) t = FindChildRecursive(root, "CollectionGrid");
             if (t != null) collectionGridParent = t;
+        }
+        if (previousPageButton == null)
+            previousPageButton = FindChildRecursive(root, "PreviousPageButton")?.GetComponent<Button>();
+        if (nextPageButton == null)
+            nextPageButton = FindChildRecursive(root, "NextPageButton")?.GetComponent<Button>();
+        if (pageDots == null || pageDots.Length == 0)
+        {
+            var dots = new List<Image>();
+            for (int i = 1; i <= 6; i++)
+            {
+                Image dot = FindChildRecursive(root, "PageDot_" + i)?.GetComponent<Image>();
+                if (dot != null) dots.Add(dot);
+            }
+            pageDots = dots.ToArray();
+            if (pageDots.Length > 0 && activePageDotSprite == null) activePageDotSprite = pageDots[0].sprite;
+            if (pageDots.Length > 1 && inactivePageDotSprite == null) inactivePageDotSprite = pageDots[1].sprite;
         }
 
         if (slimeCounterText == null)
@@ -215,10 +269,26 @@ public class BreedingUIManager : MonoBehaviour
         // tự tạo lúc chạy nữa (tránh lệch & không sửa được). Chỉ điều khiển hiện/ẩn + số liệu.
 
         if (breedButton != null)
+        {
+            breedButton.onClick.RemoveListener(OnBreedButtonClicked);
             breedButton.onClick.AddListener(OnBreedButtonClicked);
+        }
 
         if (cancelButton != null)
+        {
+            cancelButton.onClick.RemoveListener(OnCancelButtonClicked);
             cancelButton.onClick.AddListener(OnCancelButtonClicked);
+        }
+        if (previousPageButton != null)
+        {
+            previousPageButton.onClick.RemoveListener(ShowPreviousCollectionPage);
+            previousPageButton.onClick.AddListener(ShowPreviousCollectionPage);
+        }
+        if (nextPageButton != null)
+        {
+            nextPageButton.onClick.RemoveListener(ShowNextCollectionPage);
+            nextPageButton.onClick.AddListener(ShowNextCollectionPage);
+        }
 
         if (finishWithGemsButton != null)
         {
@@ -227,9 +297,28 @@ public class BreedingUIManager : MonoBehaviour
             finishWithGemsButton.gameObject.SetActive(false);
         }
 
+        if (closeButton != null)
+        {
+            closeButton.onClick.RemoveListener(HideBreedingUI);
+            closeButton.onClick.AddListener(HideBreedingUI);
+        }
+
         // Setup breeding progress panel
         if (breedingProgressPanel != null)
             breedingProgressPanel.SetActive(false);
+    }
+
+    public void HideBreedingUI()
+    {
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayButtonClickSFX();
+        panelBreedingActive = false;
+        SlimeWorldManager worldManager = FindFirstObjectByType<SlimeWorldManager>();
+        if (worldManager != null)
+            worldManager.StartWorldView();
+        else if (breedingUIRoot != null)
+            breedingUIRoot.SetActive(false);
+        else
+            gameObject.SetActive(false);
     }
 
     private void OnFinishWithGemsClicked()
@@ -459,6 +548,14 @@ public class BreedingUIManager : MonoBehaviour
 
     private void RefreshSlimeGrid()
     {
+        if (selectedSlime1Image != null || selectedSlime2Image != null || selectedSlime1Body != null || selectedSlime2Body != null)
+        {
+            SetSelectedSlime(selectedSlime1Image, selectedSlime1Body, selectedSlime1Armor, selectedSlime1Weapon, selectedSlime1);
+            SetSelectedSlime(selectedSlime2Image, selectedSlime2Body, selectedSlime2Armor, selectedSlime2Weapon, selectedSlime2);
+            UpdateBreedButton();
+            return;
+        }
+
         // Clear existing slots
         foreach (var slot in slimeSlots)
         {
@@ -508,11 +605,18 @@ public class BreedingUIManager : MonoBehaviour
             return;
 
         // Get all slimes
-        var allSlimes = BreedingManager.Instance.GetAllSlimes();
+        var allSlimes = BreedingManager.Instance.GetAllSlimes()
+            .Where(slime => !HasSecretBodyTrait(slime))
+            .ToList();
+        int pageCount = Mathf.Max(1, Mathf.CeilToInt(allSlimes.Count / (float)collectionPageSize));
+        currentCollectionPage = Mathf.Clamp(currentCollectionPage, 0, pageCount - 1);
+        int firstIndex = currentCollectionPage * collectionPageSize;
+        int lastIndex = Mathf.Min(firstIndex + collectionPageSize, allSlimes.Count);
 
         // Create new slots - filter ra các slime có Secret body trait
-        foreach (var slime in allSlimes)
+        for (int i = firstIndex; i < lastIndex; i++)
         {
+            Slime slime = allSlimes[i];
             // Bỏ qua slime có Secret body trait
             if (HasSecretBodyTrait(slime))
             {
@@ -521,19 +625,85 @@ public class BreedingUIManager : MonoBehaviour
 
             GameObject slot = Instantiate(collectionSlotPrefab, collectionGridParent);
             var slotScript = slot.GetComponent<SlimeSlotUI>();
-            slotScript.sprite = slotsprite;
             if (slotScript != null)
             {
+                if (slotsprite != null) slotScript.sprite = slotsprite;
                 slotScript.SetupSlime(slime);
                 slotScript.OnSlimeSelected += OnSlimeSelected;
+                slotScript.SetSelected(slime == selectedSlime1 || slime == selectedSlime2);
             }
             collectionSlots.Add(slot);
         }
+        UpdatePagination(pageCount);
     }
 
     /// <summary>
     /// Kiểm tra xem slime có trait body với độ hiếm Secret không
     /// </summary>
+    private static void SetSelectedSlime(Image fallback, Image body, Image armor, Image weapon, Slime slime)
+    {
+        if (body != null)
+        {
+            SetLayer(body, slime?.body?.sprite);
+            SetLayer(armor, slime?.armor?.sprite);
+            SetLayer(weapon, slime?.weapon?.sprite);
+            if (fallback != null) fallback.enabled = false;
+            return;
+        }
+        SetLayer(fallback, slime?.body?.sprite);
+    }
+
+    private static void SetLayer(Image target, Sprite sprite)
+    {
+        if (target == null) return;
+        target.sprite = sprite;
+        target.enabled = sprite != null;
+    }
+
+    private void AutoWireSelectedSlimeLayers(Transform root, string containerName, ref Image body, ref Image armor, ref Image weapon)
+    {
+        Transform container = FindChildRecursive(root, containerName);
+        if (container == null) return;
+        if (body == null) body = FindChildRecursive(container, "slimeBody")?.GetComponent<Image>();
+        if (armor == null) armor = FindChildRecursive(container, "SlimeArmor")?.GetComponent<Image>();
+        if (weapon == null) weapon = FindChildRecursive(container, "SlimeWeapon")?.GetComponent<Image>();
+    }
+
+    private void ShowPreviousCollectionPage()
+    {
+        if (currentCollectionPage <= 0) return;
+        currentCollectionPage--;
+        RefreshCollectionGrid();
+    }
+
+    private void ShowNextCollectionPage()
+    {
+        int count = BreedingManager.Instance != null
+            ? BreedingManager.Instance.GetAllSlimes().Count(slime => !HasSecretBodyTrait(slime))
+            : 0;
+        int pageCount = Mathf.Max(1, Mathf.CeilToInt(count / (float)collectionPageSize));
+        if (currentCollectionPage >= pageCount - 1) return;
+        currentCollectionPage++;
+        RefreshCollectionGrid();
+    }
+
+    private void UpdatePagination(int pageCount)
+    {
+        if (previousPageButton != null) previousPageButton.interactable = currentCollectionPage > 0;
+        if (nextPageButton != null) nextPageButton.interactable = currentCollectionPage < pageCount - 1;
+
+        if (pageDots == null) return;
+        for (int i = 0; i < pageDots.Length; i++)
+        {
+            Image dot = pageDots[i];
+            if (dot == null) continue;
+            bool visible = i < pageCount;
+            dot.gameObject.SetActive(visible);
+            if (visible)
+                dot.sprite = i == currentCollectionPage ? activePageDotSprite : inactivePageDotSprite;
+        }
+    }
+
     private bool HasSecretBodyTrait(Slime slime)
     {
         if (slime == null || slime.body == null) return false;
@@ -542,6 +712,29 @@ public class BreedingUIManager : MonoBehaviour
 
     private void OnSlimeSelected(Slime slime)
     {
+        if (slime == null || !slime.canBreed || slime.breedingLocked ||
+            (BreedingManager.Instance != null && BreedingManager.Instance.IsBreeding()))
+            return;
+
+        if (selectedSlime1 == slime)
+        {
+            selectedSlime1 = selectedSlime2;
+            selectedSlime2 = null;
+            UpdateSelectedSlimesText();
+            RefreshSlimeGrid();
+            RefreshCollectionGrid();
+            UpdateBreedButton();
+            return;
+        }
+        else if (selectedSlime2 == slime)
+        {
+            selectedSlime2 = null;
+            UpdateSelectedSlimesText();
+            RefreshSlimeGrid();
+            RefreshCollectionGrid();
+            UpdateBreedButton();
+            return;
+        }
         if (selectedSlime1 == null)
         {
             selectedSlime1 = slime;
@@ -564,6 +757,8 @@ public class BreedingUIManager : MonoBehaviour
             }
         }
         UpdateSelectedSlimesText();
+        RefreshSlimeGrid();
+        RefreshCollectionGrid();
         UpdateBreedButton();
     }
 
@@ -608,6 +803,7 @@ public class BreedingUIManager : MonoBehaviour
             if (breedingProgressPanel != null) breedingProgressPanel.SetActive(true);
             if (breedButton != null) breedButton.gameObject.SetActive(false);
             if (cancelButton != null) cancelButton.gameObject.SetActive(false);
+            if (breedingPreviewText != null) breedingPreviewText.gameObject.SetActive(false);
         }
     }
 
@@ -623,6 +819,8 @@ public class BreedingUIManager : MonoBehaviour
         selectedSlime1 = null;
         selectedSlime2 = null;
         UpdateSelectedSlimesText();
+        RefreshSlimeGrid();
+        RefreshCollectionGrid();
         UpdateBreedButton();
     }
     private void UpdateBreedingProgress()
@@ -642,6 +840,7 @@ public class BreedingUIManager : MonoBehaviour
             if (breedingProgressPanel != null) breedingProgressPanel.SetActive(true);
             if (breedButton != null) breedButton.gameObject.SetActive(false);
             if (cancelButton != null) cancelButton.gameObject.SetActive(false);
+            if (breedingPreviewText != null) breedingPreviewText.gameObject.SetActive(false);
             if (breedingProgressBar != null) breedingProgressBar.value = progress;
 
             int gemCost = BreedingManager.Instance.GetActiveFinishGemCost();
@@ -670,7 +869,8 @@ public class BreedingUIManager : MonoBehaviour
             // Không lai: ẩn màn đếm ngược, hiện lại nút chọn/breed.
             if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
             if (breedButton != null) breedButton.gameObject.SetActive(true);
-            if (cancelButton != null) cancelButton.gameObject.SetActive(true);
+            if (cancelButton != null) cancelButton.gameObject.SetActive(selectedSlime1 != null || selectedSlime2 != null);
+            if (breedingPreviewText != null) breedingPreviewText.gameObject.SetActive(true);
 
             if (currentlyBreeding)
             {
@@ -701,7 +901,6 @@ public class BreedingUIManager : MonoBehaviour
             }
 
             selectedSlimesText.text = text;
-            RefreshSlimeGrid();
         }
 
         UpdateBreedingCostPreview();
@@ -714,12 +913,32 @@ public class BreedingUIManager : MonoBehaviour
                     && BreedingManager.Instance != null && !BreedingManager.Instance.IsBreeding();
 
         int gold = show ? BreedingManager.Instance.PreviewGoldCost(selectedSlime1, selectedSlime2) : 0;
+        float mutationChance = 0f;
+        if (show)
+        {
+            Rarity rarity = BreedingManager.Instance.PreviewEggRarity(selectedSlime1, selectedSlime2);
+            float perTraitRate = SelectiveBreeding.GetMutationRate(rarity);
+            mutationChance = 1f - Mathf.Pow(1f - perTraitRate, 3f);
+        }
 
         if (breedingCostText != null)
             breedingCostText.text = show ? $"{gold:N0}" : string.Empty;
 
         if (costCoinIcon != null)
             costCoinIcon.gameObject.SetActive(show);
+
+        if (energyCostText != null)
+            energyCostText.text = show ? gold.ToString("N0") : "0";
+
+        if (mutationPercentText != null)
+            mutationPercentText.text = show ? $"{mutationChance * 100f:F0}%" : "0%";
+
+        if (breedingPreviewText != null)
+        {
+            breedingPreviewText.text = show
+                ? $"Trung {BreedingManager.Instance.PreviewEggRarity(selectedSlime1, selectedSlime2)}  |  {FormatTime(BreedingManager.Instance.PreviewDurationSeconds(selectedSlime1, selectedSlime2))}"
+                : "Chon 2 slime o danh sach ben phai";
+        }
     }
 
     private void UpdateBreedButton()
@@ -741,8 +960,8 @@ public class BreedingUIManager : MonoBehaviour
 
         panelBreedingActive = true;
         if (breedingPanel != null) breedingPanel.SetActive(true);
-        if (slimeCollectionPanel != null) slimeCollectionPanel.SetActive(false);
-        RefreshSlimeGrid();
+        if (slimeCollectionPanel != null) slimeCollectionPanel.SetActive(true);
+        RefreshAllUI();
         // KHÔNG ép tắt màn đếm ngược ở đây — để UpdateBreedingProgress quyết định theo
         // trạng thái: nếu đang lai thì hiện màn đếm ngược ngay, nếu không thì hiện màn chọn.
         UpdateBreedingProgress();
@@ -757,10 +976,10 @@ public class BreedingUIManager : MonoBehaviour
         }
 
         panelBreedingActive = true;
-        if (breedingPanel != null) breedingPanel.SetActive(false);
+        if (breedingPanel != null) breedingPanel.SetActive(true);
         if (slimeCollectionPanel != null) slimeCollectionPanel.SetActive(true);
-        if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
-        RefreshCollectionGrid();
+        RefreshAllUI();
+        UpdateBreedingProgress();
     }
 
     private void UpdateSlimeCounter()

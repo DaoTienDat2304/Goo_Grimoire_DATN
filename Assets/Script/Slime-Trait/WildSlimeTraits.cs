@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class WildSlimeTraits : MonoBehaviour
 {
+    private static Sprite cachedDefaultSlimeSprite;
     public WildSlimeAllTraits allWildTraits;
     public WildSlimes wildSlimes;
     public WildSlimes.WildSlimeTraits newSlime;
@@ -116,6 +117,9 @@ public class WildSlimeTraits : MonoBehaviour
     }
     public Sprite CreateDefaultSlimeSprite()
     {
+        if (cachedDefaultSlimeSprite != null)
+            return cachedDefaultSlimeSprite;
+
         int size = 64;
         Texture2D texture = new Texture2D(size, size);
 
@@ -137,7 +141,9 @@ public class WildSlimeTraits : MonoBehaviour
         }
 
         texture.Apply();
-        return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+        cachedDefaultSlimeSprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+        cachedDefaultSlimeSprite.name = "DefaultWildSlimeSprite_Cached";
+        return cachedDefaultSlimeSprite;
     }
 
     IEnumerator MenuSetup()

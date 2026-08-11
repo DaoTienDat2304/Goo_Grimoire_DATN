@@ -4,11 +4,14 @@ using UnityEngine.UI;
 public class MobileControlsEventBlocker : MonoBehaviour
 {
     private GraphicRaycaster[] raycasters;
+    private showteam[] teamPanels;
+    private AdventureBag[] tameInventories;
     private bool wasBlocked;
 
     private void Awake()
     {
         CacheRaycasters();
+        CacheBlockingPanels();
     }
 
     private void OnEnable()
@@ -24,6 +27,12 @@ public class MobileControlsEventBlocker : MonoBehaviour
     private void CacheRaycasters()
     {
         raycasters = GetComponentsInChildren<GraphicRaycaster>(true);
+    }
+
+    private void CacheBlockingPanels()
+    {
+        teamPanels = FindObjectsByType<showteam>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        tameInventories = FindObjectsByType<AdventureBag>(FindObjectsInactive.Include, FindObjectsSortMode.None);
     }
 
     private void UpdateRaycastState()
@@ -49,13 +58,16 @@ public class MobileControlsEventBlocker : MonoBehaviour
 
     private bool IsAnyInventoryPanelOpen()
     {
-        foreach (var teamPanel in FindObjectsByType<showteam>(FindObjectsSortMode.None))
+        if (teamPanels == null || tameInventories == null)
+            CacheBlockingPanels();
+
+        foreach (var teamPanel in teamPanels)
         {
             if (teamPanel != null && teamPanel.IsOpen)
                 return true;
         }
 
-        foreach (var tameInventory in FindObjectsByType<AdventureBag>(FindObjectsSortMode.None))
+        foreach (var tameInventory in tameInventories)
         {
             if (tameInventory != null && tameInventory.IsOpen)
                 return true;

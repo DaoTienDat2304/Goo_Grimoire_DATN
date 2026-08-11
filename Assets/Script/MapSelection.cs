@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class MapSelection : MonoBehaviour
 {
-    loading loading;
     public int MapIndex;
+    public string sceneName;
     public GameObject warningText;
 
     private static readonly WaitForSeconds WarningDelay = new(3f);
@@ -32,8 +32,14 @@ public class MapSelection : MonoBehaviour
         if (warningText != null)
             warningText.SetActive(false);
 
-        loading loading = GameObject.Find("loading").GetComponent<loading>();
-        await loading.onplay(MapIndex);
+        string targetScene = GetTargetSceneName();
+        if (!string.IsNullOrEmpty(targetScene))
+        {
+            await SceneLoader.LoadSceneWithLoading(targetScene);
+            return;
+        }
+
+        await SceneLoader.LoadSceneWithLoading(MapIndex);
     }
 
     private void ShowWarning()
@@ -49,5 +55,25 @@ public class MapSelection : MonoBehaviour
         yield return WarningDelay;
         if (warningText != null)
             warningText.SetActive(false);
+    }
+
+    private string GetTargetSceneName()
+    {
+        if (!string.IsNullOrWhiteSpace(sceneName))
+            return sceneName.Trim();
+
+        switch (MapIndex)
+        {
+            case 3:
+                return "adventureSence";
+            case 4:
+                return "Map2";
+            case 5:
+                return "Frozen_Map";
+            case 6:
+                return "NonameMap";
+            default:
+                return string.Empty;
+        }
     }
 }

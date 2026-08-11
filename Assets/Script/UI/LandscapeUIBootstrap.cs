@@ -7,7 +7,7 @@ public sealed class LandscapeUIBootstrap : MonoBehaviour
 {
     private const float ReferenceWidth = 1920f;
     private const float ReferenceHeight = 1080f;
-    private const float ScanInterval = 0.5f;
+    private const float ScanInterval = 3f;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
     private static void ForceLandscapeBeforeSplash()
@@ -67,30 +67,12 @@ public sealed class LandscapeUIBootstrap : MonoBehaviour
         {
             scaler = canvas.gameObject.AddComponent<CanvasScaler>();
         }
-        else if (!NeedsRuntimeFix(scaler))
-        {
-            return;
-        }
-
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 0.5f;
         scaler.referencePixelsPerUnit = 100f;
-    }
 
-    private static bool NeedsRuntimeFix(CanvasScaler scaler)
-    {
-        bool isDefaultUnityScaler =
-            scaler.uiScaleMode == CanvasScaler.ScaleMode.ConstantPixelSize &&
-            Mathf.Approximately(scaler.referenceResolution.x, 800f) &&
-            Mathf.Approximately(scaler.referenceResolution.y, 600f);
-
-        bool hasInvalidScaledResolution =
-            scaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize &&
-            (scaler.referenceResolution.x <= 0f || scaler.referenceResolution.y <= 0f);
-
-        return isDefaultUnityScaler || hasInvalidScaledResolution;
     }
 
     private static void ConfigureAllCanvases()

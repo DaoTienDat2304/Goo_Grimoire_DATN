@@ -70,20 +70,43 @@ public class SlimeSpawner : MonoBehaviour
     private readonly Dictionary<int, bool> slimeSimulationStates = new Dictionary<int, bool>();
     private readonly Dictionary<int, bool> slimeVisualStates = new Dictionary<int, bool>();
     private readonly Dictionary<int, bool> slimeAnimationStates = new Dictionary<int, bool>();
+    private readonly Collider2D[] spawnOverlapResults = new Collider2D[16];
+
+    public void SetSustainedPerformanceMode(bool enabled)
+    {
+        if (!Application.isMobilePlatform) return;
+        // Chi giam tan suat tac vu culling nen khong lam slime dang hien thi
+        // bi dung AI/animation trong mot phien choi dai.
+        simulationCullInterval = enabled ? Mathf.Max(simulationCullInterval, 0.25f) : Mathf.Max(simulationCullInterval, 0.15f);
+        simulationCullTimer = 0f;
+    }
 
     private void Awake()
     {
         // Scene cũ có thể vẫn lưu các giá trị trước khi tối ưu. Ép cấu hình an
         // toàn ở runtime để mọi map, kể cả map tạo sau này, có cùng hành vi.
-        simulationCullInterval = Mathf.Min(simulationCullInterval, 0.05f);
+        simulationCullInterval = Application.isMobilePlatform
+            ? Mathf.Max(simulationCullInterval, 0.15f)
+            : Mathf.Min(simulationCullInterval, 0.05f);
         maxSimulationActivationsPerPass = Mathf.Max(1, maxSimulationActivationsPerPass);
         disableRenderersOutsideSimulation = true;
         maxActiveSlimeAI = Mathf.Clamp(maxActiveSlimeAI, 1, 4);
         maxAnimatedSlimes = Mathf.Clamp(maxAnimatedSlimes, maxActiveSlimeAI, 6);
+        if (Application.isMobilePlatform)
+        {
+            maxActiveSlimeAI = Mathf.Min(maxActiveSlimeAI, 3);
+            maxAnimatedSlimes = Mathf.Min(maxAnimatedSlimes, 4);
+        }
         // 8 slime hiển thị tốt trên màn hình nhỏ nhưng nhẹ hơn đáng kể so với
         // 10-12 bộ mesh Spine, collider và trait object ở các scene cũ.
         maxSlimeCount = Mathf.Min(maxSlimeCount, 8);
         minSlimeCount = Mathf.Min(minSlimeCount, maxSlimeCount);
+
+        if (obstacleLayerMask.value == -1 || obstacleLayerMask.value == 0)
+        {
+            int obstacleMask = LayerMask.GetMask("obstacle", "Obstacle", "Obstacles");
+            obstacleLayerMask = obstacleMask;
+        }
     }
 
     void Start()
@@ -198,13 +221,38 @@ public class SlimeSpawner : MonoBehaviour
         }
 
         Debug.LogWarning("Could not find valid spawn position after " + maxSpawnAttempts + " attempts");
-        return Vector3.zero;
+        return GetFallbackSpawnPosition(spawnCenter);
     }
 
     bool IsPositionValid(Vector3 position)
     {
-        Collider2D obstacle = Physics2D.OverlapCircle(position, 1f, obstacleLayerMask);
-        return obstacle == null;
+        if (obstacleLayerMask.value == 0)
+            return true;
+
+        int hitCount = Physics2D.OverlapCircleNonAlloc(position, 1f, spawnOverlapResults, obstacleLayerMask);
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D obstacle = spawnOverlapResults[i];
+            if (obstacle != null && !obstacle.isTrigger)
+                return false;
+        }
+
+        return true;
+    }
+
+    Vector3 GetFallbackSpawnPosition(Vector3 spawnCenter)
+    {
+        if (player == null)
+            return spawnCenter;
+
+        Vector2 direction = ((Vector2)(spawnCenter - player.position)).normalized;
+        if (direction.sqrMagnitude <= 0.001f)
+            direction = Random.insideUnitCircle.normalized;
+        if (direction.sqrMagnitude <= 0.001f)
+            direction = Vector2.right;
+
+        float distance = Mathf.Max(minDistanceFromPlayer, 1f);
+        return player.position + (Vector3)(direction * distance);
     }
 
     public void SpawnSingleSlime(Vector3 position)

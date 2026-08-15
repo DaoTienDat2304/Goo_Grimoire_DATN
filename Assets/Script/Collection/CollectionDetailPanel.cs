@@ -52,14 +52,12 @@ public class CollectionDetailPanel : MonoBehaviour
         SetAvatarFrameColor(bodyTrait != null ? bodyTrait.rarity : Rarity.Common);
 
         // Title
-        SetTitle(slime.slimeName, bodyTrait != null ? bodyTrait.rarity.ToString() : "");
+        SetTitle(slime.slimeName, bodyTrait != null ? bodyTrait.rarity.ToVietnamese() : "", bodyTrait != null ? bodyTrait.rarity : Rarity.Common);
 
         // Stats
         ShowStats(true);
         SetStats(slime.totalHP, slime.totalAttack, slime.totalMagicAttack,
                  slime.totalDefense, slime.totalSpeed, slime.totalCritRate);
-
-        // Equipment slots: hiển thị skill icon trong 3 ô đầu
 
         // Equipment slots: hiển thị skill icon trong 3 ô đầu
         SetRowActive(0, true);
@@ -80,7 +78,7 @@ public class CollectionDetailPanel : MonoBehaviour
         SetAvatarLayers(trait.sprite, null, null);
         SetAvatarFrameColor(trait.rarity);
 
-        SetTitle(trait.traitName, trait.rarity.ToString());
+        SetTitle(trait.traitName, $"{trait.type.ToVietnamese()} • {trait.rarity.ToVietnamese()}", trait.rarity);
 
         bool isBody = trait.type == TraitType.Body;
         bool isArmor = trait.type == TraitType.Armor;
@@ -128,8 +126,12 @@ public class CollectionDetailPanel : MonoBehaviour
             descriptionGroup.SetActive(true);
             var sb = new StringBuilder();
             if (trait.skill != null) sb.AppendLine("Kỹ năng: " + trait.skill.skillName);
-            if (trait.ultimateSkill != null) sb.AppendLine("Ultimate: " + trait.ultimateSkill.skillName);
-            if (descriptionText != null) descriptionText.text = sb.ToString().Trim();
+            if (trait.ultimateSkill != null) sb.AppendLine("Tuyệt kỹ: " + trait.ultimateSkill.skillName);
+            if (descriptionText != null)
+            {
+                descriptionText.resizeTextForBestFit = true;
+                descriptionText.text = sb.ToString().Trim();
+            }
         }
     }
 
@@ -142,7 +144,7 @@ public class CollectionDetailPanel : MonoBehaviour
         SetAvatarLayers(skill.icon, null, null);
         SetAvatarFrameColor(skill.rarity);
 
-        SetTitle(skill.skillName, skill.rarity.ToString());
+        SetTitle(skill.skillName, $"Kỹ năng • {skill.rarity.ToVietnamese()}", skill.rarity);
 
         // Ẩn stats, hiển thị description
         ShowStats(false);
@@ -158,7 +160,11 @@ public class CollectionDetailPanel : MonoBehaviour
             if (skill.battlePointCost > 0) sb.AppendLine($"Tốn: {skill.battlePointCost} Điểm Chiến Đấu");
             if (skill.energyCost > 0) sb.AppendLine($"Tốn: {skill.energyCost} Năng Lượng");
             if (skill.battlePointGain > 0) sb.AppendLine($"Nhận: +{skill.battlePointGain} Điểm Chiến Đấu");
-            if (descriptionText != null) descriptionText.text = sb.ToString().Trim();
+            if (descriptionText != null)
+            {
+                descriptionText.resizeTextForBestFit = true;
+                descriptionText.text = sb.ToString().Trim();
+            }
         }
 
         // Ẩn toàn bộ 6 ô trang bị
@@ -177,8 +183,16 @@ public class CollectionDetailPanel : MonoBehaviour
     public void ClearDetail()
     {
         SetAvatarLayers(null, null, null);
-        if (titleText != null) titleText.text = "Chọn một mục để xem chi tiết";
-        if (subtitleText != null) subtitleText.text = "";
+        if (titleText != null)
+        {
+            titleText.resizeTextForBestFit = true;
+            titleText.text = "Chọn một mục để xem chi tiết";
+        }
+        if (subtitleText != null)
+        {
+            subtitleText.resizeTextForBestFit = true;
+            subtitleText.text = "";
+        }
         ShowStats(false);
         SetRowActive(0, false);
         SetRowActive(1, false);
@@ -219,10 +233,37 @@ public class CollectionDetailPanel : MonoBehaviour
             avatarFrame.color = CollectionGridItem.GetRarityColor(rarity);
     }
 
-    private void SetTitle(string title, string subtitle)
+    void Awake()
     {
-        if (titleText != null) titleText.text = title;
-        if (subtitleText != null) subtitleText.text = subtitle;
+        if (titleText != null)
+        {
+            titleText.resizeTextForBestFit = true;
+            titleText.resizeTextMinSize = 10;
+            titleText.resizeTextMaxSize = 20;
+            titleText.alignment = TextAnchor.MiddleCenter;
+        }
+        if (subtitleText != null)
+        {
+            subtitleText.resizeTextForBestFit = true;
+            subtitleText.resizeTextMinSize = 9;
+            subtitleText.resizeTextMaxSize = 16;
+            subtitleText.alignment = TextAnchor.MiddleCenter;
+        }
+    }
+
+    private void SetTitle(string title, string subtitle, Rarity rarity = Rarity.Common)
+    {
+        if (titleText != null)
+        {
+            titleText.resizeTextForBestFit = true;
+            titleText.text = title;
+        }
+        if (subtitleText != null)
+        {
+            subtitleText.resizeTextForBestFit = true;
+            subtitleText.text = subtitle;
+            subtitleText.color = CollectionGridItem.GetRarityColor(rarity);
+        }
     }
 
     private void ShowStats(bool show)
@@ -232,23 +273,50 @@ public class CollectionDetailPanel : MonoBehaviour
 
     private void SetStats(int hp, int atk, int matk, int def, int spd, float crit)
     {
-        if (hpText != null)       hpText.text = hp.ToString("N0");
-        if (atkText != null)      atkText.text = atk.ToString("N0");
-        if (matkText != null)     matkText.text = matk.ToString("N0");
-        if (defText != null)      defText.text = def.ToString("N0");
-        if (spdText != null)      spdText.text = spd.ToString();
-        if (critRateText != null) critRateText.text = (crit * 100f).ToString("F0") + "%";
+        if (hpText != null)       { hpText.resizeTextForBestFit = true; hpText.text = hp.ToString("N0"); }
+        if (atkText != null)      { atkText.resizeTextForBestFit = true; atkText.text = atk.ToString("N0"); }
+        if (matkText != null)     { matkText.resizeTextForBestFit = true; matkText.text = matk.ToString("N0"); }
+        if (defText != null)      { defText.resizeTextForBestFit = true; defText.text = def.ToString("N0"); }
+        if (spdText != null)      { spdText.resizeTextForBestFit = true; spdText.text = spd.ToString(); }
+        if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = (crit * 100f).ToString("F0") + "%"; }
     }
 
     private void SetTraitStats(TraitSO trait)
     {
-        // Hiển thị range stats từ TraitSO
-        if (hpText != null)    hpText.text    = trait.type == TraitType.Body   ? $"{trait.HPRange.x} ~ {trait.HPRange.y}" : "-";
-        if (atkText != null)   atkText.text   = trait.type == TraitType.Weapon ? $"{trait.attackRange.x} ~ {trait.attackRange.y}" : "-";
-        if (matkText != null)  matkText.text  = trait.type == TraitType.Weapon ? $"{trait.magicAttackRange.x} ~ {trait.magicAttackRange.y}" : "-";
-        if (defText != null)   defText.text   = trait.type == TraitType.Body   ? $"{trait.defenseRange.x} ~ {trait.defenseRange.y}" : "-";
-        if (spdText != null)   spdText.text   = trait.type == TraitType.Body   ? $"{trait.speedRange.x} ~ {trait.speedRange.y}" : "-";
-        if (critRateText != null) critRateText.text = trait.type == TraitType.Armor ? $"{trait.critRateRange.x} ~ {trait.critRateRange.y}%" : "-";
+        if (trait == null) return;
+        var b = StatBalance.Get(trait.rarity);
+
+        if (trait.type == TraitType.Body)
+        {
+            if (hpText != null)       { hpText.resizeTextForBestFit = true; hpText.text = $"{b.hpMin} ~ {b.hpMax}"; }
+            if (defText != null)      { defText.resizeTextForBestFit = true; defText.text = $"{b.defMin} ~ {b.defMax}"; }
+            if (spdText != null)      { spdText.resizeTextForBestFit = true; spdText.text = $"{b.spdMin} ~ {b.spdMax}"; }
+            if (atkText != null)      { atkText.resizeTextForBestFit = true; atkText.text = "-"; }
+            if (matkText != null)     { matkText.resizeTextForBestFit = true; matkText.text = "-"; }
+            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = "-"; }
+        }
+        else if (trait.type == TraitType.Weapon)
+        {
+            if (hpText != null)       { hpText.resizeTextForBestFit = true; hpText.text = "-"; }
+            if (defText != null)      { defText.resizeTextForBestFit = true; defText.text = "-"; }
+            if (spdText != null)      { spdText.resizeTextForBestFit = true; spdText.text = "-"; }
+            int atkMin = trait.attackRange.x > 0 ? trait.attackRange.x : b.atkMin;
+            int atkMax = trait.attackRange.y > 0 ? trait.attackRange.y : b.atkMax;
+            int matkMin = trait.magicAttackRange.x > 0 ? trait.magicAttackRange.x : b.magMin;
+            int matkMax = trait.magicAttackRange.y > 0 ? trait.magicAttackRange.y : b.magMax;
+            if (atkText != null)      { atkText.resizeTextForBestFit = true; atkText.text = $"{atkMin} ~ {atkMax}"; }
+            if (matkText != null)     { matkText.resizeTextForBestFit = true; matkText.text = $"{matkMin} ~ {matkMax}"; }
+            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = "-"; }
+        }
+        else if (trait.type == TraitType.Armor)
+        {
+            if (hpText != null)       { hpText.resizeTextForBestFit = true; hpText.text = "-"; }
+            if (defText != null)      { defText.resizeTextForBestFit = true; defText.text = "-"; }
+            if (spdText != null)      { spdText.resizeTextForBestFit = true; spdText.text = "-"; }
+            if (atkText != null)      { atkText.resizeTextForBestFit = true; atkText.text = "-"; }
+            if (matkText != null)     { matkText.resizeTextForBestFit = true; matkText.text = "-"; }
+            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = $"{b.critRate * 100f:F0}%"; }
+        }
     }
 
     private void SetRowActive(int index, bool active)

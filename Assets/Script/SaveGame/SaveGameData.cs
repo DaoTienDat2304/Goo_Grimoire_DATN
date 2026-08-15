@@ -22,6 +22,7 @@ public class GameSaveData
     public int towerHighestFloor = 0;    // highestFloorReached của TowerSlimeBosses
     public List<FarmDifficultyDTO> farmDifficulties = new List<FarmDifficultyDTO>(); // Lưu trạng thái farm difficulties
     public BreedingSessionDTO breedingSession; // Phiên lai tạo đang chạy (mục 3), null nếu không có
+    public int sacrificePoints; // Tiến trình điểm hiến tế (Fusion) (0 -> 100)
 
     // ─── Bộ đếm tích luỹ (lifetime) — nền tảng cho Thành tựu & Nhiệm vụ ───
     public long totalSlimesBred;

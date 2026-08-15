@@ -26,8 +26,14 @@ public class SkillTooltipUI : MonoBehaviour
         if (closeButton != null)
             closeButton.onClick.AddListener(HideTooltip);
 
+        // Hỗ trợ chạm vào bảng để đóng khi nút exit bị ẩn
         if (tooltipPanel != null)
+        {
+            var btn = tooltipPanel.GetComponent<Button>();
+            if (btn == null) btn = tooltipPanel.AddComponent<Button>();
+            btn.onClick.AddListener(HideTooltip);
             tooltipPanel.SetActive(false);
+        }
     }
 
     public void ShowTooltip(SkillInstance skill, SlimeBattleStats battleStats = null)
@@ -37,6 +43,13 @@ public class SkillTooltipUI : MonoBehaviour
 
         if (tooltipPanel != null) tooltipPanel.SetActive(true);
 
+        // Ẩn nút exit khi xem Skill theo yêu cầu
+        if (closeButton != null)
+        {
+            closeButton.gameObject.SetActive(false);
+        }
+
+        // Hiện icon của Skill
         if (skillIconImage != null)
         {
             skillIconImage.sprite = baseSkill.icon;

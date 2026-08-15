@@ -53,6 +53,18 @@ public class SlimeWorldManager : MonoBehaviour
     private CircleCollider2D areaCircleCollider;
     private BoxCollider2D areaBoxCollider;
     private BuildingSlot[] buildingSlots;
+
+    public static SlimeWorldManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            // Do not destroy if multiple are intended in scene, but update reference
+        }
+        Instance = this;
+    }
+
     private void Start()
     {
         InitializeWorld();
@@ -454,13 +466,41 @@ public class SlimeWorldManager : MonoBehaviour
 
     public void ClearWorldSlimes()
     {
-        for (int i = 0; i < worldSlimes.Length; i++)
+        if (worldSlimes != null)
         {
-            if (worldSlimes[i] != null)
+            for (int i = 0; i < worldSlimes.Length; i++)
             {
-                Destroy(worldSlimes[i]);
-                worldSlimes[i] = null;
-                slimeData[i] = null;
+                if (worldSlimes[i] != null)
+                {
+                    worldSlimes[i].SetActive(false);
+                    Destroy(worldSlimes[i]);
+                    worldSlimes[i] = null;
+                }
+                if (slimeData != null && i < slimeData.Length) slimeData[i] = null;
+            }
+        }
+
+        if (slimesContainer != null)
+        {
+            for (int i = slimesContainer.childCount - 1; i >= 0; i--)
+            {
+                var child = slimesContainer.GetChild(i);
+                if (child != null)
+                {
+                    child.gameObject.SetActive(false);
+                    Destroy(child.gameObject);
+                }
+            }
+        }
+
+        // Dọn dẹp triệt để bất kỳ WorldSlime nào còn sót lại trong Scene để chống nhân đôi
+        var existingWorldSlimes = GameObject.FindObjectsByType<SlimeAnimationController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var s in existingWorldSlimes)
+        {
+            if (s != null && s.gameObject.name.StartsWith("WorldSlime"))
+            {
+                s.gameObject.SetActive(false);
+                Destroy(s.gameObject);
             }
         }
     }
@@ -571,14 +611,15 @@ public class SlimeWorldManager : MonoBehaviour
 
     public void RefreshWorldSlimes()
     {
+        if (showSlimesInWorld)
+        {
+            isWorldViewActive = true;
+        }
+
         if (isWorldViewActive)
         {
             ClearWorldSlimes();
             CreateWorldSlimes();
-        }
-        else
-        {
-
         }
     }
 

@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17ee1cbd566987547b15a8caf71f28d1, type: 3}
+  m_Name: FarmDatabase
+  m_EditorClassIdentifier: 
+  difficulties:
+  - difficultyName: "D\u1EC5"
+    description: "Ng\u01B0\u1EDDi m\u1EDBi ch\u01A1i"
+    bossHP: 1500
+    bossAttack: 120
+    bossMagicAttack: 220
+    bossDefense: 300
+    bossSpeed: 85
+    bossCritRate: 0.05
+    bossCritDMG: 1.3
+    bossEvade: 0
+    rewardCoins: 500
+    rewardGems: 1
+    unlocked: 1
+    completed: 1
+  - difficultyName: "V\u1EEBa"
+    description: "L\xE0m quen"
+    bossHP: 8500
+    bossAttack: 280
+    bossMagicAttack: 480
+    bossDefense: 500
+    bossSpeed: 100
+    bossCritRate: 0.09
+    bossCritDMG: 1.5
+    bossEvade: 0
+    rewardCoins: 1200
+    rewardGems: 5
+    unlocked: 1
+    completed: 0
+  - difficultyName: "Kh\xF3"
+    description: "Hi\u1EC3u"
+    bossHP: 20000
+    bossAttack: 600
+    bossMagicAttack: 1100
+    bossDefense: 800
+    bossSpeed: 115
+    bossCritRate: 0.1
+    bossCritDMG: 1.7
+    bossEvade: 0
+    rewardCoins: 2500
+    rewardGems: 15
+    unlocked: 0
+    completed: 0
+  - difficultyName: "Kinh Ho\xE0ng"
+    description: "Th\xE0nh th\u1EA1o"
+    bossHP: 45000
+    bossAttack: 1200
+    bossMagicAttack: 2200
+    bossDefense: 1200
+    bossSpeed: 130
+    bossCritRate: 0.12
+    bossCritDMG: 1.9
+    bossEvade: 0
+    rewardCoins: 5000
+    rewardGems: 30
+    unlocked: 0
+    completed: 0
+  - difficultyName: "\u0110\u1ECBa ng\u1EE5c"
+    description: "Am hi\u1EC3u"
+    bossHP: 100000
+    bossAttack: 2500
+    bossMagicAttack: 4500
+    bossDefense: 2000
+    bossSpeed: 155
+    bossCritRate: 0.15
+    bossCritDMG: 2.1
+    bossEvade: 0
+    rewardCoins: 10000
+    rewardGems: 60
+    unlocked: 0
+    completed: 0

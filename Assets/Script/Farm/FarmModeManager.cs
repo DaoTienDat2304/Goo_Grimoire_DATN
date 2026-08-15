@@ -35,7 +35,10 @@ public class FarmModeManager : MonoBehaviour
 {
     public static FarmModeManager Instance { get; private set; }
     
-    [Header("Farm Difficulties")]
+    [Header("Farm Database (ScriptableObject)")]
+    [SerializeField] private FarmDatabaseSO farmDatabase;
+
+    [Header("Farm Difficulties (Fallback if no SO)")]
     [SerializeField] private List<FarmDifficulty> difficulties = new List<FarmDifficulty>();
     
     [Header("Warning UI")]
@@ -51,9 +54,15 @@ public class FarmModeManager : MonoBehaviour
     private int rewardCoins = 0;
     private int rewardGems = 0;
 
+    [Header("Pending Result Cache (để lưu sau khi về firstsave)")]
+    public bool hasPendingResult = false;
+    public int cachedCompletedIndex = -1;
+    public int cachedRewardCoins = 0;
+    public int cachedRewardGems = 0;
+
     /// <summary>Tên độ khó đang được chọn — dùng cho analytics.</summary>
     public string SelectedDifficultyName => selectedDifficulty?.difficultyName ?? "none";
-    
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -62,28 +71,20 @@ public class FarmModeManager : MonoBehaviour
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
 
-        // Khởi tạo mặc định nếu chưa có difficulties
         if (difficulties == null || difficulties.Count == 0)
         {
             InitializeDefaultDifficulties();
         }
 
-        // Độ khó đầu tiên luôn được unlock
         if (difficulties.Count > 0)
         {
             difficulties[0].unlocked = true;
         }
     }
 
-    /// <summary>Key Remote Config của từng bậc độ khó, theo đúng thứ tự trong danh sách.</summary>
     private static readonly string[] DifficultyKeys = { "easy", "medium", "hard", "extreme", "hell" };
 
-    /// <summary>
-    /// Gọi từ RemoteConfigManager sau khi fetch xong để cập nhật lại stats boss.
-    /// Nguồn: key `farm_difficulty_table` (JSON). Không có bảng → giữ nguyên số hiện tại.
-    /// </summary>
     public void RefreshDifficultyStats()
     {
         if (difficulties == null || difficulties.Count == 0) return;
@@ -101,7 +102,6 @@ public class FarmModeManager : MonoBehaviour
         Debug.Log($"FarmModeManager: Đã cập nhật {applied} bậc độ khó từ Remote Config.");
     }
 
-    /// <summary>Đổ 1 dòng `farm_difficulty_table` vào 1 bậc độ khó (giữ nguyên tên hiển thị nếu row không có).</summary>
     private static void ApplyRow(FarmDifficulty target, RcFarmRow row)
     {
         if (target == null || row == null) return;
@@ -160,18 +160,15 @@ public class FarmModeManager : MonoBehaviour
         RefreshDifficultyStats();
     }
     
-    /// <summary>
-    /// Chọn độ khó và bắt đầu farm mode
-    /// </summary>
-    public async void SelectDifficulty(int difficultyIndex)
+    public void SelectDifficulty(int difficultyIndex)
     {
-        if (difficultyIndex < 0 || difficultyIndex >= difficulties.Count)
+        var diffList = GetDifficulties();
+        if (difficultyIndex < 0 || difficultyIndex >= diffList.Count)
         {
             Debug.LogError($"Invalid difficulty index: {difficultyIndex}");
             return;
         }
         
-        // Kiểm tra team phải có ít nhất 1 slime
         var saveSystem = SaveAndLoadSystem.Instance;
         var team = saveSystem != null ? saveSystem.GetTeam() : null;
         if (team == null || team.team == null || team.team.Count == 0)
@@ -183,21 +180,29 @@ public class FarmModeManager : MonoBehaviour
 
         if (warningText != null) warningText.SetActive(false);
 
-        // Kiểm tra unlock
-        if (!difficulties[difficultyIndex].unlocked)
+        if (!IsDifficultyUnlocked(difficultyIndex))
         {
-            Debug.LogWarning($"Độ khó {difficulties[difficultyIndex].difficultyName} chưa được mở khóa!");
+            Debug.LogWarning($"Độ khó {diffList[difficultyIndex].difficultyName} chưa được mở khóa!");
             return;
         }
         
-        selectedDifficulty = difficulties[difficultyIndex];
-        // Hệ số thưởng remote (`reward_mult_farm_coins`) áp ngay lúc chọn độ khó.
+        selectedDifficulty = diffList[difficultyIndex];
         rewardCoins = RemoteBalance.ScaleReward(selectedDifficulty.rewardCoins, RemoteBalance.Reward.farmCoins);
         rewardGems = selectedDifficulty.rewardGems;
 
+        if (farmDatabase != null)
+        {
+            farmDatabase.activeSelectedDifficultyIndex = difficultyIndex;
+        }
+
         FirebaseAnalyticsManager.LogFarmDifficultySelect(selectedDifficulty.difficultyName, difficultyIndex);
 
-        // Tạo boss với random traits nhưng stats cố định
+        PlayerPrefs.SetInt("ActiveFarm_Index", difficultyIndex);
+        PlayerPrefs.SetInt("ActiveFarm_Coins", rewardCoins);
+        PlayerPrefs.SetInt("ActiveFarm_Gems", rewardGems);
+        PlayerPrefs.SetString("ActiveFarm_Name", selectedDifficulty.difficultyName);
+        PlayerPrefs.Save();
+
         Slime bossSlime = CreateFarmBoss(selectedDifficulty);
         
         if (bossSlime == null)
@@ -206,7 +211,6 @@ public class FarmModeManager : MonoBehaviour
             return;
         }
         
-        // Setup BattleDataManager
         if (BattleDataManager.Instance == null)
         {
             GameObject battleDataManagerGO = new GameObject("BattleDataManager");
@@ -214,14 +218,16 @@ public class FarmModeManager : MonoBehaviour
         }
         
         BattleDataManager.Instance.SetBossData(bossSlime, BattleMode.Farm);
+
+        if (SaveAndLoadSystem.Instance != null)
+        {
+            SaveAndLoadSystem.Instance.Save();
+            Debug.Log("[FarmModeManager] Đã lưu dữ liệu trước khi vào trận đấu Farm.");
+        }
         
-        // Load battle scene với loading
-        await SceneLoader.LoadSceneWithLoading(battleSceneName);
+        StartCoroutine(SceneLoader.LoadSceneWithLoadingCoroutine(battleSceneName));
     }
     
-    /// <summary>
-    /// Tạo boss với random traits (không Secret) nhưng stats cố định
-    /// </summary>
     private Slime CreateFarmBoss(FarmDifficulty difficulty)
     {
         if (SlimeGen.Instance == null)
@@ -230,7 +236,6 @@ public class FarmModeManager : MonoBehaviour
             return null;
         }
         
-        // Lấy random traits (không Secret)
         TraitSO bodyTrait = RollRandomTraitExcludingSecret(TraitType.Body);
         TraitSO armorTrait = RollRandomTraitExcludingSecret(TraitType.Armor);
         TraitSO weaponTrait = RollRandomTraitExcludingSecret(TraitType.Weapon);
@@ -241,20 +246,16 @@ public class FarmModeManager : MonoBehaviour
             return null;
         }
         
-        // Tạo slime với traits
         Slime bossSlime = new Slime();
         bossSlime.slimeName = $"Farm Boss - {difficulty.difficultyName}";
         bossSlime.body = bodyTrait.GenerateInstance();
         bossSlime.armor = armorTrait.GenerateInstance();
         bossSlime.weapon = weaponTrait.GenerateInstance();
         
-        // Đặt stats cố định (không dùng CalculateStats vì nó sẽ tính từ traits)
         bossSlime.totalHP = difficulty.bossHP;
         bossSlime.totalAttack = difficulty.bossAttack;
         bossSlime.totalDefense = difficulty.bossDefense;
         bossSlime.totalSpeed = difficulty.bossSpeed;
-        // Hệ evade đã được thay bằng hệ crit — magic/crit nay lấy từ bảng độ khó
-        // (`farm_difficulty_table` trên Remote Config), không còn hardcode.
         bossSlime.totalMagicAttack = difficulty.bossMagicAttack;
         bossSlime.totalCritRate = difficulty.bossCritRate;
         bossSlime.totalCritDMG = difficulty.bossCritDMG;
@@ -262,9 +263,6 @@ public class FarmModeManager : MonoBehaviour
         return bossSlime;
     }
     
-    /// <summary>
-    /// Roll random trait loại trừ Secret rarity
-    /// </summary>
     private TraitSO RollRandomTraitExcludingSecret(TraitType type)
     {
         if (SlimeGen.Instance == null || SlimeGen.Instance.allTraits == null)
@@ -273,7 +271,6 @@ public class FarmModeManager : MonoBehaviour
             return null;
         }
         
-        // Lọc traits: cùng type, không phải Secret, có dropRate > 0
         var pool = SlimeGen.Instance.allTraits
             .Where(t => t != null 
                 && t.type == type 
@@ -287,15 +284,13 @@ public class FarmModeManager : MonoBehaviour
             return null;
         }
         
-        // Tính tổng dropRate
         float totalRate = pool.Sum(t => t.dropRate);
         if (totalRate <= 0f)
         {
             Debug.LogError($"Total drop rate is 0 for type: {type}");
-            return pool[0]; // Fallback
+            return pool[0];
         }
         
-        // Roll random
         float roll = Random.Range(0f, totalRate);
         float cumulative = 0f;
         
@@ -308,85 +303,15 @@ public class FarmModeManager : MonoBehaviour
             }
         }
         
-        return pool[0]; // Fallback
+        return pool[0]; 
     }
     
-    /// <summary>
-    /// Lấy reward coins khi thắng
-    /// </summary>
     public int GetRewardCoins()
     {
         return rewardCoins;
     }
-    
-    /// <summary>
-    /// Xử lý khi thắng farm battle
-    /// </summary>
-    public void OnFarmVictory()
-    {
-        // Tìm difficulty index đã chọn
-        int completedIndex = -1;
-        if (selectedDifficulty != null)
-        {
-            for (int i = 0; i < difficulties.Count; i++)
-            {
-                if (difficulties[i] == selectedDifficulty)
-                {
-                    completedIndex = i;
-                    break;
-                }
-            }
-        }
-        
-        // Đếm lifetime: 1 lần thắng Farm (cho Thành tựu "Nông dân").
-        PlayerStatsManager.Instance?.AddFarmWin();
 
-        // Đánh dấu đã hoàn thành
-        if (completedIndex >= 0 && completedIndex < difficulties.Count)
-        {
-            difficulties[completedIndex].completed = true;
-            
-            // Unlock độ khó tiếp theo
-            if (completedIndex + 1 < difficulties.Count)
-            {
-                difficulties[completedIndex + 1].unlocked = true;
-                Debug.Log($"Đã mở khóa độ khó: {difficulties[completedIndex + 1].difficultyName}");
-            }
-        }
-        
-        // Thêm coins (+ gems nếu bậc độ khó có)
-        if (CurrencyManager.Instance != null)
-        {
-            CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, rewardCoins);
-            if (rewardGems > 0) CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, rewardGems);
-            Debug.Log($"Farm Victory! Nhận được {rewardCoins} coins" + (rewardGems > 0 ? $" + {rewardGems} gems!" : "!"));
-        }
-        else
-        {
-            Debug.LogWarning("CurrencyManager.Instance is null! Không thể thêm coins.");
-        }
-        
-        // Lưu game (bao gồm unlock status)
-        if (SaveAndLoadSystem.Instance != null)
-        {
-            SaveAndLoadSystem.Instance.Save();
-        }
-        
-        // Clear battle data
-        if (BattleDataManager.Instance != null)
-        {
-            BattleDataManager.Instance.ClearBossData();
-        }
-        
-        // Reset
-        selectedDifficulty = null;
-        rewardCoins = 0;
-        rewardGems = 0;
-    }
-    
-    /// <summary>
-    /// Lưu trạng thái unlock
-    /// </summary>
+  
     public void SaveUnlockStatus()
     {
         if (SaveAndLoadSystem.Instance != null)
@@ -394,10 +319,7 @@ public class FarmModeManager : MonoBehaviour
             SaveAndLoadSystem.Instance.Save();
         }
     }
-    
-    /// <summary>
-    /// Load trạng thái unlock từ save file
-    /// </summary>
+
     private void LoadUnlockStatus()
     {
         if (SaveAndLoadSystem.Instance != null)
@@ -405,45 +327,41 @@ public class FarmModeManager : MonoBehaviour
             SaveAndLoadSystem.Instance.LoadFarmDifficulties();
         }
     }
-    
-    /// <summary>
-    /// Kiểm tra độ khó có được unlock không
-    /// </summary>
+
     public bool IsDifficultyUnlocked(int difficultyIndex)
     {
-        if (difficultyIndex < 0 || difficultyIndex >= difficulties.Count)
+        var diffList = GetDifficulties();
+        if (difficultyIndex < 0 || difficultyIndex >= diffList.Count)
         {
             return false;
         }
-        return difficulties[difficultyIndex].unlocked;
+        if (difficultyIndex == 0) return true;
+        return diffList[difficultyIndex].unlocked;
     }
     
-    /// <summary>
-    /// Kiểm tra độ khó đã hoàn thành chưa
-    /// </summary>
     public bool IsDifficultyCompleted(int difficultyIndex)
     {
-        if (difficultyIndex < 0 || difficultyIndex >= difficulties.Count)
+        var diffList = GetDifficulties();
+        if (difficultyIndex < 0 || difficultyIndex >= diffList.Count)
         {
             return false;
         }
-        return difficulties[difficultyIndex].completed;
+        return diffList[difficultyIndex].completed;
     }
-    
-    /// <summary>
-    /// Lấy danh sách difficulties (để UI hiển thị)
-    /// </summary>
+
     public List<FarmDifficulty> GetDifficulties()
     {
+        if (farmDatabase != null && farmDatabase.difficulties != null && farmDatabase.difficulties.Count > 0)
+        {
+            return farmDatabase.difficulties;
+        }
         return difficulties;
     }
-    
-    /// <summary>
-    /// Lấy số lượng difficulties
-    /// </summary>
+
     public int GetDifficultyCount()
     {
-        return difficulties != null ? difficulties.Count : 0;
+        var list = GetDifficulties();
+        return list != null ? list.Count : 0;
     }
 
     private void ShowWarning()

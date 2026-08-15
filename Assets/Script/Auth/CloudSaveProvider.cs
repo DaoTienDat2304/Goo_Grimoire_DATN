@@ -135,6 +135,11 @@ public class CloudSaveProvider : MonoBehaviour
     /// </summary>
     public void StartSave(string uid, string json)
     {
+        if (!string.IsNullOrEmpty(json))
+        {
+            _cachedCloudJson = json;
+            HasCloudSave = true;
+        }
         StartCoroutine(SaveToCloud(uid, json));
     }
 

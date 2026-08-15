@@ -667,9 +667,13 @@ public class TowerTurnSystem : TurnSystem
             remainingAV[nextSlime] = 10000f / speed;
             currentSlime = nextSlime;
         }
-        else currentSlime = boss;
-
         StartCoroutine(turnDisplay());
+
+        // Bắt đầu lượt mới theo AV: reset trần sinh ĐCK (≤ +2/lượt)
+        if (BattleSystemManager.Instance != null)
+        {
+            BattleSystemManager.Instance.OnNewTurnStarted();
+        }
 
         var battleStats = currentSlime.GetComponent<SlimeBattleStats>();
         if (battleStats != null)

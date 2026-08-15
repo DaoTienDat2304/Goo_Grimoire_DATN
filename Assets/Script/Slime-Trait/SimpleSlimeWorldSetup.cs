@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class SimpleSlimeWorldSetup : MonoBehaviour
 {
@@ -16,21 +16,15 @@ public class SimpleSlimeWorldSetup : MonoBehaviour
     [ContextMenu("Setup Slime World")]
     public void SetupSlimeWorld()
     {
-
-        
-        // Kiểm tra xem đã có SlimeWorldManager chưa
-        var existingManager = GetComponent<SlimeWorldManager>();
+        // Kiểm tra xem đã có SlimeWorldManager trong Scene chưa
+        var existingManager = FindAnyObjectByType<SlimeWorldManager>();
         if (existingManager != null)
         {
-
             return;
         }
         
-        // Tạo SlimeWorldManager
+        // Tạo SlimeWorldManager nếu chưa có bất kỳ manager nào trong scene
         var worldManager = gameObject.AddComponent<SlimeWorldManager>();
-
-        
-        // Thiết lập các tham số
         worldManager.showSlimesInWorld = true;
         worldManager.worldRadius = 12f;
         worldManager.maxWorldSlimes = 20;
@@ -38,8 +32,6 @@ public class SimpleSlimeWorldSetup : MonoBehaviour
         worldManager.slimeRotationSpeed = 25f;
         worldManager.slimeBounceHeight = 0.4f;
         worldManager.slimeBounceSpeed = 1.5f;
-        
-
     }
     
 

@@ -27,7 +27,7 @@ public static class RemoteBalance
     {
         public float critRateCap = 0.75f;
         public float critDmgCap = 2.50f;
-        public float defReductionPerPoint = 0.008f;
+        public float defReductionPerPoint = 0.00008f; // 1 DEF = 0.008% giảm sát thương (0.00008). 10,000 DEF = 80% (Hard cap)
         public float maxDefReduction = 0.80f;
         public float critOverflowToAtk = 5f;
         public float poisonPercentHp = 0.04f;
@@ -183,6 +183,7 @@ public static class RemoteBalance
         battle.critRateCap = rc.GetFloat(RemoteConfigKeys.BattleCritRateCap, battle.critRateCap);
         battle.critDmgCap = rc.GetFloat(RemoteConfigKeys.BattleCritDmgCap, battle.critDmgCap);
         battle.defReductionPerPoint = rc.GetFloat(RemoteConfigKeys.BattleDefReductionPer, battle.defReductionPerPoint);
+        if (battle.defReductionPerPoint > 0.001f) battle.defReductionPerPoint /= 100f; // Phòng ngừa nhập 0.008 thay vì 0.00008
         battle.maxDefReduction = rc.GetFloat(RemoteConfigKeys.BattleMaxDefReduction, battle.maxDefReduction);
         battle.critOverflowToAtk = rc.GetFloat(RemoteConfigKeys.BattleCritOverflowToAtk, battle.critOverflowToAtk);
         battle.poisonPercentHp = rc.GetFloat(RemoteConfigKeys.BattlePoisonPercentHp, battle.poisonPercentHp);

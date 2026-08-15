@@ -25,6 +25,12 @@ public class CollectionGridItem : MonoBehaviour
     {
         _btn = GetComponent<Button>() ?? gameObject.AddComponent<Button>();
         _btn.onClick.AddListener(OnClicked);
+        if (itemNameText != null)
+        {
+            itemNameText.resizeTextForBestFit = true;
+            itemNameText.resizeTextMinSize = 8;
+            itemNameText.resizeTextMaxSize = 14;
+        }
     }
 
     // ─────────────────────────────────────────

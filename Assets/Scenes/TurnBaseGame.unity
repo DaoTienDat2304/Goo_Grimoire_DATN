@@ -2958,7 +2958,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &650829447
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3516,9 +3516,6 @@ MonoBehaviour:
   - {fileID: 1639553803}
   - {fileID: 199447318}
   - {fileID: 497367567}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   slimeFormation: []
   rows: 3
   cols: 3
@@ -4568,7 +4565,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Normal Attack
+  m_Text: "\u0110\xE1nh th\u01B0\u1EDDng"
 --- !u!222 &1119442933
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4863,6 +4860,7 @@ MonoBehaviour:
   formationManager: {fileID: 829438979}
   wildSlimes: {fileID: 11400000, guid: 677a4eecd92f6c9408c90b91e7349f58, type: 2}
   towerBosses: {fileID: 11400000, guid: 21a08e23be9bb2b44bce95dfa50332d6, type: 2}
+  farmDatabase: {fileID: 11400000, guid: 6baa814340ead1b46af47aa387c269d9, type: 2}
   turnCount: 0
   isBattleStarted: 0
   skillPanel: {fileID: 850266170}
@@ -5359,7 +5357,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Body Passive
+  m_Text: "KN B\u1ECB \u0111\u1ED9ng"
 --- !u!222 &1244741293
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6205,7 +6203,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Next Turn:'
+  m_Text: "L\u01B0\u1EE3t T\u1EDBi:"
 --- !u!222 &1558942957
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6855,7 +6853,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Weapon Skill
+  m_Text: "KN V\u0169 kh\xED"
 --- !u!222 &1635967294
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6949,8 +6947,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 800, y: -373.5}
-  m_SizeDelta: {x: 371.46, y: 228.48}
+  m_AnchoredPosition: {x: 769, y: -377.05}
+  m_SizeDelta: {x: 402.56, y: 182.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1675276208
 MonoBehaviour:
@@ -7343,7 +7341,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Armor Skill
+  m_Text: "KN Gi\xE1p"
 --- !u!222 &1799762741
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -7968,6 +7966,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6cb482325d09cf42b6965e3ad9da1fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  slimeName: 
   HP: 1235
   MaxHP: 0
   Attack: 1

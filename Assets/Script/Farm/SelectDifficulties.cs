@@ -61,7 +61,6 @@ public class SelectDifficulties : MonoBehaviour
         if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(0))
         {
             farmModeManager.SelectDifficulty(0);
-            SaveAndLoadSystem.Instance?.Save();
         }
     }
 
@@ -70,7 +69,6 @@ public class SelectDifficulties : MonoBehaviour
         if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(1))
         {
             farmModeManager.SelectDifficulty(1);
-            SaveAndLoadSystem.Instance?.Save();
         }
     }
 
@@ -79,7 +77,6 @@ public class SelectDifficulties : MonoBehaviour
         if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(2))
         {
             farmModeManager.SelectDifficulty(2);
-            SaveAndLoadSystem.Instance?.Save();
         }
     }
 
@@ -88,7 +85,6 @@ public class SelectDifficulties : MonoBehaviour
         if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(3))
         {
             farmModeManager.SelectDifficulty(3);
-            SaveAndLoadSystem.Instance?.Save();
         }
     }
 
@@ -97,7 +93,6 @@ public class SelectDifficulties : MonoBehaviour
         if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(4))
         {
             farmModeManager.SelectDifficulty(4);
-            SaveAndLoadSystem.Instance?.Save();
         }
     }
 }

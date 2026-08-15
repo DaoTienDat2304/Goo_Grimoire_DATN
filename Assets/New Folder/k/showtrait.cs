@@ -55,9 +55,9 @@ public class showtrait : MonoBehaviour
         else
         {
             slimename.text = $"Name : {trait.traitName}";
-            rarity.text = $"{trait.rarity}";
+            rarity.text = $"{trait.rarity.ToVietnamese()}";
             rarity.color = traitcolor(trait);
-            typetext.text = $"special :";
+            typetext.text = $"Thân :";
         }
 
 

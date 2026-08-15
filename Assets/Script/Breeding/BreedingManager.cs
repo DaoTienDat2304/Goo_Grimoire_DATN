@@ -82,14 +82,11 @@ public class BreedingManager : MonoBehaviour
     }
     private void Update()
     {
-        // Cập nhật breeding cooldown cho tất cả slime
-        for (int i = 0; i < allSlimes.Count; i++)
-        {
-            allSlimes[i].id = i;
-        }
+        // Cập nhật breeding cooldown cho tất cả slime (không ghi đè id để bảo toàn Team)
         foreach (var slime in allSlimes)
         {
-            slime.UpdateBreedingCooldown(Time.deltaTime);
+            if (slime != null)
+                slime.UpdateBreedingCooldown(Time.deltaTime);
         }
 
         // Tiến trình phiên lai tạo (mục 3): tính theo thời gian thực → chạy nền/offline.
@@ -165,6 +162,37 @@ public class BreedingManager : MonoBehaviour
         s.body = body.GenerateInstance();
         s.armor = armor.GenerateInstance();
         s.weapon = weapon.GenerateInstance();
+
+        // Slime khởi đầu: áp dụng chỉ số tân thủ thân thiện để người chơi dễ làm quen (không có Ultimate)
+        if (name.StartsWith("Starter_") || name.StartsWith("Slime_"))
+        {
+            if (s.body != null)
+            {
+                s.body.Rarity = Rarity.Common;
+                s.body.HP = s.body.baseHP = 600;
+                s.body.defense = s.body.baseDefense = 200;
+                s.body.speed = s.body.baseSpeed = 80;
+                s.body.skill = null;
+                s.body.ultimateSkill = null;
+            }
+            if (s.weapon != null)
+            {
+                s.weapon.Rarity = Rarity.Common;
+                s.weapon.attack = s.weapon.baseAttack = 60;
+                s.weapon.magicAttack = s.weapon.baseMagicAttack = 120;
+                s.weapon.skill = null;
+                s.weapon.ultimateSkill = null;
+            }
+            if (s.armor != null)
+            {
+                s.armor.Rarity = Rarity.Common;
+                s.armor.critRate = s.armor.baseCritRate = 0.05f;
+                s.armor.critDMG = s.armor.baseCritDMG = 1.30f;
+                s.armor.skill = null;
+                s.armor.ultimateSkill = null;
+            }
+        }
+
         s.CalculateStats();
         s.RollRandomSkillsMatchingRarity();
         return s;
@@ -173,11 +201,24 @@ public class BreedingManager : MonoBehaviour
 
     public void GenSpecialSlime()
     {
-        var s1 = GetSpecialSlime("", secret[Random.Range(0,secret.Length)], fixed1Armor, fixed1Weapon);
+        var bodySo = secret[Random.Range(0, secret.Length)];
+        TraitSO armorSo = null;
+        TraitSO weaponSo = null;
+
+        if (SlimeGen.Instance != null)
+        {
+            armorSo = SlimeGen.Instance.RollTraitOfRarity(TraitType.Armor, Rarity.Secret);
+            weaponSo = SlimeGen.Instance.RollTraitOfRarity(TraitType.Weapon, Rarity.Secret);
+        }
+
+        if (armorSo == null) armorSo = fixed1Armor;
+        if (weaponSo == null) weaponSo = fixed1Weapon;
+
+        var s1 = GetSpecialSlime("", bodySo, armorSo, weaponSo);
         showslot.SetActive(true);
         if (s1 != null) allSlimes.Add(s1);
         PlayerStatsManager.Instance?.RecordSecretObtained(s1);
-        s1.canBreed = false;
+        if (s1 != null) s1.canBreed = false;
         var slotScript = showslot.GetComponentInChildren<viewslime>();
         if (slotScript != null)
         {
@@ -188,16 +229,24 @@ public class BreedingManager : MonoBehaviour
         {
             ArchievementManager.Instance.GetArchivement(1); // 0 = Breed achievement
         }
+
+        SaveAndLoadSystem.Instance?.Save();
     }
 
     public Slime GetSpecialSlime(string name, TraitSO body, TraitSO armor, TraitSO weapon)
     {
-        if (body == null || armor == null || weapon == null) return null;
+        if (body == null) return null;
         var s = new Slime();
         s.slimeName = name;
         s.body = body.GenerateInstance();
-        s.armor = armor.GenerateInstance();
-        s.weapon = weapon.GenerateInstance();
+        s.body.Rarity = Rarity.Secret;
+
+        s.armor = armor != null ? armor.GenerateInstance() : null;
+        if (s.armor != null) s.armor.Rarity = Rarity.Secret;
+
+        s.weapon = weapon != null ? weapon.GenerateInstance() : null;
+        if (s.weapon != null) s.weapon.Rarity = Rarity.Secret;
+
         s.CalculateStats();
         s.RollRandomSkillsMatchingRarity();
         return s;
@@ -205,7 +254,16 @@ public class BreedingManager : MonoBehaviour
 
     public void removeslime(Slime slime)
     {
+        if (slime == null) return;
         allSlimes.Remove(slime);
+        if (SlimeWorldManager.Instance != null)
+        {
+            SlimeWorldManager.Instance.RefreshWorldSlimes();
+        }
+        else
+        {
+            FindAnyObjectByType<SlimeWorldManager>()?.RefreshWorldSlimes();
+        }
     }
 
     public void SelectSlimeForBreeding(Slime slime)

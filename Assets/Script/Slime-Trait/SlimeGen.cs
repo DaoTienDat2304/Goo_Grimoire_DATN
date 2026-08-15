@@ -158,6 +158,10 @@ public class SlimeGen : MonoBehaviour
         if (allSkillsDatabase == null || allSkillsDatabase.Count == 0)
         {
             allSkillsDatabase = new List<SkillSO>(Resources.LoadAll<SkillSO>("SkillDB"));
+            if (allSkillsDatabase.Count == 0)
+            {
+                allSkillsDatabase = new List<SkillSO>(Resources.LoadAll<SkillSO>(""));
+            }
         }
     }
 
@@ -169,7 +173,7 @@ public class SlimeGen : MonoBehaviour
         EnsureSkillDatabase();
         if (allSkillsDatabase == null) return null;
 
-        var pool = allSkillsDatabase.Where(s => s.targetTrait == type && s.rarity == rarity && s.type != SkillType.Ultimate).ToList();
+        var pool = allSkillsDatabase.Where(s => s != null && s.targetTrait == type && s.rarity == rarity && s.type != SkillType.Ultimate && !s.name.EndsWith("_U", System.StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (pool.Count > 0)
         {
@@ -178,7 +182,7 @@ public class SlimeGen : MonoBehaviour
         else
         {
             // Fallback: nếu không có skill của độ hiếm này, lấy bất kỳ skill nào của bộ phận đó (trừ Ultimate)
-            var fallbackPool = allSkillsDatabase.Where(s => s.targetTrait == type && s.type != SkillType.Ultimate).ToList();
+            var fallbackPool = allSkillsDatabase.Where(s => s != null && s.targetTrait == type && s.type != SkillType.Ultimate && !s.name.EndsWith("_U", System.StringComparison.OrdinalIgnoreCase)).ToList();
             if (fallbackPool.Count > 0)
             {
                 return fallbackPool[Random.Range(0, fallbackPool.Count)];
@@ -193,8 +197,10 @@ public class SlimeGen : MonoBehaviour
         EnsureSkillDatabase();
         if (allSkillsDatabase == null) return null;
 
-        SkillType targetType = isUltimate ? SkillType.Ultimate : SkillType.Active;
-        var pool = allSkillsDatabase.Where(s => s.targetTrait == TraitType.Weapon && s.rarity == rarity && s.type == targetType).ToList();
+        var pool = allSkillsDatabase.Where(s => s != null && s.targetTrait == TraitType.Weapon 
+            && s.rarity == rarity 
+            && (isUltimate ? (s.type == SkillType.Ultimate || s.name.EndsWith("_U", System.StringComparison.OrdinalIgnoreCase)) 
+                           : (s.type == SkillType.Active || s.name.EndsWith("_A", System.StringComparison.OrdinalIgnoreCase)))).ToList();
 
         if (pool.Count > 0)
         {
@@ -202,7 +208,9 @@ public class SlimeGen : MonoBehaviour
         }
         else
         {
-            var fallbackPool = allSkillsDatabase.Where(s => s.targetTrait == TraitType.Weapon && s.type == targetType).ToList();
+            var fallbackPool = allSkillsDatabase.Where(s => s != null && s.targetTrait == TraitType.Weapon 
+                && (isUltimate ? (s.type == SkillType.Ultimate || s.name.EndsWith("_U", System.StringComparison.OrdinalIgnoreCase)) 
+                               : (s.type == SkillType.Active || s.name.EndsWith("_A", System.StringComparison.OrdinalIgnoreCase)))).ToList();
             if (fallbackPool.Count > 0)
             {
                 return fallbackPool[Random.Range(0, fallbackPool.Count)];
@@ -216,13 +224,25 @@ public class SlimeGen : MonoBehaviour
     {
         if (activeSkill == null) return null;
         EnsureSkillDatabase();
-        if (allSkillsDatabase == null) return null;
+        if (allSkillsDatabase == null || allSkillsDatabase.Count == 0) return null;
 
-        string targetUltName = activeSkill.name.EndsWith("_A")
-            ? activeSkill.name.Substring(0, activeSkill.name.Length - 2) + "_U"
-            : activeSkill.name + "_U";
+        string activeName = activeSkill.name.Trim();
 
-        var ultSO = allSkillsDatabase.FirstOrDefault(s => s != null && s.name == targetUltName);
+        // 1. Nếu tên kết thúc bằng _A -> đổi sang _U (ví dụ: W_Sec_Chro_A -> W_Sec_Chro_U)
+        string targetUltName = activeName.EndsWith("_A", System.StringComparison.OrdinalIgnoreCase)
+            ? activeName.Substring(0, activeName.Length - 2) + "_U"
+            : activeName + "_U";
+
+        var ultSO = allSkillsDatabase.FirstOrDefault(s => s != null && s.name.Equals(targetUltName, System.StringComparison.OrdinalIgnoreCase));
+        if (ultSO != null) return ultSO;
+
+        // 2. Tìm theo root prefix (ví dụ: W_Rar_Tide -> tìm skill chứa W_Rar_Tide và kết thúc bằng _U)
+        string basePrefix = activeName.Replace("_A", "").Trim();
+        ultSO = allSkillsDatabase.FirstOrDefault(s => s != null && s.name.StartsWith(basePrefix, System.StringComparison.OrdinalIgnoreCase) && s.name.EndsWith("_U", System.StringComparison.OrdinalIgnoreCase));
+        if (ultSO != null) return ultSO;
+
+        // 3. Tìm bất kỳ Ultimate Weapon nào cùng Rarity
+        ultSO = allSkillsDatabase.FirstOrDefault(s => s != null && s.targetTrait == TraitType.Weapon && s.rarity == activeSkill.rarity && (s.type == SkillType.Ultimate || s.name.EndsWith("_U", System.StringComparison.OrdinalIgnoreCase)));
         if (ultSO != null) return ultSO;
 
         return GetRandomWeaponSkill(activeSkill.rarity, true);

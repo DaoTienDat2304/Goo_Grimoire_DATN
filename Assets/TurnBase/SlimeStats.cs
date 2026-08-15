@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 public class SlimeStats : MonoBehaviour
 {
+    public string slimeName;
     public int HP;
     public int MaxHP;
     public int Attack;

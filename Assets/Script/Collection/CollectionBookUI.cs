@@ -56,6 +56,21 @@ public class CollectionBookUI : MonoBehaviour
         tabPartsBtn?.onClick.AddListener(() => SwitchTab(BookTab.Parts));
         tabSkillsBtn?.onClick.AddListener(() => SwitchTab(BookTab.Skills));
         closeButton?.onClick.AddListener(CloseBook);
+
+        LocalizeButton(tabSlimesBtn, "Slime");
+        LocalizeButton(tabPartsBtn, "Bộ phận");
+        LocalizeButton(tabSkillsBtn, "Kỹ năng");
+    }
+
+    private void LocalizeButton(Button btn, string text)
+    {
+        if (btn == null) return;
+        var txt = btn.GetComponentInChildren<Text>();
+        if (txt != null)
+        {
+            txt.resizeTextForBestFit = true;
+            txt.text = text;
+        }
     }
 
     void OnEnable()

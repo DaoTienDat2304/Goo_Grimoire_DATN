@@ -87,6 +87,7 @@ public class Member : MonoBehaviour
         armorRenderer.sprite = (s != null ? s.armor?.sprite : null) ?? formationManager.CreateDefaultSlimeSprite();
         weaponRenderer.sprite = (s != null ? s.weapon?.sprite : null) ?? formationManager.CreateDefaultSlimeSprite();
         var stat = slimeGO.GetComponent<SlimeStats>();
+        stat.slimeName = !string.IsNullOrEmpty(s.slimeName) ? s.slimeName : $"Slime_{s.id}";
         stat.HP = s.totalHP;
         stat.Attack = s.totalAttack;
         stat.MagicAttack = s.totalMagicAttack;
@@ -100,6 +101,18 @@ public class Member : MonoBehaviour
         stat.bodySkill = s.body?.skill;
         stat.weaponSkill = s.weapon?.skill;
         stat.weaponUltimateSkill = s.weapon?.ultimateSkill;
+        if (stat.weaponUltimateSkill == null && s.weapon != null && s.weapon.Rarity != Rarity.Common && s.weapon.Rarity != Rarity.Uncommon)
+        {
+            if (SlimeGen.Instance != null && s.weapon.skill?.baseSkill != null)
+            {
+                var ultSO = SlimeGen.Instance.GetMatchingUltimateWeaponSkill(s.weapon.skill.baseSkill);
+                if (ultSO != null)
+                {
+                    s.weapon.ultimateSkill = new SkillInstance(ultSO);
+                    stat.weaponUltimateSkill = s.weapon.ultimateSkill;
+                }
+            }
+        }
         stat.armorSkill = s.armor?.skill;
         formationManager.slimeFormation.Add(slimeGO);
     }

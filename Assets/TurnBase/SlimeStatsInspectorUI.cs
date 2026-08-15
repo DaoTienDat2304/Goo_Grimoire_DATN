@@ -59,20 +59,30 @@ public class SlimeStatsInspectorUI : MonoBehaviour
 
         if (inspectorPanel != null) inspectorPanel.SetActive(true);
 
-        // Avatar & Name
+        // Ẩn icon/avatar khi xem thông tin Slime trong trận theo yêu cầu
         if (slimeAvatarImage != null)
         {
-            var sr = slime.GetComponent<SpriteRenderer>();
-            var img = slime.GetComponent<Image>();
-            if (sr != null && sr.sprite != null) slimeAvatarImage.sprite = sr.sprite;
-            else if (img != null && img.sprite != null) slimeAvatarImage.sprite = img.sprite;
+            slimeAvatarImage.gameObject.SetActive(false);
+        }
+
+        // Hiện nút Exit/Đóng khi xem thông tin Slime
+        if (closeButton != null)
+        {
+            closeButton.gameObject.SetActive(true);
         }
 
         if (slimeNameText != null)
-            slimeNameText.text = slime.gameObject.name;
+        {
+            slimeNameText.resizeTextForBestFit = true;
+            string displayName = !string.IsNullOrEmpty(slime.slimeName) ? slime.slimeName : slime.gameObject.name.Replace("(Clone)", "").Trim();
+            slimeNameText.text = displayName;
+        }
 
         if (slimeLevelText != null)
-            slimeLevelText.text = slime.id > 0 ? $"Lv. {slime.id}" : "Lv. 1";
+        {
+            // Game không có hệ thống cấp độ (Lv) riêng biệt -> Ẩn text Lv hoặc hiển thị độ hiếm
+            slimeLevelText.gameObject.SetActive(false);
+        }
 
         // HP & Energy & Battle Stats
         if (battleStats != null)
@@ -83,7 +93,10 @@ public class SlimeStatsInspectorUI : MonoBehaviour
                 hpSlider.value = battleStats.CurrentHP;
             }
             if (hpText != null)
+            {
+                hpText.resizeTextForBestFit = true;
                 hpText.text = $"HP: {battleStats.CurrentHP} / {battleStats.MaxHP}";
+            }
 
             if (energySlider != null)
             {
@@ -91,43 +104,49 @@ public class SlimeStatsInspectorUI : MonoBehaviour
                 energySlider.value = battleStats.CurrentEnergy;
             }
             if (energyText != null)
-                energyText.text = $"Energy: {battleStats.CurrentEnergy} / 100";
+            {
+                energyText.resizeTextForBestFit = true;
+                energyText.text = $"Năng lượng: {battleStats.CurrentEnergy} / 100";
+            }
 
             // Stats
-            if (atkText != null) atkText.text = $"ATK: {battleStats.BattleAttack}";
-            if (defText != null) defText.text = $"DEF: {battleStats.BattleDefense}";
-            if (spdText != null) spdText.text = $"SPD: {battleStats.BattleSpeed}";
-            if (magicAtkText != null) magicAtkText.text = $"MAG: {battleStats.BattleMagicAttack}";
-            if (critRateText != null) critRateText.text = $"Crit Rate: {battleStats.BattleCritRate * 100:F1}%";
-            if (critDmgText != null) critDmgText.text = $"Crit DMG: {battleStats.BattleCritDMG * 100:F0}%";
+            if (atkText != null) { atkText.resizeTextForBestFit = true; atkText.text = $"Công: {battleStats.BattleAttack}"; }
+            if (defText != null) { defText.resizeTextForBestFit = true; defText.text = $"Thủ: {battleStats.BattleDefense}"; }
+            if (spdText != null) { spdText.resizeTextForBestFit = true; spdText.text = $"Tốc: {battleStats.BattleSpeed}"; }
+            if (magicAtkText != null) { magicAtkText.resizeTextForBestFit = true; magicAtkText.text = $"Phép: {battleStats.BattleMagicAttack}"; }
+            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = $"Bạo kích: {battleStats.BattleCritRate * 100:F1}%"; }
+            if (critDmgText != null) { critDmgText.resizeTextForBestFit = true; critDmgText.text = $"ST Bạo: {battleStats.BattleCritDMG * 100:F0}%"; }
         }
         else
         {
-            if (atkText != null) atkText.text = $"ATK: {slime.Attack}";
-            if (defText != null) defText.text = $"DEF: {slime.Defense}";
-            if (spdText != null) spdText.text = $"SPD: {slime.Speed}";
-            if (magicAtkText != null) magicAtkText.text = $"MAG: {slime.MagicAttack}";
-            if (critRateText != null) critRateText.text = $"Crit Rate: {slime.CritRate * 100:F1}%";
-            if (critDmgText != null) critDmgText.text = $"Crit DMG: {slime.CritDMG * 100:F0}%";
+            if (atkText != null) { atkText.resizeTextForBestFit = true; atkText.text = $"Công: {slime.Attack}"; }
+            if (defText != null) { defText.resizeTextForBestFit = true; defText.text = $"Thủ: {slime.Defense}"; }
+            if (spdText != null) { spdText.resizeTextForBestFit = true; spdText.text = $"Tốc: {slime.Speed}"; }
+            if (magicAtkText != null) { magicAtkText.resizeTextForBestFit = true; magicAtkText.text = $"Phép: {slime.MagicAttack}"; }
+            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = $"Bạo kích: {slime.CritRate * 100:F1}%"; }
+            if (critDmgText != null) { critDmgText.resizeTextForBestFit = true; critDmgText.text = $"ST Bạo: {slime.CritDMG * 100:F0}%"; }
         }
 
         // Traits
         if (bodyTraitText != null)
         {
+            bodyTraitText.resizeTextForBestFit = true;
             string bodyName = (slime.bodySkill != null && slime.bodySkill.baseSkill != null) ? slime.bodySkill.baseSkill.skillName : "Không";
-            bodyTraitText.text = $"Body: {bodyName}";
+            bodyTraitText.text = $"Thân: {bodyName}";
         }
 
         if (armorTraitText != null)
         {
+            armorTraitText.resizeTextForBestFit = true;
             string armorName = (slime.armorSkill != null && slime.armorSkill.baseSkill != null) ? slime.armorSkill.baseSkill.skillName : "Không";
-            armorTraitText.text = $"Armor: {armorName}";
+            armorTraitText.text = $"Giáp: {armorName}";
         }
 
         if (weaponTraitText != null)
         {
+            weaponTraitText.resizeTextForBestFit = true;
             string weaponName = (slime.weaponSkill != null && slime.weaponSkill.baseSkill != null) ? slime.weaponSkill.baseSkill.skillName : "Không";
-            weaponTraitText.text = $"Weapon: {weaponName}";
+            weaponTraitText.text = $"Vũ khí: {weaponName}";
         }
     }
 

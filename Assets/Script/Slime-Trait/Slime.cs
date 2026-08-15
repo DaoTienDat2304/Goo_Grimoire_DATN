@@ -48,6 +48,7 @@ public class Slime
         parents = new List<string>();
         happiness = 100f;
         experience = 0;
+        id = System.Guid.NewGuid().GetHashCode() & 0x7FFFFFFF;
     }
 
     // Constructor cho slime được lai tạo
@@ -59,6 +60,7 @@ public class Slime
         parents = new List<string> { parent1.slimeName, parent2.slimeName };
         happiness = 100f;
         experience = 0;
+        id = System.Guid.NewGuid().GetHashCode() & 0x7FFFFFFF;
 
         // Kế thừa traits từ bố mẹ với xác suất
         body = InheritTrait(parent1.body, parent2.body);
@@ -240,25 +242,36 @@ public class Slime
     {
         if (SlimeGen.Instance == null) return;
 
+        // 1. Skill Thân (Body) theo đúng độ hiếm của Thân (từ Common đến Secret)
         if (body != null)
         {
             var newSkillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Body, body.Rarity);
             if (newSkillSO != null) body.skill = new SkillInstance(newSkillSO);
         }
 
+        // 2. Skill Giáp (Armor) theo đúng độ hiếm của Giáp (từ Common đến Secret)
         if (armor != null)
         {
             var newSkillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Armor, armor.Rarity);
             if (newSkillSO != null) armor.skill = new SkillInstance(newSkillSO);
         }
 
+        // 3. Skill Vũ khí (Weapon) theo đúng độ hiếm của Vũ khí (từ Common đến Secret)
         if (weapon != null)
         {
             var activeSkillSO = SlimeGen.Instance.GetRandomWeaponSkill(weapon.Rarity, false);
             if (activeSkillSO != null) weapon.skill = new SkillInstance(activeSkillSO);
 
-            var ultimateSkillSO = SlimeGen.Instance.GetMatchingUltimateWeaponSkill(activeSkillSO);
-            if (ultimateSkillSO != null) weapon.ultimateSkill = new SkillInstance(ultimateSkillSO);
+            // Ultimate Skill: Chỉ kích hoạt cho vũ khí từ bậc Hiếm (Rare) trở lên
+            if (weapon.Rarity != Rarity.Common && weapon.Rarity != Rarity.Uncommon && activeSkillSO != null)
+            {
+                var ultimateSkillSO = SlimeGen.Instance.GetMatchingUltimateWeaponSkill(activeSkillSO);
+                if (ultimateSkillSO != null) weapon.ultimateSkill = new SkillInstance(ultimateSkillSO);
+            }
+            else
+            {
+                weapon.ultimateSkill = null;
+            }
         }
 
         AssignSkills();

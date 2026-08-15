@@ -4190,7 +4190,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -117, y: 9}
+  m_AnchoredPosition: {x: -171, y: 0.00001049}
   m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &240023982
@@ -5108,6 +5108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24b3cd035299fb948a49bebb05baa5d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  farmDatabase: {fileID: 11400000, guid: 6baa814340ead1b46af47aa387c269d9, type: 2}
   difficulties:
   - difficultyName: Easy
     description: beginer
@@ -5182,6 +5183,10 @@ MonoBehaviour:
   warningText: {fileID: 66973038}
   battleSceneName: TurnBaseGame
   returnSceneName: firstsave
+  hasPendingResult: 0
+  cachedCompletedIndex: -1
+  cachedRewardCoins: 0
+  cachedRewardGems: 0
 --- !u!4 &305035559
 Transform:
   m_ObjectHideFlags: 0
@@ -5430,8 +5435,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 285.49997, y: 14.17}
-  m_SizeDelta: {x: 126.83, y: 71.66}
+  m_AnchoredPosition: {x: 363.18, y: 14.17}
+  m_SizeDelta: {x: 282.19, y: 71.66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &331813866
 MonoBehaviour:
@@ -5510,8 +5515,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -16, y: 87}
-  m_SizeDelta: {x: 121.04, y: 71.66}
+  m_AnchoredPosition: {x: 35.6, y: 87}
+  m_SizeDelta: {x: 224.24, y: 71.66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &340272201
 MonoBehaviour:
@@ -7880,8 +7885,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 292.65997, y: 87}
-  m_SizeDelta: {x: 141.15, y: 71.66}
+  m_AnchoredPosition: {x: 363.18, y: 87}
+  m_SizeDelta: {x: 282.19, y: 71.66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &571306906
 MonoBehaviour:
@@ -10348,7 +10353,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -106.33, y: 0.83001}
+  m_AnchoredPosition: {x: -156, y: 0.83001}
   m_SizeDelta: {x: 86.65, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &736443676
@@ -11909,8 +11914,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -16, y: -56.32}
-  m_SizeDelta: {x: 121.04, y: 71.66}
+  m_AnchoredPosition: {x: 35.599976, y: -56.32}
+  m_SizeDelta: {x: 224.24, y: 71.66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &793701222
 MonoBehaviour:
@@ -13081,8 +13086,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 285.5, y: -57.490005}
-  m_SizeDelta: {x: 126.83, y: 71.66}
+  m_AnchoredPosition: {x: 349.71, y: -57.490005}
+  m_SizeDelta: {x: 255.26, y: 71.66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &877002084
 MonoBehaviour:
@@ -16470,7 +16475,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -99, y: 0.00000095367}
+  m_AnchoredPosition: {x: -149, y: 0.00000095367}
   m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1060845597
@@ -17479,7 +17484,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -108.1, y: -0.00000095367}
+  m_AnchoredPosition: {x: -176, y: -0.00000095367}
   m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1107764238
@@ -18734,8 +18739,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -15.999994, y: 15.339991}
-  m_SizeDelta: {x: 121.04, y: 71.66}
+  m_AnchoredPosition: {x: 35.599983, y: 15.339991}
+  m_SizeDelta: {x: 224.24, y: 71.66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1233468899
 MonoBehaviour:
@@ -19399,7 +19404,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -116, y: -0.0000028014}
+  m_AnchoredPosition: {x: -180, y: -0.0000028014}
   m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1259000872
@@ -21930,7 +21935,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -98, y: -0.83}
+  m_AnchoredPosition: {x: -151, y: -0.0000045896}
   m_SizeDelta: {x: 70, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1387291706
@@ -23960,7 +23965,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -370.78003, y: 45.301025}
+  m_AnchoredPosition: {x: -370.7801, y: 45.301025}
   m_SizeDelta: {x: -1019.87, y: -145.61}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1522991191
@@ -33869,6 +33874,7 @@ MonoBehaviour:
   slimeInventory: {fileID: 9217051745501750150}
   teamSlime: {fileID: 11400000, guid: 021a5b83c9df87f469d0cbf7ea84607d, type: 2}
   towerDatabase: {fileID: 11400000, guid: 21a08e23be9bb2b44bce95dfa50332d6, type: 2}
+  farmDatabase: {fileID: 11400000, guid: 6baa814340ead1b46af47aa387c269d9, type: 2}
   autoSaveEnabled: 1
   autoSaveInterval: 60
 --- !u!4 &1371985903345855731

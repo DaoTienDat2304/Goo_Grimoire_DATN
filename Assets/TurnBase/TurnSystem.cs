@@ -20,6 +20,9 @@ public class TurnSystem : MonoBehaviour
     [Header("Tower Database")]
     [SerializeField] public TowerSlimeBosses towerBosses;
 
+    [Header("Farm Database")]
+    [SerializeField] public FarmDatabaseSO farmDatabase;
+
     protected List<GameObject> turnList;
     public int turnCount = 0;
     public bool isBattleStarted = false;
@@ -244,6 +247,7 @@ public class TurnSystem : MonoBehaviour
             bossStats = boss.AddComponent<SlimeStats>();
         }
 
+        bossStats.slimeName = !string.IsNullOrEmpty(slimeData.slimeName) ? slimeData.slimeName : "Boss";
         bossStats.HP = slimeData.totalHP;
         bossStats.MaxHP = slimeData.totalHP;
         bossStats.Attack = slimeData.totalAttack;
@@ -253,9 +257,24 @@ public class TurnSystem : MonoBehaviour
         bossStats.CritRate = slimeData.totalCritRate;
         bossStats.CritDMG = slimeData.totalCritDMG;
         bossStats.isEnemy = true;
-        // Adventure: scale chỉ số boss theo bảng hệ số độ hiếm (design), thay cho ×3 phẳng cũ.
-        bossStats.enemyRarity = slimeData.GetHighestRarity();
-        bossStats.useRarityBossScaling = true;
+        
+        bool isFarm = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode();
+        if (isFarm)
+        {
+            bossStats.useRarityBossScaling = false; // Farm Mode: Dùng đúng 100% chỉ số từ Farm Database
+        }
+        else
+        {
+            bossStats.enemyRarity = slimeData.GetHighestRarity();
+            bossStats.useRarityBossScaling = true;
+        }
+
+        var bStats = boss.GetComponent<SlimeBattleStats>();
+        if (bStats == null)
+        {
+            bStats = boss.AddComponent<SlimeBattleStats>();
+        }
+        bStats.ReinitializeFromBaseStats();
 
         if (slimeData.body?.skill != null)
             bossStats.bodySkill = slimeData.body.skill;
@@ -736,6 +755,12 @@ public class TurnSystem : MonoBehaviour
 
         StartCoroutine(turnDisplay());
 
+        // Bắt đầu lượt mới theo AV: reset trần sinh ĐCK (≤ +2/lượt)
+        if (BattleSystemManager.Instance != null)
+        {
+            BattleSystemManager.Instance.OnNewTurnStarted();
+        }
+
         var battleStats = currentSlime.GetComponent<SlimeBattleStats>();
 
         // Tích giảm thời gian Buff và Stun vào ĐẦU lượt của Slime đó (Chuẩn RPG)
@@ -936,9 +961,17 @@ public class TurnSystem : MonoBehaviour
         var battleStats = currentSlime.GetComponent<SlimeBattleStats>();
         SkillInstance skillToUse = stats.weaponSkill;
 
+        // Auto fallback ultimate skill nếu chưa có
+        if (stats.weaponUltimateSkill == null && stats.weaponSkill?.baseSkill != null && SlimeGen.Instance != null)
+        {
+            var ultSO = SlimeGen.Instance.GetMatchingUltimateWeaponSkill(stats.weaponSkill.baseSkill);
+            if (ultSO != null) stats.weaponUltimateSkill = new SkillInstance(ultSO);
+        }
+
         if (battleStats != null && stats.weaponUltimateSkill != null && stats.weaponUltimateSkill.baseSkill != null)
         {
-            if (battleStats.CurrentEnergy >= stats.weaponUltimateSkill.baseSkill.energyCost)
+            int energyCost = stats.weaponUltimateSkill.baseSkill.energyCost > 0 ? stats.weaponUltimateSkill.baseSkill.energyCost : 100;
+            if (battleStats.CurrentEnergy >= energyCost)
             {
                 skillToUse = stats.weaponUltimateSkill;
             }
@@ -1302,13 +1335,16 @@ public class TurnSystem : MonoBehaviour
 
     protected virtual IEnumerator HandleVictory()
     {
-        // Log analytics trước khi xử lý reward
         {
             string bMode = BattleDataManager.Instance?.GetBattleMode().ToString().ToLower() ?? "adventure";
-            string diff = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
-                ? (FarmModeManager.Instance?.SelectedDifficultyName ?? "unknown") : "";
-            int coinsEarned = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode()
-                ? (FarmModeManager.Instance?.GetRewardCoins() ?? 0) : 0;
+            string diff = "";
+            int coinsEarned = 0;
+            
+            if (BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode())
+            {
+                diff = PlayerPrefs.GetString("ActiveFarm_Name", "unknown");
+                coinsEarned = PlayerPrefs.GetInt("ActiveFarm_Coins", 0);
+            }
             FirebaseAnalyticsManager.LogBattleWin(bMode, diff, turnCount, coinsEarned);
         }
 
@@ -1327,15 +1363,22 @@ public class TurnSystem : MonoBehaviour
 
         if (isFarmMode)
         {
-            // Xử lý farm mode victory
-            if (FarmModeManager.Instance != null)
+            int completedIndex = PlayerPrefs.GetInt("ActiveFarm_Index", -1);
+            int pCoins = PlayerPrefs.GetInt("ActiveFarm_Coins", 0);
+            int pGems = PlayerPrefs.GetInt("ActiveFarm_Gems", 0);
+
+            if (farmDatabase != null)
             {
-                FarmModeManager.Instance.OnFarmVictory();
+                if (completedIndex < 0) completedIndex = farmDatabase.activeSelectedDifficultyIndex;
+                farmDatabase.RecordVictory(completedIndex, pCoins, pGems);
             }
-            else
-            {
-                Debug.LogWarning("FarmModeManager.Instance is null! Không thể thêm coins.");
-            }
+
+            PlayerPrefs.SetInt("PendingFarm_Index", completedIndex);
+            PlayerPrefs.SetInt("PendingFarm_Coins", pCoins);
+            PlayerPrefs.SetInt("PendingFarm_Gems", pGems);
+            PlayerPrefs.Save();
+
+            PlayerStatsManager.Instance?.AddFarmWin();
 
             if (BattleDataManager.Instance != null)
             {
@@ -1343,11 +1386,8 @@ public class TurnSystem : MonoBehaviour
             }
 
             yield return new WaitForSeconds(2f);
-
-            // Quay về firstsave scene
             Debug.Log("Thắng farm mode, về firstsave");
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
-
             yield break;
         }
 

@@ -21,10 +21,37 @@ public class SkillUI : MonoBehaviour
     private int _lastBattlePoints = -1;
     private SkillInstance _lastWeaponSkill;
 
+    private void OnEnable()
+    {
+        if (BattleSystemManager.Instance != null)
+            BattleSystemManager.Instance.OnBattlePointsChanged += HandleBPChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (BattleSystemManager.Instance != null)
+            BattleSystemManager.Instance.OnBattlePointsChanged -= HandleBPChanged;
+
+        if (_rainbowCoroutine != null)
+        {
+            StopCoroutine(_rainbowCoroutine);
+            _rainbowCoroutine = null;
+        }
+        _isUltimateActive = false;
+        if (weaponSkill != null) weaponSkill.color = Color.white;
+        if (_weaponText != null) _weaponText.color = Color.white;
+    }
+
+    private void HandleBPChanged(int bp)
+    {
+        ForceRefresh();
+    }
+
     private void Start()
     {
         CacheComponents();
         EnsureTooltipTriggers();
+        if (fullSetSkill != null) fullSetSkill.gameObject.SetActive(false); // Ẩn hoàn toàn ô fullSetSkill theo yêu cầu
         ForceRefresh(); // Refresh lần đầu
     }
 
@@ -53,6 +80,57 @@ public class SkillUI : MonoBehaviour
         }
     }
 
+    [Header("Ultimate Rainbow Effect")]
+    private Coroutine _rainbowCoroutine;
+    private bool _isUltimateActive = false;
+
+    private void UpdateUltimateVisualState(bool isReady)
+    {
+        if (weaponSkill == null) return;
+
+        if (isReady && !_isUltimateActive)
+        {
+            _isUltimateActive = true;
+            if (_rainbowCoroutine != null) StopCoroutine(_rainbowCoroutine);
+            _rainbowCoroutine = StartCoroutine(RainbowEffectRoutine());
+        }
+        else if (!isReady && _isUltimateActive)
+        {
+            _isUltimateActive = false;
+            if (_rainbowCoroutine != null)
+            {
+                StopCoroutine(_rainbowCoroutine);
+                _rainbowCoroutine = null;
+            }
+            if (weaponSkill != null) weaponSkill.color = Color.white;
+            if (_weaponText != null) _weaponText.color = Color.white;
+        }
+    }
+
+    private System.Collections.IEnumerator RainbowEffectRoutine()
+    {
+        while (_isUltimateActive)
+        {
+            // Đổi màu cầu vồng nhấp nháy liên tục cho ô Tuyệt Kỹ
+            float hue = Mathf.Repeat(Time.time * 0.8f, 1.0f);
+            Color rainbowColor = Color.HSVToRGB(hue, 0.75f, 1.0f);
+
+            if (weaponSkill != null)
+            {
+                weaponSkill.color = rainbowColor;
+            }
+            if (_weaponText != null)
+            {
+                _weaponText.color = rainbowColor;
+            }
+
+            yield return null;
+        }
+
+        if (weaponSkill != null) weaponSkill.color = Color.white;
+        if (_weaponText != null) _weaponText.color = Color.white;
+    }
+
     // Gọi từ TurnSystem khi năng lượng / BattlePoints thay đổi — thay thế Update()
     public void OnStatsChanged()
     {
@@ -62,12 +140,33 @@ public class SkillUI : MonoBehaviour
         int newBP = BattleSystemManager.Instance != null ? BattleSystemManager.Instance.TeamBattlePoints : 0;
 
         // Xác định skill vũ khí hiện tại (normal hoặc ultimate)
+        bool isUltReady = false;
         SkillInstance weaponSkillToDisplay = slime.weaponSkill;
-        if (_cachedBattleStats != null && slime.weaponUltimateSkill != null && slime.weaponUltimateSkill.baseSkill != null)
+
+        if (_cachedBattleStats != null)
         {
-            if (_cachedBattleStats.CurrentEnergy >= slime.weaponUltimateSkill.baseSkill.energyCost)
-                weaponSkillToDisplay = slime.weaponUltimateSkill;
+            // Auto fallback ultimate skill nếu chưa có (khi slime nạp từ save cũ)
+            if (slime.weaponUltimateSkill == null && slime.weaponSkill?.baseSkill != null && SlimeGen.Instance != null)
+            {
+                var ultSO = SlimeGen.Instance.GetMatchingUltimateWeaponSkill(slime.weaponSkill.baseSkill);
+                if (ultSO != null)
+                {
+                    slime.weaponUltimateSkill = new SkillInstance(ultSO);
+                }
+            }
+
+            if (slime.weaponUltimateSkill != null && slime.weaponUltimateSkill.baseSkill != null)
+            {
+                int energyCost = slime.weaponUltimateSkill.baseSkill.energyCost > 0 ? slime.weaponUltimateSkill.baseSkill.energyCost : 100;
+                if (_cachedBattleStats.CurrentEnergy >= energyCost)
+                {
+                    weaponSkillToDisplay = slime.weaponUltimateSkill;
+                    isUltReady = true;
+                }
+            }
         }
+
+        UpdateUltimateVisualState(isUltReady);
 
         // Chỉ refresh khi giá trị thay đổi
         bool needsRefresh = newEnergy != _lastEnergy || newBP != _lastBattlePoints || weaponSkillToDisplay != _lastWeaponSkill;

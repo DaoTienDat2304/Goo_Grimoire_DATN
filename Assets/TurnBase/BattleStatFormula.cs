@@ -12,7 +12,7 @@ public static class BattleStatFormula
     public static float CritRateCap => RemoteBalance.Battle.critRateCap;                   // Crit Rate tối đa 75%
     public static float CritDMGCap => RemoteBalance.Battle.critDmgCap;                     // Crit DMG tối đa 250%
     public static float MaxDefReduction => RemoteBalance.Battle.maxDefReduction;           // Giảm sát thương tối đa 80% (design cap 75–80%)
-    public static float DefReductionPerPoint => RemoteBalance.Battle.defReductionPerPoint; // 1 DEF = 0.8% giảm sát thương (theo design: DEF×0.008)
+    public static float DefReductionPerPoint => RemoteBalance.Battle.defReductionPerPoint; // 1 DEF = 0.008% giảm sát thương (0.00008). 10,000 DEF = 80% (Hard cap)
     public static float CritOverflowToAtk => RemoteBalance.Battle.critOverflowToAtk;       // 1% Crit DMG vượt cap = 5 ATK/Magic ATK
 
     // Crit Rate hiệu dụng (chưa cap). critChanceBonus là buff cộng thêm dạng % (vd 10 = +10%).

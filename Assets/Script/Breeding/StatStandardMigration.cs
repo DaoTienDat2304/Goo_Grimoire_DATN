@@ -33,20 +33,49 @@ public static class StatStandardMigration
     {
         Rarity rarity = GetRarity(s);
 
-        // (1) Secret — body-only, cần đủ chỉ số. "Chưa migrate" khi ATK=0 hoặc HP dưới chuẩn Secret.
+        // (1) Secret — đảm bảo toàn bộ bộ phận Body, Armor, Weapon đều mang Rarity.Secret và có Kỹ năng Secret
         if (s.body != null && s.body.Rarity == Rarity.Secret)
         {
+            bool modified = false;
+            if (s.armor != null && s.armor.Rarity != Rarity.Secret)
+            {
+                s.armor.Rarity = Rarity.Secret;
+                modified = true;
+            }
+            if (s.weapon != null && s.weapon.Rarity != Rarity.Secret)
+            {
+                s.weapon.Rarity = Rarity.Secret;
+                modified = true;
+            }
+
+            // Đảm bảo có đầy đủ bộ kỹ năng Secret (Body, Hat, Weapon _A, Weapon _U)
+            if (s.armor?.skill == null || s.armor.skill.baseSkill?.rarity != Rarity.Secret
+                || s.weapon?.skill == null || s.weapon.skill.baseSkill?.rarity != Rarity.Secret
+                || s.weapon?.ultimateSkill == null || s.weapon.ultimateSkill.baseSkill?.rarity != Rarity.Secret
+                || s.body?.skill == null || s.body.skill.baseSkill?.rarity != Rarity.Secret)
+            {
+                s.RollRandomSkillsMatchingRarity();
+                modified = true;
+            }
+
             var rs = StatBalance.Get(Rarity.Secret);
             bool needs = s.body.attack <= 0 || s.body.HP < rs.hpMin;
-            if (!needs) return false;
+            if (needs)
+            {
+                // Giữ "chất lượng" theo percentile HP cũ (range Secret body-only cũ ~9000–16000).
+                float p = Mathf.Clamp01((s.body.HP - 9000f) / (16000f - 9000f));
+                SetStat(s.body, LerpInt(rs.hpMin, rs.hpMax, p), LerpInt(rs.atkMin, rs.atkMax, p),
+                        LerpInt(rs.magMin, rs.magMax, p), LerpInt(rs.defMin, rs.defMax, p),
+                        LerpInt(rs.spdMin, rs.spdMax, p), rs.critRate, rs.critDmg);
+                modified = true;
+            }
 
-            // Giữ "chất lượng" theo percentile HP cũ (range Secret body-only cũ ~9000–16000).
-            float p = Mathf.Clamp01((s.body.HP - 9000f) / (16000f - 9000f));
-            SetStat(s.body, LerpInt(rs.hpMin, rs.hpMax, p), LerpInt(rs.atkMin, rs.atkMax, p),
-                    LerpInt(rs.magMin, rs.magMax, p), LerpInt(rs.defMin, rs.defMax, p),
-                    LerpInt(rs.spdMin, rs.spdMax, p), rs.critRate, rs.critDmg);
-            s.CalculateStats();
-            return true;
+            if (modified)
+            {
+                s.CalculateStats();
+                return true;
+            }
+            return false;
         }
 
         // (2) Slime nở-từ-trứng — "chưa migrate" khi HP body dưới min chuẩn của độ hiếm.

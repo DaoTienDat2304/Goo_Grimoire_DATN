@@ -15,6 +15,9 @@ public class SaveAndLoadSystem : MonoBehaviour
     [SerializeField] private SlimeInventory slimeInventory;
     [SerializeField] private Team teamSlime; // drag Team.asset vào đây trong Inspector
     [SerializeField] private TowerSlimeBosses towerDatabase; // Kéo TowerSlimeBosses asset vào đây
+    [SerializeField] private FarmDatabaseSO farmDatabase; // Kéo FarmDatabase asset vào đây (chuẩn ScriptableObject)
+
+    private GameSaveData _cachedSaveData;
 
 
     void Awake()
@@ -47,7 +50,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (CurrencyManager.Instance != null)
             CurrencyManager.Instance.firstLoadDone = false;
 
-        // 3. Chọn save mới hơn giữa cloud và local (PlayerPrefs)
+        // 3. Chọn save mới hơn giữa cloud và local (PlayerPrefs), ưu tiên bản có nhiều dữ liệu hơn
         string cloudJson = (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.HasCloudSave)
             ? CloudSaveProvider.Instance.GetCachedJson()
             : null;
@@ -56,13 +59,17 @@ public class SaveAndLoadSystem : MonoBehaviour
         string chosenJson;
         if (!string.IsNullOrEmpty(cloudJson) && !string.IsNullOrEmpty(localJson))
         {
-            bool localNewer = LocalSaveStore.GetSavedAt(localJson) > LocalSaveStore.GetSavedAt(cloudJson);
-            chosenJson = localNewer ? localJson : cloudJson;
-            Debug.Log($"[Save] Có cả cloud lẫn local — dùng {(localNewer ? "local" : "cloud")} (mới hơn).");
+            long localTime = LocalSaveStore.GetSavedAt(localJson);
+            long cloudTime = LocalSaveStore.GetSavedAt(cloudJson);
+
+            // Ưu tiên mốc thời gian (timestamp) mới nhất: thao tác xóa/hiến tế slime gần nhất sẽ được bảo toàn.
+            bool localBetter = localTime >= cloudTime;
+            chosenJson = localBetter ? localJson : cloudJson;
+            Debug.Log($"[Save] Có cả cloud lẫn local — dùng {(localBetter ? "local" : "cloud")} (Local time: {localTime}, Cloud time: {cloudTime}).");
         }
         else
         {
-            chosenJson = cloudJson ?? localJson;
+            chosenJson = !string.IsNullOrEmpty(localJson) ? localJson : cloudJson;
         }
 
         if (!string.IsNullOrEmpty(chosenJson))
@@ -89,17 +96,19 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
             // Tài khoản mới: khởi tạo bộ daily đầu tiên.
             DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
-            Save(); // lưu ngay để lần sau login/replay có sẵn
         }
 
-        // 4. Nếu có kết quả tower chưa được lưu, apply lên dữ liệu vừa load rồi save lại
+        // Đã nạp xong toàn bộ dữ liệu vào RAM -> Mở cờ _initialized để cho phép Save()
+        _initialized = true;
+
+        // 4. Nếu có kết quả tower hoặc farm chưa được lưu, apply lên dữ liệu vừa load rồi save lại
         ApplyTowerResultCache();
+        ApplyFarmResultCache();
 
         // 5. Load world
         yield return StartCoroutine(LoadWorld());
 
-        // 6. Bật auto-save sau khi đã load xong (tránh ghi đè save thật bằng dữ liệu rỗng)
-        _initialized = true;
+        // 6. Bật auto-save sau khi đã load xong
         if (autoSaveEnabled) StartCoroutine(AutoSaveLoop());
     }
 
@@ -135,13 +144,30 @@ public class SaveAndLoadSystem : MonoBehaviour
 
     IEnumerator LoadWorld()
     {
-        yield return new WaitForSeconds(0.1f); // delay 0.1 gi�y
-        if (wildSlimes.tamedSlimes != null) breedingManager.GenTamedSlime();
-        SlimeWorldManager.RefreshWorldSlimes();
-        breedingUI.RefreshAllUI();
+        yield return new WaitForSeconds(0.1f);
+        if (wildSlimes != null && wildSlimes.tamedSlimes != null && wildSlimes.tamedSlimes.Count > 0)
+        {
+            breedingManager.GenTamedSlime();
+            Save(); // Lưu lại ngay để dọn sạch tamedSlimes khỏi save, tránh nhân bản ở các lần vào game sau
+        }
+        if (SlimeWorldManager != null) SlimeWorldManager.RefreshWorldSlimes();
+        else FindAnyObjectByType<SlimeWorldManager>()?.RefreshWorldSlimes();
+        if (breedingUI != null) breedingUI.RefreshAllUI();
     }
     public void Save()
     {
+        string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
+
+        // Nếu _cachedSaveData chưa có, load từ PlayerPrefs/LocalSaveStore
+        if (_cachedSaveData == null)
+        {
+            string existingJson = LocalSaveStore.Load(localId);
+            if (!string.IsNullOrEmpty(existingJson))
+            {
+                _cachedSaveData = JsonUtility.FromJson<GameSaveData>(existingJson);
+            }
+        }
+
         var data = new GameSaveData();
         data.lastSavedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
@@ -159,6 +185,9 @@ public class SaveAndLoadSystem : MonoBehaviour
         SerializeFarmDifficulties(data);
         SerializeStats(data);
         SerializeDaily(data);
+        SerializeSacrifice(data);
+
+        _cachedSaveData = data;
 
         // Compact JSON is substantially cheaper to allocate and persist on mobile.
         // Pretty printing is useful for diagnostics, but this is a runtime save path.
@@ -167,7 +196,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         // Luôn lưu cục bộ bằng PlayerPrefs — không mất save khi thoát/replay,
         // kể cả ở offline dev mode khi cloud chưa bật. Dùng LocalSaveId (guest = key
         // cố định) để save không bị lệch key mỗi phiên đăng nhập ẩn danh.
-        string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
         LocalSaveStore.Save(localId, json);
 
         // Lưu cloud (khi đã đăng nhập và bật Firebase)
@@ -191,32 +219,36 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         var data = JsonUtility.FromJson<GameSaveData>(json);
         if (data == null) { Debug.LogWarning("Failed to parse save file."); return; }
-        TeamPanel.SetActive(false);
+        _cachedSaveData = data;
+        
+        if (TeamPanel != null) TeamPanel.SetActive(false);
 
-        DeserializeUnlockedTraits(data); // traits first (used by slimes visuals)
-        DeserializeSlimes(data);
-        DeserializeBreedingSession(data); // sau khi slimes đã có (tra bố mẹ theo id)
-        DeserializeTeam(data);
-        DeserializeBuildings(data);
-        DeserializeDaily(data);   // trước Quests để daily quest có mặt khi khôi phục state
-        DeserializeQuests(data);
-        DeserializeAchievements(data);
-        if (!CurrencyManager.Instance.firstLoadDone)
+        try { DeserializeUnlockedTraits(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeUnlockedTraits: {e}"); }
+        try { DeserializeSlimes(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeSlimes: {e}"); }
+        try { DeserializeBreedingSession(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeBreedingSession: {e}"); }
+        try { DeserializeTeam(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeTeam: {e}"); }
+        try { DeserializeBuildings(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeBuildings: {e}"); }
+        try { DeserializeDaily(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeDaily: {e}"); }
+        try { DeserializeQuests(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeQuests: {e}"); }
+        try { DeserializeAchievements(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeAchievements: {e}"); }
+        try { DeserializeSacrifice(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeSacrifice: {e}"); }
+        
+        if (CurrencyManager.Instance != null && !CurrencyManager.Instance.firstLoadDone)
         {
             CurrencyManager.Instance.firstLoadDone = true;
-            DeserializeCurrencies(data);
-            DeserializeTowerFloors(data);
-            DeserializeFarmDifficulties(data);
+            try { DeserializeCurrencies(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeCurrencies: {e}"); }
+            try { DeserializeTowerFloors(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeTowerFloors: {e}"); }
+            try { DeserializeFarmDifficulties(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeFarmDifficulties: {e}"); }
         }  
-        DeserializeResources(data);
-        DeserializeStats(data);
-        //DeserializeTamedSlimes(data);
+        
+        try { DeserializeResources(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeResources: {e}"); }
+        try { DeserializeStats(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeStats: {e}"); }
 
-        breedingUI.RefreshAllUI();
-        SlimeWorldManager.RefreshWorldSlimes();
-        slimeInventory.RefreshAllUI();
+        if (breedingUI != null) breedingUI.RefreshAllUI();
+        if (SlimeWorldManager != null) SlimeWorldManager.RefreshWorldSlimes();
+        if (slimeInventory != null) slimeInventory.RefreshAllUI();
 
-        Debug.Log("[Save] Game loaded từ cloud JSON.");
+        Debug.Log($"[Save] Game loaded thành công. Slimes count: {data.slimes?.Count ?? 0}, Placed Buildings count: {data.placedBuildings?.Count ?? 0}");
     }
 
     /// <summary>Trả về Team asset để các hệ thống khác kiểm tra team trước khi vào battle.</summary>
@@ -247,6 +279,70 @@ public class SaveAndLoadSystem : MonoBehaviour
         Debug.Log($"[Save] Applied tower cache: floor {completedFloor} completed, currentFloor={towerDatabase.currentFloor}");
     }
 
+    void ApplyFarmResultCache()
+    {
+        // 1. Kiểm tra cache từ FarmDatabaseSO (chuẩn mới tương tự Tower)
+        if (farmDatabase != null && farmDatabase.hasPendingResult)
+        {
+            int completedIndex = farmDatabase.cachedCompletedIndex;
+            int pCoins = farmDatabase.cachedRewardCoins;
+            int pGems = farmDatabase.cachedRewardGems;
+
+            var difficulties = farmDatabase.difficulties;
+            if (difficulties != null && completedIndex >= 0 && completedIndex < difficulties.Count)
+            {
+                difficulties[completedIndex].completed = true;
+                if (completedIndex + 1 < difficulties.Count)
+                {
+                    difficulties[completedIndex + 1].unlocked = true;
+                }
+            }
+
+            if (CurrencyManager.Instance != null)
+            {
+                if (pCoins > 0) CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, pCoins);
+                if (pGems > 0) CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, pGems);
+            }
+
+            farmDatabase.ClearPendingResult();
+            Save();
+            Debug.Log($"[Save] Applied farm result cache from FarmDatabaseSO: completedIndex={completedIndex}, coins={pCoins}, gems={pGems}");
+            return;
+        }
+
+        // 2. Fallback PlayerPrefs nếu còn sót
+        if (PlayerPrefs.HasKey("PendingFarm_Index"))
+        {
+            int completedIndex = PlayerPrefs.GetInt("PendingFarm_Index", -1);
+            int pCoins = PlayerPrefs.GetInt("PendingFarm_Coins", 0);
+            int pGems = PlayerPrefs.GetInt("PendingFarm_Gems", 0);
+
+            PlayerPrefs.DeleteKey("PendingFarm_Index");
+            PlayerPrefs.DeleteKey("PendingFarm_Coins");
+            PlayerPrefs.DeleteKey("PendingFarm_Gems");
+
+            var difficulties = farmDatabase != null ? farmDatabase.difficulties : (FarmModeManager.Instance != null ? FarmModeManager.Instance.GetDifficulties() : null);
+
+            if (difficulties != null && completedIndex >= 0 && completedIndex < difficulties.Count)
+            {
+                difficulties[completedIndex].completed = true;
+                if (completedIndex + 1 < difficulties.Count)
+                {
+                    difficulties[completedIndex + 1].unlocked = true;
+                }
+            }
+
+            if (CurrencyManager.Instance != null)
+            {
+                if (pCoins > 0) CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, pCoins);
+                if (pGems > 0) CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, pGems);
+            }
+
+            Save();
+            Debug.Log($"[Save] Applied farm result cache from PlayerPrefs fallback: completedIndex={completedIndex}");
+        }
+    }
+
     void ResetGameState()
     {
         if (teamSlime != null) teamSlime.team.Clear();
@@ -262,34 +358,55 @@ public class SaveAndLoadSystem : MonoBehaviour
     void SerializeTeam(GameSaveData data)
     {
         data.teamSlimeIDs.Clear();
-        if (teamSlime != null && teamSlime.team != null)
+        if (teamSlime != null && teamSlime.team != null && teamSlime.team.Count > 0)
         {
             foreach (var s in teamSlime.team)
             {
                 if (s != null)
                     data.teamSlimeIDs.Add(s.id);
             }
+            return;
+        }
+
+        if (_cachedSaveData != null && _cachedSaveData.teamSlimeIDs != null)
+        {
+            data.teamSlimeIDs = new List<int>(_cachedSaveData.teamSlimeIDs);
         }
     }
 
     void DeserializeTeam(GameSaveData data)
     {
-        if (teamSlime == null || data.teamSlimeIDs == null) return;
+        if (teamSlime == null) return;
 
         var bm = BreedingManager.Instance;
         if (bm == null) return;
 
         var all = bm.GetAllSlimes();
-        if (all == null) return;
+        if (all == null || all.Count == 0) return;
 
         teamSlime.team.Clear();
-        foreach (var id in data.teamSlimeIDs)
+        if (data.teamSlimeIDs != null && data.teamSlimeIDs.Count > 0)
         {
-            var s = all.FirstOrDefault(x => x != null && x.id == id);
-            if (s != null) 
+            foreach (var id in data.teamSlimeIDs)
             {
-                s.isPicked = true; // Đảm bảo slime trong team có isPicked = true
-                teamSlime.team.Add(s);
+                var s = all.FirstOrDefault(x => x != null && x.id == id);
+                if (s != null && !teamSlime.team.Contains(s)) 
+                {
+                    s.isPicked = true;
+                    teamSlime.team.Add(s);
+                }
+            }
+        }
+
+        // Fallback: Nếu không tìm thấy theo ID nhưng có Slime được đánh dấu isPicked
+        if (teamSlime.team.Count == 0)
+        {
+            foreach (var s in all)
+            {
+                if (s != null && s.isPicked && !teamSlime.team.Contains(s))
+                {
+                    teamSlime.team.Add(s);
+                }
             }
         }
     }
@@ -377,43 +494,73 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (bm != null) st.MergeOwnedSlimeTraits(bm.GetAllSlimes());
     }
 
+    private static int GetSlimesCount(string json)
+    {
+        if (string.IsNullOrEmpty(json)) return 0;
+        try
+        {
+            var d = JsonUtility.FromJson<GameSaveData>(json);
+            return d?.slimes?.Count ?? 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
     // ---------- Slimes ----------
     void SerializeSlimes(GameSaveData data)
     {
         var bm = BreedingManager.Instance;
-        if (bm == null) return;
 
-        var all = bm.GetAllSlimes();
-        if (all == null) return;
+        bool isBattleScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TurnBaseGame";
 
-        foreach (var s in all)
+        if (bm != null && !isBattleScene) 
         {
-            if (s == null) continue;
-            var dto = new SlimeDTO
+            var all = bm.GetAllSlimes();
+            int cachedCount = (_cachedSaveData != null && _cachedSaveData.slimes != null) ? _cachedSaveData.slimes.Count : 0;
+            
+            // Chỉ ghi nhận danh sách mới nếu số lượng Slime trong RAM lớn hơn hoặc bằng danh sách đã lưu
+            // (tránh trường hợp RAM mới chỉ có 2 con Starter ghi đè làm mất 5-10 con Slime đã lưu).
+            if (all != null && all.Count >= cachedCount && all.Count > 0)
             {
-                slimeName = s.slimeName,
-                generation = s.generation,
-                breedingCooldown = s.breedingCooldown,
-                canBreed = s.canBreed,
-                parents = new List<string>(s.parents ?? new List<string>()),
-                happiness = s.happiness,
-                experience = s.experience,
-                isPicked = s.isPicked,
-                totalHP = s.totalHP,
-                totalAttack = s.totalAttack,
-                totalMagicAttack = s.totalMagicAttack,
-                totalDefense = s.totalDefense,
-                totalSpeed = s.totalSpeed,
-                totalCritRate = s.totalCritRate,
-                totalCritDMG = s.totalCritDMG,
-                eggStatRollPercent = s.eggStatRollPercent,
-                eggStatQuality = s.eggStatQuality,
-                body = ToTraitDTO(s.body),
-                armor = ToTraitDTO(s.armor),
-                weapon = ToTraitDTO(s.weapon),
-                id = s.id
-            };
-            data.slimes.Add(dto);
+                data.slimes.Clear();
+                foreach (var s in all)
+                {
+                    if (s == null) continue;
+                    var dto = new SlimeDTO
+                    {
+                        slimeName = s.slimeName,
+                        generation = s.generation,
+                        breedingCooldown = s.breedingCooldown,
+                        canBreed = s.canBreed,
+                        parents = new List<string>(s.parents ?? new List<string>()),
+                        happiness = s.happiness,
+                        experience = s.experience,
+                        isPicked = s.isPicked,
+                        totalHP = s.totalHP,
+                        totalAttack = s.totalAttack,
+                        totalMagicAttack = s.totalMagicAttack,
+                        totalDefense = s.totalDefense,
+                        totalSpeed = s.totalSpeed,
+                        totalCritRate = s.totalCritRate,
+                        totalCritDMG = s.totalCritDMG,
+                        eggStatRollPercent = s.eggStatRollPercent,
+                        eggStatQuality = s.eggStatQuality,
+                        body = ToTraitDTO(s.body),
+                        armor = ToTraitDTO(s.armor),
+                        weapon = ToTraitDTO(s.weapon),
+                        id = s.id
+                    };
+                    data.slimes.Add(dto);
+                }
+                return;
+            }
+        }
+
+        if (_cachedSaveData != null && _cachedSaveData.slimes != null && _cachedSaveData.slimes.Count > 0)
+        {
+            data.slimes = new List<SlimeDTO>(_cachedSaveData.slimes);
         }
     }
 
@@ -422,9 +569,20 @@ public class SaveAndLoadSystem : MonoBehaviour
         var bm = BreedingManager.Instance;
         if (bm == null) return;
 
+        if (data.slimes == null || data.slimes.Count == 0)
+        {
+            Debug.Log("[Save] Save file có 0 slimes — bảo toàn danh sách hiện có hoặc tạo Slime khởi đầu.");
+            if (bm.GetAllSlimes() == null || bm.GetAllSlimes().Count == 0)
+            {
+                bm.CreateInitialSlimes();
+            }
+            return;
+        }
+
         var list = new List<Slime>();
         foreach (var dto in data.slimes)
         {
+            if (dto == null) continue;
             var s = new Slime();
             s.slimeName = dto.slimeName;
             s.generation = dto.generation;
@@ -450,16 +608,30 @@ public class SaveAndLoadSystem : MonoBehaviour
             list.Add(s);
         }
 
-        // Chuẩn hoá slime cũ về đúng quy chuẩn GDD (Secret/nở-trứng/Mythic-HP). Idempotent.
-        StatStandardMigration.NormalizeAll(list);
+        if (list.Count > 0)
+        {
+            // Loại bỏ slime trùng lặp (nếu có do bug phiên trước)
+            var uniqueList = new List<Slime>();
+            var seenIds = new HashSet<int>();
+            foreach (var slime in list)
+            {
+                if (slime == null) continue;
+                if (slime.id != 0 && seenIds.Contains(slime.id)) continue;
+                if (slime.id != 0) seenIds.Add(slime.id);
+                uniqueList.Add(slime);
+            }
+            list = uniqueList;
 
-        bm.SetAllSlimes(list);
+            // Chuẩn hoá slime cũ về đúng quy chuẩn GDD (Secret/nở-trứng/Mythic-HP). Idempotent.
+            StatStandardMigration.NormalizeAll(list);
+            bm.SetAllSlimes(list);
+        }
 
         // Refresh any world UI/actors that reflect slimes
         var swm = FindFirstObjectByType<SlimeWorldManager>();
         if (swm != null)
         {
-            // you may have a method to refresh; if not, scene reload may be needed
+            swm.RefreshWorldSlimes();
         }
     }
 
@@ -467,7 +639,14 @@ public class SaveAndLoadSystem : MonoBehaviour
     void SerializeBreedingSession(GameSaveData data)
     {
         var bm = BreedingManager.Instance;
-        var session = bm != null ? bm.GetActiveSessionForSave() : null;
+        if (bm == null)
+        {
+            if (_cachedSaveData != null)
+                data.breedingSession = _cachedSaveData.breedingSession;
+            return;
+        }
+
+        var session = bm.GetActiveSessionForSave();
         if (session == null || session.parent1 == null || session.parent2 == null)
         {
             data.breedingSession = new BreedingSessionDTO { active = false };
@@ -496,10 +675,13 @@ public class SaveAndLoadSystem : MonoBehaviour
 
     TraitInstanceDTO ToTraitDTO(TraitInstance ti)
     {
-        if (ti == null || ti.baseTrait == null) return null;
+        if (ti == null) return null;
+        string tName = ti.baseTrait != null ? (string.IsNullOrEmpty(ti.baseTrait.traitName) ? ti.baseTrait.name : ti.baseTrait.traitName) : ti.traitname;
+        if (string.IsNullOrEmpty(tName)) return null;
+
         return new TraitInstanceDTO
         {
-            traitName = ti.baseTrait.traitName,
+            traitName = tName,
             rarity = ti.Rarity,
             type = ti.TraitType,
             HP = ti.HP,
@@ -516,15 +698,26 @@ public class SaveAndLoadSystem : MonoBehaviour
             baseSpeed = ti.baseSpeed,
             baseCritRate = ti.baseCritRate,
             baseCritDMG = ti.baseCritDMG,
-            skillName = ti.skill?.baseSkill != null ? ti.skill.baseSkill.name : null
+            skillName = ti.skill?.baseSkill != null ? ti.skill.baseSkill.name : null,
+            ultimateSkillName = ti.ultimateSkill?.baseSkill != null ? ti.ultimateSkill.baseSkill.name : null
         };
     }
 
     TraitInstance FromTraitDTO(TraitInstanceDTO dto)
     {
-        if (dto == null || string.IsNullOrEmpty(dto.traitName)) return null;
+        if (dto == null) return null;
 
         var so = ResolveTraitSO(dto.traitName, dto.type);
+        if (so == null)
+        {
+            Debug.LogWarning($"[Save] ResolveTraitSO không tìm thấy '{dto.traitName}' (type={dto.type}). Dùng fallback trait.");
+            if (SlimeGen.Instance != null && SlimeGen.Instance.allTraits != null && SlimeGen.Instance.allTraits.Count > 0)
+            {
+                so = SlimeGen.Instance.allTraits.FirstOrDefault(t => t != null && t.type == dto.type)
+                     ?? SlimeGen.Instance.allTraits.FirstOrDefault(t => t != null);
+            }
+        }
+
         if (so == null) return null;
 
         var ti = new TraitInstance(so)
@@ -536,6 +729,9 @@ public class SaveAndLoadSystem : MonoBehaviour
         ti.magicAttack = dto.magicAttack;
         ti.critRate = dto.critRate;
         ti.critDMG = dto.critDMG;
+        ti.attack = dto.attack;
+        ti.defense = dto.defense;
+        ti.speed = dto.speed;
 
         // Migration: save cũ không có base stats → ước tính từ multiplier mặc định
         if (dto.baseAttack == 0 && dto.attack > 0)
@@ -551,13 +747,13 @@ public class SaveAndLoadSystem : MonoBehaviour
         }
         else
         {
-            ti.baseHP           = dto.baseHP;
-            ti.baseAttack       = dto.baseAttack;
-            ti.baseDefense      = dto.baseDefense;
-            ti.baseSpeed        = dto.baseSpeed;
-            ti.baseMagicAttack  = dto.baseMagicAttack;
-            ti.baseCritRate     = dto.baseCritRate;
-            ti.baseCritDMG      = dto.baseCritDMG;
+            ti.baseHP           = dto.baseHP > 0 ? dto.baseHP : dto.HP;
+            ti.baseAttack       = dto.baseAttack > 0 ? dto.baseAttack : dto.attack;
+            ti.baseDefense      = dto.baseDefense > 0 ? dto.baseDefense : dto.defense;
+            ti.baseSpeed        = dto.baseSpeed > 0 ? dto.baseSpeed : dto.speed;
+            ti.baseMagicAttack  = dto.baseMagicAttack > 0 ? dto.baseMagicAttack : dto.magicAttack;
+            ti.baseCritRate     = dto.baseCritRate > 0 ? dto.baseCritRate : dto.critRate;
+            ti.baseCritDMG      = dto.baseCritDMG > 0 ? dto.baseCritDMG : dto.critDMG;
         }
 
         // Áp dụng multiplier hiện tại (có thể đã thay đổi qua Remote Config)
@@ -565,14 +761,29 @@ public class SaveAndLoadSystem : MonoBehaviour
         ti.RecalculateStats(currentMult);
 
         // Khôi phục skill từ tên đã lưu
-        if (!string.IsNullOrEmpty(dto.skillName))
+        var gen = SlimeGen.Instance;
+        if (gen != null)
         {
-            var gen = SlimeGen.Instance;
-            if (gen != null)
+            gen.EnsureSkillDatabasePublic();
+            if (!string.IsNullOrEmpty(dto.skillName))
             {
-                gen.EnsureSkillDatabasePublic();
                 var skillSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.skillName);
                 if (skillSO != null) ti.skill = new SkillInstance(skillSO);
+            }
+
+            // Khôi phục ultimate skill từ tên đã lưu hoặc tự động ghép nếu là Rare+ Weapon
+            if (!string.IsNullOrEmpty(dto.ultimateSkillName))
+            {
+                var ultSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.ultimateSkillName);
+                if (ultSO != null) ti.ultimateSkill = new SkillInstance(ultSO);
+            }
+            else if (ti.ultimateSkill == null && dto.type == TraitType.Weapon && dto.rarity != Rarity.Common && dto.rarity != Rarity.Uncommon)
+            {
+                if (ti.skill?.baseSkill != null)
+                {
+                    var matchedUlt = gen.GetMatchingUltimateWeaponSkill(ti.skill.baseSkill);
+                    if (matchedUlt != null) ti.ultimateSkill = new SkillInstance(matchedUlt);
+                }
             }
         }
 
@@ -583,19 +794,51 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         if (string.IsNullOrEmpty(traitName)) return null;
 
-        // Prefer SlimeGen registry
+        string cleanName = traitName.Replace(" ", "").Trim();
+
+        // 1. Prefer SlimeGen registry
         var gen = SlimeGen.Instance;
         if (gen != null && gen.allTraits != null && gen.allTraits.Count > 0)
         {
-            return gen.allTraits.FirstOrDefault(t =>
-                t != null && t.traitName == traitName && t.type == type);
+            var found = gen.allTraits.FirstOrDefault(t =>
+                t != null && t.type == type &&
+                (string.Equals(t.traitName, traitName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(t.name, traitName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(t.traitName?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(t.name?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase)));
+            if (found != null) return found;
+
+            var loose = gen.allTraits.FirstOrDefault(t =>
+                t != null &&
+                (string.Equals(t.traitName, traitName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(t.name, traitName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(t.traitName?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(t.name?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase)));
+            if (loose != null) return loose;
         }
 
-        // Fallback: load from Resources if set up
+        // 2. Fallback: load from Resources if set up
         var loaded = Resources.LoadAll<TraitSO>(string.Empty);
-        foreach (var t in loaded)
+        if (loaded != null && loaded.Length > 0)
         {
-            if (t != null && t.traitName == traitName && t.type == type) return t;
+            foreach (var t in loaded)
+            {
+                if (t != null && t.type == type &&
+                    (string.Equals(t.traitName, traitName, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(t.name, traitName, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(t.traitName?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(t.name?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase)))
+                    return t;
+            }
+            foreach (var t in loaded)
+            {
+                if (t != null &&
+                    (string.Equals(t.traitName, traitName, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(t.name, traitName, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(t.traitName?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(t.name?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase)))
+                    return t;
+            }
         }
         return null;
     }
@@ -604,13 +847,22 @@ public class SaveAndLoadSystem : MonoBehaviour
     void SerializeUnlockedTraits(GameSaveData data)
     {
         var gen = SlimeGen.Instance;
-        if (gen == null || gen.allTraits == null) return;
-        foreach (var t in gen.allTraits)
+        if (gen != null && gen.allTraits != null && gen.allTraits.Count > 0)
         {
-            if (t != null && t.unlocked)
+            data.unlockedTraits.Clear();
+            foreach (var t in gen.allTraits)
             {
-                data.unlockedTraits.Add(t.traitName);
+                if (t != null && t.unlocked)
+                {
+                    data.unlockedTraits.Add(t.traitName);
+                }
             }
+            return;
+        }
+
+        if (_cachedSaveData != null && _cachedSaveData.unlockedTraits != null)
+        {
+            data.unlockedTraits = new List<string>(_cachedSaveData.unlockedTraits);
         }
     }
 
@@ -630,42 +882,67 @@ public class SaveAndLoadSystem : MonoBehaviour
     // ---------- Buildings ----------
     void SerializeBuildings(GameSaveData data)
     {
-        var slots = FindObjectsByType<BuildingSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach (var s in slots)
+        bool isBattleScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "TurnBaseGame";
+
+        if (!isBattleScene)
         {
-            var dto = new PlacedBuildingDTO
+            var slots = FindObjectsByType<BuildingSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            if (slots != null && slots.Length > 0 && slots.Any(s => s.isOccupied))
             {
-                slotIndex = s.slotIndex, // or a custom index you assign
-                buildingID = s.slotID,                     // slot stores buildingID after place
-                isOccupied = s.isOccupied
-            };
-            data.placedBuildings.Add(dto);
+                data.placedBuildings.Clear();
+                foreach (var s in slots)
+                {
+                    var dto = new PlacedBuildingDTO
+                    {
+                        slotIndex = s.slotIndex,
+                        buildingID = s.slotID,
+                        isOccupied = s.isOccupied
+                    };
+                    data.placedBuildings.Add(dto);
+                }
+                return;
+            }
+        }
+
+        if (_cachedSaveData != null && _cachedSaveData.placedBuildings != null && _cachedSaveData.placedBuildings.Count > 0)
+        {
+            data.placedBuildings = new List<PlacedBuildingDTO>(_cachedSaveData.placedBuildings);
         }
     }
 
     void DeserializeBuildings(GameSaveData data)
     {
+        if (data.placedBuildings == null) return;
+
         var slots = FindObjectsByType<BuildingSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (slots == null || slots.Length == 0) return;
         
-        // Sử dụng ToLookup để xử lý trường hợp nhiều slot có cùng slotIndex
         var lookup = slots.ToLookup(s => s.slotIndex);
 
         foreach (var pb in data.placedBuildings)
         {
-            // Lấy slot đầu tiên nếu có nhiều slot cùng slotIndex
             var slot = lookup[pb.slotIndex]?.FirstOrDefault();
             if (slot == null) continue;
 
             slot.isOccupied = pb.isOccupied;
             slot.slotID = pb.buildingID;
 
-            // Refresh icon if occupied
-            if (slot.isOccupied && slot.placedBuildingIcon != null)
+            if (slot.placedBuildingIcon == null)
+                slot.placedBuildingIcon = slot.GetComponent<UnityEngine.UI.Image>();
+
+            if (slot.isOccupied)
             {
                 var building = ResolveBuildingByID(pb.buildingID);
-                if (building != null)
+                if (building != null && slot.placedBuildingIcon != null)
                 {
                     slot.placedBuildingIcon.sprite = building.sprite;
+                    slot.placedBuildingIcon.enabled = true;
+                }
+            }
+            else
+            {
+                if (slot.placedBuildingIcon != null)
+                {
                     slot.placedBuildingIcon.enabled = true;
                 }
             }
@@ -676,8 +953,9 @@ public class SaveAndLoadSystem : MonoBehaviour
 
     Building ResolveBuildingByID(int id)
     {
-        if (BuildingManager.Instance == null) return null;
-        return BuildingManager.Instance.allBuildings.FirstOrDefault(b => b != null && b.buildingID == id);
+        var bm = BuildingManager.Instance != null ? BuildingManager.Instance : FindFirstObjectByType<BuildingManager>(FindObjectsInactive.Include);
+        if (bm == null || bm.allBuildings == null) return null;
+        return bm.allBuildings.FirstOrDefault(b => b != null && b.buildingID == id);
     }
 
     // ---------- Quests ----------
@@ -975,11 +1253,11 @@ public class SaveAndLoadSystem : MonoBehaviour
     // ---------- Farm Difficulties ----------
     void SerializeFarmDifficulties(GameSaveData data)
     {
-        if (FarmModeManager.Instance == null) return;
-        
-        var difficulties = FarmModeManager.Instance.GetDifficulties();
+        var difficulties = farmDatabase != null ? farmDatabase.difficulties : (FarmModeManager.Instance != null ? FarmModeManager.Instance.GetDifficulties() : null);
         if (difficulties == null) return;
-        
+
+        if (data.farmDifficulties == null) data.farmDifficulties = new List<FarmDifficultyDTO>();
+
         data.farmDifficulties.Clear();
         for (int i = 0; i < difficulties.Count; i++)
         {
@@ -993,15 +1271,15 @@ public class SaveAndLoadSystem : MonoBehaviour
                 });
             }
         }
-        
+
         Debug.Log($"SerializeFarmDifficulties: Lưu {data.farmDifficulties.Count} difficulties");
     }
-    
+
     void DeserializeFarmDifficulties(GameSaveData data)
     {
-        if (FarmModeManager.Instance == null || data.farmDifficulties == null) return;
+        if (data.farmDifficulties == null) return;
         
-        var difficulties = FarmModeManager.Instance.GetDifficulties();
+        var difficulties = farmDatabase != null ? farmDatabase.difficulties : (FarmModeManager.Instance != null ? FarmModeManager.Instance.GetDifficulties() : null);
         if (difficulties == null) return;
         
         foreach (var dto in data.farmDifficulties)
@@ -1043,7 +1321,32 @@ public class SaveAndLoadSystem : MonoBehaviour
         DeserializeFarmDifficulties(data);
     }
 
+    void SerializeSacrifice(GameSaveData data)
+    {
+        var inv = slimeInventory != null ? slimeInventory : FindAnyObjectByType<SlimeInventory>();
+        if (inv != null)
+        {
+            data.sacrificePoints = inv.sacrifice;
+        }
+        else if (_cachedSaveData != null)
+        {
+            data.sacrificePoints = _cachedSaveData.sacrificePoints;
+        }
+    }
+
+    void DeserializeSacrifice(GameSaveData data)
+    {
+        if (data == null) return;
+        var inv = slimeInventory != null ? slimeInventory : FindAnyObjectByType<SlimeInventory>();
+        if (inv != null)
+        {
+            inv.sacrifice = data.sacrificePoints;
+            if (inv.Slider != null) inv.Slider.value = data.sacrificePoints;
+        }
+    }
+
     // ---------- Public API ----------
+    public GameSaveData GetCachedSaveData() => _cachedSaveData;
     public void QuickSave() => Save();
     public void QuickLoad()
     {

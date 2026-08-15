@@ -154,16 +154,17 @@ public class SlimeBattleStats : MonoBehaviour
         }
         else
         {
-            // Tower/khác: giữ hệ số phẳng theo Remote Config (mặc định 3x); đồng minh = 1x.
+            // Tower/Farm/khác: giữ hệ số phẳng theo Remote Config (mặc định 3x); đồng minh = 1x.
             if (!_isTowerModeCached)
             {
                 _isTowerModeValue = UnityEngine.Object.FindAnyObjectByType<TowerTurnSystem>() != null;
                 _isTowerModeCached = true;
             }
             bool isTowerMode = _isTowerModeValue;
+            bool isFarmMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode();
             float multiplier = 1f;
             
-            if (baseStats.isEnemy && !isTowerMode)
+            if (baseStats.isEnemy && !isTowerMode && !isFarmMode)
             {
                 // Hệ số phẳng cho enemy KHÔNG dùng rarity scaling — key `battle_legacy_boss_multiplier`.
                 multiplier = RemoteBalance.Battle.legacyBossMultiplier;

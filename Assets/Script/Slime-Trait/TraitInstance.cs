@@ -48,8 +48,8 @@ public class TraitInstance
         TraitType = so != null ? so.type : TraitType.Body;
         allTraits = new List<TraitSO>();
         
-        // Skill common and uncommon do not have skills
-        if (so != null && so.skill != null && Rarity != Rarity.Common && Rarity != Rarity.Uncommon)
+        // Gán skill cho trait theo ScriptableObject
+        if (so != null && so.skill != null)
         {
             skill = new SkillInstance(so.skill);
         }
@@ -58,6 +58,7 @@ public class TraitInstance
             skill = null;
         }
 
+        // Chỉ gán Ultimate Skill cho Rare trở lên
         if (so != null && so.ultimateSkill != null && Rarity != Rarity.Common && Rarity != Rarity.Uncommon)
         {
             ultimateSkill = new SkillInstance(so.ultimateSkill);

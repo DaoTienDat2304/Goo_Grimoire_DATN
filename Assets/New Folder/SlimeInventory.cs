@@ -1,4 +1,4 @@
-﻿using Spine;
+using Spine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -182,7 +182,9 @@ public class SlimeInventory : MonoBehaviour
     public void summonbutton()
     {
         sacrifice -= maxsacrifice;
-        Slider.value = sacrifice;
+        if (sacrifice < 0) sacrifice = 0;
+        if (Slider != null) Slider.value = sacrifice;
+        SaveAndLoadSystem.Instance?.Save();
     }
 
 
@@ -190,9 +192,9 @@ public class SlimeInventory : MonoBehaviour
     {
         foreach (GameObject inventorySlot in collectionSlots)
         {
+            if (inventorySlot == null) continue;
             InventorySlot i = inventorySlot.GetComponent<InventorySlot>();
-            i.SetBreedingSelected(false);
-            Debug.Log("can not");
+            if (i != null) i.SetBreedingSelected(false);
         }
         RefreshCollectionGrid();
     }
@@ -200,13 +202,16 @@ public class SlimeInventory : MonoBehaviour
     {
         foreach (GameObject inventorySlot in collectionSlots)
         {
+            if (inventorySlot == null) continue;
             InventorySlot i = inventorySlot.GetComponent<InventorySlot>();
-            i.removedslime();
-            Debug.Log("can not");
+            if (i != null) i.removedslime();
         }
         RefreshCollectionGrid();
         // Kiểm tra và refresh nếu có slimes mới được tạo
         CheckAndRefreshIfNeeded();
+
+        // Lưu trạng thái ngay lập tức để không bị mất tiến trình fusion và không hồi lại slime
+        SaveAndLoadSystem.Instance?.Save();
     }
 
     private int lastKnownSlimeCount = 0;

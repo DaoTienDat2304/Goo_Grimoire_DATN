@@ -19,11 +19,14 @@ public class tameslimeslot : MonoBehaviour
 
     private void Start()
     {
-
+        ResolveReferences();
     }
 
     public void SetupSlime(int newSlime)
     {
+        ResolveReferences();
+        if (wildSlimes == null || wildSlimes.tamedSlimes == null)
+            return;
         
         foreach (WildSlimes.WildSlimeTraits a in wildSlimes.tamedSlimes)
         {
@@ -40,9 +43,16 @@ public class tameslimeslot : MonoBehaviour
 
     private void UpdateUI()
     {
+        ResolveReferences();
+        if (body == null || armor == null || weapon == null)
+            return;
+
         var bodyRenderer = slimeBody?.GetComponent<Image>();
         var armorRenderer = SlimeArmor?.GetComponent<Image>();
         var weaponRenderer = SlimeWeapon?.GetComponent<Image>();
+        if (bodyRenderer == null || armorRenderer == null || weaponRenderer == null)
+            return;
+
         bodyRenderer.transform.localScale = Vector3.one * 1.3f;
         armorRenderer.transform.localScale = Vector3.one;
         weaponRenderer.transform.localScale = Vector3.one;
@@ -61,5 +71,35 @@ public class tameslimeslot : MonoBehaviour
     public void RefreshUI()
     {
         UpdateUI();
+    }
+
+    private void ResolveReferences()
+    {
+        if (wildSlimes == null)
+            wildSlimes = FindAnyObjectByType<WildSlimes>();
+
+        if (slimeBody == null)
+            slimeBody = FindChildByName(transform, "slimeBody")?.gameObject ?? FindChildByName(transform, "SlimeBody")?.gameObject;
+        if (SlimeArmor == null)
+            SlimeArmor = FindChildByName(transform, "SlimeArmor")?.gameObject;
+        if (SlimeWeapon == null)
+            SlimeWeapon = FindChildByName(transform, "SlimeWeapon")?.gameObject;
+        if (teamButton == null)
+            teamButton = GetComponentInChildren<Button>(true);
+    }
+
+    private static Transform FindChildByName(Transform root, string childName)
+    {
+        if (root.name == childName)
+            return root;
+
+        foreach (Transform child in root)
+        {
+            Transform found = FindChildByName(child, childName);
+            if (found != null)
+                return found;
+        }
+
+        return null;
     }
 }

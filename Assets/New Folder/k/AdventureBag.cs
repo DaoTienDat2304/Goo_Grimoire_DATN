@@ -22,6 +22,11 @@ public class AdventureBag : MonoBehaviour
     private List<GameObject> slimeSlots = new List<GameObject>();
     private List<GameObject> collectionSlots = new List<GameObject>();
     // Start is called once before the first execution of Update after the MonoBehaviour is created
+    private void Awake()
+    {
+        ResolveReferences();
+    }
+
     private void Start()
     {
         RefreshAllUI();
@@ -34,12 +39,17 @@ public class AdventureBag : MonoBehaviour
 
     public void click()
     {
+        ResolveReferences();
         open = !open;
         RefreshAllUI();
-        animator.SetBool("open",open);
+        if (animator != null)
+            animator.SetBool("open",open);
+        else if (slimeCollectionPanel != null)
+            slimeCollectionPanel.SetActive(open);
     }
     public void RefreshAllUI()
     {
+        ResolveReferences();
         RefreshSlimeGrid();
         RefreshCollectionGrid();
     }
@@ -64,6 +74,9 @@ public class AdventureBag : MonoBehaviour
         collectionSlots.Clear();
 
         // Get all slimes
+        if (wildSlimes == null || wildSlimes.tamedSlimes == null || collectionGridParent == null || collectionSlotPrefab == null)
+            return;
+
         var allSlimes = wildSlimes.tamedSlimes;
 
         // Create new slots
@@ -74,9 +87,47 @@ public class AdventureBag : MonoBehaviour
             collectionSlots.Add(slot);
             if (slotScript != null)
             {
+                if (slotScript.wildSlimes == null)
+                    slotScript.wildSlimes = wildSlimes;
                 slotScript.SetupSlime(WildSlimeTraits.slimeID);
             }
         }
+    }
+
+    private void ResolveReferences()
+    {
+        if (animator == null)
+            animator = GetComponent<Animator>();
+
+        if (slimeCollectionPanel == null)
+            slimeCollectionPanel = gameObject;
+
+        if (collectionGridParent == null)
+        {
+            Transform content = FindChildByName(transform, "Content");
+            collectionGridParent = content != null ? content : transform;
+        }
+
+        if (collectionSlotPrefab == null)
+            collectionSlotPrefab = Resources.Load<GameObject>("tameslime");
+
+        if (wildSlimes == null)
+            wildSlimes = FindAnyObjectByType<WildSlimes>();
+    }
+
+    private static Transform FindChildByName(Transform root, string childName)
+    {
+        if (root.name == childName)
+            return root;
+
+        foreach (Transform child in root)
+        {
+            Transform found = FindChildByName(child, childName);
+            if (found != null)
+                return found;
+        }
+
+        return null;
     }
 
 

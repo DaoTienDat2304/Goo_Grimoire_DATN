@@ -64,14 +64,14 @@ public class MapSelection : MonoBehaviour
 
         switch (MapIndex)
         {
+            case 1:
+                return "Map1_IceMap";
+            case 2:
+                return "Map2_Fantasymap";
             case 3:
-                return "adventureSence";
+                return "Map3_DungeonMap";
             case 4:
-                return "Map2";
-            case 5:
-                return "Frozen_Map";
-            case 6:
-                return "NonameMap";
+                return "Map4_T";
             default:
                 return string.Empty;
         }

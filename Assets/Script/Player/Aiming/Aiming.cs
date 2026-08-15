@@ -32,7 +32,9 @@ public class Aiming : MonoBehaviour
 
     private void Awake()
     {
-        lineRenderer.enabled = false;
+        ResolveReferences();
+        if (lineRenderer != null)
+            lineRenderer.enabled = false;
 
     }
     void Start()
@@ -43,11 +45,15 @@ public class Aiming : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        ResolveReferences();
+        if (lineRenderer == null || startPosition == null || idlePosition == null || catcherPrefab == null)
+            return;
+
         MobileInput.TryGetAimPointer(out var pointerPosition, out bool pointerPressed, out bool pointerHeld, out bool pointerReleased);
         bool isVirtualThrowButton = MobileInput.LastAimPointerFromVirtualButton;
 
         spriteFacesRight = (lineRenderer.GetPosition(0).x > lineRenderer.GetPosition(1).x);
-        if (pointerPressed && (isVirtualThrowButton || aimingarea.isWithinArea(pointerPosition)))
+        if (pointerPressed && (isVirtualThrowButton || (aimingarea != null && aimingarea.isWithinArea(pointerPosition))))
         {
             // Trong travel scene thì không cần check marshmallow
             bool isTravel = IsTravelScene();
@@ -169,5 +175,23 @@ public class Aiming : MonoBehaviour
             spawnedCatcher.transform.rotation = Quaternion.Euler(0, 0, angle);
         else
             spawnedCatcher.transform.rotation = Quaternion.Euler(0, 0, angle - 90f);
+    }
+
+    private void ResolveReferences()
+    {
+        if (lineRenderer == null)
+            lineRenderer = GetComponentInChildren<LineRenderer>(true);
+        if (startPosition == null)
+            startPosition = transform.Find("StartPosition");
+        if (idlePosition == null)
+            idlePosition = transform.Find("IdlePosition");
+        if (aimingarea == null)
+            aimingarea = FindAnyObjectByType<aimingArea>(FindObjectsInactive.Include);
+        if (tamingUI == null)
+        {
+            GameObject panel = GameObject.Find("TamingPanel");
+            if (panel != null)
+                tamingUI = panel;
+        }
     }
 }

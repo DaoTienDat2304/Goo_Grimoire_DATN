@@ -4,6 +4,8 @@ using UnityEngine.EventSystems;
 /// <summary>A clickable egg that waits on the world map until the player collects it.</summary>
 public class WorldEggPickup : MonoBehaviour, IPointerClickHandler
 {
+    private const int WorldEggSortingOrder = -99;
+
     [SerializeField] private float bobHeight = 0.12f;
     [SerializeField] private float bobSpeed = 2f;
     [SerializeField] private Vector2 visualSize = new Vector2(0.9f, 1.15f);
@@ -25,7 +27,7 @@ public class WorldEggPickup : MonoBehaviour, IPointerClickHandler
 
         if (spriteRenderer.sprite == null)
             spriteRenderer.sprite = GetOrCreateEggSprite();
-        spriteRenderer.sortingOrder = Mathf.Max(spriteRenderer.sortingOrder, 5);
+        spriteRenderer.sortingOrder = WorldEggSortingOrder;
 
         Collider2D pickupCollider = GetComponent<Collider2D>();
         if (pickupCollider == null)

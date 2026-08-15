@@ -5,21 +5,33 @@ public class MashmaloowDisplay : MonoBehaviour
 {
     private ResourceManager resourceManager;
     public Text count;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
     {
-        resourceManager = ResourceManager.Instance;
+        EnsureResourceManager();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (count == null) return;
-        if (resourceManager == null)
-        {
-            resourceManager = ResourceManager.Instance;
-            if (resourceManager == null) return; // chưa có ResourceManager trong scene này
-        }
+        EnsureResourceManager();
+        if (resourceManager == null) return;
         count.text = resourceManager.GetResource(ResourceType.Marshmallow).ToString();
+    }
+
+    private void EnsureResourceManager()
+    {
+        if (resourceManager != null)
+            return;
+
+        resourceManager = ResourceManager.Instance;
+        if (resourceManager != null)
+            return;
+
+        resourceManager = FindAnyObjectByType<ResourceManager>();
+        if (resourceManager != null)
+            return;
+
+        resourceManager = new GameObject("ResourceManager").AddComponent<ResourceManager>();
     }
 }

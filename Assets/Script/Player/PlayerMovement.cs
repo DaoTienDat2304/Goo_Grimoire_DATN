@@ -45,6 +45,8 @@ public class PlayerMovement : MonoBehaviour
     
     void Start()
     {
+        ResolveAnimationReferences();
+
         if (rb == null)
         {
             rb = GetComponent<Rigidbody2D>();
@@ -100,9 +102,7 @@ public class PlayerMovement : MonoBehaviour
         {
             currentState = PlayerMovementState.Sitting;
             isSitting = true;
-            GetIdle().gameObject.SetActive(true);
-            backIdle.gameObject.SetActive(false);
-            running.gameObject.SetActive(false);
+            SetAnimationState(true, false, false);
             return;
         }
 
@@ -111,9 +111,7 @@ public class PlayerMovement : MonoBehaviour
         {
             currentState = PlayerMovementState.Sitting;
             isSitting = true;
-            idle.gameObject.SetActive(true);
-            backIdle.gameObject.SetActive(false);
-            running.gameObject.SetActive(false);
+            SetAnimationState(true, false, false);
             return;
         }
 
@@ -122,9 +120,7 @@ public class PlayerMovement : MonoBehaviour
         {
             currentState = PlayerMovementState.Walking;
             isSitting = false;
-            idle.gameObject.SetActive(true);
-            backIdle.gameObject.SetActive(false);
-            running.gameObject.SetActive(false);
+            SetAnimationState(true, false, false);
             return;
         }
 
@@ -134,21 +130,15 @@ public class PlayerMovement : MonoBehaviour
             currentState = PlayerMovementState.Running;
             if (movement.y > 0 && movement.x == 0)
             {
-                idle.gameObject.SetActive(false);
-                backIdle.gameObject.SetActive(true);
-                running.gameObject.SetActive(false);
+                SetAnimationState(false, true, false);
             }
             else if (movement.y < 0 && movement.x == 0)
             {
-                idle.gameObject.SetActive(true);
-                backIdle.gameObject.SetActive(false);
-                running.gameObject.SetActive(false);
+                SetAnimationState(true, false, false);
             }
             else
             {
-                idle.gameObject.SetActive(false);
-                backIdle.gameObject.SetActive(false);
-                running.gameObject.SetActive(true);
+                SetAnimationState(false, false, true);
             }
         }
         else if (IsMoving)
@@ -156,29 +146,40 @@ public class PlayerMovement : MonoBehaviour
             currentState = PlayerMovementState.Walking;
             if (movement.y > 0 && movement.x == 0)
             {
-                idle.gameObject.SetActive(false);
-                backIdle.gameObject.SetActive(true);
-                running.gameObject.SetActive(false);
+                SetAnimationState(false, true, false);
             } else if (movement.y < 0 && movement.x == 0)
             {
-                idle.gameObject.SetActive(true);
-                backIdle.gameObject.SetActive(false);
-                running.gameObject.SetActive(false);
+                SetAnimationState(true, false, false);
             } else
             {
-                idle.gameObject.SetActive(false);
-                backIdle.gameObject.SetActive(false);
-                running.gameObject.SetActive(true);
+                SetAnimationState(false, false, true);
             }
         }
 
         isSitting = false;
     }
 
-    // Replace the static method with an instance method to access the 'idle' field correctly.
-    private SkeletonAnimation GetIdle()
+    private void ResolveAnimationReferences()
     {
-        return idle;     }
+        SkeletonAnimation[] animations = GetComponentsInChildren<SkeletonAnimation>(true);
+        foreach (SkeletonAnimation animation in animations)
+        {
+            string objectName = animation.gameObject.name.ToLowerInvariant();
+            if (idle == null && objectName.Contains("idle") && !objectName.Contains("back"))
+                idle = animation;
+            else if (running == null && objectName.Contains("running"))
+                running = animation;
+            else if (backIdle == null && objectName.Contains("back") && objectName.Contains("idle"))
+                backIdle = animation;
+        }
+    }
+
+    private void SetAnimationState(bool showIdle, bool showBackIdle, bool showRunning)
+    {
+        if (idle != null) idle.gameObject.SetActive(showIdle);
+        if (backIdle != null) backIdle.gameObject.SetActive(showBackIdle);
+        if (running != null) running.gameObject.SetActive(showRunning);
+    }
 
     void UpdateSpriteFlip()
     {

@@ -27,8 +27,14 @@ public class MovingNote : MonoBehaviour
     // Update is called once per frame
     void Update()
 {
+    if (TamingManager == null)
+        TamingManager = FindAnyObjectByType<tamingManager>();
+    if (TamingManager == null)
+        return;
+
+    float difficulty = Mathf.Max(1f, TamingManager.difficulty);
     if (TamingManager.difficulty == 0) this.transform.position += Vector3.right * noteSpeed * 3 * Time.deltaTime;
-    else this.transform.position += Vector3.right * noteSpeed * TamingManager.difficulty * Time.deltaTime;
+    else this.transform.position += Vector3.right * noteSpeed * difficulty * Time.deltaTime;
     if (isInCheckBar)
     {
         MobileDirection correctDirection = MobileDirection.None;
@@ -51,7 +57,7 @@ public class MovingNote : MonoBehaviour
         {
             if (pressedDirection == correctDirection)
             {
-                TamingManager.curTamingPoint += tamingScore * 8/TamingManager.difficulty;
+                TamingManager.curTamingPoint += tamingScore * 8 / difficulty;
                 if (tamingManagerTutorial != null) tamingManagerTutorial.curTamingPoint += 30;
                 Destroy(gameObject);
             }

@@ -33,6 +33,7 @@ public class tamingManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
+        ResolveReferences();
         AutoFindDirectionButtons();
         RegisterDirectionButtons();
     }
@@ -55,6 +56,10 @@ public class tamingManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        ResolveReferences();
+        if (wildSlimes == null || wildSlimes.slimes == null || slimeSpawner == null || spawner == null)
+            return;
+
         var curSlime = new WildSlimes.WildSlimeTraits();
         foreach (var s in wildSlimes.slimes)
         {
@@ -87,8 +92,11 @@ public class tamingManager : MonoBehaviour
             wildSlimes.slimes.Remove(curSlime);
             curTamingPoint = 30;
             spawner.gameObject.SetActive(false);
-            emote.gameObject.SetActive(true);
-            emote.sprite = failcatch;
+            if (emote != null)
+            {
+                emote.gameObject.SetActive(true);
+                emote.sprite = failcatch;
+            }
             StartCoroutine(deactive());
         }
         if (curTamingPoint >= maxTamingPoint)
@@ -116,8 +124,11 @@ public class tamingManager : MonoBehaviour
             wildSlimes.slimes.Remove(curSlime);
             curTamingPoint = 30;
             spawner.gameObject.SetActive(false);
-            emote.gameObject.SetActive(true);
-            emote.sprite = succeedcatch;
+            if (emote != null)
+            {
+                emote.gameObject.SetActive(true);
+                emote.sprite = succeedcatch;
+            }
             StartCoroutine(deactive());
             
         }
@@ -125,7 +136,8 @@ public class tamingManager : MonoBehaviour
 
     public void hit ()
     {
-        emote.gameObject.SetActive(true);
+        if (emote != null)
+            emote.gameObject.SetActive(true);
     }
 
     public void PressRight()
@@ -267,9 +279,30 @@ public class tamingManager : MonoBehaviour
     IEnumerator deactive()
     {
         yield return new WaitForSeconds(3);
-        spawner.gameObject.SetActive(true);
-        emote.gameObject.SetActive(false);
+        if (spawner != null)
+            spawner.gameObject.SetActive(true);
+        if (emote != null)
+            emote.gameObject.SetActive(false);
         this.gameObject.SetActive(false);
-        playerMovement.enabled = true;
+        if (playerMovement != null)
+            playerMovement.enabled = true;
+    }
+
+    private void ResolveReferences()
+    {
+        if (spawner == null)
+            spawner = FindAnyObjectByType<Spawner>(FindObjectsInactive.Include);
+        if (playerMovement == null)
+            playerMovement = FindAnyObjectByType<PlayerMovement>(FindObjectsInactive.Include);
+        if (wildSlimes == null)
+            wildSlimes = FindAnyObjectByType<WildSlimes>(FindObjectsInactive.Include);
+        if (slimeSpawner == null)
+            slimeSpawner = FindAnyObjectByType<SlimeSpawner>(FindObjectsInactive.Include);
+        if (emote == null)
+        {
+            Transform emoteTransform = transform.Find("Emote");
+            if (emoteTransform != null)
+                emote = emoteTransform.GetComponent<Image>();
+        }
     }
 }

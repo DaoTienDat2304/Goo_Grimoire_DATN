@@ -14,15 +14,27 @@ public class Spawner : MonoBehaviour
 
     void Update()
     {
+        if (TamingManager == null)
+            TamingManager = FindAnyObjectByType<tamingManager>(FindObjectsInactive.Include);
+        if (TamingManager == null)
+            return;
+
         if (TamingManager.difficulty == 0) spd = 1f;
         else spd = 3f / TamingManager.difficulty;
     }
     private void OnEnable()
     {
+        if (TamingManager == null)
+            TamingManager = FindAnyObjectByType<tamingManager>(FindObjectsInactive.Include);
+        if (notePrefab == null || spawnPoint == null || spawnpanel == null)
+            return;
+
         foreach (var note in notes)
         {
-            Destroy(note.gameObject);
+            if (note != null)
+                Destroy(note.gameObject);
         }
+        notes.Clear();
         StartCoroutine(SpawnNotes());
     }
     IEnumerator SpawnNotes()

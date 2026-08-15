@@ -15,7 +15,7 @@ EditorBuildSettings:
     path: Assets/Scenes/firstsave.unity
     guid: 45ee747f581c63d41850c3fa07c65a0e
   - enabled: 1
-    path: Assets/Scenes/adventureSence.unity
+    path: Assets/Scenes/Map4_T.unity
     guid: b0ad0beb71a84a14992cdaa2530bc230
   - enabled: 1
     path: Assets/Scenes/TurnBaseGame.unity
@@ -24,8 +24,11 @@ EditorBuildSettings:
     path: Assets/Scenes/Map1_IceMap.unity
     guid: 75683485fdf3b364b9786acaaf5508b0
   - enabled: 1
-    path: Assets/Scenes/NonameMap.unity
+    path: Assets/Scenes/Map2_Fantasymap.unity
     guid: 7eab228d457ca7444aaaf7ee93e068d6
+  - enabled: 1
+    path: Assets/Scenes/Map3_DungeonMap.unity
+    guid: c31e2ac8383130a4f946b77e54e323cc
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

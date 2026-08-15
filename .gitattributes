@@ -1,3 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 Assets/Scenes/adventureSence.unity filter=lfs diff=lfs merge=lfs -text
+Assets/Scenes/Map4_T.unity filter=lfs diff=lfs merge=lfs -text

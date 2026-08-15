@@ -7,7 +7,7 @@ public class SlimeWorldManager : MonoBehaviour
 {
     private const int BackgroundUiSortingOrder = -100;
     private const int BuildingUiSortingOrder = -90;
-    private const int WorldSlimeSortingOrder = -95;
+    private const int WorldSlimeSortingOrder = -80;
 
     [Header("World Display")]
     public bool showSlimesInWorld = true;

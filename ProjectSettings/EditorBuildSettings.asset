@@ -21,7 +21,7 @@ EditorBuildSettings:
     path: Assets/Scenes/TurnBaseGame.unity
     guid: e3ce141777eecb34cbcdaa4503d869c9
   - enabled: 1
-    path: Assets/Scenes/Frozen_Map.unity
+    path: Assets/Scenes/Map1_IceMap.unity
     guid: 75683485fdf3b364b9786acaaf5508b0
   - enabled: 1
     path: Assets/Scenes/NonameMap.unity

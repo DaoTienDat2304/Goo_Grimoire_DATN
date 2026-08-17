@@ -2,22 +2,15 @@ using UnityEngine;
 using UnityEditor;
 using Spine.Unity;
 
-[InitializeOnLoad]
 public class AutoSetupTraitAnimations
 {
-    static AutoSetupTraitAnimations()
-    {
-        // Chạy sau khi Unity load xong
-        EditorApplication.delayCall += CheckAndSetupAnimations;
-    }
+
     
+    [MenuItem("Tools/Setup Trait Animations (Auto Legacy)")]
     private static void CheckAndSetupAnimations()
     {
         // Chỉ chạy một lần khi project được mở
-        if (EditorPrefs.GetBool("TraitAnimationsSetup", false))
-            return;
-            
-        // Tìm SlimeAnimation prefab
+// Tìm SlimeAnimation prefab
         string[] guids = AssetDatabase.FindAssets("Slimeanimation t:Prefab");
         if (guids.Length == 0)
         {
@@ -45,8 +38,6 @@ public class AutoSetupTraitAnimations
         SetupBodyTraitsWithAnimation(skeletonAnimation.skeletonDataAsset);
         
         // Đánh dấu đã setup
-        EditorPrefs.SetBool("TraitAnimationsSetup", true);
-        
         Debug.Log("AutoSetupTraitAnimations: Successfully setup animations for Body traits");
     }
     

@@ -3,12 +3,12 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Spine.Unity;
 using UnityEngine.UI;
 
 public static class AdventureMapSceneFixer
 {
     private const string SourceScenePath = "Assets/Scenes/Map4_T.unity";
+    private const string PlayerControllerPath = "Assets/Sprite/Idle/Player.controller";
 
     private static readonly string[] TargetScenePaths =
     {
@@ -67,20 +67,22 @@ public static class AdventureMapSceneFixer
         Dictionary<string, GameObject> sourceRoots,
         Dictionary<string, GameObject> targetRoots)
     {
-        if (!sourceRoots.TryGetValue("Player", out GameObject sourcePlayer)) return;
         if (!targetRoots.TryGetValue("Player", out GameObject targetPlayer)) return;
 
         PlayerMovement targetMovement = targetPlayer.GetComponent<PlayerMovement>();
-        PlayerMovement sourceMovement = sourcePlayer.GetComponent<PlayerMovement>();
-        if (targetMovement == null || sourceMovement == null) return;
+        if (targetMovement == null)
+            targetMovement = targetPlayer.AddComponent<PlayerMovement>();
 
-        CopyAnimationChildIfMissing(sourceMovement.idle, targetPlayer.transform);
-        CopyAnimationChildIfMissing(sourceMovement.running, targetPlayer.transform);
-        CopyAnimationChildIfMissing(sourceMovement.backIdle, targetPlayer.transform);
+        Animator animator = targetPlayer.GetComponentInChildren<Animator>(true);
+        if (animator == null)
+            animator = targetPlayer.AddComponent<Animator>();
 
-        targetMovement.idle = FindAnimation(targetPlayer, "IdleAnimation");
-        targetMovement.running = FindAnimation(targetPlayer, "RunningAnimation");
-        targetMovement.backIdle = FindAnimation(targetPlayer, "BackIdleAnimation");
+        RuntimeAnimatorController controller = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(PlayerControllerPath);
+        if (controller != null)
+            animator.runtimeAnimatorController = controller;
+
+        if (targetPlayer.GetComponent<PlayerAttackAnimator>() == null)
+            targetPlayer.AddComponent<PlayerAttackAnimator>();
 
         EditorUtility.SetDirty(targetPlayer);
         EditorUtility.SetDirty(targetMovement);
@@ -213,25 +215,6 @@ public static class AdventureMapSceneFixer
         SerializedProperty property = so.FindProperty(propertyName);
         if (property != null && property.objectReferenceValue == null)
             property.objectReferenceValue = value;
-    }
-
-    private static void CopyAnimationChildIfMissing(SkeletonAnimation sourceAnimation, Transform targetPlayer)
-    {
-        if (sourceAnimation == null) return;
-        string childName = sourceAnimation.gameObject.name;
-        if (targetPlayer.Find(childName) != null) return;
-
-        GameObject clone = Object.Instantiate(sourceAnimation.gameObject, targetPlayer);
-        clone.name = childName;
-        clone.transform.localPosition = sourceAnimation.transform.localPosition;
-        clone.transform.localRotation = sourceAnimation.transform.localRotation;
-        clone.transform.localScale = sourceAnimation.transform.localScale;
-    }
-
-    private static SkeletonAnimation FindAnimation(GameObject player, string childName)
-    {
-        Transform child = player.transform.Find(childName);
-        return child != null ? child.GetComponent<SkeletonAnimation>() : null;
     }
 
     private static Dictionary<string, GameObject> GetRootMap(Scene scene)

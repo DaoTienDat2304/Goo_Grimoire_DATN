@@ -17,6 +17,7 @@ public class Aiming : MonoBehaviour
     [SerializeField] private float force = 8f;
     [SerializeField] private GameObject tamingUI;
     [SerializeField] private int marshmallowCostPerThrow = 1; // Số marshmallow cần để ném 1 catcher
+    [SerializeField] private PlayerAttackAnimator attackAnimator;
     private ThrowingCatcher spawnedCatcher;
     private bool spriteFacesRight = true;
     
@@ -65,6 +66,8 @@ public class Aiming : MonoBehaviour
             {
                 clickedWithinArea = true;
                 SpawnCatcher();
+                if (attackAnimator != null)
+                    attackAnimator.HoldStart();
             }
             else
             {
@@ -80,10 +83,13 @@ public class Aiming : MonoBehaviour
 
             CatcherRotation();
             spawnedCatcher.transform.SetParent(this.transform);
+            if (attackAnimator != null)
+                attackAnimator.Drag();
         }
         if (pointerReleased)
         {
             clickedWithinArea = false;
+            bool releasedAttack = false;
 
             if (spawnedCatcher != null && isVirtualThrowButton && MobileInput.VirtualAimDragVector.magnitude < VirtualThrowReleaseThreshold)
             {
@@ -91,6 +97,8 @@ public class Aiming : MonoBehaviour
                 spawnedCatcher = null;
                 SetLine(startPosition.position);
                 lineRenderer.enabled = false;
+                if (attackAnimator != null)
+                    attackAnimator.Cancel();
                 return;
             }
 
@@ -120,6 +128,11 @@ public class Aiming : MonoBehaviour
 
                 spawnedCatcher.throwCatcher(dir, force);
                 spawnedCatcher = null; // reset biến để tránh reuse sau khi đã destroy
+                if (attackAnimator != null)
+                {
+                    attackAnimator.Release();
+                    releasedAttack = true;
+                }
 
                 // Play catcher throw sound effect
                 if (AudioManager.Instance != null)
@@ -130,6 +143,8 @@ public class Aiming : MonoBehaviour
 
             SetLine(startPosition.position);
             lineRenderer.enabled = false; // tắt hẳn line khi thả chuột
+            if (!releasedAttack && spawnedCatcher == null && attackAnimator != null)
+                attackAnimator.Cancel();
         }
     }
     private void DrawLine(Vector2 screenPosition)
@@ -193,5 +208,9 @@ public class Aiming : MonoBehaviour
             if (panel != null)
                 tamingUI = panel;
         }
+        if (attackAnimator == null)
+            attackAnimator = GetComponent<PlayerAttackAnimator>();
+        if (attackAnimator == null)
+            attackAnimator = FindAnyObjectByType<PlayerAttackAnimator>(FindObjectsInactive.Include);
     }
 }

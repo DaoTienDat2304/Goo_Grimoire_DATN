@@ -1,6 +1,5 @@
 using UnityEngine;
-using Spine;
-using Spine.Unity;
+
 public enum PlayerMovementState
 {
     Sitting,    // Ngồi - 2 ô phát hiện
@@ -29,14 +28,19 @@ public class PlayerMovement : MonoBehaviour
     public float runningDetectionRange = 8f;   // 8 ô khi chạy
 
     [Header("Animation")]
-    public SkeletonAnimation idle;
-    public SkeletonAnimation running;
-    public SkeletonAnimation backIdle;
+    [SerializeField] private Animator animator;
+    [SerializeField] private string idleStateName = "PlayerAnimation";
+    [SerializeField] private string walkStateName = "PlayerAnimationwalk";
+    [SerializeField] private Vector3 visualScale = new Vector3(3.266753f, 3.266753f, 3.266753f);
+    [SerializeField] private string playerSortingLayerName = "Player";
+    [SerializeField] private int playerSortingOrder = 10;
 
     private Vector2 movement;
     private PlayerMovementState currentState = PlayerMovementState.Walking;
     private float sitTimer = 0f;
     private bool isSitting = false;
+    private bool showingWalkAnimation;
+    private bool hasPlayedMovementAnimation;
 
     // Public properties để các script khác có thể truy cập
     public PlayerMovementState CurrentState => currentState;
@@ -46,6 +50,8 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         ResolveAnimationReferences();
+        ApplyVisualScale();
+        ApplyRendererSorting();
 
         if (rb == null)
         {
@@ -63,6 +69,7 @@ public class PlayerMovement : MonoBehaviour
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         }
         
+        PlayMovementAnimation(false);
         Debug.Log("PlayerMovement with state system initialized!");
     }
 
@@ -102,7 +109,7 @@ public class PlayerMovement : MonoBehaviour
         {
             currentState = PlayerMovementState.Sitting;
             isSitting = true;
-            SetAnimationState(true, false, false);
+            PlayMovementAnimation(false);
             return;
         }
 
@@ -111,7 +118,7 @@ public class PlayerMovement : MonoBehaviour
         {
             currentState = PlayerMovementState.Sitting;
             isSitting = true;
-            SetAnimationState(true, false, false);
+            PlayMovementAnimation(false);
             return;
         }
 
@@ -120,7 +127,7 @@ public class PlayerMovement : MonoBehaviour
         {
             currentState = PlayerMovementState.Walking;
             isSitting = false;
-            SetAnimationState(true, false, false);
+            PlayMovementAnimation(false);
             return;
         }
 
@@ -128,32 +135,12 @@ public class PlayerMovement : MonoBehaviour
         if ((Input.GetKey(runKey) || MobileInput.IsMobileRunInput(mobileJoystickRadius, mobileRunThreshold)) && IsMoving)
         {
             currentState = PlayerMovementState.Running;
-            if (movement.y > 0 && movement.x == 0)
-            {
-                SetAnimationState(false, true, false);
-            }
-            else if (movement.y < 0 && movement.x == 0)
-            {
-                SetAnimationState(true, false, false);
-            }
-            else
-            {
-                SetAnimationState(false, false, true);
-            }
+            PlayMovementAnimation(true);
         }
         else if (IsMoving)
         {
             currentState = PlayerMovementState.Walking;
-            if (movement.y > 0 && movement.x == 0)
-            {
-                SetAnimationState(false, true, false);
-            } else if (movement.y < 0 && movement.x == 0)
-            {
-                SetAnimationState(true, false, false);
-            } else
-            {
-                SetAnimationState(false, false, true);
-            }
+            PlayMovementAnimation(true);
         }
 
         isSitting = false;
@@ -161,33 +148,46 @@ public class PlayerMovement : MonoBehaviour
 
     private void ResolveAnimationReferences()
     {
-        SkeletonAnimation[] animations = GetComponentsInChildren<SkeletonAnimation>(true);
-        foreach (SkeletonAnimation animation in animations)
-        {
-            string objectName = animation.gameObject.name.ToLowerInvariant();
-            if (idle == null && objectName.Contains("idle") && !objectName.Contains("back"))
-                idle = animation;
-            else if (running == null && objectName.Contains("running"))
-                running = animation;
-            else if (backIdle == null && objectName.Contains("back") && objectName.Contains("idle"))
-                backIdle = animation;
-        }
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>(true);
     }
 
-    private void SetAnimationState(bool showIdle, bool showBackIdle, bool showRunning)
+    private void PlayMovementAnimation(bool walking)
     {
-        if (idle != null) idle.gameObject.SetActive(showIdle);
-        if (backIdle != null) backIdle.gameObject.SetActive(showBackIdle);
-        if (running != null) running.gameObject.SetActive(showRunning);
+        if (animator == null || (hasPlayedMovementAnimation && showingWalkAnimation == walking))
+            return;
+
+        hasPlayedMovementAnimation = true;
+        showingWalkAnimation = walking;
+        animator.speed = 1f;
+        animator.Play(walking ? walkStateName : idleStateName, 0, 0f);
     }
 
     void UpdateSpriteFlip()
     {
         // Flip sprite theo hướng di chuyển (không cần animation)
         if (movement.x < 0)
-            transform.localScale = new Vector3(-1, 1, 1); // Quay trái
+            transform.localScale = new Vector3(-visualScale.x, visualScale.y, visualScale.z);
         else if (movement.x > 0)
-            transform.localScale = new Vector3(1, 1, 1);  // Quay phải
+            transform.localScale = visualScale;
+        else
+            ApplyVisualScale();
+    }
+
+    private void ApplyVisualScale()
+    {
+        float facing = transform.localScale.x < 0f ? -1f : 1f;
+        transform.localScale = new Vector3(Mathf.Abs(visualScale.x) * facing, visualScale.y, visualScale.z);
+    }
+
+    private void ApplyRendererSorting()
+    {
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            renderer.sortingLayerName = playerSortingLayerName;
+            renderer.sortingOrder = playerSortingOrder;
+        }
     }
 
     private float GetSpeedForCurrentState()

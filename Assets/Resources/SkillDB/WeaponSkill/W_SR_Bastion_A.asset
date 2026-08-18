@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Bastion Hammer
   type: 1
-  description: "Guard Breaker \xB7 1 \u0110CK \xB7 165% ATK + 440, \u0111\u01A1n;
-    xuy\xEAn 25% gi\xE1p."
+  description: "Guard Breaker · 1 SP · 165% ATK + 440, Single Target; ignores 25% DEF."
   icon: {fileID: 3438784570353844991, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 3

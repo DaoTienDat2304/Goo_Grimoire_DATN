@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Grand Overture
   type: 1
-  description: "[\u0110\u1ED8C QUY\u1EC0N] \xB7 1 \u0110CK \xB7 1 l\u1EA7n/tr\u1EADn
-    \xB7 K\xE9o TO\xC0N \u0110\u1ED8I TI\u1EBEN 100% (c\u1EA3 \u0111\u1ED9i \u0111i
-    ngay)."
+  description: "[EXCLUSIVE] · 1 SP · 1 time/battle · Advances all allies Action Value by 100% (team acts immediately)."
   icon: {fileID: 7100667708988795152, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 7

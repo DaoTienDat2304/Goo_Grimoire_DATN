@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Bloodthirn Claw
   type: 3
-  description: "[H\u1ED3i m\xE1u] Sanguine Feast \xB7 220% ATK + 600, \u0111\u01A1n;
-    h\u1ED3i 40% s\xE1t th\u01B0\u01A1ng th\xE0nh HP to\xE0n \u0111\u1ED9i."
+  description: "[Heal] Sanguine Feast · 220% ATK + 600, Single Target; restores 40% Damage into HP all allies."
   icon: {fileID: 6941263446265195884, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 2

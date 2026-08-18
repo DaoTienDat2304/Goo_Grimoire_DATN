@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: World Sanction
   type: 1
-  description: "Debuff \xB7 1 \u0110CK \xB7 \u221230% ATK/DEF/SPD to\xE0n \u0111\u1ECBch
-    3 l\u01B0\u1EE3t; +25% s\xE1t th\u01B0\u01A1ng ph\u1EA3i ch\u1ECBu 3 l\u01B0\u1EE3t;
-    kho\xE1 Buff 2 l\u01B0\u1EE3t."
+  description: "Debuff · 1 SP · −30% ATK/DEF/SPD all enemies 3 turn(s); +25% Damage taken 3 turn(s); blocks buffs 2 turn(s)."
   icon: {fileID: 9213668117931567693, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6

@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Divine Resurrection
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 To\xE0n \u0111\u1ECBch \u22128% SPD & \u22125%
-    ATK (aura)."
+  description: "Passive · all enemies −8% SPD & −5% ATK (aura)."
   icon: {fileID: 3279300416085775009, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5

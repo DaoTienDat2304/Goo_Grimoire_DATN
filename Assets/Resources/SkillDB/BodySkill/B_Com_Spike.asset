@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Minor Spikes
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 Ph\u1EA3n 3% s\xE1t th\u01B0\u01A1ng nh\u1EADn
-    v\xE0o."
+  description: "Passive · reflects 3% incoming damage."
   icon: {fileID: -8062578979193767562, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 0

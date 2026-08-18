@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Ascendant Core
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 HP >70% \u2192 +15% ATK; HP <30% \u2192 \u221230%
-    s\xE1t th\u01B0\u01A1ng nh\u1EADn."
+  description: "Passive · HP >70% → +15% ATK; HP <30% → −30% incoming damage."
   icon: {fileID: 4774651963104729523, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 6

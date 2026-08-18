@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Empyrean War Crown
   type: 1
-  description: "Judgment Ray \xB7 2 \u0110CK \xB7 240% ATK + 1500, AoE; 60% Cho\xE1ng."
+  description: "Judgment Ray · 2 SP · 240% ATK + 1500, AoE; 60% stun."
   icon: {fileID: 5251718513075780803, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6

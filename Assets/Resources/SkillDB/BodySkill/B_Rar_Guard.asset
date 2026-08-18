@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Guardian Barrier
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 \u0110\u1ECBch g\u1EA7n nh\u1EA5t \u22123%
-    ATK (aura)."
+  description: "Passive · nearest enemy −3% ATK (aura)."
   icon: {fileID: -6869123177632837056, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 2

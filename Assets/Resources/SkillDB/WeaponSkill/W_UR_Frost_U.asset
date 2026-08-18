@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Frostbind Lance
   type: 3
-  description: "[Kh\u1ED1ng ch\u1EBF] Glacial Prison \xB7 260% ATK + 1100, AoE; 100%
-    \u0110\xF3ng B\u0103ng 2 l\u01B0\u1EE3t; \u0111\u1EA9y l\xF9i 40% AV."
+  description: "[Crowd Control] Glacial Prison · 260% ATK + 1100, AoE; 100% freeze 2 turn(s); knockback 40% AV."
   icon: {fileID: 6347768053358748846, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4

@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Frostbind Lance
   type: 1
-  description: "Frostfire Lance \xB7 1 \u0110CK \xB7 200% ATK + 600, \u0111\u01A1n;
-    40% \u0110\xF3ng B\u0103ng(stun 1 turn)."
+  description: "Frostfire Lance · 1 SP · 200% ATK + 600, Single Target; 40% freeze(stun 1 turn)."
   icon: {fileID: 6347768053358748846, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4

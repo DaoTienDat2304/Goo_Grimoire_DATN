@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Momentum Core
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 D\xF9ng \u0111\xF2n th\u01B0\u1EDDng \u2192
-    +3% ATK 2 l\u01B0\u1EE3t (d\u1ED3n t\u1ED1i \u0111a 3)."
+  description: "Passive · Using basic attack → +3% ATK 2 turn(s) (stacks max 3)."
   icon: {fileID: 7728488746179117960, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 3

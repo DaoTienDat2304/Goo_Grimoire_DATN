@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Final Vengeance
   type: 2
-  description: "N\u1ED9i t\u1EA1i [\u0110\u1ED8C QUY\u1EC0N] \xB7 HP v\u1EC1 0: mi\u1EC5n
-    crit, ph\u1EA3n 200% ATK; \u0111\u1ECBch ch\u1EBFt \u2192 h\u1ED3i sinh 30% HP."
+  description: "Passive [EXCLUSIVE] · HP reaches 0: immune to crit, reflects 200% ATK; enemy dies → revives with 30% HP."
   icon: {fileID: 8635406102852873674, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7

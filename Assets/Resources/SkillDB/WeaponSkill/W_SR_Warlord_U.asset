@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Warlord Banner Spear
   type: 3
-  description: "[Buff] Warlord's Ascension \xB7 +18% ATK, +12% Crit Rate, +15% Crit
-    DMG to\xE0n \u0111\u1ED9i 3 l\u01B0\u1EE3t."
+  description: "[Buff] Warlord's Ascension · +18% ATK, +12% Crit Rate, +15% Crit DMG all allies 3 turn(s)."
   icon: {fileID: -4991843389390480943, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 3

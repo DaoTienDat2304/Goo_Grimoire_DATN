@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Venom Sting
   type: 1
-  description: "Venom Nip \xB7 1 \u0110CK \xB7 140% ATK + 135, \u0111\u01A1n; 30%
-    \u0110\u1ED9c (\u22123% HP t\u1ED1i \u0111a/l\u01B0\u1EE3t, 2 l\u01B0\u1EE3t)."
+  description: "Venom Nip · 1 SP · 140% ATK + 135, Single Target; 30% poison (−3% Max HP/turn(s), 2 turn(s))."
   icon: {fileID: 3838397555169904295, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 1

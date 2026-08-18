@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Sovereign March
   type: 1
-  description: "K\xE9o l\u01B0\u1EE3t \xB7 1 \u0110CK \xB7 K\xE9o 1 \u0111\u1ED3ng
-    minh TI\u1EBEN 100% (\u0111i ngay); +25% ATK & Crit DMG 2 l\u01B0\u1EE3t."
+  description: "Advance Action · 1 SP · Advances 1 ally Action Value by 100% (acts immediately); +25% ATK & Crit DMG 2 turn(s)."
   icon: {fileID: 2307022817944830302, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 5

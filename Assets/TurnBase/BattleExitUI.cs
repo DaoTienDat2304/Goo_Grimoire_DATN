@@ -35,7 +35,7 @@ public class BattleExitUI : MonoBehaviour
         if (confirmPopup != null)
         {
             if (confirmMessageText != null)
-                confirmMessageText.text = "Bạn có chắc chắn muốn bỏ cuộc và quay về bản đồ không?";
+                confirmMessageText.text = "Are you sure you want to retreat and return to the map?";
             confirmPopup.SetActive(true);
         }
         else

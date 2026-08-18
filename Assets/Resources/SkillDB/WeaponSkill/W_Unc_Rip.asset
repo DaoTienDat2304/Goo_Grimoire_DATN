@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Rip Claw
   type: 1
-  description: "Rending Claw \xB7 1 \u0110CK \xB7 145% ATK + 140, \u0111\u01A1n;
-    25% Ch\u1EA3y M\xE1u (\u22122% HP/l\u01B0\u1EE3t, 2 l\u01B0\u1EE3t)."
+  description: "Rending Claw · 1 SP · 145% ATK + 140, Single Target; 25% bleed (−2% HP/turn(s), 2 turn(s))."
   icon: {fileID: 3578675889542686699, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 1

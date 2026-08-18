@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Rallyhorn Trident
   type: 1
-  description: "Piercing Wave \xB7 1 \u0110CK \xB7 150% ATK + 280, \u0111\u01A1n;
-    xuy\xEAn 15% gi\xE1p."
+  description: "Piercing Wave · 1 SP · 150% ATK + 280, Single Target; ignores 15% DEF."
   icon: {fileID: 2548970649608562601, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 2

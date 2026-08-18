@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Hacker
   type: 2
-  description: "N\u1ED9i t\u1EA1i [\u0110\u1ED8C QUY\u1EC0N] \xB7 M\u1ED7i l\u01B0\u1EE3t
-    ng\u01B0\u1EDDi ch\u01A1i, t\u1EF1 \u0111\xE1nh 1 \u0111\u1ECBch b\u1EA5t k\u1EF3
-    270% ATK th\u01B0\u1EDDng."
+  description: "Passive [EXCLUSIVE] · Each turn player, automatically attacks 1 random enemy 270% ATK Physical DMG."
   icon: {fileID: -7033272953321326325, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7

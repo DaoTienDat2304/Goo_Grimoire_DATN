@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Bastion Hammer
   type: 3
-  description: "[Ph\xF2ng th\u1EE7] Fortress Wall \xB7 150% ATK + 400, \u0111\u01A1n;
-    l\xE1 ch\u1EAFn 20% HP to\xE0n \u0111\u1ED9i 3 l\u01B0\u1EE3t; \u221220% s\xE1t
-    th\u01B0\u01A1ng nh\u1EADn 2 l\u01B0\u1EE3t."
+  description: "[Defense] Fortress Wall · 150% ATK + 400, Single Target; shield 20% HP to all allies for 3 turn(s); -20% incoming damage for 2 turn(s)."
   icon: {fileID: 3438784570353844991, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 3

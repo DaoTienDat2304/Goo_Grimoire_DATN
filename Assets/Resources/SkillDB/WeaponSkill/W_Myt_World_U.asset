@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: World-Ender Blade
   type: 3
-  description: "[\u0110\u01A1n] Extinction Protocol \xB7 550% ATK + 2750, \u0111\u01A1n;
-    xuy\xEAn 100% gi\xE1p; Boss \u221225% HP hi\u1EC7n t\u1EA1i l\u01B0\u1EE3t k\u1EBF."
+  description: "[Single Target] Extinction Protocol · 550% ATK + 2750, Single Target; ignores 100% DEF; Boss −25% Current HP next turn."
   icon: {fileID: 1971577198177248361, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6

@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Glue Shooter
   type: 1
-  description: "Sticky Shot \xB7 1 \u0110CK \xB7 115% ATK + 90, \u0111\u01A1n; 20%
-    \u22125% ATK 2 l\u01B0\u1EE3t."
+  description: "Sticky Shot · 1 SP · 115% ATK + 90, Single Target; 20% −5% ATK 2 turn(s)."
   icon: {fileID: -6523628323415844430, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 0

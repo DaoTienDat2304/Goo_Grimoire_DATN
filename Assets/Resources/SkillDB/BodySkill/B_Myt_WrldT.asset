@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: World Tree Root
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 To\xE0n \u0111\u1ED9i h\u1ED3i 3% HP t\u1ED1i
-    \u0111a cu\u1ED1i l\u01B0\u1EE3t & +6% HP t\u1ED1i \u0111a."
+  description: "Passive · all allies restores 3% HP max At the end of turn & +6% Max HP."
   icon: {fileID: 5476367815067537618, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 6

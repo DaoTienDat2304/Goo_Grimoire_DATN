@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Reinforced Thorn Armor
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 +3% ATK; ph\u1EA3n 5% s\xE1t th\u01B0\u01A1ng."
+  description: "Passive · +3% ATK; reflects 5% Damage."
   icon: {fileID: -8234493963338901362, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 2

@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Starforged Blade
   type: 3
-  description: "[\u0110\u01A1n] Supernova Edge \xB7 450% ATK + 2000, \u0111\u01A1n;
-    xuy\xEAn 80% gi\xE1p; Boss \u221215% HP hi\u1EC7n t\u1EA1i l\u01B0\u1EE3t k\u1EBF."
+  description: "[Single Target] Supernova Edge · 450% ATK + 2000, Single Target; ignores 80% DEF; Boss −15% Current HP next turn."
   icon: {fileID: -8236498686233768915, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 5

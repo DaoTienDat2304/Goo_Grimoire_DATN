@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Judgment Edge
   type: 1
-  description: "Celestial Judgment \xB7 1 \u0110CK \xB7 200% ATK + 620, \u0111\u01A1n;
-    xuy\xEAn 60% gi\xE1p; 100% Cho\xE1ng 1 l\u01B0\u1EE3t; [\u0110\u1ED8C QUY\u1EC0N]
-    di\u1EC7t \u0111\u1ECBch \u2192 +1 \u0110CK."
+  description: "Celestial Judgment · 1 SP · 200% ATK + 620, Single Target; ignores 60% DEF; 100% stun for 1 turn(s); [EXCLUSIVE] Defeating an enemy → +1 SP."
   icon: {fileID: -2730899144895699987, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

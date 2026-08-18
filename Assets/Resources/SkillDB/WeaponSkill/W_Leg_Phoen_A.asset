@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Phoenix Soul Reaver
   type: 1
-  description: "Dragon Feather Soul Reaper \xB7 2 \u0110CK \xB7 235% ATK + 1050,
-    \u0111\u01A1n; 85% Cho\xE1ng 2 l\u01B0\u1EE3t."
+  description: "Dragon Feather Soul Reaper · 2 SP · 235% ATK + 1050, Single Target; 85% stun 2 turn(s)."
   icon: {fileID: 0}
   targetTrait: 2
   rarity: 5

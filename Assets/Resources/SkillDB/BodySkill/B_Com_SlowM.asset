@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Slow Metabolism
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 Cu\u1ED1i m\u1ED7i l\u01B0\u1EE3t h\u1ED3i
-    1% HP t\u1ED1i \u0111a."
+  description: "Passive · At the end of each turn restores 1% Max HP."
   icon: {fileID: -3084783358539065637, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 0

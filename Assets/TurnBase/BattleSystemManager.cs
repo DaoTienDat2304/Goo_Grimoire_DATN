@@ -108,7 +108,7 @@ public class BattleSystemManager : MonoBehaviour
             var turnSys = FindFirstObjectByType<TurnSystem>();
             if (turnSys != null && caster != null)
             {
-                turnSys.CreateDamagePopup(caster.transform.position + Vector3.up * 2f, $"+{pointGain} ĐCK", Color.cyan);
+                turnSys.CreateDamagePopup(caster.transform.position + Vector3.up * 2f, $"+{pointGain} SP", Color.cyan);
             }
         }
 

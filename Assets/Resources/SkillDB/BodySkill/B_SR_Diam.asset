@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Diamond Armor
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 HP <50% \u2192 +4% xuy\xEAn gi\xE1p."
+  description: "Passive · HP <50% → +4% armor pen."
   icon: {fileID: 6393107087435189210, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 3

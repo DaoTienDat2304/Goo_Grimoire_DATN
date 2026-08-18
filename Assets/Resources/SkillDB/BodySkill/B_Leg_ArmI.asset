@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Armor of Immortality
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 L\u1EA7n \u0111\u1EA7u b\u1ECB h\u1EA1 g\u1EE5c
-    \u2192 h\u1ED3i sinh 10% HP t\u1ED1i \u0111a (1 l\u1EA7n/tr\u1EADn)."
+  description: "Passive · first time is defeated → revives with 10% Max HP (1 time/battle)."
   icon: {fileID: 920560438444918265, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5

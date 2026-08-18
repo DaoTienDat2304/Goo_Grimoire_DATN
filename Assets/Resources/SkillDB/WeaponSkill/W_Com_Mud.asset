@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Mud Bucket
   type: 1
-  description: "Mud Splash \xB7 1 \u0110CK \xB7 105% ATK + 85, AoE."
+  description: "Mud Splash · 1 SP · 105% ATK + 85, AoE."
   icon: {fileID: -287763524560535101, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 0

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Warm Up
   type: 1
-  description: "Haste \xB7 1 \u0110CK \xB7 +6 SPD b\u1EA3n th\xE2n 2 l\u01B0\u1EE3t."
+  description: "Haste · 1 SP · +6 SPD self 2 turn(s)."
   icon: {fileID: -1525018531985057102, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 0

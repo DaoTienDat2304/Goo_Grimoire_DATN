@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Glacier Scepter
   type: 3
-  description: "[Kh\u1ED1ng ch\u1EBF] Absolute Zero \xB7 200% ATK + 800, AoE; 100%
-    \u0110\xF3ng B\u0103ng (\u221220 SPD) 2 l\u01B0\u1EE3t; 40% Cho\xE1ng 1 l\u01B0\u1EE3t."
+  description: "[Crowd Control] Absolute Zero · 200% ATK + 800, AoE; 100% freeze (−20 SPD) 2 turn(s); 40% stun 1 turn(s)."
   icon: {fileID: 1294095582829622120, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 3

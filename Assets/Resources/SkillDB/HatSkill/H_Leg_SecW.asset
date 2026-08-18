@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Second Wind
   type: 1
-  description: "H\u1ED3i sinh \xB7 1 \u0110CK \xB7 H\u1ED3i sinh 1 \u0111\u1ED3ng
-    minh g\u1EE5c 30% HP (1 l\u1EA7n/tr\u1EADn)."
+  description: "revives with · 1 SP · revives with 1 Ally defeated 30% HP (1 time/battle)."
   icon: {fileID: -1300766929273139628, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 5

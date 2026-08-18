@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Requiem Engine
   type: 3
-  description: "[\u0110\u1ED8C QUY\u1EC0N \xB7 Ph\xF2ng th\u1EE7] Requiem Aegis \xB7
-    to\xE0n \u0111\u1ED9i b\u1EA5t t\u1EED 1 l\u01B0\u1EE3t (HP \u22651); h\u1ED3i
-    \u0111\u1EA7y N\u0103ng l\u01B0\u1EE3ng (1 l\u1EA7n/tr\u1EADn)."
+  description: "[EXCLUSIVE · Defense] Requiem Aegis · All allies become invulnerable for 1 turn(s) (HP >= 1); fully restores Energy (1 time/battle)."
   icon: {fileID: -7035371750225750692, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

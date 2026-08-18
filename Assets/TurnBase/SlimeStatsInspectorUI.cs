@@ -106,47 +106,47 @@ public class SlimeStatsInspectorUI : MonoBehaviour
             if (energyText != null)
             {
                 energyText.resizeTextForBestFit = true;
-                energyText.text = $"Năng lượng: {battleStats.CurrentEnergy} / 100";
+                energyText.text = $"Energy: {battleStats.CurrentEnergy} / 100";
             }
 
             // Stats
-            if (atkText != null) { atkText.resizeTextForBestFit = true; atkText.text = $"Công: {battleStats.BattleAttack}"; }
-            if (defText != null) { defText.resizeTextForBestFit = true; defText.text = $"Thủ: {battleStats.BattleDefense}"; }
-            if (spdText != null) { spdText.resizeTextForBestFit = true; spdText.text = $"Tốc: {battleStats.BattleSpeed}"; }
-            if (magicAtkText != null) { magicAtkText.resizeTextForBestFit = true; magicAtkText.text = $"Phép: {battleStats.BattleMagicAttack}"; }
-            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = $"Bạo kích: {battleStats.BattleCritRate * 100:F1}%"; }
-            if (critDmgText != null) { critDmgText.resizeTextForBestFit = true; critDmgText.text = $"ST Bạo: {battleStats.BattleCritDMG * 100:F0}%"; }
+            if (atkText != null) { atkText.resizeTextForBestFit = true; atkText.text = $"ATK: {battleStats.BattleAttack}"; }
+            if (defText != null) { defText.resizeTextForBestFit = true; defText.text = $"DEF: {battleStats.BattleDefense}"; }
+            if (spdText != null) { spdText.resizeTextForBestFit = true; spdText.text = $"SPD: {battleStats.BattleSpeed}"; }
+            if (magicAtkText != null) { magicAtkText.resizeTextForBestFit = true; magicAtkText.text = $"MAG: {battleStats.BattleMagicAttack}"; }
+            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = $"Crit Rate: {battleStats.BattleCritRate * 100:F1}%"; }
+            if (critDmgText != null) { critDmgText.resizeTextForBestFit = true; critDmgText.text = $"Crit DMG: {battleStats.BattleCritDMG * 100:F0}%"; }
         }
         else
         {
-            if (atkText != null) { atkText.resizeTextForBestFit = true; atkText.text = $"Công: {slime.Attack}"; }
-            if (defText != null) { defText.resizeTextForBestFit = true; defText.text = $"Thủ: {slime.Defense}"; }
-            if (spdText != null) { spdText.resizeTextForBestFit = true; spdText.text = $"Tốc: {slime.Speed}"; }
-            if (magicAtkText != null) { magicAtkText.resizeTextForBestFit = true; magicAtkText.text = $"Phép: {slime.MagicAttack}"; }
-            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = $"Bạo kích: {slime.CritRate * 100:F1}%"; }
-            if (critDmgText != null) { critDmgText.resizeTextForBestFit = true; critDmgText.text = $"ST Bạo: {slime.CritDMG * 100:F0}%"; }
+            if (atkText != null) { atkText.resizeTextForBestFit = true; atkText.text = $"ATK: {slime.Attack}"; }
+            if (defText != null) { defText.resizeTextForBestFit = true; defText.text = $"DEF: {slime.Defense}"; }
+            if (spdText != null) { spdText.resizeTextForBestFit = true; spdText.text = $"SPD: {slime.Speed}"; }
+            if (magicAtkText != null) { magicAtkText.resizeTextForBestFit = true; magicAtkText.text = $"MAG: {slime.MagicAttack}"; }
+            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = $"Crit Rate: {slime.CritRate * 100:F1}%"; }
+            if (critDmgText != null) { critDmgText.resizeTextForBestFit = true; critDmgText.text = $"Crit DMG: {slime.CritDMG * 100:F0}%"; }
         }
 
         // Traits
         if (bodyTraitText != null)
         {
             bodyTraitText.resizeTextForBestFit = true;
-            string bodyName = (slime.bodySkill != null && slime.bodySkill.baseSkill != null) ? slime.bodySkill.baseSkill.skillName : "Không";
-            bodyTraitText.text = $"Thân: {bodyName}";
+            string bodyName = (slime.bodySkill != null && slime.bodySkill.baseSkill != null) ? slime.bodySkill.baseSkill.skillName : "None";
+            bodyTraitText.text = $"Body: {bodyName}";
         }
 
         if (armorTraitText != null)
         {
             armorTraitText.resizeTextForBestFit = true;
-            string armorName = (slime.armorSkill != null && slime.armorSkill.baseSkill != null) ? slime.armorSkill.baseSkill.skillName : "Không";
-            armorTraitText.text = $"Giáp: {armorName}";
+            string armorName = (slime.armorSkill != null && slime.armorSkill.baseSkill != null) ? slime.armorSkill.baseSkill.skillName : "None";
+            armorTraitText.text = $"Armor: {armorName}";
         }
 
         if (weaponTraitText != null)
         {
             weaponTraitText.resizeTextForBestFit = true;
-            string weaponName = (slime.weaponSkill != null && slime.weaponSkill.baseSkill != null) ? slime.weaponSkill.baseSkill.skillName : "Không";
-            weaponTraitText.text = $"Vũ khí: {weaponName}";
+            string weaponName = (slime.weaponSkill != null && slime.weaponSkill.baseSkill != null) ? slime.weaponSkill.baseSkill.skillName : "None";
+            weaponTraitText.text = $"Weapon: {weaponName}";
         }
     }
 

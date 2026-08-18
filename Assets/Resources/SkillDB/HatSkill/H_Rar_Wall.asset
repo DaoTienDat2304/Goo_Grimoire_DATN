@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Stone Wall
   type: 1
-  description: "Buff \xB7 1 \u0110CK \xB7 +12% DEF to\xE0n \u0111\u1ED9i 2 l\u01B0\u1EE3t;
-    \u22125% s\xE1t th\u01B0\u01A1ng nh\u1EADn."
+  description: "Buff · 1 SP · +12% DEF all allies 2 turn(s); −5% incoming damage."
   icon: {fileID: 8802145076151451675, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 2

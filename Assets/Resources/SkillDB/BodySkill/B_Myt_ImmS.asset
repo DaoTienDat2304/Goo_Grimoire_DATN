@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Immortal Sovereign
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 Mi\u1EC5n Ch\xED M\u1EA1ng nh\u1EADn v\xE0o;
-    \u221212% s\xE1t th\u01B0\u01A1ng; h\u1ED3i 3% HP cu\u1ED1i l\u01B0\u1EE3t."
+  description: "Passive · immune to Crit gains ; −12% Damage; restores 3% HP At the end of turn."
   icon: {fileID: 7212422957128434443, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 6

@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Vampire Fang Dagger
   type: 3
-  description: "[H\u1ED3i m\xE1u] Eternal Banquet \xB7 350% ATK + 1200, \u0111\u01A1n;
-    h\u1ED3i 60% s\xE1t th\u01B0\u01A1ng th\xE0nh HP to\xE0n \u0111\u1ED9i; g\u1EE1
-    1 Debuff/\u0111\u1ED3ng minh."
+  description: "[Heal] Eternal Banquet · 350% ATK + 1200, Single Target; restores 60% Damage into HP all allies; cleanses 1 debuff/ally."
   icon: {fileID: -2727618442776662924, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4

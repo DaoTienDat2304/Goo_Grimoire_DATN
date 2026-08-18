@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Dragonslayer Greatsword
   type: 3
-  description: "[\u0110\u01A1n] Dragon's Demise \xB7 330% ATK + 1000, \u0111\u01A1n;
-    xuy\xEAn 40% gi\xE1p; +25% n\u1EBFu m\u1EE5c ti\xEAu <50% HP."
+  description: "[Single Target] Dragon's Demise · 330% ATK + 1000, Single Target; ignores 40% DEF; +25% if target <50% HP."
   icon: {fileID: -3677384104762732385, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 3

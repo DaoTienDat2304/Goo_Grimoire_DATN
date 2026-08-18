@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Celestial War Aegis
   type: 1
-  description: "Celestial Tempest \xB7 1 \u0110CK \xB7 200% ATK + 950, AoE; 50% Cho\xE1ng."
+  description: "Celestial Tempest · 1 SP · 200% ATK + 950, AoE; 50% stun."
   icon: {fileID: 3753781235624310734, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 5

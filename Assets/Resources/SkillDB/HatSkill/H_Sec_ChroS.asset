@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Chrono Seizure
   type: 1
-  description: "[\u0110\u1ED8C QUY\u1EC0N] \xB7 1 \u0110CK \xB7 \u0110\u1EA9y l\xF9i
-    to\xE0n \u0111\u1ECBch 50% AV; \u221220% SPD 2 l\u01B0\u1EE3t."
+  description: "[EXCLUSIVE] · 1 SP · knockback all enemies 50% AV; −20% SPD 2 turn(s)."
   icon: {fileID: -5353496260401917812, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 7

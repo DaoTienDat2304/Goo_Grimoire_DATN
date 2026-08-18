@@ -14,10 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Eclipse Reaver
   type: 1
-  description: "Eclipse of Eternity \xB7 2 \u0110CK \xB7 200% ATK + 620, AoE; xuy\xEAn
-    gi\xE1p ho\xE0n to\xE0n; 100% \u0110\u1ED9c (\u22128% HP t\u1ED1i \u0111a/l\u01B0\u1EE3t,
-    3 l\u01B0\u1EE3t); [\u0110\u1ED8C QUY\u1EC0N] di\u1EC7t \u0111\u1ECBch \u2192
-    +1 \u0110CK."
+  description: "Eclipse of Eternity · 2 SP · 200% ATK + 620, AoE; 100% Armor Penetration; 100% poison (-8% Max HP/turn, 3 turn(s)); [EXCLUSIVE] Defeating an enemy → +1 SP."
   icon: {fileID: -7135615015325299953, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

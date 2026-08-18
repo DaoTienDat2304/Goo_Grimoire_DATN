@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Chronofreeze Staff
   type: 3
-  description: "[Kh\u1ED1ng ch\u1EBF] Temporal Lock \xB7 300% ATK + 1500, AoE; 100%
-    Cho\xE1ng 2 l\u01B0\u1EE3t; \u0111\xF3ng b\u0103ng AV \u0111\u1ECBch 1 l\u01B0\u1EE3t."
+  description: "[Crowd Control] Temporal Lock · 300% ATK + 1500, AoE; 100% stun 2 turn(s); freeze AV enemy 1 turn(s)."
   icon: {fileID: -7978254507238687681, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 5

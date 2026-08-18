@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Overclock Engine
   type: 2
-  description: "N\u1ED9i t\u1EA1i [\u0110\u1ED8C QUY\u1EC0N] \xB7 Ti\xEAu \u0110CK
-    \u2192 50% ho\xE0n 1 \u0110CK (t\u1ED1i \u0111a 1/l\u01B0\u1EE3t); Ultimate n\u1EA1p
-    N\u0103ng l\u01B0\u1EE3ng +50%."
+  description: "Passive [EXCLUSIVE] · spends SP → 50% refunds 1 SP (max 1/turn(s)); Ultimate recharges Energy +50%."
   icon: {fileID: -1809694882535556203, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Guard Formation
   type: 1
-  description: "Buff \xB7 1 \u0110CK \xB7 +8% DEF to\xE0n \u0111\u1ED9i 2 l\u01B0\u1EE3t."
+  description: "Buff · 1 SP · +8% DEF all allies 2 turn(s)."
   icon: {fileID: -4791226207513538912, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 1

@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Awl Pike
   type: 1
-  description: "Piercing Jab \xB7 1 \u0110CK \xB7 150% ATK + 140, \u0111\u01A1n;
-    xuy\xEAn 10% gi\xE1p."
+  description: "Piercing Jab · 1 SP · 150% ATK + 140, Single Target; ignores 10% DEF."
   icon: {fileID: -7910522835582897167, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 1

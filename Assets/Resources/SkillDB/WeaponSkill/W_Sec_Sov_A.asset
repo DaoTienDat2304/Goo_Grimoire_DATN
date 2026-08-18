@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Sovereign Protocol
   type: 1
-  description: "Dominion Strike \xB7 1 \u0110CK \xB7 200% ATK + 620, \u0111\u01A1n;
-    xuy\xEAn 60% gi\xE1p."
+  description: "Dominion Strike · 1 SP · 200% ATK + 620, Single Target; ignores 60% DEF."
   icon: {fileID: -8168572869028800839, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

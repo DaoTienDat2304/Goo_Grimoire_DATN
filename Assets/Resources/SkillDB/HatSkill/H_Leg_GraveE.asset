@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Grave Edict
   type: 1
-  description: "Debuff \xB7 1 \u0110CK \xB7 To\xE0n \u0111\u1ECBch kho\xE1 Buff;
-    \u221250% h\u1ED3i m\xE1u; \u0111\u1EA9y l\xF9i 30% AV 2 l\u01B0\u1EE3t."
+  description: "Debuff · 1 SP · all enemies blocks buffs; −50% Heal; knockback 30% AV 2 turn(s)."
   icon: {fileID: 6106487895095515954, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 5

@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Frost Hex
   type: 1
-  description: "Debuff \xB7 1 \u0110CK \xB7 \u221210 SPD to\xE0n \u0111\u1ECBch 2
-    l\u01B0\u1EE3t; 20% \u0110\xF3ng B\u0103ng 1 \u0111\u1ECBch."
+  description: "Debuff · 1 SP · −10 SPD all enemies 2 turn(s); 20% freeze 1 enemy."
   icon: {fileID: -1025542412921996217, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 2

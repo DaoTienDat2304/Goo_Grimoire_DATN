@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Soulreaver Scythe
   type: 1
-  description: "Soul Drinker \xB7 1 \u0110CK \xB7 180% ATK + 440, \u0111\u01A1n;
-    h\u1ED3i 10% th\xE0nh HP."
+  description: "Soul Drinker · 1 SP · 180% ATK + 440, Single Target; restores 10% into HP."
   icon: {fileID: 1477380762068434345, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 3

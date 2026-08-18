@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: World Requiem
   type: 1
-  description: "Debuff \xB7 1 \u0110CK \xB7 To\xE0n \u0111\u1ECBch \u221240% SPD;
-    \u0111\u1EA9y l\xF9i 40% AV; kho\xE1 Buff; \u221260% h\u1ED3i m\xE1u 3 l\u01B0\u1EE3t."
+  description: "Debuff · 1 SP · all enemies −40% SPD; knockback 40% AV; blocks buffs; −60% Heal 3 turn(s)."
   icon: {fileID: -4487493153248795899, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 6

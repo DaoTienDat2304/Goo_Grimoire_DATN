@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Eternal Bulwark
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 M\u1ED7i l\u01B0\u1EE3t s\u1ED1ng s\xF3t \u2192
-    +2% DEF (max +20%)."
+  description: "Passive · Each turn surviving → +2% DEF (max +20%)."
   icon: {fileID: -1513601894735356067, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5

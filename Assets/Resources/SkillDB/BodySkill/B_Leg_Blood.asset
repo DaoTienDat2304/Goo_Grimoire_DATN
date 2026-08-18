@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Bloodlord Dominion
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 H\u1ED3i 12% s\xE1t th\u01B0\u01A1ng th\xE0nh
-    HP; HP \u0111\u1EA7y \u2192 d\u01B0 th\xE0nh l\xE1 ch\u1EAFn (max 15% HP)."
+  description: "Passive · restores 12% Damage into HP; HP is full → excess into shield (max 15% HP)."
   icon: {fileID: 3345739701931622181, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 5

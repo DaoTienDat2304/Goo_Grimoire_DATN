@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Eternal Purification
   type: 1
-  description: "H\u1ED3i m\xE1u \xB7 1 \u0110CK \xB7 G\u1EE1 m\u1ECDi Debuff, h\u1ED3i
-    8% HP, +8% DEF to\xE0n \u0111\u1ED9i 3 l\u01B0\u1EE3t."
+  description: "Heal · 1 SP · cleanses all debuffs, restores 8% HP, +8% DEF all allies 3 turn(s)."
   icon: {fileID: -806725408364334145, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 4

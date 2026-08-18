@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Sovereign Protocol
   type: 3
-  description: "[\u0110\u1ED8C QUY\u1EC0N \xB7 Kh\u1ED1ng ch\u1EBF] Absolute Dominion
-    \xB7 Boss \u221240% ATK & \u221240% SPD 2 l\u01B0\u1EE3t (\u0111\u1ECBch th\u01B0\u1EDDng:
-    50% chi\u1EBFm quy\u1EC1n 2 l\u01B0\u1EE3t); to\xE0n \u0111\u1ED9i +1 \u0110CK."
+  description: "[EXCLUSIVE · Crowd Control] Absolute Dominion · Boss -40% ATK & -40% SPD for 2 turn(s) (normal enemy: 50% mind control for 2 turn(s)); all allies +1 SP."
   icon: {fileID: -8168572869028800839, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 7

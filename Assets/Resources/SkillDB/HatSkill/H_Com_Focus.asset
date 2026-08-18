@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Minor Focus
   type: 1
-  description: "Buff \xB7 1 \u0110CK \xB7 +5% ATK & +4 SPD b\u1EA3n th\xE2n 2 l\u01B0\u1EE3t."
+  description: "Buff · 1 SP · +5% ATK & +4 SPD self 2 turn(s)."
   icon: {fileID: -1836120431684336037, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 0

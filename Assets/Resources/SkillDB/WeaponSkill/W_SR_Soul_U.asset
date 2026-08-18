@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Soulreaver Scythe
   type: 3
-  description: "[H\u1ED3i m\xE1u] Harvest of Souls \xB7 300% ATK + 850, AoE; h\u1ED3i
-    50% s\xE1t th\u01B0\u01A1ng chia \u0111\u1EC1u to\xE0n \u0111\u1ED9i."
+  description: "[Heal] Harvest of Souls · 300% ATK + 850, AoE; restores 50% DMG split evenly among all allies."
   icon: {fileID: 1477380762068434345, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 3

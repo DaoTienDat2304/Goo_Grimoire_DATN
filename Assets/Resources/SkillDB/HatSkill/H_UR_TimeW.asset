@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Time Warp
   type: 1
-  description: "Haste \xB7 1 \u0110CK \xB7 +12 SPD to\xE0n \u0111\u1ED9i 3 l\u01B0\u1EE3t."
+  description: "Haste · 1 SP · +12 SPD all allies 3 turn(s)."
   icon: {fileID: -7150541813721368307, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 4

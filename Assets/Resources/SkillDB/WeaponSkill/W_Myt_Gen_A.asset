@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Genesis Bastion
   type: 1
-  description: "Ragnarok Descent \xB7 3 \u0110CK \xB7 290% ATK + 1600, \u0111\u01A1n;
-    xuy\xEAn 100% gi\xE1p; +50% n\u1EBFu m\u1EE5c ti\xEAu <30% HP."
+  description: "Ragnarok Descent · 3 SP · 290% ATK + 1600, Single Target; ignores 100% DEF; +50% if target <30% HP."
   icon: {fileID: 3461872419939635656, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6

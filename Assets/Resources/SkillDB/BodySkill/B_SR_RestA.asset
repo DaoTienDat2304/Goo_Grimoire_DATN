@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Restoration Aura
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 To\xE0n \u0111\u1ED9i h\u1ED3i 2% HP t\u1ED1i
-    \u0111a cu\u1ED1i l\u01B0\u1EE3t."
+  description: "Passive · all allies restores 2% HP max At the end of turn."
   icon: {fileID: 2829588060858407925, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 3

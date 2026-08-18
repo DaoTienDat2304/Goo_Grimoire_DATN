@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Twin Stone
   type: 1
-  description: "Twin Pebble \xB7 1 \u0110CK \xB7 100% ATK + 75, \xD72 hit \u0111\u01A1n
-    (t\u1ED5ng 200% ATK + 150)."
+  description: "Twin Pebble · 1 SP · 100% ATK + 75, ×2 hit Single Target (total 200% ATK + 150)."
   icon: {fileID: 6919366548538155999, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 0

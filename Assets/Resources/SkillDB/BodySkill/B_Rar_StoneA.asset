@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Stone Armor
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 HP <40% \u2192 +3% DEF."
+  description: "Passive · HP <40% → +3% DEF."
   icon: {fileID: -2066378720760693067, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 2

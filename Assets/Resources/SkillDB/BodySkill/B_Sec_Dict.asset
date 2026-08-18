@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Dictator
   type: 2
-  description: "N\u1ED9i t\u1EA1i [\u0110\u1ED8C QUY\u1EC0N] \xB7 +2 \u0110CK m\u1ED7i
-    l\u01B0\u1EE3t cho \u0111\u1ED9i (l\xE0 to\xE0n b\u1ED9 tr\u1EA7n sinh +2/l\u01B0\u1EE3t)."
+  description: "Passive [EXCLUSIVE] · +2 SP Each turn(s) to team (Is All SP generation +2/turn)."
   icon: {fileID: -3812975195627848998, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 7

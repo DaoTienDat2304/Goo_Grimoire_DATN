@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Genesis Bastion
   type: 3
-  description: "[Ph\xF2ng th\u1EE7] Impervious Genesis \xB7 l\xE1 ch\u1EAFn 40% HP
-    to\xE0n \u0111\u1ED9i 3 l\u01B0\u1EE3t; mi\u1EC5n m\u1ECDi Debuff & True damage
-    2 l\u01B0\u1EE3t."
+  description: "[Defense] Impervious Genesis · shield 40% HP all allies 3 turn(s); immune to all debuffs & True damage 2 turn(s)."
   icon: {fileID: 3461872419939635656, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 6

@@ -91,31 +91,31 @@ public class BattleInfoDisplayUI : MonoBehaviour
             infoIconImage.gameObject.SetActive(infoIconImage.sprite != null);
         }
 
-        string info = $"[Tên]: {slime.gameObject.name}  |  [Cấp độ]: {(slime.id > 0 ? $"Lv. {slime.id}" : "Lv. 1")}\n";
+        string info = $"[Name]: {slime.gameObject.name}  |  [Level]: {(slime.id > 0 ? $"Lv. {slime.id}" : "Lv. 1")}\n";
 
         if (battleStats != null)
         {
-            info += $"[HP]: {battleStats.CurrentHP} / {battleStats.MaxHP}  |  [NL]: {battleStats.CurrentEnergy} / 100\n";
-            info += $"[Công ATK]: {battleStats.BattleAttack}  |  [Thủ DEF]: {battleStats.BattleDefense}\n";
-            info += $"[Tốc SPD]: {battleStats.BattleSpeed}  |  [Phép MAG]: {battleStats.BattleMagicAttack}\n";
-            info += $"[Chí mạng]: {battleStats.BattleCritRate * 100:F1}%  |  [Sát thương CM]: {battleStats.BattleCritDMG * 100:F0}%\n\n";
+            info += $"[HP]: {battleStats.CurrentHP} / {battleStats.MaxHP}  |  [Energy]: {battleStats.CurrentEnergy} / 100\n";
+            info += $"[ATK]: {battleStats.BattleAttack}  |  [DEF]: {battleStats.BattleDefense}\n";
+            info += $"[SPD]: {battleStats.BattleSpeed}  |  [MAG]: {battleStats.BattleMagicAttack}\n";
+            info += $"[Crit Rate]: {battleStats.BattleCritRate * 100:F1}%  |  [Crit DMG]: {battleStats.BattleCritDMG * 100:F0}%\n\n";
         }
         else
         {
             info += $"[HP]: {slime.HP} / {slime.MaxHP}\n";
-            info += $"[Công ATK]: {slime.Attack}  |  [Thủ DEF]: {slime.Defense}\n";
-            info += $"[Tốc SPD]: {slime.Speed}  |  [Phép MAG]: {slime.MagicAttack}\n";
-            info += $"[Chí mạng]: {slime.CritRate * 100:F1}%  |  [Sát thương CM]: {slime.CritDMG * 100:F0}%\n\n";
+            info += $"[ATK]: {slime.Attack}  |  [DEF]: {slime.Defense}\n";
+            info += $"[SPD]: {slime.Speed}  |  [MAG]: {slime.MagicAttack}\n";
+            info += $"[Crit Rate]: {slime.CritRate * 100:F1}%  |  [Crit DMG]: {slime.CritDMG * 100:F0}%\n\n";
         }
 
-        info += "[KỸ NĂNG TRANG BỊ]:\n";
+        info += "[EQUIPPED SKILLS]:\n";
         string body = GetSkillName(slime.bodySkill);
         string armor = GetSkillName(slime.armorSkill);
         string weapon = GetSkillName(slime.weaponSkill);
 
-        info += $"- Thân (Body): {body}\n";
-        info += $"- Giáp (Armor): {armor}\n";
-        info += $"- Vũ khí (Weapon): {weapon}";
+        info += $"- Body: {body}\n";
+        info += $"- Armor: {armor}\n";
+        info += $"- Weapon: {weapon}";
 
         if (mainInfoText != null)
         {
@@ -156,32 +156,32 @@ public class BattleInfoDisplayUI : MonoBehaviour
 
         string typeStr = baseSkill.type switch
         {
-            SkillType.BasicAttack => "Đánh Thường (Basic Attack)",
-            SkillType.Active => "Chiến Kỹ (Active Skill)",
-            SkillType.Passive => "Nội Tại (Passive Skill)",
-            SkillType.Ultimate => "Tuyệt Kỹ (Ultimate Skill)",
+            SkillType.BasicAttack => "Basic Attack",
+            SkillType.Active => "Active Skill",
+            SkillType.Passive => "Passive Skill",
+            SkillType.Ultimate => "Ultimate Skill",
             _ => baseSkill.type.ToString()
         };
 
         if (baseSkill.type == SkillType.Ultimate || baseSkill.energyCost >= 100)
-            typeStr = "Tuyệt Kỹ (Ultimate Skill)";
+            typeStr = "Ultimate Skill";
 
         string costStr;
         if (baseSkill.type == SkillType.Ultimate || baseSkill.energyCost > 0)
-            costStr = $"{baseSkill.energyCost} Năng lượng (Energy)";
+            costStr = $"{baseSkill.energyCost} Energy";
         else if (baseSkill.battlePointCost > 0)
-            costStr = $"{baseSkill.battlePointCost} Điểm Chiến Kỹ (ĐCK)";
+            costStr = $"{baseSkill.battlePointCost} Skill Point(s)";
         else if (baseSkill.battlePointGain > 0)
-            costStr = $"Hồi +{baseSkill.battlePointGain} Điểm Chiến Kỹ (ĐCK)";
+            costStr = $"Gain +{baseSkill.battlePointGain} Skill Point(s)";
         else
-            costStr = "Miễn phí";
+            costStr = "Free";
 
-        string info = $"[Tên Skill]: {sName}\n";
-        info += $"[Loại Skill]: {typeStr}\n";
-        info += $"[Chi Phí]: {costStr}\n\n";
+        string info = $"[Skill Name]: {sName}\n";
+        info += $"[Type]: {typeStr}\n";
+        info += $"[Cost]: {costStr}\n\n";
 
-        info += "[MÔ TẢ CHI TIẾT]:\n";
-        info += string.IsNullOrEmpty(baseSkill.description) ? "Không có mô tả chi tiết cho kỹ năng này." : baseSkill.description;
+        info += "[DESCRIPTION]:\n";
+        info += string.IsNullOrEmpty(baseSkill.description) ? "No description available." : baseSkill.description;
 
         if (mainInfoText != null)
         {

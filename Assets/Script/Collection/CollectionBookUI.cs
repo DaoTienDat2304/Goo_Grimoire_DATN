@@ -57,9 +57,9 @@ public class CollectionBookUI : MonoBehaviour
         tabSkillsBtn?.onClick.AddListener(() => SwitchTab(BookTab.Skills));
         closeButton?.onClick.AddListener(CloseBook);
 
-        LocalizeButton(tabSlimesBtn, "Slime");
-        LocalizeButton(tabPartsBtn, "Bộ phận");
-        LocalizeButton(tabSkillsBtn, "Kỹ năng");
+        LocalizeButton(tabSlimesBtn, "Slimes");
+        LocalizeButton(tabPartsBtn, "Parts");
+        LocalizeButton(tabSkillsBtn, "Skills");
     }
 
     private void LocalizeButton(Button btn, string text)

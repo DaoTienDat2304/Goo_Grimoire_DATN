@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Guardian's Sanctuary
   type: 1
-  description: "Ph\xF2ng th\u1EE7 \xB7 1 \u0110CK \xB7 L\xE1 ch\u1EAFn 18% HP to\xE0n
-    \u0111\u1ED9i 3 l\u01B0\u1EE3t; v\u1EE1 ch\u1EAFn \u2192 h\u1ED3i 8% HP."
+  description: "Defense · 1 SP · shield 18% HP all allies 3 turn(s); when shield breaks → restores 8% HP."
   icon: {fileID: -2674901478259119501, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 5

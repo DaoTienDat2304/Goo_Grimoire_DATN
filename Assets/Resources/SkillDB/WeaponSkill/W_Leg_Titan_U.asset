@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Titan Aegis Wall
   type: 3
-  description: "[Ph\xF2ng th\u1EE7] Aegis Eternal \xB7 l\xE1 ch\u1EAFn 30% HP to\xE0n
-    \u0111\u1ED9i 3 l\u01B0\u1EE3t; to\xE0n \u0111\u1ED9i +15% DEF; mi\u1EC5n Debuff
-    2 l\u01B0\u1EE3t."
+  description: "[Defense] Aegis Eternal · shield 30% HP all allies 3 turn(s); all allies +15% DEF; immune to Debuff 2 turn(s)."
   icon: {fileID: 7068687350162566666, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 5

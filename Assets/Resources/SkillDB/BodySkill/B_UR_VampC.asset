@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Vampiric Core
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 M\u1ECDi \u0111\xF2n h\u1ED3i 8% s\xE1t th\u01B0\u01A1ng
-    th\xE0nh HP."
+  description: "Passive · All attacks restores 8% Damage into HP."
   icon: {fileID: -4143882448426569371, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 4

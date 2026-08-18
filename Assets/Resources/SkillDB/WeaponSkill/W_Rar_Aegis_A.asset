@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Aegis Core
   type: 1
-  description: "Spike Volley \xB7 1 \u0110CK \xB7 135% ATK + 260, AoE; xuy\xEAn 15%
-    gi\xE1p."
+  description: "Spike Volley · 1 SP · 135% ATK + 260, AoE; ignores 15% DEF."
   icon: {fileID: 4698681188867507813, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 2

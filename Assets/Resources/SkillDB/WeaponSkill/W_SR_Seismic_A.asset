@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Seismic Maul
   type: 1
-  description: "Earthquake \xB7 1 \u0110CK \xB7 150% ATK + 450, AoE; 20% \u221210
-    SPD 2 l\u01B0\u1EE3t."
+  description: "Earthquake · 1 SP · 150% ATK + 450, AoE; 20% −10 SPD 2 turn(s)."
   icon: {fileID: -4259912358018683720, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 3

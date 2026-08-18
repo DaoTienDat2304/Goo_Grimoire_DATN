@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Sap Speed
   type: 1
-  description: "Debuff \xB7 1 \u0110CK \xB7 \u22128 SPD to\xE0n \u0111\u1ECBch 2
-    l\u01B0\u1EE3t; \u0111\u1EA9y l\xF9i 15% AV 1 \u0111\u1ECBch."
+  description: "Debuff · 1 SP · −8 SPD all enemies 2 turn(s); knockback 15% AV 1 enemy."
   icon: {fileID: -2797532859992406980, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 1

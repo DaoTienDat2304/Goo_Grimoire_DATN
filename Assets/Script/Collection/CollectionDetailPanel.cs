@@ -52,7 +52,7 @@ public class CollectionDetailPanel : MonoBehaviour
         SetAvatarFrameColor(bodyTrait != null ? bodyTrait.rarity : Rarity.Common);
 
         // Title
-        SetTitle(slime.slimeName, bodyTrait != null ? bodyTrait.rarity.ToVietnamese() : "", bodyTrait != null ? bodyTrait.rarity : Rarity.Common);
+        SetTitle(slime.slimeName, bodyTrait != null ? bodyTrait.rarity.ToString() : "", bodyTrait != null ? bodyTrait.rarity : Rarity.Common);
 
         // Stats
         ShowStats(true);
@@ -78,7 +78,7 @@ public class CollectionDetailPanel : MonoBehaviour
         SetAvatarLayers(trait.sprite, null, null);
         SetAvatarFrameColor(trait.rarity);
 
-        SetTitle(trait.traitName, $"{trait.type.ToVietnamese()} • {trait.rarity.ToVietnamese()}", trait.rarity);
+        SetTitle(trait.traitName, $"{trait.type} • {trait.rarity}", trait.rarity);
 
         bool isBody = trait.type == TraitType.Body;
         bool isArmor = trait.type == TraitType.Armor;
@@ -125,8 +125,8 @@ public class CollectionDetailPanel : MonoBehaviour
         {
             descriptionGroup.SetActive(true);
             var sb = new StringBuilder();
-            if (trait.skill != null) sb.AppendLine("Kỹ năng: " + trait.skill.skillName);
-            if (trait.ultimateSkill != null) sb.AppendLine("Tuyệt kỹ: " + trait.ultimateSkill.skillName);
+            if (trait.skill != null) sb.AppendLine("Skill: " + trait.skill.skillName);
+            if (trait.ultimateSkill != null) sb.AppendLine("Ultimate: " + trait.ultimateSkill.skillName);
             if (descriptionText != null)
             {
                 descriptionText.resizeTextForBestFit = true;
@@ -144,7 +144,7 @@ public class CollectionDetailPanel : MonoBehaviour
         SetAvatarLayers(skill.icon, null, null);
         SetAvatarFrameColor(skill.rarity);
 
-        SetTitle(skill.skillName, $"Kỹ năng • {skill.rarity.ToVietnamese()}", skill.rarity);
+        SetTitle(skill.skillName, $"Skill • {skill.rarity}", skill.rarity);
 
         // Ẩn stats, hiển thị description
         ShowStats(false);
@@ -157,9 +157,9 @@ public class CollectionDetailPanel : MonoBehaviour
             descriptionGroup.SetActive(true);
             var sb = new StringBuilder();
             sb.AppendLine(skill.description);
-            if (skill.battlePointCost > 0) sb.AppendLine($"Tốn: {skill.battlePointCost} Điểm Chiến Đấu");
-            if (skill.energyCost > 0) sb.AppendLine($"Tốn: {skill.energyCost} Năng Lượng");
-            if (skill.battlePointGain > 0) sb.AppendLine($"Nhận: +{skill.battlePointGain} Điểm Chiến Đấu");
+            if (skill.battlePointCost > 0) sb.AppendLine($"Cost: {skill.battlePointCost} Skill Point(s)");
+            if (skill.energyCost > 0) sb.AppendLine($"Cost: {skill.energyCost} Energy");
+            if (skill.battlePointGain > 0) sb.AppendLine($"Gain: +{skill.battlePointGain} Skill Point(s)");
             if (descriptionText != null)
             {
                 descriptionText.resizeTextForBestFit = true;
@@ -186,7 +186,7 @@ public class CollectionDetailPanel : MonoBehaviour
         if (titleText != null)
         {
             titleText.resizeTextForBestFit = true;
-            titleText.text = "Chọn một mục để xem chi tiết";
+            titleText.text = "Select an item to view details";
         }
         if (subtitleText != null)
         {

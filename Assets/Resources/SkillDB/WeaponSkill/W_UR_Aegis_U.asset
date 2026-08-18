@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Divine Aegis Shield
   type: 3
-  description: "[Ph\xF2ng th\u1EE7] Sanctuary of Light \xB7 l\xE1 ch\u1EAFn 25% HP
-    to\xE0n \u0111\u1ED9i 3 l\u01B0\u1EE3t; h\u1ED3i 12% HP; mi\u1EC5n Cho\xE1ng
-    2 l\u01B0\u1EE3t."
+  description: "[Defense] Sanctuary of Light · shield 25% HP all allies 3 turn(s); restores 12% HP; immune to stun 2 turn(s)."
   icon: {fileID: -3361153209262608455, guid: dcec5be6fe504a34c873866fb7244506, type: 3}
   targetTrait: 2
   rarity: 4

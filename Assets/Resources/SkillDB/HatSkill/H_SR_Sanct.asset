@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Sanctuary Ward
   type: 1
-  description: "Ph\xF2ng th\u1EE7 \xB7 1 \u0110CK \xB7 L\xE1 ch\u1EAFn 8% HP t\u1ED1i
-    \u0111a to\xE0n \u0111\u1ED9i 2 l\u01B0\u1EE3t."
+  description: "Defense · 1 SP · shield 8% HP max all allies 2 turn(s)."
   icon: {fileID: -4370106243356108431, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 3

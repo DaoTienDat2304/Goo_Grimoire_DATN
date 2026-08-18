@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Battle Chant
   type: 1
-  description: "Buff \xB7 1 \u0110CK \xB7 +7% ATK & +3 SPD to\xE0n \u0111\u1ED9i
-    2 l\u01B0\u1EE3t."
+  description: "Buff · 1 SP · +7% ATK & +3 SPD all allies 2 turn(s)."
   icon: {fileID: 7613330016314061283, guid: a9bc3674f67261c46ac529ea5275b7ee, type: 3}
   targetTrait: 1
   rarity: 1

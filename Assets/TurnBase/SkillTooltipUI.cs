@@ -65,15 +65,15 @@ public class SkillTooltipUI : MonoBehaviour
         {
             string typeStr = baseSkill.type switch
             {
-                SkillType.BasicAttack => "Đánh Thường (Basic Attack)",
-                SkillType.Active => "Chiến Kỹ (Active Skill)",
-                SkillType.Passive => "Nội Tại (Passive Skill)",
-                SkillType.Ultimate => "Tuyệt Kỹ (Ultimate Skill)",
+                SkillType.BasicAttack => "Basic Attack",
+                SkillType.Active => "Active Skill",
+                SkillType.Passive => "Passive Skill",
+                SkillType.Ultimate => "Ultimate Skill",
                 _ => baseSkill.type.ToString()
             };
 
             if (isUltimateSkill)
-                typeStr = "Tuyệt Kỹ (Ultimate Skill)";
+                typeStr = "Ultimate Skill";
 
             skillTypeText.text = typeStr;
         }
@@ -82,22 +82,22 @@ public class SkillTooltipUI : MonoBehaviour
         {
             if (isUltimateSkill || baseSkill.energyCost > 0)
             {
-                skillCostText.text = $"Chi phí: {baseSkill.energyCost} Năng lượng (Energy)";
+                skillCostText.text = $"Cost: {baseSkill.energyCost} Energy";
                 skillCostText.color = new Color(1f, 0.85f, 0.2f);
             }
             else if (baseSkill.battlePointCost > 0)
             {
-                skillCostText.text = $"Chi phí: {baseSkill.battlePointCost} Điểm Chiến Kỹ (ĐCK)";
+                skillCostText.text = $"Cost: {baseSkill.battlePointCost} Skill Point(s)";
                 skillCostText.color = new Color(0.4f, 0.8f, 1f);
             }
             else if (baseSkill.battlePointGain > 0)
             {
-                skillCostText.text = $"Hồi phục: +{baseSkill.battlePointGain} Điểm Chiến Kỹ (ĐCK)";
+                skillCostText.text = $"Gain: +{baseSkill.battlePointGain} Skill Point(s)";
                 skillCostText.color = Color.green;
             }
             else
             {
-                skillCostText.text = "Chi phí: Miễn phí";
+                skillCostText.text = "Cost: Free";
                 skillCostText.color = Color.white;
             }
         }
@@ -105,7 +105,7 @@ public class SkillTooltipUI : MonoBehaviour
         if (skillDescriptionText != null)
         {
             string desc = string.IsNullOrEmpty(baseSkill.description)
-                ? "Không có mô tả chi tiết cho kỹ năng này."
+                ? "No description available."
                 : baseSkill.description;
 
             skillDescriptionText.text = desc;

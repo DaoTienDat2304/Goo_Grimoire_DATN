@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Bulwark Aura
   type: 2
-  description: "N\u1ED9i t\u1EA1i \xB7 To\xE0n \u0111\u1ED9i \u22125% s\xE1t th\u01B0\u01A1ng
-    nh\u1EADn; b\u1EA3n th\xE2n \u22128%."
+  description: "Passive · all allies −5% incoming damage.; self −8%."
   icon: {fileID: 2014492175077957913, guid: 513fecac2afa5904f9ad05f7ad7d5b35, type: 3}
   targetTrait: 0
   rarity: 4

@@ -108,9 +108,9 @@ public class FormationManager : MonoBehaviour
         
         
         // Clear all slots first
-        for (int j = 0; j < teamSlimes.team.Count; j++)
+        for (int j = 0; j < teamMembers.Count; j++)
         {
-            if (teamSlimes.team[j] != null)
+            if (teamMembers[j] != null)
             {
                 var bodyRenderer = teamMembers[j].body?.GetComponent<Image>();
                 var armorRenderer = teamMembers[j].armor?.GetComponent<Image>();
@@ -134,16 +134,15 @@ public class FormationManager : MonoBehaviour
             if (teamMembers[i] == null)
             {
                 i++;
-                break;
+                continue;
             }
-            
-            var bodyRenderer = teamMembers[i].body?.GetComponent<Image>();
-            var armorRenderer = teamMembers[i].armor?.GetComponent<Image>();
-            var weaponRenderer = teamMembers[i].weapon?.GetComponent<Image>();
-            teamMembers[i].id = slime.id;
             
             if (slime != null)
             {
+                teamMembers[i].id = slime.id;
+                var bodyRenderer = teamMembers[i].body?.GetComponent<Image>();
+                var armorRenderer = teamMembers[i].armor?.GetComponent<Image>();
+                var weaponRenderer = teamMembers[i].weapon?.GetComponent<Image>();
                 
                 if (bodyRenderer != null)
                 {

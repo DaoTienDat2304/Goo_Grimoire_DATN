@@ -39,14 +39,14 @@ public static class DailyCatalog
 
     private static List<DailyDef> Build() => new List<DailyDef>
     {
-        new DailyDef(2001, "Lai một lứa", "Lai tạo 1 slime hôm nay",         DailyMetric.TotalBred,   1,   150),
-        new DailyDef(2002, "Ra sân",      "Thắng 1 trận hôm nay",            DailyMetric.BattleWins,  1,   150),
-        new DailyDef(2003, "Đi săn",      "Bắt 1 slime hoang hôm nay",       DailyMetric.Captures,    1,   200),
-        new DailyDef(2004, "Cày vàng",    "Thắng 1 trận Farm hôm nay",       DailyMetric.FarmWins,    1,   200),
-        new DailyDef(2005, "Kiếm cơm",    "Kiếm 500 vàng hôm nay",           DailyMetric.CoinsEarned, 500, 300),
-        new DailyDef(2006, "Leo một tầng","Vượt thêm 1 tầng tháp hôm nay",   DailyMetric.TowerFloor,  1,   250),
-        new DailyDef(2007, "Săn hiếm",    "Sở hữu thêm 1 slime Rare+ hôm nay",DailyMetric.RareObtained,1,  400),
-        new DailyDef(2008, "Chiến đấu",   "Thắng 3 trận hôm nay",            DailyMetric.BattleWins,  3,   350),
+        new DailyDef(2001, "Daily Breeding", "Breed 1 Slime today",              DailyMetric.TotalBred,    1,   150),
+        new DailyDef(2002, "First Blood",     "Win 1 battle today",              DailyMetric.BattleWins,   1,   150),
+        new DailyDef(2003, "Wild Hunt",       "Capture 1 wild Slime today",      DailyMetric.Captures,     1,   200),
+        new DailyDef(2004, "Gold Harvest",    "Win 1 Farm match today",          DailyMetric.FarmWins,     1,   200),
+        new DailyDef(2005, "Money Maker",     "Earn 500 Coins today",            DailyMetric.CoinsEarned,  500, 300),
+        new DailyDef(2006, "Climb Higher",    "Clear 1 additional Tower floor",  DailyMetric.TowerFloor,   1,   250),
+        new DailyDef(2007, "Rare Catch",      "Obtain 1 Rare+ Slime today",      DailyMetric.RareObtained, 1,   400),
+        new DailyDef(2008, "Battle Hardened", "Win 3 battles today",             DailyMetric.BattleWins,   3,   350),
     };
 
     public static DailyDef ById(int id) => All.Find(d => d.Id == id);

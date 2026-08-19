@@ -130,6 +130,26 @@ public class PlayerStatsManager : MonoBehaviour
         return sum;
     }
 
+    public long ReadMetric(AchievementMetric metric, Rarity rarity = Rarity.Common)
+    {
+        switch (metric)
+        {
+            case AchievementMetric.TotalBred: return TotalSlimesBred;
+            case AchievementMetric.DistinctTraits: return DistinctTraitsCount;
+            case AchievementMetric.CoinsEarned: return TotalCoinsEarned;
+            case AchievementMetric.GemsEarned: return TotalGemsEarned;
+            case AchievementMetric.FarmWins: return TotalFarmWins;
+            case AchievementMetric.Captures: return TotalCaptures;
+            case AchievementMetric.RarityObtained: return GetRarityObtained(rarity);
+            case AchievementMetric.TowerFloor: return HighestTowerFloor;
+            case AchievementMetric.BattleWins: return TotalBattleWins;
+            case AchievementMetric.Mutations: return TotalMutations;
+            case AchievementMetric.OwnedSlimes:
+                return BreedingManager.Instance != null ? BreedingManager.Instance.GetAllSlimes().Count : 0;
+            default: return 0;
+        }
+    }
+
     // ─── Nội bộ ─────────────────────────────────────────────────────────
     private void RecordSlimeObtained(Slime s)
     {

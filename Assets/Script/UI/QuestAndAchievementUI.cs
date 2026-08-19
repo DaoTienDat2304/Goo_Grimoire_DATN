@@ -208,14 +208,16 @@ public class QuestAndAchievementUI : MonoBehaviour
             {
                 var (current, target) = GetQuestProgress(dq);
                 bool isClaimed = dq.state == Quest.QuestState.Rewarded;
+                Sprite rewardSpr = GetQuestRewardSprite(dq);
+                int rewardAmt = dq.reward != null ? dq.reward.amount : 200;
 
                 cardUI.Setup(
                     dq.questName,
                     dq.description,
                     current,
                     target,
-                    coinSprite,
-                    dq.reward != null ? dq.reward.amount : 200,
+                    rewardSpr,
+                    rewardAmt,
                     "Coins",
                     isClaimed,
                     () => {
@@ -293,15 +295,18 @@ public class QuestAndAchievementUI : MonoBehaviour
             {
                 var (current, target) = GetQuestProgress(q);
                 bool isClaimed = q.state == Quest.QuestState.Rewarded;
+                Sprite rewardSpr = GetQuestRewardSprite(q);
+                int rewardAmt = q.reward != null ? q.reward.amount : (q.currencyReward != null && q.currencyReward.rewards.Count > 0 ? q.currencyReward.rewards[0].amount : 500);
+                string suffix = (q.currencyReward != null && q.currencyReward.rewards.Count > 0 && q.currencyReward.rewards[0].type == CurrencyType.Gems) ? "Gems" : "Coins";
 
                 cardUI.Setup(
                     q.questName,
                     q.description,
                     current,
                     target,
-                    coinSprite,
-                    q.reward != null ? q.reward.amount : 500,
-                    "Coins",
+                    rewardSpr,
+                    rewardAmt,
+                    suffix,
                     isClaimed,
                     () => {
                         q.ClaimReward();
@@ -312,6 +317,25 @@ public class QuestAndAchievementUI : MonoBehaviour
         }
 
         SetText(sectionCounterObject, $"{completedCount} / {totalCount} Completed");
+    }
+
+    private Sprite GetQuestRewardSprite(Quest q)
+    {
+        if (q != null && q.rewardIcon != null)
+        {
+            return q.rewardIcon;
+        }
+
+        if (q != null && q.currencyReward != null && q.currencyReward.rewards != null)
+        {
+            foreach (var r in q.currencyReward.rewards)
+            {
+                if (r.type == CurrencyType.Gems) return gemSprite;
+                if (r.type == CurrencyType.Coins) return coinSprite;
+            }
+        }
+
+        return coinSprite;
     }
 
     private (long current, long target) GetQuestProgress(Quest q)

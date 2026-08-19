@@ -25,10 +25,19 @@ public class QuestCardItemUI : MonoBehaviour
 
     [Header("Reward Visual")]
     public Image rewardIcon;
+    public Sprite coinRewardSprite; // Icon Vàng mặc định
+    public Sprite gemRewardSprite;  // Icon Đá Quý mặc định
 
     [Header("Action Button")]
     public Button actionButton;
     public GameObject actionButtonTextObject;
+
+    [Header("Action Button Sprites (Tùy chọn - nếu muốn dùng hình nút riêng)")]
+    public Sprite inProgressButtonSprite;
+    public Sprite readyClaimButtonSprite;
+    public Sprite claimedButtonSprite;
+
+    [Header("Action Button Colors (Dùng khi không gán Sprite riêng)")]
     public Color inProgressButtonColor = new Color(0.35f, 0.35f, 0.35f, 1f);
     public Color readyClaimButtonColor = new Color(0.2f, 0.8f, 0.2f, 1f);
     public Color claimedButtonColor = new Color(0.2f, 0.2f, 0.2f, 0.6f);
@@ -89,8 +98,22 @@ public class QuestCardItemUI : MonoBehaviour
         // 3. Reward
         if (rewardIcon != null)
         {
-            rewardIcon.sprite = rewardSprite;
-            rewardIcon.gameObject.SetActive(rewardSprite != null);
+            Sprite finalSprite = rewardSprite;
+            if (finalSprite == null)
+            {
+                if (!string.IsNullOrEmpty(currencySuffix) && currencySuffix.ToLower().Contains("gem"))
+                {
+                    finalSprite = gemRewardSprite;
+                }
+                else
+                {
+                    finalSprite = coinRewardSprite;
+                }
+            }
+
+            rewardIcon.sprite = finalSprite;
+            rewardIcon.preserveAspect = true;
+            rewardIcon.gameObject.SetActive(finalSprite != null);
         }
 
         string rewardStr = $"+{rewardAmount:N0} {currencySuffix}".Trim();
@@ -105,7 +128,20 @@ public class QuestCardItemUI : MonoBehaviour
             // Đã nhận thưởng
             SetText(actionButtonTextObject, "CLAIMED");
             if (actionButton != null) actionButton.interactable = false;
-            if (btnImg != null) btnImg.color = claimedButtonColor;
+
+            if (btnImg != null)
+            {
+                if (claimedButtonSprite != null)
+                {
+                    btnImg.sprite = claimedButtonSprite;
+                    btnImg.color = Color.white;
+                }
+                else
+                {
+                    btnImg.color = claimedButtonColor;
+                }
+            }
+
             if (readyGlowEffect != null) readyGlowEffect.SetActive(false);
             if (completedCheckmark != null) completedCheckmark.SetActive(true);
             if (lockOverlay != null) lockOverlay.SetActive(false);
@@ -115,7 +151,20 @@ public class QuestCardItemUI : MonoBehaviour
             // Sẵn sàng nhận thưởng (Claim)
             SetText(actionButtonTextObject, "CLAIM");
             if (actionButton != null) actionButton.interactable = true;
-            if (btnImg != null) btnImg.color = readyClaimButtonColor;
+
+            if (btnImg != null)
+            {
+                if (readyClaimButtonSprite != null)
+                {
+                    btnImg.sprite = readyClaimButtonSprite;
+                    btnImg.color = Color.white;
+                }
+                else
+                {
+                    btnImg.color = readyClaimButtonColor;
+                }
+            }
+
             if (readyGlowEffect != null) readyGlowEffect.SetActive(true);
             if (completedCheckmark != null) completedCheckmark.SetActive(false);
             if (lockOverlay != null) lockOverlay.SetActive(false);
@@ -125,7 +174,20 @@ public class QuestCardItemUI : MonoBehaviour
             // Đang thực hiện (In Progress)
             SetText(actionButtonTextObject, "IN PROGRESS");
             if (actionButton != null) actionButton.interactable = false;
-            if (btnImg != null) btnImg.color = inProgressButtonColor;
+
+            if (btnImg != null)
+            {
+                if (inProgressButtonSprite != null)
+                {
+                    btnImg.sprite = inProgressButtonSprite;
+                    btnImg.color = Color.white;
+                }
+                else
+                {
+                    btnImg.color = inProgressButtonColor;
+                }
+            }
+
             if (readyGlowEffect != null) readyGlowEffect.SetActive(false);
             if (completedCheckmark != null) completedCheckmark.SetActive(false);
             if (lockOverlay != null) lockOverlay.SetActive(false);

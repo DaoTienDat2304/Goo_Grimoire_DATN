@@ -74,8 +74,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -203,8 +203,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 75704827, guid: 6446a70c84c06a84fa1c41ce55258c5b, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -459,8 +459,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -299.78976, y: 18}
-  m_SizeDelta: {x: 87.5796, y: 80}
+  m_AnchoredPosition: {x: -295.99997, y: 20.7}
+  m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2426833607188417583
 CanvasRenderer:
@@ -483,14 +483,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 1, b: 0.013386011, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -1432182836, guid: 6446a70c84c06a84fa1c41ce55258c5b, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -730,7 +730,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -1553962423, guid: 6446a70c84c06a84fa1c41ce55258c5b, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -789,8 +789,13 @@ MonoBehaviour:
     m_NumColorKeys: 5
     m_NumAlphaKeys: 2
   rewardIcon: {fileID: 6525843223034158900}
+  coinRewardSprite: {fileID: -1432182836, guid: 6446a70c84c06a84fa1c41ce55258c5b, type: 3}
+  gemRewardSprite: {fileID: 682975150, guid: 6446a70c84c06a84fa1c41ce55258c5b, type: 3}
   actionButton: {fileID: 7908672174393322861}
   actionButtonTextObject: {fileID: 372488507011005452}
+  inProgressButtonSprite: {fileID: 633834198, guid: 6446a70c84c06a84fa1c41ce55258c5b, type: 3}
+  readyClaimButtonSprite: {fileID: 75704827, guid: 6446a70c84c06a84fa1c41ce55258c5b, type: 3}
+  claimedButtonSprite: {fileID: -1236359040, guid: 6446a70c84c06a84fa1c41ce55258c5b, type: 3}
   inProgressButtonColor: {r: 0.35, g: 0.35, b: 0.35, a: 1}
   readyClaimButtonColor: {r: 0.2, g: 0.8, b: 0.2, a: 1}
   claimedButtonColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.6}
@@ -907,10 +912,10 @@ RectTransform:
   - {fileID: 2474557166649382896}
   m_Father: {fileID: 2358512338301477737}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.25}
-  m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: 0.000015258789, y: 0.00007581711}
-  m_SizeDelta: {x: -0.000030518, y: 10.715}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &7876852381893592449
 GameObject:
@@ -981,10 +986,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2358512338301477737}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.25}
-  m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: 0, y: 0.000072956085}
-  m_SizeDelta: {x: 0, y: 10.715}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5883461982242977753
 CanvasRenderer:
@@ -1058,8 +1063,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.045196533, y: 0}
-  m_SizeDelta: {x: 0.090360165, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5784509911528615714
 CanvasRenderer:
@@ -1082,15 +1087,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.07407093, g: 1, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: -1662603449, guid: 6446a70c84c06a84fa1c41ce55258c5b, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4

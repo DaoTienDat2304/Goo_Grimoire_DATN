@@ -1495,7 +1495,10 @@ public class TurnSystem : MonoBehaviour
         }
 
         yield return new WaitForSeconds(2f);
-        yield return SceneLoader.LoadSceneWithLoadingCoroutine("adventureSence");
+        string returnScene = BattleDataManager.Instance != null && !string.IsNullOrEmpty(BattleDataManager.Instance.ReturnSceneName)
+            ? BattleDataManager.Instance.ReturnSceneName
+            : "firstsave";
+        yield return SceneLoader.LoadSceneWithLoadingCoroutine(returnScene);
     }
 
     public void TriggerDefeat()
@@ -1519,6 +1522,12 @@ public class TurnSystem : MonoBehaviour
         bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
         bool isFarmMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode();
 
+        string targetReturnScene = "firstsave";
+        if (BattleDataManager.Instance != null && !string.IsNullOrEmpty(BattleDataManager.Instance.ReturnSceneName))
+        {
+            targetReturnScene = BattleDataManager.Instance.ReturnSceneName;
+        }
+
         if (BattleDataManager.Instance != null)
         {
             BattleDataManager.Instance.ClearBossData();
@@ -1526,19 +1535,7 @@ public class TurnSystem : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
 
-        if (isFarmMode)
-        {
-            // Quay về firstsave scene khi thua farm mode
-            yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
-        }
-        else if (isTowerMode)
-        {
-            yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
-        }
-        else
-        {
-            yield return SceneLoader.LoadSceneWithLoadingCoroutine("adventureSence");
-        }
+        yield return SceneLoader.LoadSceneWithLoadingCoroutine(targetReturnScene);
     }
 
     /// <summary>

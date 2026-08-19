@@ -51,56 +51,56 @@ public static class AchievementCatalog
     {
         var l = new List<AchievementDef>();
 
-        // A. Lai tạo — "Nhà lai tạo"
-        Chain(l, "bred", "Nhà lai tạo", "Lai tạo {0} slime", AchievementMetric.TotalBred,
+        // A. Breeding
+        Chain(l, "bred", "Breeding Master", "Breed {0} Slimes", AchievementMetric.TotalBred,
             new long[] { 10, 50, 100, 500, 1000 }, new int[] { 5, 15, 40, 100, 300 });
 
-        // B. Sưu tập trait — "Nhà sưu tầm"
-        Chain(l, "trait", "Nhà sưu tầm", "Sưu tập {0} trait khác nhau", AchievementMetric.DistinctTraits,
+        // B. Trait Collection
+        Chain(l, "trait", "Trait Collector", "Collect {0} distinct Traits", AchievementMetric.DistinctTraits,
             new long[] { 10, 25, 50, 100 }, new int[] { 10, 25, 60, 150 });
 
-        // C. Vàng kiếm được — "Trọc phú"
-        Chain(l, "coins", "Trọc phú", "Kiếm được tổng cộng {0} vàng", AchievementMetric.CoinsEarned,
+        // C. Gold Earned
+        Chain(l, "coins", "Coin Tycoon", "Earn {0} Coins in total", AchievementMetric.CoinsEarned,
             new long[] { 1000, 10000, 100000, 1000000 }, new int[] { 15, 40, 120, 500 });
 
-        // D. Gem kiếm được — "Kho báu"
-        Chain(l, "gems", "Kho báu", "Kiếm được tổng cộng {0} gem", AchievementMetric.GemsEarned,
+        // D. Gem Earned
+        Chain(l, "gems", "Treasure Hoarder", "Earn {0} Gems in total", AchievementMetric.GemsEarned,
             new long[] { 50, 500, 5000 }, new int[] { 10, 50, 200 });
 
-        // E. Farm — "Nông dân"
-        Chain(l, "farm", "Nông dân", "Thắng {0} lần chế độ Farm", AchievementMetric.FarmWins,
+        // E. Farm Wins
+        Chain(l, "farm", "Farm Champion", "Win {0} Farm matches", AchievementMetric.FarmWins,
             new long[] { 1, 10, 50, 100 }, new int[] { 5, 25, 80, 200 });
 
-        // F. Phiêu lưu bắt slime — "Thợ săn"
-        Chain(l, "catch", "Thợ săn", "Bắt được {0} slime hoang", AchievementMetric.Captures,
+        // F. Adventure Captures
+        Chain(l, "catch", "Wild Hunter", "Capture {0} wild Slimes", AchievementMetric.Captures,
             new long[] { 10, 30, 100, 300 }, new int[] { 10, 30, 90, 250 });
 
-        // G. Săn hàng hiếm — theo độ hiếm
-        Chain(l, "superrare", "Săn Siêu Hiếm", "Sở hữu {0} slime Super Rare", AchievementMetric.RarityObtained,
+        // G. Rarity Hunters
+        Chain(l, "superrare", "Super Rare Seeker", "Own {0} Super Rare Slimes", AchievementMetric.RarityObtained,
             new long[] { 1, 10, 50 }, new int[] { 10, 40, 120 }, Rarity.SuperRare);
-        Chain(l, "ultrarare", "Săn Cực Hiếm", "Sở hữu {0} slime Ultra Rare", AchievementMetric.RarityObtained,
+        Chain(l, "ultrarare", "Ultra Rare Seeker", "Own {0} Ultra Rare Slimes", AchievementMetric.RarityObtained,
             new long[] { 1, 10, 50 }, new int[] { 20, 80, 200 }, Rarity.UltraRare);
-        Chain(l, "legendary", "Huyền Thoại", "Sở hữu {0} slime Legendary", AchievementMetric.RarityObtained,
+        Chain(l, "legendary", "Legendary Master", "Own {0} Legendary Slimes", AchievementMetric.RarityObtained,
             new long[] { 1, 10, 25 }, new int[] { 50, 150, 350 }, Rarity.Legendary);
-        Chain(l, "mythic", "Thần Thoại", "Sở hữu {0} slime Mythic", AchievementMetric.RarityObtained,
+        Chain(l, "mythic", "Mythic Legend", "Own {0} Mythic Slimes", AchievementMetric.RarityObtained,
             new long[] { 1, 5, 10 }, new int[] { 100, 300, 700 }, Rarity.Mythic);
-        Chain(l, "secret", "Bí Ẩn", "Sưu tập {0} slime Secret", AchievementMetric.RarityObtained,
+        Chain(l, "secret", "Secret Slime Master", "Collect {0} Secret Slimes", AchievementMetric.RarityObtained,
             new long[] { 1, 3 }, new int[] { 150, 400 }, Rarity.Secret);
 
-        // H. Leo tháp — "Kẻ leo tháp"
-        Chain(l, "tower", "Kẻ leo tháp", "Đạt tầng tháp {0}", AchievementMetric.TowerFloor,
+        // H. Tower Floor
+        Chain(l, "tower", "Tower Conqueror", "Reach Tower Floor {0}", AchievementMetric.TowerFloor,
             new long[] { 5, 10, 20, 50 }, new int[] { 20, 60, 150, 500 });
 
-        // I. Chiến đấu — "Chiến binh"
-        Chain(l, "battle", "Chiến binh", "Thắng {0} trận đấu", AchievementMetric.BattleWins,
+        // I. Battle Wins
+        Chain(l, "battle", "Gladiator", "Win {0} battles", AchievementMetric.BattleWins,
             new long[] { 10, 50, 200, 500 }, new int[] { 10, 40, 120, 300 });
 
-        // J. Bộ sưu tập hiện có — "Vườn slime"
-        Chain(l, "owned", "Vườn slime", "Sở hữu cùng lúc {0} slime", AchievementMetric.OwnedSlimes,
+        // J. Current Owned Slimes
+        Chain(l, "owned", "Slime Sanctuary", "Own {0} Slimes simultaneously", AchievementMetric.OwnedSlimes,
             new long[] { 10, 20, 30 }, new int[] { 15, 40, 100 });
 
-        // K. Đột biến — "Nhà giả kim"
-        Chain(l, "mutation", "Nhà giả kim", "Lai ra {0} slime đột biến", AchievementMetric.Mutations,
+        // K. Mutations
+        Chain(l, "mutation", "Alchemist", "Breed {0} mutated Slimes", AchievementMetric.Mutations,
             new long[] { 1, 10, 50 }, new int[] { 20, 80, 300 });
 
         return l;

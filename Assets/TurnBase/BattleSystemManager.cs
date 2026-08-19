@@ -4,18 +4,16 @@ using System;
 public class BattleSystemManager : MonoBehaviour
 {
     private static BattleSystemManager _instance;
+    private static bool _isShuttingDown = false;
+
     public static BattleSystemManager Instance
     {
         get
         {
+            if (_isShuttingDown) return null;
             if (_instance == null)
             {
                 _instance = FindFirstObjectByType<BattleSystemManager>();
-                if (_instance == null)
-                {
-                    GameObject go = new GameObject("BattleSystemManager");
-                    _instance = go.AddComponent<BattleSystemManager>();
-                }
             }
             return _instance;
         }
@@ -36,8 +34,22 @@ public class BattleSystemManager : MonoBehaviour
 
     private void Awake()
     {
+        _isShuttingDown = false;
         if (_instance == null) _instance = this;
         else if (_instance != this) Destroy(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (_instance == this)
+        {
+            _instance = null;
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        _isShuttingDown = true;
     }
 
     private void Start()

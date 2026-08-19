@@ -147,17 +147,28 @@ public class loading : MonoBehaviour
 
         if (string.IsNullOrEmpty(sceneName))
         {
-            Debug.LogError("[Loading] Tên scene trống.");
-            SceneLoader.EndSceneLoadRequest();
-            return;
+            Debug.LogError("[Loading] Tên scene trống, chuyển về 'firstsave'.");
+            sceneName = "firstsave";
         }
 
         int sceneIndex = GetSceneIndexByName(sceneName);
         if (sceneIndex < 0)
         {
-            Debug.LogError($"[Loading] Scene '{sceneName}' chưa được thêm vào Build Settings.");
-            SceneLoader.EndSceneLoadRequest();
-            return;
+            Debug.LogWarning($"[Loading] Scene '{sceneName}' chưa có trong Build Settings. Tự động chuyển về 'firstsave'...");
+            sceneIndex = GetSceneIndexByName("firstsave");
+            if (sceneIndex < 0)
+            {
+                Debug.LogError("[Loading] Không tìm thấy scene 'firstsave' trong Build Settings.");
+                SceneLoader.EndSceneLoadRequest();
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = 0f;
+                    canvasGroup.blocksRaycasts = false;
+                    canvasGroup.interactable = false;
+                }
+                gameObject.SetActive(false);
+                return;
+            }
         }
 
         await PlayLoading(sceneIndex);

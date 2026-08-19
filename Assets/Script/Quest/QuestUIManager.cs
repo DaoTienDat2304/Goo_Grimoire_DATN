@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -21,6 +21,8 @@ public class QuestUIManager : MonoBehaviour
     // Khi thêm quest mới vào UI
     public void AddQuest(Quest quest)
     {
+        if (quest == null || questItemPrefab == null) return;
+        if (contentParent == null && GameObject.Find("generalQuest") == null) return;
         if (questItems.ContainsKey(quest.questID)) return;
 
         GameObject newItem = Instantiate(questItemPrefab, contentParent);

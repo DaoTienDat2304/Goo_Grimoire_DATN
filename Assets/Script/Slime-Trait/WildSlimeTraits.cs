@@ -1,4 +1,4 @@
-﻿using Spine.Unity;
+using Spine.Unity;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
@@ -83,7 +83,6 @@ public class WildSlimeTraits : MonoBehaviour
             return null;
         }
 
-        // Lấy traits từ wildSlimeTraits (đã có sẵn)
         TraitSO bodySo = null;
         TraitSO armorSo = null;
         TraitSO weaponSo = null;
@@ -105,14 +104,12 @@ public class WildSlimeTraits : MonoBehaviour
             return null;
         }
 
-        // Tạo Slime từ các traits đã có
         Slime s = new Slime();
         s.slimeName = name;
         s.body = bodySo.GenerateInstance();
         s.armor = armorSo.GenerateInstance();
         s.weapon = weaponSo.GenerateInstance();
-        // Enemy Adventure roll chỉ số theo chất lượng design (Good/Excellent/Perfect/God, sàn 40%).
-        AdventureStatRoll.Apply(s); // đã gọi CalculateStats() bên trong
+        AdventureStatRoll.Apply(s);
         return s;
     }
     public Sprite CreateDefaultSlimeSprite()
@@ -171,7 +168,6 @@ public class WildSlimeTraits : MonoBehaviour
         var bodyAnimationController = body.AddComponent<SlimeAnimationController>();
         if (slime?.body?.hasAnimation == true)
         {
-            // Nếu có animation, khởi tạo với animation
             bodyAnimationController.Initialize(slime.body.animationAsset, slime.body.animationName);
 
             bodyAnimationController.PlayAnimation("animation");
@@ -201,13 +197,11 @@ public class WildSlimeTraits : MonoBehaviour
         weaponRenderer.sortingLayerName = "Player";
         weaponRenderer.sortingOrder = 2;
         newSlime.slimeID = wildSlimeID;
-        // Random loại slime (50% friendly, 50% aggressive)
         newSlime.slimeType = Random.value < 0.5f ? WildSlimeType.Friendly : WildSlimeType.Aggressive;
         wildSlimes.slimes.Add(newSlime);
         wildSlimes.slimes[wildSlimes.slimes.Count - 1].slimeID = wildSlimeID;
     }
 
-    // Method để lấy slimeType của slime này
     public WildSlimeType GetSlimeType()
     {
         if (wildSlimes == null) return WildSlimeType.Friendly;
@@ -226,7 +220,6 @@ public class WildSlimeTraits : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Catcher"))
         {
-            // Tìm WildSlimeTraits tương ứng với wildSlimeID này
             WildSlimes.WildSlimeTraits currentSlime = null;
             foreach (var s in wildSlimes.slimes)
             {
@@ -241,12 +234,10 @@ public class WildSlimeTraits : MonoBehaviour
             {
                 if (currentSlime.slimeType == WildSlimeType.Friendly)
                 {
-                    // Logic hiện tại cho friendly slime
                     StartCoroutine(MenuSetup());
                 }
                 else if (currentSlime.slimeType == WildSlimeType.Aggressive)
                 {
-                    // Chuyển sang turn-based battle
                     StartCoroutine(StartBattleWithSlime(currentSlime));
                 }
             }

@@ -1,12 +1,7 @@
 // ============================================================
 // FirebaseAnalyticsManager.cs
 //
-// Define symbols cần có:
-//   FIREBASE_ANALYTICS — bật Firebase Analytics thật
 //
-// Không có symbol → chỉ Debug.Log, không gửi data lên Firebase.
-// Firebase app phải được khởi tạo bởi AuthManager trước khi
-// gọi bất kỳ LogEvent nào.
 // ============================================================
 
 using UnityEngine;
@@ -27,7 +22,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 
     // ── Auth Events ──────────────────────────────────────────
 
-    /// <summary>Bắn khi user đăng nhập thành công.</summary>
     public static void LogLogin(string method)
     {
 #if FIREBASE_ANALYTICS
@@ -38,7 +32,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 #endif
     }
 
-    /// <summary>Bắn khi user đăng ký tài khoản mới thành công.</summary>
     public static void LogSignUp(string method)
     {
 #if FIREBASE_ANALYTICS
@@ -49,7 +42,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 #endif
     }
 
-    /// <summary>Bắn khi user đăng xuất.</summary>
     public static void LogLogout()
     {
 #if FIREBASE_ANALYTICS
@@ -61,7 +53,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 
     // ── Breeding Events ──────────────────────────────────────
 
-    /// <summary>Bắn khi bắt đầu nhân giống (sau khi trừ coins).</summary>
     public static void LogBreedStart(string parent1Rarity, string parent2Rarity, int costCoins, int slimeCount)
     {
 #if FIREBASE_ANALYTICS
@@ -75,7 +66,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 #endif
     }
 
-    /// <summary>Bắn khi nhân giống hoàn tất và slime con được thêm vào collection.</summary>
     public static void LogBreedComplete(string offspringRarity, bool hadMutation, int slimeCount)
     {
 #if FIREBASE_ANALYTICS
@@ -88,7 +78,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 #endif
     }
 
-    /// <summary>Bắn khi mutation xảy ra — ghi nhận stat nào được tăng.</summary>
     public static void LogBreedMutation(string statBoosted, int bonusAmount)
     {
 #if FIREBASE_ANALYTICS
@@ -102,7 +91,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 
     // ── Battle Events ────────────────────────────────────────
 
-    /// <summary>Bắn khi trận đấu bắt đầu (user nhấn Start).</summary>
     public static void LogBattleStart(string battleMode, string difficulty, int teamSize)
     {
 #if FIREBASE_ANALYTICS
@@ -115,7 +103,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 #endif
     }
 
-    /// <summary>Bắn khi thắng trận — trước khi xử lý reward.</summary>
     public static void LogBattleWin(string battleMode, string difficulty, int turnsTaken, int coinsEarned)
     {
 #if FIREBASE_ANALYTICS
@@ -129,7 +116,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 #endif
     }
 
-    /// <summary>Bắn khi thua trận.</summary>
     public static void LogBattleLose(string battleMode, string difficulty, int turnsTaken)
     {
 #if FIREBASE_ANALYTICS
@@ -144,7 +130,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 
     // ── Shop Events ──────────────────────────────────────────
 
-    /// <summary>Bắn khi user xác nhận mua item trong shop.</summary>
     public static void LogShopPurchase(string currencyType, int price, string resourceGranted, int resourceAmount)
     {
 #if FIREBASE_ANALYTICS
@@ -160,7 +145,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 
     // ── Quest Events ─────────────────────────────────────────
 
-    /// <summary>Bắn khi quest chuyển từ Locked → Available.</summary>
     public static void LogQuestUnlock(int questId, string questName, string questType)
     {
 #if FIREBASE_ANALYTICS
@@ -173,7 +157,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 #endif
     }
 
-    /// <summary>Bắn khi quest chuyển sang Completed.</summary>
     public static void LogQuestComplete(int questId, string questName, string questType)
     {
 #if FIREBASE_ANALYTICS
@@ -188,7 +171,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 
     // ── Farm Events ──────────────────────────────────────────
 
-    /// <summary>Bắn khi user chọn độ khó farm và bắt đầu trận.</summary>
     public static void LogFarmDifficultySelect(string difficultyName, int difficultyIndex)
     {
 #if FIREBASE_ANALYTICS

@@ -24,22 +24,18 @@ public class DialogueTrigger : MonoBehaviour
     
     void Start()
     {
-        // Tìm DialogueSystem nếu chưa được gán
         if (dialogueSystem == null)
         {
             dialogueSystem = FindAnyObjectByType<DialogueSystem>();
         }
         
-        // Tìm Player
         player = FindAnyObjectByType<MovePlayer>();
         
-        // Đăng ký sự kiện từ Player
         if (player != null)
         {
             player.OnReachedTarget += OnPlayerReachedTarget;
         }
         
-        // Ẩn highlight ban đầu
         if (highlightObject != null)
         {
             highlightObject.SetActive(false);
@@ -48,7 +44,6 @@ public class DialogueTrigger : MonoBehaviour
     
     void OnDestroy()
     {
-        // Hủy đăng ký sự kiện
         if (player != null)
         {
             player.OnReachedTarget -= OnPlayerReachedTarget;
@@ -177,19 +172,16 @@ public class DialogueTrigger : MonoBehaviour
         }
     }
     
-    // Phương thức để reset trigger (có thể gọi từ bên ngoài)
     public void ResetTrigger()
     {
         hasTriggered = false;
     }
     
-    // Phương thức để kiểm tra xem đã trigger chưa
     public bool HasTriggered()
     {
         return hasTriggered;
     }
     
-    // Phương thức để thiết lập dialogue sequence mới
     public void SetDialogueSequence(string sequenceName)
     {
         dialogueSequenceName = sequenceName;

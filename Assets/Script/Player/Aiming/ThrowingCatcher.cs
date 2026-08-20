@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 
 public class ThrowingCatcher : MonoBehaviour
@@ -38,31 +38,27 @@ public class ThrowingCatcher : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Slime"))
         {
-            // Kiểm tra loại slime (friendly/aggressive)
             WildSlimeTraits wildSlimeTraits = collision.gameObject.GetComponent<WildSlimeTraits>();
             
             if (wildSlimeTraits != null)
             {
                 WildSlimeType slimeType = wildSlimeTraits.GetSlimeType();
                 
-                // Chỉ bật taming panel nếu là friendly slime
                 if (slimeType == WildSlimeType.Friendly)
                 {
                     if (tamingPanel != null)
-                        tamingPanel.SetActive(true); // hiện menu
+                        tamingPanel.SetActive(true);
                     playerMovement.enabled = false;
                 }
-                // Nếu là aggressive, không làm gì ở đây (WildSlimeTraits sẽ xử lý)
             }
             else
             {
-                // Fallback: nếu không tìm thấy WildSlimeTraits, giữ logic cũ (bật panel)
                 if (tamingPanel != null)
                     tamingPanel.SetActive(true);
                 playerMovement.enabled = false;
             }
 
-            Destroy(gameObject); // huỷ đạn
+            Destroy(gameObject);
         }
     }
 }

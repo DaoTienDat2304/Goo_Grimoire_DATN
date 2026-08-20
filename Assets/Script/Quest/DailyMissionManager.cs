@@ -3,16 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Hệ nhiệm vụ hàng ngày: mỗi ngày chọn ngẫu nhiên 3 daily từ DailyCatalog, chụp baseline
-/// counter đầu ngày, reset lúc 00:00 (giờ máy), thưởng VÀNG + bonus streak khi xong cả 3.
-/// Đăng ký daily vào QuestManager để tái dùng UI/quy trình claim sẵn có. Tự chạy — không cần Inspector.
 /// </summary>
 public class DailyMissionManager : MonoBehaviour
 {
-    /// <summary>Số daily mỗi ngày — key remote `daily_count` (mặc định 3).</summary>
     public static int DailyCount => RemoteBalance.Reward.dailyCount;
 
-    /// <summary>Bonus khi xong cả bộ — key remote `daily_streak_bonus_gold` (mặc định 500).</summary>
     public static int StreakBonusGold => RemoteBalance.Reward.dailyStreakBonusGold;
 
     private static DailyMissionManager _instance;
@@ -48,7 +43,6 @@ public class DailyMissionManager : MonoBehaviour
 
     private static string Today() => DateTime.Now.ToString("yyyy-MM-dd");
 
-    // ── Nạp từ save (SaveAndLoadSystem gọi) ─────────────────────────────
     public void ApplyLoad(string savedDate, List<int> ids, List<long> bases, bool streak)
     {
         string today = Today();
@@ -77,7 +71,6 @@ public class DailyMissionManager : MonoBehaviour
         data.dailyStreakClaimed = streakClaimed;
     }
 
-    // ── Chọn ngày mới ───────────────────────────────────────────────────
     private void RollNewDay(string today)
     {
         currentDate = today;
@@ -85,7 +78,6 @@ public class DailyMissionManager : MonoBehaviour
         todayIDs.Clear();
         baselines.Clear();
 
-        // Chọn ngẫu nhiên DailyCount daily khác nhau từ pool.
         var pool = new List<DailyDef>(DailyCatalog.All);
         int pick = Mathf.Min(DailyCount, pool.Count);
         for (int i = 0; i < pick; i++)
@@ -94,16 +86,14 @@ public class DailyMissionManager : MonoBehaviour
             var def = pool[idx];
             pool.RemoveAt(idx);
             todayIDs.Add(def.Id);
-            baselines.Add(DailyQuest.Lifetime(def.Metric)); // baseline = counter hiện tại
+            baselines.Add(DailyQuest.Lifetime(def.Metric));
         }
     }
 
-    // ── Đăng ký daily vào QuestManager ──────────────────────────────────
     private void RegisterInto(QuestManager qm, bool force = false)
     {
         if (qm == null || !built) return;
 
-        // Bỏ bản cũ (nếu có) rồi tạo lại để baseline/mốc luôn đúng.
         for (int i = 0; i < todayIDs.Count; i++)
         {
             var ex = qm.GetQuest(todayIDs[i]);
@@ -117,7 +107,7 @@ public class DailyMissionManager : MonoBehaviour
 
             var q = ScriptableObject.CreateInstance<DailyQuest>();
             q.questID = def.Id;
-            q.questName = "[Ngày] " + def.Name;
+            q.questName = "[Daily] " + def.Name;
             q.description = def.Description;
             q.slimeRequirement = 0;
             q.questreq = new List<int>();
@@ -126,7 +116,6 @@ public class DailyMissionManager : MonoBehaviour
             q.target = def.Target;
             q.baseline = baselines[i];
 
-            // Hệ số thưởng remote (`reward_mult_daily_gold`)
             int gold = RemoteBalance.ScaleReward(def.GoldReward, RemoteBalance.Reward.dailyGold);
 
             q.currencyReward = new CurrencyReward(CurrencyType.Coins, gold);
@@ -134,7 +123,7 @@ public class DailyMissionManager : MonoBehaviour
             {
                 rewardType = "coins",
                 amount = gold,
-                description = $"{gold} vàng"
+                description = $"{gold} gold"
             };
             q.state = Quest.QuestState.Locked;
 
@@ -147,7 +136,6 @@ public class DailyMissionManager : MonoBehaviour
 
     private void Update()
     {
-        // 1) Sang ngày mới khi đang chơi (qua 00:00).
         if (built && currentDate != Today())
         {
             RollNewDay(Today());
@@ -155,12 +143,10 @@ public class DailyMissionManager : MonoBehaviour
             SaveAndLoadSystem.Instance?.Save();
         }
 
-        // 2) Đổi scene → QuestManager mới chưa có daily → gắn lại.
         var qmNow = QuestManager.Instance;
         if (built && qmNow != null && !RegisteredInto(qmNow))
             RegisterInto(qmNow);
 
-        // 3) Bonus streak khi hoàn thành cả 3.
         StreakCheck(qmNow);
     }
 
@@ -179,7 +165,7 @@ public class DailyMissionManager : MonoBehaviour
         {
             streakClaimed = true;
             CurrencyManager.Instance?.AddCurrency(CurrencyType.Coins, StreakBonusGold);
-            Debug.Log($"[Daily] Hoàn thành cả {DailyCount} nhiệm vụ ngày → bonus {StreakBonusGold} vàng!");
+            Debug.Log($"[Daily] Completed all {DailyCount} missions daily → bonus {StreakBonusGold} gold!");
             SaveAndLoadSystem.Instance?.Save();
         }
     }

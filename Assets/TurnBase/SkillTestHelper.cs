@@ -3,22 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Chỉ tồn tại trong Editor. Attach vào bất kỳ GameObject trong scene TurnBaseGame.
-/// Dùng [ContextMenu] hoặc phím số (1–4) để test toàn bộ skill (tất cả effects + cooldown).
 /// </summary>
 public class SkillTestHelper : MonoBehaviour
 {
-    [Header("Kéo TurnSystem và FormationManager vào đây")]
+    [Header("Assign TurnSystem and FormationManager")]
     public TurnSystem turnSystem;
     public FormationManager formationManager;
 
-    [Header("Skills cần test (index 0–3 tương ứng phím 1–4)")]
+    [Header("Skills to test (index 0–3 keys 1–4)")]
     public SkillSO[] testSkills = new SkillSO[4];
 
-    [Header("Skill power giả lập (mặc định 1.0)")]
+    [Header("Skill power test (default 1.0)")]
     public float testSkillPower = 1f;
 
-    // Theo dõi cooldown đơn giản per-slot
     private readonly int[] _cooldowns = new int[4];
 
     private void Update()
@@ -28,7 +25,6 @@ public class SkillTestHelper : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha3)) FireSkill(2);
         if (Input.GetKeyDown(KeyCode.Alpha4)) FireSkill(3);
 
-        // R = reset tất cả cooldown
         if (Input.GetKeyDown(KeyCode.R)) ResetAllCooldowns();
     }
 
@@ -39,20 +35,20 @@ public class SkillTestHelper : MonoBehaviour
     [ContextMenu("Reset All Cooldowns")] void ResetAllCooldowns()
     {
         for (int i = 0; i < _cooldowns.Length; i++) _cooldowns[i] = 0;
-        Debug.Log("[SkillTest] Đã reset tất cả cooldown.");
+        Debug.Log("[SkillTest] Cooldowns reset.");
     }
 
     void FireSkill(int index)
     {
         if (index >= testSkills.Length || testSkills[index] == null)
         {
-            Debug.LogWarning($"[SkillTest] testSkills[{index}] chưa được gán.");
+            Debug.LogWarning($"[SkillTest] testSkills[{index}] not assigned.");
             return;
         }
 
         if (turnSystem == null || formationManager == null)
         {
-            Debug.LogWarning("[SkillTest] Chưa gán TurnSystem hoặc FormationManager.");
+            Debug.LogWarning("[SkillTest] Missing TurnSystem hoac FormationManager.");
             return;
         }
 
@@ -60,7 +56,7 @@ public class SkillTestHelper : MonoBehaviour
 
         if (_cooldowns[index] > 0)
         {
-            Debug.LogWarning($"[SkillTest] Skill [{index}] '{skill.skillName}' đang cooldown còn {_cooldowns[index]} lượt. Nhấn R để reset.");
+            Debug.LogWarning($"[SkillTest] Skill [{index}] '{skill.skillName}' cooldown left {_cooldowns[index]} turn. Press R to reset.");
             return;
         }
 
@@ -75,7 +71,7 @@ public class SkillTestHelper : MonoBehaviour
 
             if (targets.Count == 0)
             {
-                Debug.Log($"  Effect '{entry.effect.name}': không có target nào.");
+                Debug.Log($"  Effect '{entry.effect.name}': no target .");
                 continue;
             }
 
@@ -108,17 +104,17 @@ public class SkillTestHelper : MonoBehaviour
 
                     case EffectType.Buff:
                         stats.ApplyBuff(entry.effect.buffStat, testSkillPower * entry.value, entry.duration, false);
-                        Debug.Log($"  {go.name}: Buff {entry.effect.buffStat} x{testSkillPower * entry.value:F2} ({entry.duration} lượt)");
+                        Debug.Log($"  {go.name}: Buff {entry.effect.buffStat} x{testSkillPower * entry.value:F2} ({entry.duration} turn)");
                         break;
 
                     case EffectType.Debuff:
                         stats.ApplyBuff(entry.effect.buffStat, testSkillPower * entry.value, entry.duration, true);
-                        Debug.Log($"  {go.name}: Debuff {entry.effect.buffStat} x{testSkillPower * entry.value:F2} ({entry.duration} lượt)");
+                        Debug.Log($"  {go.name}: Debuff {entry.effect.buffStat} x{testSkillPower * entry.value:F2} ({entry.duration} turn)");
                         break;
 
                     case EffectType.Stun:
                         stats.ApplyStun(entry.duration);
-                        Debug.Log($"  {go.name}: Stun {entry.duration} lượt");
+                        Debug.Log($"  {go.name}: Stun {entry.duration} turn");
                         break;
                 }
             }

@@ -7,8 +7,8 @@ public class BuildingUI : MonoBehaviour
     public Image buildingImage;
     public Text nameText;
     private bool isDimmed = false;
-    private const float dimmedAlpha = 0.4f; // Độ trong suốt khi đã đặt (nhạt hơn)
-    private const float normalAlpha = 1f; // Độ trong suốt bình thường
+    private const float dimmedAlpha = 0.4f;
+    private const float normalAlpha = 1f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -32,7 +32,6 @@ public class BuildingUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Đặt trạng thái làm nhạt màu cho building (khi đã được đặt)
     /// </summary>
     public void SetDimmed(bool dimmed)
     {
@@ -44,7 +43,6 @@ public class BuildingUI : MonoBehaviour
     {
         float alpha = isDimmed ? dimmedAlpha : normalAlpha;
         
-        // Cập nhật màu cho building image
         if (buildingImage != null)
         {
             Color color = buildingImage.color;
@@ -52,7 +50,6 @@ public class BuildingUI : MonoBehaviour
             buildingImage.color = color;
         }
 
-        // Cập nhật màu cho tất cả các Image con (bao gồm icon)
         Image[] images = GetComponentsInChildren<Image>();
         foreach (var img in images)
         {
@@ -64,7 +61,6 @@ public class BuildingUI : MonoBehaviour
             }
         }
 
-        // Cập nhật màu cho text nếu có
         if (nameText != null)
         {
             Color textColor = nameText.color;

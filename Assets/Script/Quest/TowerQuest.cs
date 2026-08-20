@@ -22,6 +22,6 @@ public class TowerQuest : Quest
     public override string GetProgressText()
     {
         int reached = towerDatabase != null ? towerDatabase.highestFloorReached : 0;
-        return $"Tầng {reached} / {targetFloor} ({GetProgressPercentage():F0}%)";
+        return $"Floor {reached} / {targetFloor} ({GetProgressPercentage():F0}%)";
     }
 }

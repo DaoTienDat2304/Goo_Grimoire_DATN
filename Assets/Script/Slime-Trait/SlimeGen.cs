@@ -140,7 +140,7 @@ public class SlimeGen : MonoBehaviour
         Slime s = new Slime();
         s.slimeName = name;
         s.body = bodySo.GenerateInstance();
-        s.body.Rarity = rarity; // Đảm bảo độ hiếm chính xác
+        s.body.Rarity = rarity;
         s.armor = armorSo.GenerateInstance();
         s.armor.Rarity = rarity;
         s.weapon = weaponSo.GenerateInstance();
@@ -165,7 +165,6 @@ public class SlimeGen : MonoBehaviour
         }
     }
 
-    // Alias public để các hệ thống bên ngoài (SaveAndLoadSystem) có thể gọi trước khi resolve skill
     public void EnsureSkillDatabasePublic() => EnsureSkillDatabase();
 
     public SkillSO GetRandomSkill(TraitType type, Rarity rarity)
@@ -181,7 +180,6 @@ public class SlimeGen : MonoBehaviour
         }
         else
         {
-            // Fallback: nếu không có skill của độ hiếm này, lấy bất kỳ skill nào của bộ phận đó (trừ Ultimate)
             var fallbackPool = allSkillsDatabase.Where(s => s != null && s.targetTrait == type && s.type != SkillType.Ultimate && !s.name.EndsWith("_U", System.StringComparison.OrdinalIgnoreCase)).ToList();
             if (fallbackPool.Count > 0)
             {
@@ -228,7 +226,6 @@ public class SlimeGen : MonoBehaviour
 
         string activeName = activeSkill.name.Trim();
 
-        // 1. Nếu tên kết thúc bằng _A -> đổi sang _U (ví dụ: W_Sec_Chro_A -> W_Sec_Chro_U)
         string targetUltName = activeName.EndsWith("_A", System.StringComparison.OrdinalIgnoreCase)
             ? activeName.Substring(0, activeName.Length - 2) + "_U"
             : activeName + "_U";
@@ -236,12 +233,10 @@ public class SlimeGen : MonoBehaviour
         var ultSO = allSkillsDatabase.FirstOrDefault(s => s != null && s.name.Equals(targetUltName, System.StringComparison.OrdinalIgnoreCase));
         if (ultSO != null) return ultSO;
 
-        // 2. Tìm theo root prefix (ví dụ: W_Rar_Tide -> tìm skill chứa W_Rar_Tide và kết thúc bằng _U)
         string basePrefix = activeName.Replace("_A", "").Trim();
         ultSO = allSkillsDatabase.FirstOrDefault(s => s != null && s.name.StartsWith(basePrefix, System.StringComparison.OrdinalIgnoreCase) && s.name.EndsWith("_U", System.StringComparison.OrdinalIgnoreCase));
         if (ultSO != null) return ultSO;
 
-        // 3. Tìm bất kỳ Ultimate Weapon nào cùng Rarity
         ultSO = allSkillsDatabase.FirstOrDefault(s => s != null && s.targetTrait == TraitType.Weapon && s.rarity == activeSkill.rarity && (s.type == SkillType.Ultimate || s.name.EndsWith("_U", System.StringComparison.OrdinalIgnoreCase)));
         if (ultSO != null) return ultSO;
 

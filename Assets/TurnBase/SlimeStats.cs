@@ -14,8 +14,8 @@ public class SlimeStats : MonoBehaviour
     public float CritRate;
     public float CritDMG;
     public bool isEnemy;
-    public Rarity enemyRarity = Rarity.Common;   // độ hiếm boss (để tra hệ số scale theo design)
-    public bool useRarityBossScaling = false;    // true = dùng bảng BossStatScaling (Adventure); false = giữ hệ số cũ (Tower)
+    public Rarity enemyRarity = Rarity.Common;
+    public bool useRarityBossScaling = false;
     public SkeletonGraphic skeletonGraphic;
     public Image armor;
     public Image weapon;
@@ -38,9 +38,6 @@ public class SlimeStats : MonoBehaviour
         }
     }
 
-    // Đã xóa Update() polling HP mỗi frame.
-    // HP bar được cập nhật trực tiếp khi HP thay đổi (bởi SlimeBattleStats.TakeDamage/Heal).
-    // Màu xám khi HP = 0 cũng được xử lý tại điểm gây chết thay vì kiểm tra mỗi frame.
     public void SetDeadVisual()
     {
         if (skeletonGraphic != null) skeletonGraphic.color = Color.gray;

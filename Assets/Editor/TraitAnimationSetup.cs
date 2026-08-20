@@ -50,7 +50,6 @@ public class TraitAnimationSetup : EditorWindow
     
     private void LoadSlimeAnimationAsset()
     {
-        // Tìm prefab Slimeanimation
         string[] guids = AssetDatabase.FindAssets("Slimeanimation t:Prefab");
         if (guids.Length > 0)
         {
@@ -85,7 +84,6 @@ public class TraitAnimationSetup : EditorWindow
             return;
         }
         
-        // Tìm tất cả trait assets trong TraitDatabase
         string[] guids = AssetDatabase.FindAssets("t:TraitSO", new[] { "Assets/TraitDatabase" });
         int updatedCount = 0;
         
@@ -96,9 +94,8 @@ public class TraitAnimationSetup : EditorWindow
             
             if (trait != null && trait.type == TraitType.Body)
             {
-                // Cập nhật animation asset
                 trait.animationAsset = slimeAnimationAsset;
-                trait.animationName = "animation"; // Tên animation mặc định
+                trait.animationName = "animation";
                 
                 EditorUtility.SetDirty(trait);
                 updatedCount++;

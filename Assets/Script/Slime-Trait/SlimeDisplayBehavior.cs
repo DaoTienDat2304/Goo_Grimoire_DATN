@@ -24,7 +24,6 @@ public class SlimeDisplayBehavior : MonoBehaviour, IPointerClickHandler, IPointe
     {
         originalScale = transform.localScale;
         
-        // Tạo info panel nếu không có
         if (infoPanel == null)
         {
             CreateInfoPanel();
@@ -54,7 +53,6 @@ public class SlimeDisplayBehavior : MonoBehaviour, IPointerClickHandler, IPointe
         background.color = new Color(0, 0, 0, 0.8f);
         background.sortingOrder = 20;
         
-        // Tên slime
         var nameText = CreateTextMesh("Name", slime?.slimeName ?? "Unknown", 16, Color.white);
         nameText.transform.SetParent(infoPanel.transform);
         nameText.transform.localPosition = Vector3.up * 0.6f;
@@ -79,7 +77,6 @@ public class SlimeDisplayBehavior : MonoBehaviour, IPointerClickHandler, IPointe
         expText.transform.SetParent(infoPanel.transform);
         expText.transform.localPosition = Vector3.up * -0.6f;
         
-        // Thiết lập kích thước panel
         var panelRect = infoPanel.GetComponent<SpriteRenderer>();
         if (panelRect != null)
         {
@@ -130,7 +127,6 @@ public class SlimeDisplayBehavior : MonoBehaviour, IPointerClickHandler, IPointe
     private string GetStatsText()
     {
         if (slime == null) return "HP: 0 ATK: 0 DEF: 0";
-        // Hiển thị ĐẦY ĐỦ chỉ số, theo đúng giá trị thực chiến (giống trong trận).
         int effAtk = BattleStatFormula.EffectiveAttack(slime.totalAttack, slime.totalCritRate, slime.totalCritDMG);
         float finalCritRate = BattleStatFormula.FinalCritRate(slime.totalCritRate);
         float finalCritDMG = BattleStatFormula.FinalCritDMG(slime.totalCritRate, slime.totalCritDMG);
@@ -155,7 +151,6 @@ public class SlimeDisplayBehavior : MonoBehaviour, IPointerClickHandler, IPointe
     {
         if (infoPanel == null) return;
         
-        // Cập nhật các text
         var nameText = infoPanel.transform.Find("Name")?.GetComponent<TextMesh>();
         if (nameText != null && slime != null)
         {
@@ -195,7 +190,6 @@ public class SlimeDisplayBehavior : MonoBehaviour, IPointerClickHandler, IPointe
         canClick = false;
         StartCoroutine(ClickCooldown());
         
-        // Hiển thị/ẩn info panel
         if (infoPanel != null)
         {
             bool isActive = infoPanel.activeSelf;
@@ -207,10 +201,8 @@ public class SlimeDisplayBehavior : MonoBehaviour, IPointerClickHandler, IPointe
             }
         }
         
-        // Hiệu ứng click
         StartCoroutine(ClickEffect());
         
-        // Log thông tin slime
         if (slime != null)
         {
 

@@ -1,55 +1,55 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class SlimeAI : MonoBehaviour
 {
     [Header("AI Settings")]
-    public float detectionRange = 2f;        // Khoảng cách phát hiện player (cực ngắn để phản ứng tức thì)
-    public bool usePlayerStateDetection = true; // Sử dụng detection range dựa trên trạng thái player
+    public float detectionRange = 2f;
+    public bool usePlayerStateDetection = true;
 
     [Header("Evasive Behavior")]
-    public float evasionSpeed = 12f;         // Tốc độ tránh né siêu nhanh
-    public float evasionDuration = 0.8f;     // Thời gian tránh né ngắn hơn
-    public float directionChangeChance = 0.6f; // Xác suất đổi hướng ngẫu nhiên cao
+    public float evasionSpeed = 12f;
+    public float evasionDuration = 0.8f;
+    public float directionChangeChance = 0.6f;
 
     [Header("Movement")]
-    public float normalSpeed = 4f;           // Tốc độ di chuyển bình thường (siêu nhanh)
-    public float fleeSpeed = 10f;            // Tốc độ chạy trốn (cực nhanh)
-    public float circleRadius = 6f;          // Bán kính vùng di chuyển ngẫu nhiên (rộng hơn)
-    public float turnSpeed = 5f;             // Tốc độ quay (siêu nhanh)
-    public float fleeDistance = 12f;         // Khoảng cách chạy trốn (xa hơn)
-    public float safeDistance = 6f;          // Khoảng cách an toàn để dừng chạy (luôn > detection)
-    public float targetDistanceFromPlayer = 3.5f; // Khoảng cách slime cố giữ khi chạy khỏi player
-    public float playerRunSpeed = 8f;        // Tốc độ chạy mượt khi phát hiện player
+    public float normalSpeed = 4f;
+    public float fleeSpeed = 10f;
+    public float circleRadius = 6f;
+    public float turnSpeed = 5f;
+    public float fleeDistance = 12f;
+    public float safeDistance = 6f;
+    public float targetDistanceFromPlayer = 3.5f;
+    public float playerRunSpeed = 8f;
 
     [Header("Panic Escape (Very Close)")]
-    public float panicDistance = 1.2f;       // Rất gần → bứt tốc ngay
-    public float panicBurstSpeed = 10f;      // Tốc độ bứt tốc
-    public float panicBurstDuration = 0.25f; // Thời gian bứt tốc ngắn
+    public float panicDistance = 1.2f;
+    public float panicBurstSpeed = 10f;
+    public float panicBurstDuration = 0.25f;
 
     [Header("Random Movement")]
-    public float wanderSpeed = 3.5f;         // Tốc độ di chuyển ngẫu nhiên (nhanh)
-    public float wanderTimer = 1.2f;         // Thời gian di chuyển một hướng (ngắn hơn)
-    public float idleTimer = 0.2f;           // Thời gian nghỉ cực ngắn
-    public bool enableRandomMovement = true; // Bật di chuyển ngẫu nhiên
+    public float wanderSpeed = 3.5f;
+    public float wanderTimer = 1.2f;
+    public float idleTimer = 0.2f;
+    public bool enableRandomMovement = true;
 
     [Header("Chaotic Behavior")]
-    public float chaosSpeed = 8f;            // Tốc độ hỗn loạn khi bị đuổi
-    public float chaosChance = 0.4f;        // Xác suất chuyển sang chế độ hỗn loạn
-    public float speedVariation = 0.3f;     // Biến thiên tốc độ ngẫu nhiên
-    public float angleVariation = 45f;      // Biến thiên góc ngẫu nhiên
+    public float chaosSpeed = 8f;
+    public float chaosChance = 0.4f;
+    public float speedVariation = 0.3f;
+    public float angleVariation = 45f;
 
     [Header("Obstacle Avoidance")]
     public LayerMask obstacleLayerMask = 64; // Layer mask cho obstacles
-    public float obstacleDetectionRange = 2f; // Khoảng cách phát hiện obstacles
-    public float avoidanceForce = 1.5f;      // Lực tránh obstacles
-    public float bodyRadius = 0.3f;          // Bán kính thân để circle cast
+    public float obstacleDetectionRange = 2f;
+    public float avoidanceForce = 1.5f;
+    public float bodyRadius = 0.3f;
     [Header("Crowd Avoidance")]
     [SerializeField, Min(0.1f)] private float separationRadius = 0.9f;
     [SerializeField, Range(0f, 1f)] private float separationStrength = 0.65f;
     [SerializeField, Min(0.05f)] private float separationUpdateInterval = 0.12f;
     [Header("Stuck Handling")]
-    public float stuckSpeedThreshold = 0.5f; // Nếu tốc độ thực < ngưỡng này → coi như kẹt
-    public float stuckCheckTime = 0.2f;      // Kiểm tra kẹt sau thời gian này
+    public float stuckSpeedThreshold = 0.5f;
+    public float stuckCheckTime = 0.2f;
     public float stuckEscapeSpeedMultiplier = 1.15f;
     public float eightDirectionProbeDistance = 2.4f;
     [Header("Smart Movement")]
@@ -67,11 +67,11 @@ public class SlimeAI : MonoBehaviour
     public float escapeTargetSideStep = 0.65f;
 
     [Header("Performance")]
-    [Tooltip("Khoảng thời gian giữa các lần AI quét vật cản khi đi lang thang.")]
+    [Tooltip("Wander scan interval.")]
     [SerializeField, Min(0.05f)] private float wanderDecisionInterval = 0.2f;
-    [Tooltip("Khoảng thời gian giữa các lần AI quét vật cản khi chạy trốn.")]
+    [Tooltip("Flee scan interval.")]
     [SerializeField, Min(0.03f)] private float escapeDecisionInterval = 0.1f;
-    [Tooltip("Khoảng thời gian giữa các lần kiểm tra bị kẹt bằng physics cast.")]
+    [Tooltip("Stuck check interval.")]
     [SerializeField, Min(0.05f)] private float stuckProbeInterval = 0.1f;
     [Header("Fear Learning")]
     [Range(0f, 1f)] public float fearLevel = 0f;
@@ -95,9 +95,9 @@ public class SlimeAI : MonoBehaviour
     public bool useSpawnZoneTerritory = true;
 
     [Header("References")]
-    public Transform player;                 // Reference đến player
+    public Transform player;
     public Rigidbody2D rb;
-    private PlayerMovement playerMovement;  // Reference đến PlayerMovement script
+    private PlayerMovement playerMovement;
 
     // State variables
     private bool isFleeing = false;
@@ -122,7 +122,7 @@ public class SlimeAI : MonoBehaviour
     private float evasionTimeLeft;
     private Vector3 lastPlayerPosition;
     private float panicTimeLeft;
-    private Vector2 desiredVelocity; // Vận tốc sẽ áp dụng ở FixedUpdate (ổn định physics)
+    private Vector2 desiredVelocity;
     private float stuckTimer = 0f;
     private float fearTimeLeft = 0f;
     private float escapeRunTime = 0f;
@@ -143,18 +143,16 @@ public class SlimeAI : MonoBehaviour
 
     void Start()
     {
-        // Tự động tìm components
         if (rb == null) rb = GetComponent<Rigidbody2D>();
         if (player == null) player = GameObject.FindGameObjectWithTag("Player")?.transform;
         if (playerMovement == null) playerMovement = player?.GetComponent<PlayerMovement>();
 
-        // Cấu hình Rigidbody2D
         if (rb != null)
         {
             rb.gravityScale = 0;
             rb.freezeRotation = true;
             // Dynamic body giu va cham vat ly voi cong trinh. Va cham slime-slime
-            // va player duoc ignore ben duoi de tranh contact storm.
+            // Player is ignored below to avoid contact spam.
             rb.bodyType = RigidbodyType2D.Dynamic;
             rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
@@ -167,19 +165,15 @@ public class SlimeAI : MonoBehaviour
             IgnoreOtherSlimeCollisions(slimeCollider);
         }
 
-        // Prefab cũ lưu mask = 0 nên toàn bộ CircleCast trước đây không thấy tường.
         if (obstacleLayerMask.value == 0)
             obstacleLayerMask = LayerMask.GetMask("obstacle");
 
-        // Khởi tạo vị trí bắt đầu và trạng thái
         startPosition = transform.position;
         currentAngle = Random.Range(0f, 360f);
-        // Chia đều tải AI giữa các frame thay vì để tất cả slime quét physics cùng lúc.
         nextMovementDecisionTime = Time.time + Random.Range(0f, Mathf.Max(0.05f, wanderDecisionInterval));
         nextStuckProbeTime = Time.time + Random.Range(0f, Mathf.Max(0.05f, stuckProbeInterval));
-        if (player != null) lastPlayerPosition = player.position; // tránh vận tốc player bị sai frame đầu
+        if (player != null) lastPlayerPosition = player.position;
 
-        // Bắt đầu với di chuyển ngẫu nhiên
         if (enableRandomMovement)
         {
             StartWandering();
@@ -209,18 +203,14 @@ public class SlimeAI : MonoBehaviour
     {
         if (player == null) return;
 
-        // Lưu vị trí player trước đó để tính toán vận tốc
         Vector3 currentPlayerPos = player.position;
 
-        // Lấy detection range dựa trên trạng thái player
         float currentDetectionRange = GetCurrentDetectionRange();
 
-        // Tính khoảng cách đến player
         float distanceToPlayer = Vector3.Distance(transform.position, currentPlayerPos);
         fearTimeLeft = Mathf.Max(0f, fearTimeLeft - Time.deltaTime);
         DecayFear(distanceToPlayer);
 
-        // Xử lý khi rất gần: bật Panic Escape trước
         if (distanceToPlayer <= panicDistance)
         {
             RefreshFear(fearGainOnPanic);
@@ -233,16 +223,13 @@ public class SlimeAI : MonoBehaviour
                 ContinuePanicEscape();
             }
         }
-        // Kiểm tra xem có nên chạy trốn không (ngoài panic)
         else if (distanceToPlayer <= currentDetectionRange)
         {
             RefreshFear(fearGainOnDetect);
             if (!isFleeing && !isEvading && !isChaotic)
             {
-                // Kiểm tra xem player có đang di chuyển về phía slime không
                 if (IsPlayerApproaching())
                 {
-                    // Có cơ hội chuyển sang chế độ hỗn loạn
                     if (Random.value < GetCurrentChaosChance())
                     {
                         StartChaoticMode();
@@ -286,7 +273,6 @@ public class SlimeAI : MonoBehaviour
             }
         }
 
-        // Cập nhật vị trí player cuối frame
         lastPlayerPosition = currentPlayerPos;
     }
 
@@ -300,7 +286,6 @@ public class SlimeAI : MonoBehaviour
             : velocityDeceleration;
         rb.linearVelocity = Vector2.MoveTowards(rb.linearVelocity, steeringVelocity, acceleration * Time.fixedDeltaTime);
 
-        // Stuck detection khi đang né/chạy
         bool escaping = isPanicking || isFleeing || isEvading || isChaotic;
         if (escaping)
         {
@@ -317,7 +302,6 @@ public class SlimeAI : MonoBehaviour
                 stuckTimer += Time.fixedDeltaTime;
                 if (stuckTimer >= stuckCheckTime)
                 {
-                    // Bị kẹt thì quét đủ 8 hướng quanh slime và chọn hướng thoáng nhất để thoát thân.
                     Vector3 preferred = desiredVelocity.sqrMagnitude > 0.001f
                         ? ((Vector3)desiredVelocity).normalized
                         : GetSmartEscapeDirection(0.15f);
@@ -421,7 +405,6 @@ public class SlimeAI : MonoBehaviour
         isIdle = false;
         escapeRunTime = 0f;
 
-        // Đặt vị trí bắt đầu và target chạy trốn
         fleeStartPosition = transform.position;
         PickNewEscapeTarget(0.35f);
     }
@@ -436,10 +419,8 @@ public class SlimeAI : MonoBehaviour
 
         Vector3 desired = GetSmartTargetDirection(fleeTarget, 0.08f);
 
-        // Di chuyển với tốc độ cao
         desiredVelocity = desired * GetPlayerRunSpeed();
 
-        // Dừng khi đã cách player đủ xa và hết hoảng, tránh cảm giác bị nam châm đẩy bật.
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         if (CanCalmDown(distanceToPlayer))
         {
@@ -455,7 +436,6 @@ public class SlimeAI : MonoBehaviour
         isPanicking = false;
         isMoving = true;
 
-        // Quay lại di chuyển ngẫu nhiên
         if (enableRandomMovement)
         {
             StartWandering();
@@ -472,7 +452,6 @@ public class SlimeAI : MonoBehaviour
         isIdle = false;
         isMoving = false;
 
-        // Chọn điểm ngẫu nhiên trong vùng tròn
         Vector2 randomPoint = Random.insideUnitCircle * circleRadius;
         wanderTarget = ClampPointToHomeRadius(startPosition + new Vector3(randomPoint.x, randomPoint.y, 0), hardReturnDistanceFromHome);
         wanderTimeLeft = wanderTimer;
@@ -490,7 +469,6 @@ public class SlimeAI : MonoBehaviour
         }
         else
         {
-            // Chuyển sang wandering
             StartWandering();
         }
     }
@@ -499,28 +477,22 @@ public class SlimeAI : MonoBehaviour
     {
         wanderTimeLeft -= Time.deltaTime;
 
-        // Kiểm tra xem có player trên đường đi không
         if (IsPlayerInPath(wanderTarget))
         {
-            // Có player trên đường → chọn điểm mới
             StartWandering();
             return;
         }
 
-        // Di chuyển đến target
         Vector3 direction = GetSmartWanderDirection(wanderTarget);
 
-        // Thêm thay đổi hướng ngẫu nhiên để khó đoán
         if (Random.value < directionChangeChance * Time.deltaTime)
         {
             direction = Quaternion.Euler(0, 0, Random.Range(-angleVariation, angleVariation)) * direction;
         }
 
-        // Thêm biến thiên tốc độ ngẫu nhiên
         float currentSpeed = wanderSpeed * (1f + Random.Range(-speedVariation, speedVariation));
         desiredVelocity = direction * currentSpeed;
 
-        // Kiểm tra xem đã đến gần target chưa hoặc hết thời gian
         float distanceToTarget = Vector3.Distance(transform.position, wanderTarget);
         if (distanceToTarget < 0.5f || wanderTimeLeft <= 0)
         {
@@ -556,7 +528,6 @@ public class SlimeAI : MonoBehaviour
         Vector3 directionToSlime = (transform.position - currentPlayerPos).normalized;
         Vector3 playerVelocity = (currentPlayerPos - lastPlayerPosition) / Time.deltaTime;
 
-        // Kiểm tra xem player có đang di chuyển về phía slime không
         float dotProduct = Vector3.Dot(playerVelocity.normalized, directionToSlime);
         return dotProduct > 0.3f && playerVelocity.magnitude > 0.1f;
     }
@@ -586,17 +557,14 @@ public class SlimeAI : MonoBehaviour
 
         Vector3 directionToTarget = GetSmartTargetDirection(fleeTarget, 0.18f);
 
-        // Thêm thay đổi hướng ngẫu nhiên để khó bắt
         if (Random.value < directionChangeChance * 2f * Time.deltaTime)
         {
             directionToTarget = Quaternion.Euler(0, 0, Random.Range(-angleVariation * 1.5f, angleVariation * 1.5f)) * directionToTarget;
         }
 
-        // Thêm biến thiên tốc độ ngẫu nhiên
         float currentSpeed = GetPlayerRunSpeed() * (1f + Random.Range(-speedVariation * 0.5f, speedVariation * 0.5f));
         desiredVelocity = directionToTarget * currentSpeed;
 
-        // Dừng nếu đã an toàn hoặc hết thời gian né
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         if (CanCalmDown(distanceToPlayer) && evasionTimeLeft <= 0)
         {
@@ -624,20 +592,16 @@ public class SlimeAI : MonoBehaviour
         escapeRunTime += Time.deltaTime;
         escapeTargetRefreshLeft -= Time.deltaTime;
 
-        // Di chuyển hỗn loạn nhưng vẫn bám theo một điểm thoát, không đẩy thẳng khỏi player mỗi frame.
         Vector3 directionToTarget = GetSmartTargetDirection(fleeTarget, 0.32f);
 
-        // Thay đổi hướng liên tục và ngẫu nhiên
         if (escapeTargetRefreshLeft <= 0f || Random.value < directionChangeChance * 1.5f * Time.deltaTime)
         {
             PickNewEscapeTarget(1f);
         }
 
-        // Biến thiên tốc độ cực mạnh
         float currentSpeed = GetPlayerRunSpeed() * (1f + Random.Range(-speedVariation * 0.8f, speedVariation * 0.8f));
         desiredVelocity = directionToTarget * currentSpeed;
 
-        // Dừng khi đã cách player đủ xa (an toàn hơn)
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         if (CanCalmDown(distanceToPlayer))
         {
@@ -647,27 +611,21 @@ public class SlimeAI : MonoBehaviour
 
     void MoveInCircle()
     {
-        // Tính vị trí trên vòng tròn
         Vector3 circlePosition = startPosition + new Vector3(
             Mathf.Cos(currentAngle * Mathf.Deg2Rad) * circleRadius,
             Mathf.Sin(currentAngle * Mathf.Deg2Rad) * circleRadius,
             0
         );
 
-        // Kiểm tra xem có player trên đường đi không
         if (IsPlayerInPath(circlePosition))
         {
-            // Có player trên đường → đổi hướng
             moveDirection *= -1;
         }
 
-        // Cập nhật góc
         currentAngle += moveDirection * turnSpeed * Time.deltaTime;
 
-        // Tính hướng di chuyển
         Vector3 direction = GetSmartWanderDirection(circlePosition);
 
-        // Di chuyển
         desiredVelocity = direction * normalSpeed;
     }
 
@@ -675,11 +633,9 @@ public class SlimeAI : MonoBehaviour
     {
         if (player == null) return false;
 
-        // Kiểm tra xem player có nằm giữa slime và target không
         Vector3 slimeToPlayer = player.position - transform.position;
         Vector3 slimeToTarget = targetPosition - transform.position;
 
-        // Nếu player nằm trong khoảng cách từ slime đến target
         float dotProduct = Vector3.Dot(slimeToPlayer.normalized, slimeToTarget.normalized);
         float distanceToPlayer = slimeToPlayer.magnitude;
         float distanceToTarget = slimeToTarget.magnitude;
@@ -687,7 +643,6 @@ public class SlimeAI : MonoBehaviour
         return dotProduct > 0.7f && distanceToPlayer < distanceToTarget && distanceToPlayer < 3f;
     }
 
-    // Trả về hướng ngẫu nhiên trên mặt phẳng X-Y
     Vector3 GetRandomDirection()
     {
         float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
@@ -696,7 +651,6 @@ public class SlimeAI : MonoBehaviour
 
     Vector3 AvoidObstacles(Vector3 desiredDirection)
     {
-        // Raycast để phát hiện obstacles
         RaycastHit2D frontHit = Physics2D.CircleCast(transform.position, bodyRadius, desiredDirection, obstacleDetectionRange, obstacleLayerMask);
         RaycastHit2D leftHit = Physics2D.CircleCast(transform.position, bodyRadius, Quaternion.Euler(0, 0, 30) * desiredDirection, obstacleDetectionRange * 0.7f, obstacleLayerMask);
         RaycastHit2D rightHit = Physics2D.CircleCast(transform.position, bodyRadius, Quaternion.Euler(0, 0, -30) * desiredDirection, obstacleDetectionRange * 0.7f, obstacleLayerMask);
@@ -710,18 +664,16 @@ public class SlimeAI : MonoBehaviour
             return FindEightDirectionEscape(desiredDirection, isFleeing || isEvading || isChaotic || isPanicking);
         }
 
-        return desiredDirection; // Không có obstacle, giữ nguyên hướng
+        return desiredDirection;
     }
 
     bool IsObstacleCollider(Collider2D collider)
     {
         if (collider == null) return false;
 
-        // Bỏ qua player và slime khác
         if (collider.CompareTag("Player") || collider.CompareTag("Slime"))
             return false;
 
-        // Kiểm tra layer mask
         return (obstacleLayerMask.value & (1 << collider.gameObject.layer)) != 0;
     }
 
@@ -957,9 +909,6 @@ public class SlimeAI : MonoBehaviour
         Vector3 playerPos = player != null ? GetPredictedPlayerPosition() : transform.position;
         float bestScore = -Mathf.Infinity;
         Vector3 bestDirection = preferredDirection;
-        // 8 hướng đủ cho đi lang thang; lúc chạy trốn cho tối đa 12 hướng.
-        // Giá trị serialized cũ có thể là 16+, nhưng tăng thêm gần như không
-        // cải thiện đường đi trong tilemap trong khi chi phí physics tăng tuyến tính.
         int samples = escaping
             ? Mathf.Clamp(directionSamples, 8, 12)
             : Mathf.Clamp(directionSamples, 8, 8);
@@ -990,8 +939,6 @@ public class SlimeAI : MonoBehaviour
             }
         }
 
-        // Vòng quét ở trên đã bao phủ toàn bộ 360 độ. Quét thêm 8 hướng tại đây
-        // chỉ lặp lại physics cast và là nguyên nhân lớn gây spike khi nhiều slime.
         cachedPreferredDirection = preferredDirection;
         cachedMovementDirection = bestDirection.normalized;
         cachedDirectionIsEscaping = escaping;
@@ -1174,17 +1121,14 @@ public class SlimeAI : MonoBehaviour
     {
         if (player != null)
         {
-            // Vẽ detection range
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, GetCurrentDetectionRange());
 
-            // Vẽ hướng di chuyển
             if (isFleeing && rb != null)
             {
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(transform.position, transform.position + (Vector3)rb.linearVelocity.normalized * 3f);
 
-                // Vẽ flee target
                 Gizmos.color = Color.magenta;
                 Gizmos.DrawWireSphere(fleeTarget, 0.5f);
                 Gizmos.DrawLine(transform.position, fleeTarget);
@@ -1194,7 +1138,6 @@ public class SlimeAI : MonoBehaviour
                 Gizmos.color = new Color(1f, 0.5f, 0f); // Orange color
                 Gizmos.DrawLine(transform.position, transform.position + (Vector3)rb.linearVelocity.normalized * 4f);
 
-                // Vẽ evasion target
                 Gizmos.color = Color.red;
                 Gizmos.DrawWireSphere(fleeTarget, 0.3f);
                 Gizmos.DrawLine(transform.position, fleeTarget);
@@ -1204,7 +1147,6 @@ public class SlimeAI : MonoBehaviour
                 Gizmos.color = Color.blue;
                 Gizmos.DrawLine(transform.position, transform.position + (Vector3)rb.linearVelocity.normalized * 2f);
 
-                // Vẽ wander target
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawWireSphere(wanderTarget, 0.4f);
                 Gizmos.DrawLine(transform.position, wanderTarget);
@@ -1215,11 +1157,9 @@ public class SlimeAI : MonoBehaviour
                 Gizmos.DrawLine(transform.position, transform.position + (Vector3)rb.linearVelocity.normalized * 2f);
             }
 
-            // Vẽ vùng di chuyển ngẫu nhiên
             Gizmos.color = Color.white;
             DrawWireCircle(startPosition, circleRadius);
 
-            // Vẽ vị trí bắt đầu
             Gizmos.color = Color.gray;
             Gizmos.DrawWireSphere(startPosition, 0.2f);
         }

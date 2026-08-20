@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Tooltip hiển thị thông tin mô tả chi tiết của Skill khi người chơi nhấn giữ hoặc chạm vào Skill.
 /// </summary>
 public class SkillTooltipUI : MonoBehaviour
 {
@@ -26,7 +25,6 @@ public class SkillTooltipUI : MonoBehaviour
         if (closeButton != null)
             closeButton.onClick.AddListener(HideTooltip);
 
-        // Hỗ trợ chạm vào bảng để đóng khi nút exit bị ẩn
         if (tooltipPanel != null)
         {
             var btn = tooltipPanel.GetComponent<Button>();
@@ -43,13 +41,11 @@ public class SkillTooltipUI : MonoBehaviour
 
         if (tooltipPanel != null) tooltipPanel.SetActive(true);
 
-        // Ẩn nút exit khi xem Skill theo yêu cầu
         if (closeButton != null)
         {
             closeButton.gameObject.SetActive(false);
         }
 
-        // Hiện icon của Skill
         if (skillIconImage != null)
         {
             skillIconImage.sprite = baseSkill.icon;

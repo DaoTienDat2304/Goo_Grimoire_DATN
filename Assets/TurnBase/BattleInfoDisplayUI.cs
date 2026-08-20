@@ -2,9 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI hiển thị Ô Chữ Thông Tin Dùng Chung trong Trận Đấu (Shared Battle Info Display Panel):
-/// - Chạm vào Slime: Hiển thị thông tin Slime + HIỆN NÚT CLOSE (Bấm X hoặc bấm chỗ khác để tắt).
-/// - Nhấn giữ Skill: Hiển thị thông tin Skill + ẨN NÚT CLOSE (Thả tay ra tự động tắt).
 /// </summary>
 public class BattleInfoDisplayUI : MonoBehaviour
 {
@@ -22,11 +19,11 @@ public class BattleInfoDisplayUI : MonoBehaviour
     }
 
     [Header("Shared Info Panel & Text Display")]
-    public GameObject infoPanel;               // Panel ô chữ dùng chung
-    public Text mainInfoText;                  // Ô Text to dùng chung hiển thị nội dung chi tiết
-    public Text headerTitleText;               // Tiêu đề ô thông tin ("-- SLIME --" hoặc "-- SKILL --")
-    public Image infoIconImage;                // (Tùy chọn) Icon Avatar Slime hoặc Icon Skill
-    public Button closeButton;                 // Nút đóng ô thông tin (Ẩn khi giữ skill, Hiện khi bấm Slime)
+    public GameObject infoPanel;
+    public Text mainInfoText;
+    public Text headerTitleText;
+    public Image infoIconImage;
+    public Button closeButton;
 
     private enum DisplayType { None, SlimeInfo, SkillInfo }
     private DisplayType currentDisplayType = DisplayType.None;
@@ -62,7 +59,6 @@ public class BattleInfoDisplayUI : MonoBehaviour
 
 
     /// <summary>
-    /// Hiển thị thông tin Slime khi người chơi chạm vào Slime (HIỆN nút Close)
     /// </summary>
     public void ShowSlimeInfo(SlimeStats slime)
     {
@@ -73,7 +69,6 @@ public class BattleInfoDisplayUI : MonoBehaviour
         GameObject targetPanel = infoPanel != null ? infoPanel : gameObject;
         targetPanel.SetActive(true);
 
-        // HIỆN Nút Close khi xem thông tin Slime
         if (closeButton != null)
             closeButton.gameObject.SetActive(true);
 
@@ -126,7 +121,6 @@ public class BattleInfoDisplayUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Hiển thị thông tin Skill khi người chơi nhấn giữ nút Skill (ẨN nút Close)
     /// </summary>
     public void ShowSkillInfo(SkillInstance skill, SlimeBattleStats battleStats = null)
     {
@@ -137,7 +131,6 @@ public class BattleInfoDisplayUI : MonoBehaviour
         GameObject targetPanel = infoPanel != null ? infoPanel : gameObject;
         targetPanel.SetActive(true);
 
-        // ẨN Nút Close khi nhấn giữ Skill (vì thả tay ra bảng tự động ẩn)
         if (closeButton != null)
             closeButton.gameObject.SetActive(false);
 
@@ -204,9 +197,9 @@ public class BattleInfoDisplayUI : MonoBehaviour
 
     private string GetSkillName(SkillInstance skill)
     {
-        if (skill == null || skill.baseSkill == null) return "Trống";
+        if (skill == null || skill.baseSkill == null) return "Empty";
         if (!string.IsNullOrEmpty(skill.baseSkill.skillName)) return skill.baseSkill.skillName;
         if (!string.IsNullOrEmpty(skill.baseSkill.name)) return skill.baseSkill.name;
-        return "Không tên";
+        return "Unnamed";
     }
 }

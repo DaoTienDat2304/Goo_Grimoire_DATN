@@ -23,7 +23,7 @@ public class MapSelection : MonoBehaviour
         var team = saveSystem != null ? saveSystem.GetTeam() : null;
         if (team == null || team.team == null || team.team.Count == 0)
         {
-            Debug.LogWarning("Cần ít nhất 1 slime trong team để chiến đấu!");
+            Debug.LogWarning("Need 1 slime in team.");
             ShowWarning();
             return;
         }

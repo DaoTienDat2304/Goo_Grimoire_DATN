@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-/// <summary>1 nhiệm vụ chính (data thuần). Thưởng luôn là VÀNG (Coins).</summary>
 public class MissionDef
 {
     public int Id;
@@ -10,7 +9,7 @@ public class MissionDef
     public Rarity RarityTarget;
     public long Target;
     public int GoldReward;
-    public int PrereqId; // -1 = không cần nhiệm vụ trước
+    public int PrereqId;
 
     public MissionDef(int id, string name, string desc, MissionMetric metric, long target,
         int gold, int prereqId = -1, Rarity rarityTarget = Rarity.Common)
@@ -21,9 +20,6 @@ public class MissionDef
 }
 
 /// <summary>
-/// Chuỗi nhiệm vụ chính định nghĩa bằng code (theo Docs/ThietKe-ThanhTuu-NhiemVu.md).
-/// Mở khóa dây chuyền qua PrereqId. Chỉnh mốc/thưởng ngay tại đây.
-/// ID bắt đầu từ 1001 để không đụng ID quest asset cũ.
 /// </summary>
 public static class MissionCatalog
 {

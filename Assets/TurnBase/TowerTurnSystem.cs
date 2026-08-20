@@ -23,24 +23,22 @@ public enum TowerEnemyType
     EliteStoneGolem, EliteIronGolem, EliteCrystalGolem, CorruptedGoblinElite, PoisonSlimeElite, TinyBatElite, CelestialGuardian
 }
 
-// 2. STRUCT CHO PHÉP CUSTOM SPINE TRÊN INSPECTOR
 [Serializable]
 public class EnemyVisualSetup
 {
-    [Header("Định danh kẻ địch")]
+    [Header("Enemy ID")]
     public TowerEnemyType enemyType;
 
-    [Header("Cấu hình hình ảnh")]
+    [Header("Visuals")]
     public SkeletonDataAsset spineAsset;
-    public Sprite staticSprite; // Thêm trường cho ảnh tĩnh (2D Sprite)
+    public Sprite staticSprite;
     public string defaultAnimation = "animation";
     public float scale = 0.7f;
     public Color colorTint = Color.white;
-    public Vector2 positionOffset = Vector2.zero; // Dùng để chỉnh lệch vị trí cho các con quái đặc biệt (như dơi bay cao)
-    public bool hideArmorAndWeapon = false;       // Tắt vũ khí mặc định của clone
+    public Vector2 positionOffset = Vector2.zero;
+    public bool hideArmorAndWeapon = false;
 }
 
-// Lớp phụ trợ để lấy chỉ số
 public class TowerStatData
 {
     public int hp, atk, matk, def, spd;
@@ -58,13 +56,12 @@ public class TowerTurnSystem : TurnSystem
     public int totalWaves = 1;
     public List<GameObject> activeEnemies = new List<GameObject>();
     private Vector2 originalBossPos;
-    private GameObject enemyTemplate; // Template ban đầu dùng để clone enemy
+    private GameObject enemyTemplate;
     private int bossTurnCounter = 0;
     private int activeTowerLevel = 1;
-    public Text waveText; // UI Text để hiển thị Wave hiện tại
+    public Text waveText;
 
-    [Header("Enemy Custom Visuals (Kéo Spine vào đây)")]
-    // CHỈNH SỬA SPINE CHO TỪNG LOẠI QUÁI Ở INSPECTOR
+    [Header("Enemy Custom Visuals (Assign Spine here)")]
     public List<EnemyVisualSetup> enemyVisualSetups = new List<EnemyVisualSetup>();
     private Dictionary<TowerEnemyType, EnemyVisualSetup> visualLookup;
 
@@ -74,13 +71,11 @@ public class TowerTurnSystem : TurnSystem
         if (boss != null)
         {
             originalBossPos = boss.GetComponent<RectTransform>().anchoredPosition;
-            // Lưu lại boss ban đầu làm template để clone quái
             enemyTemplate = boss;
         }
 
         turnList = formationManager.slimeFormation;
 
-        // Khởi tạo Dictionary cho Visual lookup tốc độ cao
         visualLookup = new Dictionary<TowerEnemyType, EnemyVisualSetup>();
         foreach (var setup in enemyVisualSetups)
         {
@@ -95,7 +90,6 @@ public class TowerTurnSystem : TurnSystem
             var floor = towerBosses.replayFloor > 0 ? towerBosses.GetFloor(towerBosses.replayFloor) : towerBosses.GetCurrentFloor();
             int floorNum = floor != null ? floor.floorNumber : 1;
 
-            // Xóa giới hạn (floorNum <= 5), mở khóa đi vô hạn tầng
             if (floorNum >= 1)
             {
                 base.Start();
@@ -124,10 +118,8 @@ public class TowerTurnSystem : TurnSystem
             currentFloor = towerBosses.replayFloor > 0 ? towerBosses.GetFloor(towerBosses.replayFloor) : towerBosses.GetCurrentFloor();
         }
 
-        // Kiểm tra xem tầng này có cấu hình wave hay không
         bool hasWaves = currentFloor != null && currentFloor.waves != null && currentFloor.waves.Count > 0;
 
-        // Nếu CÓ cấu hình wave, thì mới ẩn/xoá boss mặc định và sinh quái theo wave
         if (hasWaves)
         {
             if (targetIndicator != null)
@@ -140,13 +132,11 @@ public class TowerTurnSystem : TurnSystem
                 turnList.RemoveAll(x => x != null && x.GetComponent<SlimeStats>() != null && x.GetComponent<SlimeStats>().isEnemy);
                 turnList.RemoveAll(x => x == null);
             }
-            // Clear quái hiện tại (KHÔNG xóa enemyTemplate)
             foreach (var enemy in activeEnemies)
             {
                 if (enemy != null && enemy != enemyTemplate) Destroy(enemy);
             }
             activeEnemies.Clear();
-            // Ẩn boss hiện tại nhưng giữ nguyên enemyTemplate để clone wave tiếp
             if (boss != null && boss != enemyTemplate)
             {
                 Destroy(boss);
@@ -186,7 +176,6 @@ public class TowerTurnSystem : TurnSystem
         }
         else
         {
-            // Nếu KHÔNG có cấu hình wave, thì dùng tất cả quái được gắn trên scene
             totalWaves = 1;
             
             var allManuallyPlacedEnemies = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None)
@@ -238,12 +227,11 @@ public class TowerTurnSystem : TurnSystem
 
     private void SpawnEnemy(TowerEnemyType type, int level, int index, int totalCount)
     {
-        // Dùng enemyTemplate (boss ban đầu trên scene) làm khuôn clone
         GameObject templateObj = enemyTemplate != null ? enemyTemplate : boss;
         if (templateObj == null) templateObj = activeEnemies.FirstOrDefault();
         if (templateObj == null)
         {
-            Debug.LogError("[TowerTurnSystem] Không tìm thấy template để spawn enemy!");
+            Debug.LogError("[TowerTurnSystem] Enemy template missing!");
             return;
         }
 
@@ -260,7 +248,7 @@ public class TowerTurnSystem : TurnSystem
         RectTransform rect = enemyGo.GetComponent<RectTransform>();
         Vector2 offset = Vector2.zero;
 
-        Vector2 baseShift = new Vector2(0, -90f); // Tâm vị trí phe địch (dịch xuống nhẹ cho vừa trung tâm bãi cỏ)
+        Vector2 baseShift = new Vector2(0, -90f);
 
         if (totalCount == 1)
         {
@@ -268,12 +256,10 @@ public class TowerTurnSystem : TurnSystem
         }
         else if (totalCount == 2)
         {
-            // Dãn khoảng cách cho 2 quái
             offset = index == 0 ? new Vector2(0, 110f) : new Vector2(0, -110f);
         }
-        else // totalCount >= 3 (tối đa 3 quái/wave)
+        else
         {
-            // Dãn rộng khoảng cách dọc và ngang cho 3 quái
             if (index == 0) offset = new Vector2(40f, 170f);
             else if (index == 1) offset = new Vector2(0f, 0f);
             else offset = new Vector2(40f, -170f);
@@ -339,7 +325,6 @@ public class TowerTurnSystem : TurnSystem
 
         rect.anchoredPosition = originalBossPos + baseShift + offset;
 
-        // LẤY CHỈ SỐ TỪ DATABASE
         TowerStatData eData = GetEnemyStatDatabase(type, level);
 
         var stats = enemyGo.GetComponent<SlimeStats>();
@@ -400,7 +385,6 @@ public class TowerTurnSystem : TurnSystem
         MakeEnemyTargetable(enemyGo);
     }
 
-    // 4.DATABASE STATS GỌN GÀNG HƠN
     private TowerStatData GetEnemyStatDatabase(TowerEnemyType type, int level)
     {
         switch (type)
@@ -622,7 +606,6 @@ public class TowerTurnSystem : TurnSystem
         if (currentSlime != null) currentSlime.GetComponent<SlimeStats>().turnHalo.SetActive(false);
         yield return new WaitForSeconds(0.3f);
 
-        // Bỏ điều kiện isTowerMode để Wave System hoạt động kể cả khi test trong Editor
         if (activeTowerLevel >= 1)
         {
             bool allWaveEnemiesDead = activeEnemies.All(e => e == null || e.GetComponent<SlimeBattleStats>().CurrentHP <= 0);
@@ -669,7 +652,6 @@ public class TowerTurnSystem : TurnSystem
         }
         StartCoroutine(turnDisplay());
 
-        // Bắt đầu lượt mới theo AV: reset trần sinh ĐCK (≤ +2/lượt)
         if (BattleSystemManager.Instance != null)
         {
             BattleSystemManager.Instance.OnNewTurnStarted();
@@ -718,7 +700,7 @@ public class TowerTurnSystem : TurnSystem
 
         if (attacker != null)
         {
-            attacker.AddEnergy(20); // +20 Energy khi đánh đòn thường
+            attacker.AddEnergy(20);
 
             int damage = attacker.GetEffectiveAttack();
             bool isCrit = attacker.TryCriticalHit();
@@ -821,7 +803,7 @@ public class TowerTurnSystem : TurnSystem
                         {
                             CreateDamagePopup(targetGo.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
                         }
-                        Debug.Log($"{currentSlime.name} dùng {skill.baseSkill.skillName} lên {targetGo.name}: {finalDamage} damage");
+                        Debug.Log($"{currentSlime.name} uses {skill.baseSkill.skillName} on {targetGo.name}: {finalDamage} damage");
                         var hitAnim = targetGo.GetComponent<SimpleCombatAnimation>();
                         if (hitAnim != null && hitAnim.gameObject.activeInHierarchy)
                         {
@@ -883,7 +865,6 @@ public class TowerTurnSystem : TurnSystem
     {
         turnCount++;
 
-        // SETUP UI TURN CHO KẺ ĐỊCH HIỆN TẠI
         var spineGraphic = currentSlime.GetComponentInChildren<SkeletonGraphic>(true);
         if (spineGraphic != null && spineGraphic.skeletonDataAsset != null && curSlimeBody != null)
         {
@@ -908,27 +889,21 @@ public class TowerTurnSystem : TurnSystem
         }
         if (curSlimeBorder != null) curSlimeBorder.color = Color.red;
 
-        // Bật Halo báo hiệu lượt của quái này
         if (enemyStats != null && enemyStats.turnHalo != null) enemyStats.turnHalo.SetActive(true);
 
-        // LẤY HOẶC TỰ TẠO TRẠNG THÁI AI CHO QUÁI NÀY
         var aiState = currentSlime.GetComponent<EnemyAIState>();
         if (aiState == null) aiState = currentSlime.AddComponent<EnemyAIState>();
-        aiState.currentTurnCycle++; // Tăng lượt nội bộ của con quái này lên
+        aiState.currentTurnCycle++;
 
-        // Lấy định danh Type của quái hiện tại từ Tên object hoặc một Component nhận diện
         TowerEnemyType currentType = GetEnemyTypeFromName(currentSlime.name);
 
-        // TÌM MỤC TIÊU THÔNG MINH DỰA TRÊN
         GameObject target = GetAIQueryTarget(currentType);
 
-        // THỰC THI AI THEO TỪNG LOẠI QUÁI
         if (target != null)
         {
             yield return StartCoroutine(ExecuteEnemyAIBehavior(currentType, aiState, target));
         }
 
-        // KIỂM TRA ĐIỀU KIỆN KẾT THÚC TURN
         if (CheckWinCondition())
         {
             yield return StartCoroutine(HandleVictory());
@@ -947,18 +922,16 @@ public class TowerTurnSystem : TurnSystem
         }
     }
 
-    // Hàm phụ dùng để nhận diện Loại quái dựa trên tên Object khi khởi tạo đặt tên
     private TowerEnemyType GetEnemyTypeFromName(string objName)
     {
         foreach (TowerEnemyType type in Enum.GetValues(typeof(TowerEnemyType)))
         {
             if (objName.Contains(type.ToString())) return type;
         }
-        return TowerEnemyType.GreenSlime; // Mặc định
+        return TowerEnemyType.GreenSlime;
     }
 
     // ==========================================
-    // 3. LOGIC TÌM MỤC TIÊU DỰA TRÊN TÍNH CÁCH QUÁI
     // ==========================================
     private GameObject GetAIQueryTarget(TowerEnemyType type)
     {
@@ -969,16 +942,13 @@ public class TowerTurnSystem : TurnSystem
 
         switch (type)
         {
-            // Goblin Archer & Stone Golem (focus target HP thấp nhất)
             case TowerEnemyType.GoblinArcher:
                 return playerAllies.OrderBy(a => a.GetComponent<SlimeBattleStats>().CurrentHP).First();
 
-            // Corrupted Goblin luôn ưu tiên nhắm nhân vật DEF thấp nhất
             case TowerEnemyType.CorruptedGoblin:
             case TowerEnemyType.CorruptedGoblinElite:
                 return playerAllies.OrderBy(a => a.GetComponent<SlimeBattleStats>().BattleDefense).First();
 
-            // Stone Goblin & Stone Golem ưu tiên nhắm nhân vật SPD cao nhất
             case TowerEnemyType.StoneGoblin:
             case TowerEnemyType.StoneGolem:
             case TowerEnemyType.EliteStoneGolem:
@@ -990,13 +960,11 @@ public class TowerTurnSystem : TurnSystem
     }
 
     // ==========================================
-    // BẢNG AURA VÀ TÍNH CHẤT NỘI TẠI TOÀN SÂN PHE KẺ ĐỊCH
     // ==========================================
     private void UpdateEnemyAuras()
     {
         if (activeEnemies == null || activeEnemies.Count == 0) return;
 
-        // --- Pass 1: thu thập flags bằng vòng for duy nhất (thay thế 9 LINQ queries) ---
         bool hasGoblinShaman = false, hasDarkGoblinShaman = false, hasAncientShaman = false;
         bool hasIronGolem = false, hasStoneGoblin = false, hasCrystalSlime = false;
         bool hasStoneGolem = false, hasCrystalGolem = false;
@@ -1025,7 +993,6 @@ public class TowerTurnSystem : TurnSystem
         }
         bool hasAll3Golems = hasStoneGolem && hasIronGolem && hasCrystalGolem;
 
-        // Tính số player bị poison — vòng for đơn giản
         var playerAllies = formationManager.GetAllAliveAllies();
         int poisonedPlayerCount = 0;
         for (int i = 0; i < playerAllies.Count; i++)
@@ -1036,7 +1003,6 @@ public class TowerTurnSystem : TurnSystem
             if (aStats != null && aStats.GetPoisonStackCount() > 0) poisonedPlayerCount++;
         }
 
-        // --- Pass 2: áp dụng aura cho từng enemy (chỉ dùng stats đã lấy từ Pass 1) ---
         for (int i = 0; i < activeEnemies.Count; i++)
         {
             var enemy = activeEnemies[i];
@@ -1067,7 +1033,6 @@ public class TowerTurnSystem : TurnSystem
 
 
     // ==========================================
-    // 4. THỰC THI HÀNH VI AI THEO TỪNG LOẠI QUÁI
     // ==========================================
     private IEnumerator ExecuteEnemyAIBehavior(TowerEnemyType type, EnemyAIState ai, GameObject target)
     {
@@ -1080,10 +1045,8 @@ public class TowerTurnSystem : TurnSystem
 
         if (type == TowerEnemyType.CelestialGuardian)
         {
-            // Core of the World: Giảm 25% sát thương nhận vào
             bossStats.damageReduction = 25f;
 
-            // Celestial Pressure: Giảm 10% SPD toàn team player
             foreach (var pAlly in formationManager.GetAllAliveAllies())
             {
                 var pStats = pAlly?.GetComponent<SlimeBattleStats>();
@@ -1543,7 +1506,6 @@ public class TowerTurnSystem : TurnSystem
         }
     }
 
-    // ── AI Boss Cuối Celestial Guardian (3-Phase System) ──
     private IEnumerator AI_CelestialGuardian(int turn, int phase, SlimeBattleStats stats, GameObject target)
     {
         var playerAllies = formationManager.GetAllAliveAllies();
@@ -1614,7 +1576,7 @@ public class TowerTurnSystem : TurnSystem
                 yield return new WaitForSeconds(0.8f);
             }
         }
-        else // Phase 3 (40% -> 0% HP): BERSERK MODE (Hành động 2 lần mỗi 3 turn)
+        else
         {
             CreateDamagePopup(currentSlime.transform.position + Vector3.up * 1.8f, "BERSERK STARFALL!", Color.red);
             foreach (var ally in playerAllies)
@@ -1628,7 +1590,6 @@ public class TowerTurnSystem : TurnSystem
             }
             yield return new WaitForSeconds(0.5f);
 
-            // Hành động 2 lần mỗi 3 turn
             if (turn % 3 == 0)
             {
                 CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, "EXTRA ACTION: CELESTIAL STRIKE!", Color.yellow);
@@ -1642,7 +1603,7 @@ public class TowerTurnSystem : TurnSystem
     // ── AI Slime King (Chapter 1 Boss) ──
     private IEnumerator AI_SlimeKing(int turn, SlimeBattleStats bossStats, GameObject target)
     {
-        int cycleTurn = (turn - 1) % 6 + 1; // Vòng lặp tuần hoàn 6 lượt
+        int cycleTurn = (turn - 1) % 6 + 1;
 
         if (cycleTurn == 1) // Slime Splash
         {
@@ -1686,7 +1647,7 @@ public class TowerTurnSystem : TurnSystem
             }
             yield return new WaitForSeconds(1f);
         }
-        else // Lượt 2, 4 đánh thường
+        else
         {
             yield return StartCoroutine(DefaultEnemyAttack(bossStats, target));
         }
@@ -1695,7 +1656,7 @@ public class TowerTurnSystem : TurnSystem
     // ── AI Goblin Chief (Chapter 2 & 3 Boss) ──
     private IEnumerator AI_GoblinChief(int turn, SlimeBattleStats bossStats, GameObject target)
     {
-        int cycleTurn = (turn - 1) % 7 + 1; // Chu kỳ 7 lượt
+        int cycleTurn = (turn - 1) % 7 + 1;
 
         if (cycleTurn == 1) // War Cry
         {
@@ -1744,7 +1705,6 @@ public class TowerTurnSystem : TurnSystem
         }
     }
 
-    // Hàm tái sử dụng logic Đánh thường của phe địch bao gồm Chơi Animation và Tính Crit
     private IEnumerator DefaultEnemyAttack(SlimeBattleStats attackerStats, GameObject targetGo)
     {
         var targetStats = targetGo.GetComponent<SlimeBattleStats>();
@@ -1767,7 +1727,6 @@ public class TowerTurnSystem : TurnSystem
 
     protected override bool CheckWinCondition()
     {
-        // Bỏ isTowerMode để logic check win của Wave hoạt động trong Editor
         if (activeTowerLevel >= 1)
         {
             bool isLastWave = (currentWaveIndex + 1 >= totalWaves);

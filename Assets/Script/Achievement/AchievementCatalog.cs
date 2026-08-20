@@ -1,32 +1,29 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Chỉ số mà 1 thành tựu chấm điểm — trỏ vào bộ đếm lifetime của PlayerStatsManager
-/// (trừ OwnedSlimes đọc trực tiếp số slime đang sở hữu).
 /// </summary>
 public enum AchievementMetric
 {
-    TotalBred,       // tổng slime đã lai tạo
-    DistinctTraits,  // số trait khác nhau đã thu thập
-    CoinsEarned,     // tổng vàng kiếm được
-    GemsEarned,      // tổng gem kiếm được
-    FarmWins,        // số lần thắng Farm
-    Captures,        // số slime bắt được ở phiêu lưu
-    RarityObtained,  // số slime từng sở hữu theo 1 độ hiếm (dùng RarityTarget)
-    TowerFloor,      // tầng tháp cao nhất
-    BattleWins,      // tổng trận thắng
-    OwnedSlimes,     // số slime đang sở hữu
-    Mutations        // số slime đột biến khi lai
+    TotalBred,
+    DistinctTraits,
+    CoinsEarned,
+    GemsEarned,
+    FarmWins,
+    Captures,
+    RarityObtained,
+    TowerFloor,
+    BattleWins,
+    OwnedSlimes,
+    Mutations
 }
 
-/// <summary>1 bậc thành tựu (data thuần). Thưởng luôn là GEM.</summary>
 public class AchievementDef
 {
-    public string Id;                 // khóa lưu (PlayerPrefs / save)
+    public string Id;
     public string Title;
     public string Description;
     public AchievementMetric Metric;
-    public Rarity RarityTarget;       // chỉ dùng khi Metric == RarityObtained
+    public Rarity RarityTarget;
     public long Target;
     public int GemReward;
 
@@ -39,8 +36,6 @@ public class AchievementDef
 }
 
 /// <summary>
-/// Danh mục thành tựu định nghĩa bằng code (theo Docs/ThietKe-ThanhTuu-NhiemVu.md).
-/// Chỉnh mốc/thưởng ngay tại đây — không cần tạo asset trong Unity.
 /// </summary>
 public static class AchievementCatalog
 {

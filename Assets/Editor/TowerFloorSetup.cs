@@ -4,20 +4,16 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// Công cụ editor để tự động tạo dữ liệu 15 floor đầu tiên cho TowerSlimeBosses.
-/// Dùng: chuột phải vào TowerSlimeBosses asset → "Tạo 15 Floors Mặc Định".
-/// Traits phải gán thủ công sau khi chạy lệnh này.
 /// </summary>
 public static class TowerFloorSetup
 {
-    [MenuItem("Tools/Tower/Tạo 15 Floors Mặc Định")]
+    [MenuItem("Tools/Tower/Create 15 Default Floors")]
     public static void CreateDefaultFloors()
     {
-        // Tìm TowerSlimeBosses asset
         var guids = AssetDatabase.FindAssets("t:TowerSlimeBosses");
         if (guids.Length == 0)
         {
-            EditorUtility.DisplayDialog("Lỗi", "Không tìm thấy TowerSlimeBosses asset nào.\nHãy tạo asset trước.", "OK");
+            EditorUtility.DisplayDialog("Error", "TowerSlimeBosses asset not found.\nCreate one first.", "OK");
             return;
         }
 
@@ -25,18 +21,18 @@ public static class TowerFloorSetup
         var db = AssetDatabase.LoadAssetAtPath<TowerSlimeBosses>(path);
         if (db == null)
         {
-            EditorUtility.DisplayDialog("Lỗi", $"Không load được asset tại: {path}", "OK");
+            EditorUtility.DisplayDialog("Error", $"Cannot load asset at: {path}", "OK");
             return;
         }
 
         bool confirm = EditorUtility.DisplayDialog(
-            "Xác nhận",
-            $"Sẽ THAY THẾ toàn bộ floors hiện có trong '{db.name}' bằng 15 floors mặc định.\nTraits sẽ cần gán thủ công sau.\nTiếp tục?",
-            "Tạo", "Hủy");
+            "Confirm",
+            $"This will replace all floors in '{db.name}' with 15 default floors.\nAssign traits manually.\nContinue?",
+            "Create", "Cancel");
 
         if (!confirm) return;
 
-        Undo.RecordObject(db, "Tạo 15 Tower Floors Mặc Định");
+        Undo.RecordObject(db, "Create 15 Tower Floors Default");
 
         db.floors = BuildFloors();
         db.currentFloor = 0;
@@ -46,16 +42,14 @@ public static class TowerFloorSetup
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        EditorUtility.DisplayDialog("Hoàn thành",
-            $"Đã tạo {db.floors.Count} floors cho '{db.name}'.\nNhớ gán Body/Armor/Weapon TraitSO cho từng floor trong Inspector.",
+        EditorUtility.DisplayDialog("Done",
+            $"Created {db.floors.Count} floors for '{db.name}'.\nAssign Body/Armor/Weapon TraitSO per floor.",
             "OK");
 
-        Debug.Log($"[TowerFloorSetup] Đã tạo {db.floors.Count} floors tại {path}");
+        Debug.Log($"[TowerFloorSetup] Created {db.floors.Count} floors at {path}");
     }
 
     // ── Floor data ─────────────────────────────────────────────────────
-    // Stat tăng dần: mỗi 5 floor tăng ~50% HP, ~30% ATK
-    // Reward: coins tăng theo floor; gems chỉ cho floor 5/10/15 (milestone)
     private static List<TowerSlimeBosses.TowerFloor> BuildFloors()
     {
         var floors = new List<TowerSlimeBosses.TowerFloor>();

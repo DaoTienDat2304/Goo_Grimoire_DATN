@@ -32,7 +32,6 @@ public class AchievementWithCurrency
             AchievementRef.transform.GetChild(2).GetComponentInChildren<Image>().color = Color.white;
             Unlock = true;
             
-            // Thưởng currency khi unlock achievement
             if (currencyReward != null && currencyReward.giveRewardOnUnlock)
             {
                 currencyReward.GiveReward();
@@ -81,6 +80,6 @@ public class AchievementWithCurrency
         {
             return currencyReward.GetRewardDescription();
         }
-        return "Không có phần thưởng";
+        return "No reward";
     }
 }

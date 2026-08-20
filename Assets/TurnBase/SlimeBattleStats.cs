@@ -7,7 +7,7 @@ public struct ActiveBuff
 {
     public BuffStat stat;
     public int originalValue;
-    public int turnsLeft; // -1 = vĩnh viễn
+    public int turnsLeft;
     public bool isDebuff;  // true = debuff
 }
 
@@ -26,7 +26,7 @@ public class SlimeBattleStats : MonoBehaviour
     public bool isInitialized = false;
 
     [Header("Battle Modifiers")]
-    public float critChance = 0f; // buff thêm vào Crit Rate (%)
+    public float critChance = 0f;
     public float damageReduction = 0f;
     public int maxHPBonus = 0;
     public int speedBonus = 0;
@@ -45,8 +45,8 @@ public class SlimeBattleStats : MonoBehaviour
     [SerializeField] private int currentEnergy = 0;
     private const int MAX_ENERGY = 100;
 
-    [SerializeField] private float currentAV; // Action Value hiện tại
-    [SerializeField] private int currentShield = 0; // Lá chắn
+    [SerializeField] private float currentAV;
+    [SerializeField] private int currentShield = 0;
     public int CurrentEnergy { get => currentEnergy; }
     public float CurrentAV { get => currentAV; set => currentAV = value; }
     public int CurrentShield { get => currentShield; }
@@ -86,14 +86,12 @@ public class SlimeBattleStats : MonoBehaviour
         return activeDoTs.Count(d => d.type == EffectType.Poison && d.turnsLeft > 0);
     }
 
-    /// <param name="maxStacks">-1 = lấy từ Remote Config (`battle_poison_max_stacks`, mặc định 3).</param>
     public void ApplyPoison(int duration = 2, int maxStacks = -1)
     {
         if (maxStacks < 0) maxStacks = RemoteBalance.Battle.poisonMaxStacks;
         int current = GetPoisonStackCount();
         if (current < maxStacks)
         {
-            // % Max HP mỗi stack — key `battle_poison_percent_hp` (mặc định 4%).
             int poisonDmg = Mathf.Max(1, Mathf.RoundToInt(MaxHP * RemoteBalance.Battle.poisonPercentHp));
             activeDoTs.Add(new ActiveDoT { type = EffectType.Poison, damagePerTurn = poisonDmg, turnsLeft = duration });
             var turnSys = GetTurnSys();
@@ -102,7 +100,6 @@ public class SlimeBattleStats : MonoBehaviour
         }
     }
 
-    // ── Cached references (thay thế FindObjectOfType mỗi lần gọi) ──
     private static TurnSystem _cachedTurnSys;
     private static bool _isTowerModeCached = false;
     private static bool _isTowerModeValue = false;
@@ -114,7 +111,6 @@ public class SlimeBattleStats : MonoBehaviour
         return _cachedTurnSys;
     }
 
-    // Gọi khi scene mới load để reset cache
     public static void ClearTurnSysCache()
     {
         _cachedTurnSys = null;
@@ -125,7 +121,6 @@ public class SlimeBattleStats : MonoBehaviour
     {
         if (baseStats == null)
             baseStats = GetComponent<SlimeStats>();
-        // Warm-up cache ngay khi Awake để tránh tìm trong mid-combat
         if (_cachedTurnSys == null)
             _cachedTurnSys = UnityEngine.Object.FindAnyObjectByType<TurnSystem>();
     }
@@ -144,7 +139,6 @@ public class SlimeBattleStats : MonoBehaviour
 
         if (baseStats.isEnemy && baseStats.useRarityBossScaling)
         {
-            // Adventure: hệ số Boss theo ĐỘ HIẾM & TỪNG chỉ số (design "Hệ số chỉ số Boss").
             var m = BossStatScaling.Get(baseStats.enemyRarity);
             MaxHP = Mathf.RoundToInt((baseStats.MaxHP + maxHPBonus) * m.hp);
             BattleAttack = Mathf.RoundToInt(baseStats.Attack * m.atk);
@@ -154,7 +148,6 @@ public class SlimeBattleStats : MonoBehaviour
         }
         else
         {
-            // Tower/Farm/khác: giữ hệ số phẳng theo Remote Config (mặc định 3x); đồng minh = 1x.
             if (!_isTowerModeCached)
             {
                 _isTowerModeValue = UnityEngine.Object.FindAnyObjectByType<TowerTurnSystem>() != null;
@@ -166,7 +159,6 @@ public class SlimeBattleStats : MonoBehaviour
             
             if (baseStats.isEnemy && !isTowerMode && !isFarmMode)
             {
-                // Hệ số phẳng cho enemy KHÔNG dùng rarity scaling — key `battle_legacy_boss_multiplier`.
                 multiplier = RemoteBalance.Battle.legacyBossMultiplier;
             }
 
@@ -181,7 +173,6 @@ public class SlimeBattleStats : MonoBehaviour
         BattleCritRate = baseStats.CritRate;
         BattleCritDMG = baseStats.CritDMG;
 
-        // Cập nhật baseStats để UI hiển thị đúng
         baseStats.MaxHP = MaxHP;
         baseStats.HP = CurrentHP;
 
@@ -199,13 +190,11 @@ public class SlimeBattleStats : MonoBehaviour
         isInitialized = true;
     }
 
-    // Tính toán AV khởi đầu dựa trên SPD
     public void CalculateInitialAV()
     {
         currentAV = 10000f / Mathf.Max(1, BattleSpeed);
     }
 
-    // Khi hành động xong, reset lại AV
     public void ResetAV()
     {
         currentAV += 10000f / Mathf.Max(1, BattleSpeed);
@@ -215,7 +204,7 @@ public class SlimeBattleStats : MonoBehaviour
     {
         currentEnergy = Mathf.Clamp(currentEnergy + amount, 0, MAX_ENERGY);
 #if UNITY_EDITOR
-        Debug.Log($"{name} hồi {amount} Năng lượng. Current: {currentEnergy}/100");
+        Debug.Log($"{name} heal {amount} Energy. Current: {currentEnergy}/100");
 #endif
     }
 
@@ -228,7 +217,7 @@ public class SlimeBattleStats : MonoBehaviour
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.2f, $"+{amount} SHIELD!", Color.cyan);
         }
 #if UNITY_EDITOR
-        Debug.Log($"{name} nhận {amount} Lá Chắn. Tổng khiên: {currentShield}");
+        Debug.Log($"{name} taken {amount} Shield. Shield: {currentShield}");
 #endif
     }
 
@@ -238,7 +227,6 @@ public class SlimeBattleStats : MonoBehaviour
     }
 
     // Dynamic stats computation taking conversion into account.
-    // Toàn bộ công thức nằm ở BattleStatFormula để đồng bộ với hiển thị ngoài trận.
     public float GetEffectiveCritRate()
     {
         // critChance is additional buff from skills, represented as percentage (e.g. 10 means +10% or +0.10f)
@@ -298,14 +286,13 @@ public class SlimeBattleStats : MonoBehaviour
 
         AddEnergy(RemoteBalance.Battle.energyPerAction);
 
-        // Trừ khiên trước
         if (currentShield > 0)
         {
             if (currentShield >= finalDmgInt)
             {
                 currentShield -= finalDmgInt;
 #if UNITY_EDITOR
-                Debug.Log($"{name} bị đánh {finalDmgInt} nhưng khiên đã đỡ hết!");
+                Debug.Log($"{name} hit for {finalDmgInt} but shield blocked it!");
 #endif
                 return;
             }
@@ -324,7 +311,6 @@ public class SlimeBattleStats : MonoBehaviour
             baseStats.HP = CurrentHP;
             if (baseStats.hpbar != null)
                 baseStats.hpbar.value = CurrentHP;
-            // Đổi màu xám ngay khi chết — thay thế SlimeStats.Update() polling
             if (CurrentHP <= 0) baseStats.SetDeadVisual();
         }
 
@@ -337,7 +323,6 @@ public class SlimeBattleStats : MonoBehaviour
 #endif
     }
 
-    // Kéo lượt (Tiến) hoặc Đẩy lùi
     public void ModifyActionValue(float percentage, bool isAdvance)
     {
         float baseAV = 10000f / Mathf.Max(1, BattleSpeed);
@@ -345,16 +330,16 @@ public class SlimeBattleStats : MonoBehaviour
 
         if (isAdvance)
         {
-            currentAV = Mathf.Max(0, currentAV - changeAmount); // Tiến
+            currentAV = Mathf.Max(0, currentAV - changeAmount);
 #if UNITY_EDITOR
-            Debug.Log($"{name} được kéo lượt {percentage}%, AV giảm còn {currentAV}");
+            Debug.Log($"{name} pulled {percentage}%, AV now {currentAV}");
 #endif
         }
         else
         {
-            currentAV += changeAmount; // Lùi
+            currentAV += changeAmount;
 #if UNITY_EDITOR
-            Debug.Log($"{name} bị đẩy lùi {percentage}%, AV tăng lên {currentAV}");
+            Debug.Log($"{name} pushed {percentage}%, AV tang on {currentAV}");
 #endif
         }
     }
@@ -455,7 +440,7 @@ public class SlimeBattleStats : MonoBehaviour
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.8f, "STUNNED!", Color.magenta);
 
 #if UNITY_EDITOR
-        Debug.Log($"{name} bị stun {duration} lượt!");
+        Debug.Log($"{name} bi stun {duration} turn!");
 #endif
     }
 
@@ -464,7 +449,7 @@ public class SlimeBattleStats : MonoBehaviour
         if (StunTurns <= 0) return;
         StunTurns--;
         if (StunTurns == 0)
-            Debug.Log($"{name} thoát khỏi stun.");
+            Debug.Log($"{name} thoat khoi stun.");
     }
 
     public void TickBuffs()
@@ -476,7 +461,7 @@ public class SlimeBattleStats : MonoBehaviour
             if (buff.turnsLeft <= 0)
             {
                 SetStat(buff.stat, buff.originalValue);
-                Debug.Log($"{name}: {buff.stat} buff hết hạn, restore về {buff.originalValue}");
+                Debug.Log($"{name}: {buff.stat} buff het han, restore ve {buff.originalValue}");
                 activeBuffs.RemoveAt(i);
             }
             else
@@ -517,7 +502,7 @@ public class SlimeBattleStats : MonoBehaviour
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.0f, effectName, color);
         }
 #if UNITY_EDITOR
-        Debug.Log($"{name} bị dính {type} gây {damagePerTurn} sát thương mỗi lượt trong {duration} lượt!");
+        Debug.Log($"{name} bi taken {type} deals {damagePerTurn} damage per turn for {duration} turn!");
 #endif
     }
 
@@ -528,10 +513,8 @@ public class SlimeBattleStats : MonoBehaviour
             var dot = activeDoTs[i];
             dot.turnsLeft--;
 
-            // Gây sát thương
             TakeDamage(dot.damagePerTurn);
 
-            // Hiện popup sát thương DoT
             var dotTurnSys = GetTurnSys();
             if (dotTurnSys != null)
             {
@@ -542,7 +525,7 @@ public class SlimeBattleStats : MonoBehaviour
 
             if (dot.turnsLeft <= 0)
             {
-                Debug.Log($"{name}: {dot.type} hết hạn.");
+                Debug.Log($"{name}: {dot.type} ended.");
                 activeDoTs.RemoveAt(i);
             }
             else

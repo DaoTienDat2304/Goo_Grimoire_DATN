@@ -9,13 +9,13 @@ using TMPro;
 public class QuestCardItemUI : MonoBehaviour
 {
     [Header("Texts")]
-    [Tooltip("Tiêu đề nhiệm vụ / thành tựu (hỗ trợ TMP hoặc Text thường)")]
+    [Tooltip("Title text")]
     public GameObject titleObject;
-    [Tooltip("Mô tả chi tiết mục tiêu (hỗ trợ TMP hoặc Text thường)")]
+    [Tooltip("Description text")]
     public GameObject descriptionObject;
-    [Tooltip("Tiến độ dạng chữ vd: 3 / 10 (30%)")]
+    [Tooltip("Progress text")]
     public GameObject progressTextObject;
-    [Tooltip("Số lượng thưởng vd: +500 Coins hoặc +15 Gems")]
+    [Tooltip("Reward text")]
     public GameObject rewardAmountObject;
 
     [Header("Progress Visual")]
@@ -25,24 +25,24 @@ public class QuestCardItemUI : MonoBehaviour
 
     [Header("Reward Visual")]
     public Image rewardIcon;
-    public Sprite coinRewardSprite; // Icon Vàng mặc định
-    public Sprite gemRewardSprite;  // Icon Đá Quý mặc định
+    public Sprite coinRewardSprite;
+    public Sprite gemRewardSprite;
 
     [Header("Action Button")]
     public Button actionButton;
     public GameObject actionButtonTextObject;
 
-    [Header("Action Button Sprites (Tùy chọn - nếu muốn dùng hình nút riêng)")]
+    [Header("Action Button Sprites (Optional - custom button sprite)")]
     public Sprite inProgressButtonSprite;
     public Sprite readyClaimButtonSprite;
     public Sprite claimedButtonSprite;
 
-    [Header("Action Button Colors (Dùng khi không gán Sprite riêng)")]
+    [Header("Action Button Colors (Without custom sprite)")]
     public Color inProgressButtonColor = new Color(0.35f, 0.35f, 0.35f, 1f);
     public Color readyClaimButtonColor = new Color(0.2f, 0.8f, 0.2f, 1f);
     public Color claimedButtonColor = new Color(0.2f, 0.2f, 0.2f, 0.6f);
 
-    [Header("State Overlays (Tùy chọn - không bắt buộc)")]
+    [Header("State Overlays (Optional - optional)")]
     public GameObject readyGlowEffect;
     public GameObject completedCheckmark;
     public GameObject lockOverlay;
@@ -58,7 +58,6 @@ public class QuestCardItemUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Thiết lập hiển thị đầy đủ cho một Card
     /// </summary>
     public void Setup(
         string title,
@@ -125,7 +124,6 @@ public class QuestCardItemUI : MonoBehaviour
 
         if (isClaimed)
         {
-            // Đã nhận thưởng
             SetText(actionButtonTextObject, "CLAIMED");
             if (actionButton != null) actionButton.interactable = false;
 
@@ -148,7 +146,6 @@ public class QuestCardItemUI : MonoBehaviour
         }
         else if (isCompleted)
         {
-            // Sẵn sàng nhận thưởng (Claim)
             SetText(actionButtonTextObject, "CLAIM");
             if (actionButton != null) actionButton.interactable = true;
 
@@ -171,7 +168,6 @@ public class QuestCardItemUI : MonoBehaviour
         }
         else
         {
-            // Đang thực hiện (In Progress)
             SetText(actionButtonTextObject, "IN PROGRESS");
             if (actionButton != null) actionButton.interactable = false;
 
@@ -200,7 +196,6 @@ public class QuestCardItemUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Hàm trợ giúp gán text đa năng (hỗ trợ cả Text thường và TMP_Text)
     /// </summary>
     private void SetText(GameObject obj, string text)
     {

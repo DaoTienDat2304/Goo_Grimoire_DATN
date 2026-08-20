@@ -3,8 +3,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 /// <summary>
-/// Giữ lại nhiều mesh chunk Tilemap hơn để camera không phải dựng lại chunk
-/// liên tục khi người chơi qua lại giữa các vùng trên mobile.
 /// </summary>
 public static class MobileTilemapOptimizer
 {
@@ -45,10 +43,6 @@ public static class MobileTilemapOptimizer
     }
 
     /// <summary>
-    /// Các scene cũ có CompositeCollider2D nhưng TilemapCollider2D không gửi
-    /// geometry vào composite. Kết quả là mỗi tile Rock tạo một fixture/contact
-    /// riêng. Khi player tì vào mép nhiều tile, solver phải giải một contact
-    /// storm mỗi FixedUpdate.
     /// </summary>
     private static void OptimizeObstacleColliders()
     {
@@ -77,7 +71,6 @@ public static class MobileTilemapOptimizer
             if (composite == null)
                 composite = obstacleObject.AddComponent<CompositeCollider2D>();
 
-            // Gộp các ô liền nhau và loại bớt vertex cực nhỏ không nhìn thấy.
             composite.geometryType = CompositeCollider2D.GeometryType.Outlines;
             composite.vertexDistance = Mathf.Max(composite.vertexDistance, 0.02f);
             composite.edgeRadius = Mathf.Max(composite.edgeRadius, 0.01f);
@@ -88,7 +81,6 @@ public static class MobileTilemapOptimizer
             tilemapCollider.callbackLayers = 0;
             tilemapCollider.contactCaptureLayers = 0;
 
-            // Scene không thay tile Rock trong lúc chơi, chỉ dựng geometry một lần.
             composite.GenerateGeometry();
         }
     }
@@ -116,8 +108,6 @@ public static class MobileTilemapOptimizer
             Collider2D[] colliders = player.GetComponents<Collider2D>();
             for (int c = 0; c < colliders.Length; c++)
             {
-                // Gameplay không dùng OnCollision callbacks trên player; tắt phần
-                // capture/callback nhưng vẫn giữ phản lực va chạm bình thường.
                 colliders[c].callbackLayers = 0;
                 colliders[c].contactCaptureLayers = 0;
             }

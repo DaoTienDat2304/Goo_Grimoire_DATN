@@ -114,7 +114,7 @@ public class SlimeEggUI : MonoBehaviour
         Refresh();
     }
 
-    private Image hatchedSlimeImage; // ảnh slime vừa nhận trong popup kết quả
+    private Image hatchedSlimeImage;
 
     private void ShowHatchResult(Slime slime)
     {
@@ -145,7 +145,6 @@ public class SlimeEggUI : MonoBehaviour
         ShowHatchedSlimeVisual(slime);
     }
 
-    /// <summary>Hiện HÌNH slime vừa nhận trong ô animation + hiệu ứng pop (cảm giác "nhận slime").</summary>
     private void ShowHatchedSlimeVisual(Slime slime)
     {
         if (hatchAnimationRoot == null) return;
@@ -179,7 +178,7 @@ public class SlimeEggUI : MonoBehaviour
         if (t == null) yield break;
 
         float e = 0f;
-        while (e < 0.35f) // phóng to từ nhỏ → hơi quá cỡ
+        while (e < 0.35f)
         {
             e += Time.unscaledDeltaTime;
             float s = Mathf.SmoothStep(0.5f, 1.12f, Mathf.Clamp01(e / 0.35f));
@@ -187,7 +186,7 @@ public class SlimeEggUI : MonoBehaviour
             yield return null;
         }
         e = 0f;
-        while (e < 0.14f) // nảy về 1
+        while (e < 0.14f)
         {
             e += Time.unscaledDeltaTime;
             float s = Mathf.Lerp(1.12f, 1f, Mathf.Clamp01(e / 0.14f));

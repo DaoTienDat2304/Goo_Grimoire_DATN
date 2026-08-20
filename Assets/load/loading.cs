@@ -9,32 +9,32 @@ public class loading : MonoBehaviour
     public static loading Instance { get; private set; }
 
     [Header("UI References")]
-    [Tooltip("Thanh Slider tiến trình")]
+    [Tooltip("Progress slider")]
     public Slider slider;
-    [Tooltip("Ảnh Fill của thanh loading (để đổi màu theo gradient)")]
+    [Tooltip("Progress fill")]
     public Image fillImage;
-    [Tooltip("Text hiển thị số phần trăm (vd: 72%)")]
+    [Tooltip("Percent text")]
     public Text percentText;
-    [Tooltip("Text hiển thị mẹo chơi ngẫu nhiên (nếu có, có thể để trống)")]
+    [Tooltip("Tip text")]
     public Text tipsText;
-    [Tooltip("CanvasGroup của màn hình loading để tạo hiệu ứng Fade in / Fade out mượt mà")]
+    [Tooltip("Loading fade group")]
     public CanvasGroup canvasGroup;
-    [Tooltip("(Tùy chọn) Animator nếu có clip chuyển cảnh riêng, không bắt buộc")]
+    [Tooltip("Optional transition animator")]
     public Animator animator;
 
     [Header("Color Gradient theo %")]
-    [Tooltip("Dải màu: 0% (Tím) -> 25% (Xanh lam) -> 50% (Cyan) -> 75% (Xanh ngọc) -> 100% (Vàng chanh)")]
+    [Tooltip("Progress colors")]
     public Gradient progressGradient;
 
     [Header("Settings")]
-    [Tooltip("Thời gian thanh loading lấp đầy từ 0% đến 100% (giây)")]
+    [Tooltip("Load fill time (s)")]
     [Range(0.5f, 5f)] public float loadingDuration = 1.5f;
-    [Tooltip("Thời gian dừng lại ở mốc 100% trước khi mở Scene (giây)")]
+    [Tooltip("Hold at 100% (s)")]
     public float completedHoldTime = 0.25f;
-    [Tooltip("Thời gian mờ dần (Fade) khi mở và đóng màn hình loading")]
+    [Tooltip("Fade time")]
     public float fadeDuration = 0.2f;
 
-    [Header("Gameplay Tips (Tùy chọn)")]
+    [Header("Gameplay Tips")]
     public string[] gameplayTips = new string[]
     {
         "Weapon Skills of (Rare) rarity or higher unlock an Ultimate ability upon accumulating 100 Energy!",
@@ -54,7 +54,6 @@ public class loading : MonoBehaviour
             EnsureDefaultGradient();
             EnsureCanvasGroup();
 
-            // Đảm bảo ở trạng thái ban đầu không chặn tương tác raycast của game
             if (canvasGroup != null)
             {
                 canvasGroup.alpha = 0f;
@@ -75,11 +74,11 @@ public class loading : MonoBehaviour
         progressGradient = new Gradient();
         var colorKeys = new GradientColorKey[]
         {
-            new GradientColorKey(new Color(0.29f, 0.12f, 0.46f), 0.00f), // 0%: Tím (#4A1E75)
+            new GradientColorKey(new Color(0.29f, 0.12f, 0.46f), 0.00f),
             new GradientColorKey(new Color(0.00f, 0.53f, 1.00f), 0.25f), // 25%: Xanh lam (#0088FF)
             new GradientColorKey(new Color(0.00f, 0.83f, 1.00f), 0.50f), // 50%: Cyan (#00D5FF)
-            new GradientColorKey(new Color(0.00f, 0.92f, 0.65f), 0.75f), // 75%: Xanh ngọc (#00EAA5)
-            new GradientColorKey(new Color(0.83f, 1.00f, 0.20f), 1.00f)  // 100%: Vàng chanh (#D4FF33)
+            new GradientColorKey(new Color(0.00f, 0.92f, 0.65f), 0.75f),
+            new GradientColorKey(new Color(0.83f, 1.00f, 0.20f), 1.00f)
         };
         var alphaKeys = new GradientAlphaKey[]
         {
@@ -147,18 +146,18 @@ public class loading : MonoBehaviour
 
         if (string.IsNullOrEmpty(sceneName))
         {
-            Debug.LogError("[Loading] Tên scene trống, chuyển về 'firstsave'.");
+            Debug.LogError("[Loading] Scene name empty, using 'firstsave'.");
             sceneName = "firstsave";
         }
 
         int sceneIndex = GetSceneIndexByName(sceneName);
         if (sceneIndex < 0)
         {
-            Debug.LogWarning($"[Loading] Scene '{sceneName}' chưa có trong Build Settings. Tự động chuyển về 'firstsave'...");
+            Debug.LogWarning($"[Loading] Scene '{sceneName}' not in Build Settings. Using 'firstsave'...");
             sceneIndex = GetSceneIndexByName("firstsave");
             if (sceneIndex < 0)
             {
-                Debug.LogError("[Loading] Không tìm thấy scene 'firstsave' trong Build Settings.");
+                Debug.LogError("[Loading] Scene not found 'firstsave' trong Build Settings.");
                 SceneLoader.EndSceneLoadRequest();
                 if (canvasGroup != null)
                 {
@@ -189,10 +188,8 @@ public class loading : MonoBehaviour
             tipsText.text = gameplayTips[Random.Range(0, gameplayTips.Length)];
         }
 
-        // Đảm bảo thanh loading reset về 0%
         UpdateProgressVisual(0f);
 
-        // Bật chặn raycast trong suốt quá trình loading
         if (canvasGroup != null)
         {
             canvasGroup.blocksRaycasts = true;
@@ -208,16 +205,13 @@ public class loading : MonoBehaviour
             if (canvasGroup != null) canvasGroup.alpha = 1f;
         }
 
-        // Dọn rác bộ nhớ trước khi tải
         Resources.UnloadUnusedAssets();
         System.GC.Collect();
 
         if (animator != null) animator.SetBool("nextScene", true);
 
-        // Tải scene và lấp đầy thanh tiến trình
         await LoadSceneAsync(sceneIndex);
 
-        // Fade Out Màn hình Loading
         if (canvasGroup != null)
         {
             float t = 0f;
@@ -235,7 +229,6 @@ public class loading : MonoBehaviour
             }
         }
 
-        // Tắt hoàn toàn toàn bộ LoadingPanel để không chặn tương tác của scene mới
         gameObject.SetActive(false);
 
         SceneLoader.EndSceneLoadRequest();
@@ -258,7 +251,6 @@ public class loading : MonoBehaviour
         float elapsed = 0f;
         float duration = Mathf.Max(0.5f, loadingDuration);
 
-        // Vòng lặp nạp dữ liệu và trượt thanh tiến trình từ 0% đến 100%
         while (visualProgress < 1f)
         {
             if (this == null || gameObject == null) return;
@@ -290,10 +282,8 @@ public class loading : MonoBehaviour
             await Task.Yield();
         }
 
-        // Đảm bảo visual chạm đúng 100%
         UpdateProgressVisual(1f);
 
-        // Dừng lại một khoảng ngắn ở mốc 100% để người chơi thấy trọn vẹn dải màu vàng chanh 100%
         if (completedHoldTime > 0f)
         {
             float holdElapsed = 0f;
@@ -304,7 +294,6 @@ public class loading : MonoBehaviour
             }
         }
 
-        // Kích hoạt chuyển sang Scene mới
         scene.allowSceneActivation = true;
 
         while (!scene.isDone)
@@ -316,7 +305,6 @@ public class loading : MonoBehaviour
     }
 
     /// <summary>
-    /// Cập nhật hiển thị UI thanh loading, màu gradient và số phần trăm %
     /// </summary>
     public void UpdateProgressVisual(float progress01)
     {

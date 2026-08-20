@@ -2,18 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Chuẩn hoá chỉ số slime CŨ về đúng quy chuẩn GDD (StatBalance). Chạy mỗi lần load.
-/// IDEMPOTENT: chỉ đụng vào slime còn lệch chuẩn; slime đã đúng thì bỏ qua, nên có thể
-/// chạy lặp lại an toàn (kể cả khi chưa kịp save).
 ///
-/// Xử lý 3 nhóm slime bị lệch do lịch sử:
-///  (1) Secret cũ: bị ATK/Magic/Crit = 0 và HP sai scale (body-only nhưng body không roll đủ).
-///  (2) Slime nở-từ-trứng cũ: dùng bảng scale nhỏ riêng (đã bỏ), giờ kéo về StatBalance theo
-///      đúng percentile chất lượng đã lưu (eggStatRollPercent) để không mất "chất lượng" roll.
-///  (3) Mythic dính lỗi typo HP (roll 2200–50000 thay vì 22000–50000): remap giữ nguyên percentile.
 ///
-/// Lưu ý: phần "ATK/DEF/SPD bị nhân hệ số độ hiếm lúc load" đã được sửa tại
-/// TraitInstance.RecalculateStats nên tự chuẩn hoá khi load, không cần migrate ở đây.
 /// </summary>
 public static class StatStandardMigration
 {
@@ -24,16 +14,14 @@ public static class StatStandardMigration
         foreach (var s in slimes)
             if (s != null && Normalize(s)) changed++;
         if (changed > 0)
-            Debug.Log($"[StatMigration] Đã chuẩn hoá {changed} slime cũ về quy chuẩn GDD mới.");
+            Debug.Log($"[StatMigration] Normalized {changed} old slimes to GDD.");
         return changed;
     }
 
-    // Trả về true nếu slime bị sửa.
     private static bool Normalize(Slime s)
     {
         Rarity rarity = GetRarity(s);
 
-        // (1) Secret — đảm bảo toàn bộ bộ phận Body, Armor, Weapon đều mang Rarity.Secret và có Kỹ năng Secret
         if (s.body != null && s.body.Rarity == Rarity.Secret)
         {
             bool modified = false;
@@ -48,7 +36,6 @@ public static class StatStandardMigration
                 modified = true;
             }
 
-            // Đảm bảo có đầy đủ bộ kỹ năng Secret (Body, Hat, Weapon _A, Weapon _U)
             if (s.armor?.skill == null || s.armor.skill.baseSkill?.rarity != Rarity.Secret
                 || s.weapon?.skill == null || s.weapon.skill.baseSkill?.rarity != Rarity.Secret
                 || s.weapon?.ultimateSkill == null || s.weapon.ultimateSkill.baseSkill?.rarity != Rarity.Secret
@@ -62,7 +49,6 @@ public static class StatStandardMigration
             bool needs = s.body.attack <= 0 || s.body.HP < rs.hpMin;
             if (needs)
             {
-                // Giữ "chất lượng" theo percentile HP cũ (range Secret body-only cũ ~9000–16000).
                 float p = Mathf.Clamp01((s.body.HP - 9000f) / (16000f - 9000f));
                 SetStat(s.body, LerpInt(rs.hpMin, rs.hpMax, p), LerpInt(rs.atkMin, rs.atkMax, p),
                         LerpInt(rs.magMin, rs.magMax, p), LerpInt(rs.defMin, rs.defMax, p),
@@ -78,11 +64,10 @@ public static class StatStandardMigration
             return false;
         }
 
-        // (2) Slime nở-từ-trứng — "chưa migrate" khi HP body dưới min chuẩn của độ hiếm.
         if (!string.IsNullOrEmpty(s.eggStatQuality) && s.body != null)
         {
             var r = StatBalance.Get(rarity);
-            if (s.body.HP >= r.hpMin) return false; // đã đúng chuẩn
+            if (s.body.HP >= r.hpMin) return false;
 
             float t = Mathf.Clamp01(s.eggStatRollPercent / 100f);
             s.body.HP = s.body.baseHP = LerpInt(r.hpMin, r.hpMax, t);
@@ -102,7 +87,6 @@ public static class StatStandardMigration
             return true;
         }
 
-        // (3) Mythic dính lỗi typo HP: remap [2200,50000] -> [22000,50000] giữ nguyên percentile.
         if (s.body != null && s.body.Rarity == Rarity.Mythic && s.body.HP < 22000)
         {
             float p = Mathf.Clamp01((s.body.HP - 2200f) / (50000f - 2200f));
@@ -111,8 +95,6 @@ public static class StatStandardMigration
             return true;
         }
 
-        // (4) Đảm bảo có ĐỦ Crit Rate/Damage & Magic ATK theo design — sửa slime bậc thấp cũ
-        //     (trước đây Common/Uncommon chỉ random 1 trong 2 crit, và có thể thiếu Magic ATK).
         if (EnsureCritAndMagic(s))
         {
             s.CalculateStats();
@@ -122,7 +104,6 @@ public static class StatStandardMigration
         return false;
     }
 
-    // Bổ sung Crit Rate/Damage (cố định theo độ hiếm) & Magic ATK (nếu đang = 0) cho khớp design.
     private static bool EnsureCritAndMagic(Slime s)
     {
         bool changed = false;

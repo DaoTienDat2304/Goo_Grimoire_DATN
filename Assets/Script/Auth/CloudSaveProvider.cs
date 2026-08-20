@@ -1,20 +1,14 @@
 // ============================================================
 // CloudSaveProvider.cs
 //
-// Define symbol cần có: FIREBASE_FIRESTORE
 //
-// Không có symbol → Load/Save chỉ dùng local file (hành vi dev offline).
 //
 // Firestore structure:
 //   users/{uid}  (document)
 //     ├─ json      : string   — SaveEnvelope serialized (payload + HMAC sig)
 //     ├─ savedAt   : long     — Unix timestamp milliseconds
-//     └─ appVersion: string   — để debug tương thích dữ liệu
 //
 // Save integrity:
-//   Mỗi save được bọc trong SaveEnvelope với chữ ký HMAC-SHA256.
-//   Key = SHA256(uid + salt), salt lấy từ Firebase Remote Config.
-//   Legacy save (không có envelope) được chấp nhận 1 lần rồi ký lại.
 // ============================================================
 
 using System;
@@ -33,10 +27,7 @@ public class CloudSaveProvider : MonoBehaviour
     [Tooltip("Enable only when you explicitly need to test Firestore cloud saves in the Unity Editor.")]
     public bool useFirestoreInEditor = false;
 
-    // ── Trạng thái cloud check ──────────────────────────────
-    /// <summary>true nếu tài khoản hiện tại đã có save data trên cloud (và hợp lệ).</summary>
     public bool HasCloudSave    { get; private set; }
-    /// <summary>true sau khi InitCloudCheck() hoàn tất.</summary>
     public bool CloudCheckDone  { get; private set; }
 
     string _cachedCloudJson;
@@ -54,16 +45,12 @@ public class CloudSaveProvider : MonoBehaviour
         AuthManager.Instance.OnLoginSuccess += uid => StartCoroutine(InitCloudCheck(uid));
         AuthManager.Instance.OnLoggedOut    += ResetCheckState;
 
-        // Offline dev mode: ApplyOfflineUser() gọi trong Awake nên event đã fire trước Start
         if (AuthManager.Instance.IsLoggedIn)
             StartCoroutine(InitCloudCheck(AuthManager.Instance.CurrentUserId));
     }
 
     // ── Cloud check ──────────────────────────────────────────
     /// <summary>
-    /// Kiểm tra cloud save của uid. Tự chạy khi login.
-    /// Chờ RemoteConfig sẵn sàng để dùng salt đúng khi verify HMAC.
-    /// Kết quả cache trong HasCloudSave / GetCachedJson().
     /// </summary>
     public IEnumerator InitCloudCheck(string uid)
     {
@@ -71,7 +58,6 @@ public class CloudSaveProvider : MonoBehaviour
         CloudCheckDone   = false;
         _cachedCloudJson = null;
 
-        // Chờ RemoteConfig để có salt trước khi verify
         yield return new WaitUntil(() =>
             RemoteConfigManager.Instance == null || RemoteConfigManager.Instance.IsReady);
 
@@ -97,9 +83,6 @@ public class CloudSaveProvider : MonoBehaviour
         yield return null;
 #endif
 
-        // Fallback: cloud không có save hợp lệ (hoặc đang offline / dev mode) nhưng máy
-        // có save cục bộ (PlayerPrefs) → dùng nó. Nhờ vậy guest/offline vẫn "Continue" được,
-        // không bị coi là game mới và bắt chơi lại tutorial từ đầu.
         if (!HasCloudSave)
         {
             string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
@@ -108,7 +91,7 @@ public class CloudSaveProvider : MonoBehaviour
             {
                 _cachedCloudJson = localJson;
                 HasCloudSave     = true;
-                Debug.Log("[CloudSave] Không có cloud save — dùng save cục bộ (PlayerPrefs).");
+                Debug.Log("[CloudSave] No cloud save. Using local save.");
             }
         }
 
@@ -116,22 +99,18 @@ public class CloudSaveProvider : MonoBehaviour
         Debug.Log($"[CloudSave] InitCloudCheck xong. HasCloudSave={HasCloudSave}");
     }
 
-    /// <summary>JSON save data đã tải về và xác minh, dùng được ngay.</summary>
     public string GetCachedJson() => _cachedCloudJson;
 
-    /// <summary>Reset trạng thái khi logout — bắt buộc check lại khi login tiếp.</summary>
     public void ResetCheckState()
     {
         HasCloudSave     = false;
         CloudCheckDone   = false;
         _cachedCloudJson = null;
-        Debug.Log("[CloudSave] Đã reset trạng thái cloud check.");
+        Debug.Log("[CloudSave] Cloud check reset.");
     }
 
     // ── Save ─────────────────────────────────────────────────
     /// <summary>
-    /// Khởi chạy SaveToCloud trên CloudSaveProvider (DontDestroyOnLoad) để coroutine
-    /// không bị interrupt khi scene thay đổi.
     /// </summary>
     public void StartSave(string uid, string json)
     {
@@ -144,7 +123,6 @@ public class CloudSaveProvider : MonoBehaviour
     }
 
     /// <summary>
-    /// Ký JSON rồi lưu lên Firestore dưới dạng SaveEnvelope (fire-and-forget).
     /// </summary>
     public IEnumerator SaveToCloud(string uid, string json)
     {
@@ -157,7 +135,6 @@ public class CloudSaveProvider : MonoBehaviour
 
         if (string.IsNullOrEmpty(uid) || string.IsNullOrEmpty(json)) yield break;
 
-        // Bọc game JSON trong envelope có chữ ký HMAC
         var envelope = new SaveEnvelope
         {
             payload       = json,
@@ -182,30 +159,28 @@ public class CloudSaveProvider : MonoBehaviour
         doc.SetAsync(saveData).ContinueWithOnMainThread(task =>
         {
             if (task.IsFaulted)
-                error = task.Exception?.InnerException?.Message ?? "Lỗi không xác định";
+                error = task.Exception?.InnerException?.Message ?? "Unknown error";
             done = true;
         });
 
         yield return new WaitUntil(() => done);
 
         if (error != null)
-            Debug.LogWarning($"[CloudSave] ✗ Lưu cloud thất bại: {error}");
+            Debug.LogWarning($"[CloudSave] ✗ Cloud save failed: {error}");
         else
         {
-            Debug.Log("[CloudSave] ✓ Đã lưu lên Firestore (có chữ ký HMAC).");
+            Debug.Log("[CloudSave] ✓ Saved to Firestore (HMAC).");
             _cachedCloudJson = json;
             HasCloudSave = true;
         }
 #else
-        Debug.Log("[CloudSave] Firestore chưa bật — bỏ qua cloud save.");
+        Debug.Log("[CloudSave] Firestore off. Skip cloud save.");
         yield break;
 #endif
     }
 
     // ── Load ─────────────────────────────────────────────────
     /// <summary>
-    /// Tải raw string từ Firestore về (chưa verify — verify trong UnwrapAndVerify).
-    /// Trả về (rawJson, savedAt). rawJson = null nếu không có dữ liệu hoặc lỗi.
     /// </summary>
     public IEnumerator LoadFromCloud(string uid, Action<string, long> onComplete)
     {
@@ -229,17 +204,17 @@ public class CloudSaveProvider : MonoBehaviour
         {
             if (task.IsFaulted)
             {
-                Debug.LogWarning($"[CloudSave] ✗ Tải cloud thất bại: {task.Exception?.InnerException?.Message}");
+                Debug.LogWarning($"[CloudSave] ✗ Cloud load failed: {task.Exception?.InnerException?.Message}");
             }
             else if (task.Result.Exists)
             {
                 rawJson = task.Result.GetValue<string>("json");
                 if (task.Result.TryGetValue("savedAt", out long ts)) savedAt = ts;
-                Debug.Log($"[CloudSave] ✓ Tải cloud thành công. savedAt={savedAt}");
+                Debug.Log($"[CloudSave] ✓ Cloud load OK. savedAt={savedAt}");
             }
             else
             {
-                Debug.Log("[CloudSave] Chưa có save data trên cloud.");
+                Debug.Log("[CloudSave] No cloud save data.");
             }
             done = true;
         });
@@ -247,7 +222,7 @@ public class CloudSaveProvider : MonoBehaviour
         yield return new WaitUntil(() => done);
         onComplete?.Invoke(rawJson, savedAt);
 #else
-        Debug.Log("[CloudSave] Firestore chưa bật.");
+        Debug.Log("[CloudSave] Firestore off.");
         onComplete?.Invoke(null, 0);
         yield break;
 #endif
@@ -255,10 +230,6 @@ public class CloudSaveProvider : MonoBehaviour
 
     // ── HMAC Integrity ───────────────────────────────────────
     /// <summary>
-    /// Parse raw Firestore string thành game JSON, đồng thời verify chữ ký.
-    /// - Envelope hợp lệ + sig đúng → trả về payload
-    /// - Envelope hợp lệ + sig sai  → trả về null (reject)
-    /// - Legacy save (không có envelope) → chấp nhận, log warning
     /// </summary>
     string UnwrapAndVerify(string raw, string uid)
     {
@@ -268,16 +239,15 @@ public class CloudSaveProvider : MonoBehaviour
         {
             if (SaveIntegrity.Verify(envelope.payload, uid, envelope.sig))
             {
-                Debug.Log("[CloudSave] ✓ Chữ ký HMAC hợp lệ.");
+                Debug.Log("[CloudSave] ✓ HMAC valid.");
                 return envelope.payload;
             }
 
-            Debug.LogWarning("[CloudSave] ✗ Chữ ký HMAC KHÔNG hợp lệ — từ chối load.");
+            Debug.LogWarning("[CloudSave] ✗ Invalid HMAC. Load rejected.");
             return null;
         }
 
-        // Không có envelope → save cũ hoặc dữ liệu lạ, reject
-        Debug.LogWarning("[CloudSave] Save không có chữ ký — từ chối load.");
+        Debug.LogWarning("[CloudSave] Unsigned save. Load rejected.");
         return null;
     }
 

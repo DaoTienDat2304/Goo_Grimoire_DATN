@@ -3,8 +3,8 @@ using UnityEngine;
 [System.Serializable]
 public enum CurrencyType
 {
-    Coins,      // Tiền xu - kiếm được từ quest, bán slime, hoạt động hàng ngày
-    Gems        // Đá quý - tiền tệ premium, kiếm được từ achievement, quest đặc biệt
+    Coins,
+    Gems
 }
 
 [System.Serializable]

@@ -19,10 +19,8 @@ public class StoryManager : MonoBehaviour
     
     void Start()
     {
-        // Tìm TravelSceneManager
         travelManager = FindAnyObjectByType<TravelSceneManager>();
         
-        // Đăng ký sự kiện từ player
         if (player != null)
         {
             player.OnReachedTarget += OnPlayerReachedStoryPoint;
@@ -37,13 +35,11 @@ public class StoryManager : MonoBehaviour
             currentStoryIndex = storyIndex;
             OnStoryPointReached?.Invoke(storyIndex);
             
-            // Tự động chuyển đến điểm tiếp theo nếu được bật
             if (autoAdvance)
             {
                 Invoke(nameof(MoveToNextStoryPoint), autoAdvanceDelay);
             }
             
-            // Kiểm tra xem đã hoàn thành tất cả story points chưa
             if (currentStoryIndex >= storyPoints.Count - 1)
             {
                 OnAllStoryPointsCompleted?.Invoke();
@@ -89,7 +85,6 @@ public class StoryManager : MonoBehaviour
     
     void OnDestroy()
     {
-        // Hủy đăng ký sự kiện
         if (player != null)
         {
             player.OnReachedTarget -= OnPlayerReachedStoryPoint;

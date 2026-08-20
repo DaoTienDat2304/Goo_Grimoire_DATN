@@ -1,11 +1,8 @@
 // GoogleSignInDesktop.cs
 // OAuth2 Authorization Code + PKCE flow cho Windows/Mac/Linux.
-// Không cần embed client_secret — PKCE đảm bảo bảo mật cho native apps.
 //
-// Bước chuẩn bị (1 lần):
 //   Google Cloud Console → APIs & Services → Credentials
 //   → Create Credentials → OAuth 2.0 Client ID → Desktop app
-//   → Copy Client ID, paste vào DesktopClientId bên dưới.
 
 #if UNITY_STANDALONE
 
@@ -21,9 +18,6 @@ using UnityEngine.Networking;
 
 public static class GoogleSignInDesktop
 {
-    // ── Điền Desktop OAuth2 Client ID + Secret từ Google Cloud Console vào đây ──
-    // client_secret của Desktop app KHÔNG thực sự bí mật (Google biết điều này)
-    // nhưng vẫn phải gửi trong token exchange request.
     const string DesktopClientId     = "1082236547825-c6i9iv5avnr05knnuqu82u8umu4r503n.apps.googleusercontent.com";
     const string DesktopClientSecret = "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";
 
@@ -35,8 +29,6 @@ public static class GoogleSignInDesktop
     // ── Public API ────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Mở browser để user đăng nhập Google, chờ callback, trả về Google id_token.
-    /// Gọi từ main thread; await trên main thread (dùng ContinueWithOnMainThread phía ngoài).
     /// </summary>
     public static async Task<string> GetIdTokenAsync()
     {
@@ -45,22 +37,18 @@ public static class GoogleSignInDesktop
         string codeChallenge = GenerateCodeChallenge(codeVerifier);
 
         // 2. Port + redirect URI
-        // Không có trailing slash — Google normalize bỏ slash khi verify redirect_uri
         int    port        = FindFreePort();
         string redirectUri = $"http://localhost:{port}";
 
-        // 3. Mở browser
         string state   = Guid.NewGuid().ToString("N");
         string authUrl = BuildAuthUrl(redirectUri, codeChallenge, state);
         Application.OpenURL(authUrl);
-        Debug.Log("[GoogleSignInDesktop] Mở browser để đăng nhập Google...");
+        Debug.Log("[GoogleSignInDesktop] Opening browser for Google login...");
 
-        // 4. Chờ callback
         string code = await ListenForCodeAsync(port, state);
         if (string.IsNullOrEmpty(code))
-            throw new Exception("Không nhận được authorization code (hết thời gian hoặc bị huỷ).");
+            throw new Exception("No authorization code.");
 
-        // 5. Đổi code → tokens
         string idToken = await ExchangeCodeForIdTokenAsync(code, codeVerifier, redirectUri);
         return idToken;
     }
@@ -86,7 +74,6 @@ public static class GoogleSignInDesktop
     static async Task<string> ListenForCodeAsync(int port, string expectedState)
     {
         using var listener = new HttpListener();
-        // HttpListener prefix bắt buộc có trailing slash; redirect_uri gửi Google thì không
         listener.Prefixes.Add($"http://localhost:{port}/");
         listener.Start();
 
@@ -94,17 +81,15 @@ public static class GoogleSignInDesktop
 
         try
         {
-            // Chờ request từ browser trên thread pool (không block main thread)
             var contextTask = Task.Run(() => listener.GetContext(), cts.Token);
             var context     = await contextTask;
 
             string query = context.Request.Url?.Query ?? "";
             var    pairs  = ParseQueryString(query);
 
-            // Serve trang thành công cho browser
             string html = "<html><body style='font-family:sans-serif;text-align:center;padding-top:80px'>" +
-                          "<h2>&#10003; Đăng nhập thành công!</h2>" +
-                          "<p>Bạn có thể đóng cửa sổ này và quay lại game.</p>" +
+                          "<h2>&#10003; Login successful!</h2>" +
+                          "<p>Close this window and return to the game.</p>" +
                           "</body></html>";
             byte[] buffer = Encoding.UTF8.GetBytes(html);
             context.Response.ContentType     = "text/html; charset=utf-8";
@@ -114,13 +99,13 @@ public static class GoogleSignInDesktop
 
             if (pairs.TryGetValue("error", out string error))
             {
-                Debug.LogWarning($"[GoogleSignInDesktop] Google trả về lỗi: {error}");
+                Debug.LogWarning($"[GoogleSignInDesktop] Google returned error: {error}");
                 return null;
             }
 
             if (!pairs.TryGetValue("state", out string returnedState) || returnedState != expectedState)
             {
-                Debug.LogWarning("[GoogleSignInDesktop] State mismatch — có thể là CSRF attack.");
+                Debug.LogWarning("[GoogleSignInDesktop] State mismatch — yes the la CSRF attack.");
                 return null;
             }
 
@@ -129,7 +114,7 @@ public static class GoogleSignInDesktop
         }
         catch (OperationCanceledException)
         {
-            Debug.LogWarning($"[GoogleSignInDesktop] Hết {TimeoutSeconds}s chờ đăng nhập.");
+            Debug.LogWarning($"[GoogleSignInDesktop] Timed out after {TimeoutSeconds}s waiting for login.");
             return null;
         }
         finally
@@ -154,18 +139,16 @@ public static class GoogleSignInDesktop
         req.downloadHandler = new DownloadHandlerBuffer();
         req.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        // UnityWebRequest phải chạy trên main thread — dùng TaskCompletionSource
         var tcs = new TaskCompletionSource<string>();
 
-        // Gửi request và chờ bằng cách poll (UnityWebRequest không hỗ trợ async/await native)
         var op = req.SendWebRequest();
         op.completed += _ =>
         {
             if (req.result != UnityWebRequest.Result.Success)
             {
                 string body = req.downloadHandler?.text ?? "(empty)";
-                Debug.LogError($"[GoogleSignInDesktop] Token exchange lỗi body: {body}");
-                tcs.SetException(new Exception($"Token exchange thất bại: {req.error} | {body}"));
+                Debug.LogError($"[GoogleSignInDesktop] Token exchange body error: {body}");
+                tcs.SetException(new Exception($"Token exchange failed: {req.error} | {body}"));
                 return;
             }
 
@@ -173,7 +156,7 @@ public static class GoogleSignInDesktop
             var    wrapper = JsonUtility.FromJson<TokenResponse>(json);
             if (string.IsNullOrEmpty(wrapper?.id_token))
             {
-                tcs.SetException(new Exception($"Không tìm thấy id_token trong response: {json}"));
+                tcs.SetException(new Exception($"id_token not found in response: {json}"));
                 return;
             }
 
@@ -187,7 +170,6 @@ public static class GoogleSignInDesktop
 
     static string GenerateCodeVerifier()
     {
-        // RFC 7636: 43–128 ký tự, unreserved characters
         var bytes = new byte[32];
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(bytes);
@@ -213,7 +195,6 @@ public static class GoogleSignInDesktop
 
     static int FindFreePort()
     {
-        // Dùng OS để cấp port trống
         var listener = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0);
         listener.Start();
         int port = ((IPEndPoint)listener.LocalEndpoint).Port;

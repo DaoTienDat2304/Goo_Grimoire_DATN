@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
@@ -18,12 +18,12 @@ public abstract class Quest : ScriptableObject
     public string questName;
     public string description;
     public int slimeRequirement;
-    public List<int> questreq;   // Quest ID phải hoàn thành trước
-    public CurrencyReward currencyReward;   // Phần thưởng tiền tệ
+    public List<int> questreq;
+    public CurrencyReward currencyReward;
     
     [Header("Reward")]
     public QuestReward reward;
-    public Sprite rewardIcon; // Icon phần thưởng
+    public Sprite rewardIcon;
 
     public enum QuestState
     {
@@ -33,21 +33,20 @@ public abstract class Quest : ScriptableObject
         Completed,
         Rewarded
     }
-    public QuestState state = QuestState.Locked; // Trạng thái
+    public QuestState state = QuestState.Locked;
     
     public abstract bool CheckCompletion();
     
     public virtual void StartQuest()
     {
         state = QuestState.InProgress;
-        Debug.Log("Bắt đầu quest: " + questName);
+        Debug.Log("Start quest: " + questName);
     }
 
     public virtual void CompleteQuest()
     {
         state = QuestState.Completed;
-        Debug.Log("Hoàn thành quest: " + questName);
-        // Không tự động claim reward, để player tự claim
+        Debug.Log("Done quest: " + questName);
     }
 
     public virtual void ClaimReward()
@@ -59,17 +58,15 @@ public abstract class Quest : ScriptableObject
             {
                 ArchievementManager.Instance.GetArchivement(3); // 0 = Breed achievement
             }
-            // Trao phần thưởng tiền tệ
             if (currencyReward != null)
             {
                 currencyReward.GiveRewards();
-                Debug.Log($"Nhận thưởng cho quest: {questName} - {currencyReward.GetRewardDescription()}");
+                Debug.Log($"Claim quest: {questName} - {currencyReward.GetRewardDescription()}");
             }
             
-            // Trao phần thưởng khác
             if (reward != null)
             {
-                Debug.Log($"Nhận thưởng cho quest {questName}: {reward.amount} {reward.rewardType}");
+                Debug.Log($"Get quest reward {questName}: {reward.amount} {reward.rewardType}");
                 ApplyReward();
             }
 
@@ -79,19 +76,16 @@ public abstract class Quest : ScriptableObject
     
     protected virtual void ApplyReward()
     {
-        // Override trong subclass để áp dụng reward cụ thể
         switch (reward.rewardType.ToLower())
         {
             case "coins":
-                // Thêm coins vào game
-                Debug.Log($"Nhận {reward.amount} coins");
+                Debug.Log($"Get {reward.amount} coins");
                 break;
             case "slime":
-                // Thêm slime vào game
-                Debug.Log($"Nhận {reward.amount} slime");
+                Debug.Log($"Get {reward.amount} slime");
                 break;
             default:
-                Debug.Log($"Nhận reward: {reward.description}");
+                Debug.Log($"Get reward: {reward.description}");
                 break;
         }
     }

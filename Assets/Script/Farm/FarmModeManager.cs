@@ -19,7 +19,7 @@ public class FarmDifficulty
     public int bossSpeed = 90;
     public float bossCritRate = 0.05f;
     public float bossCritDMG = 1.30f;
-    [Tooltip("Không còn dùng — hệ evade đã bị thay bằng hệ crit. Giữ lại cho tương thích save cũ.")]
+    [Tooltip("Unused. Kept for old saves.")]
     public int bossEvade = 0;
 
     [Header("Reward")]
@@ -27,8 +27,8 @@ public class FarmDifficulty
     public int rewardGems = 0;
 
     [Header("Unlock Status")]
-    public bool unlocked = false;  // Độ khó đã được mở khóa chưa
-    public bool completed = false;  // Đã hoàn thành độ khó này chưa
+    public bool unlocked = false;
+    public bool completed = false;
 }
 
 public class FarmModeManager : MonoBehaviour
@@ -54,13 +54,12 @@ public class FarmModeManager : MonoBehaviour
     private int rewardCoins = 0;
     private int rewardGems = 0;
 
-    [Header("Pending Result Cache (để lưu sau khi về firstsave)")]
+    [Header("Pending Result Cache")]
     public bool hasPendingResult = false;
     public int cachedCompletedIndex = -1;
     public int cachedRewardCoins = 0;
     public int cachedRewardGems = 0;
 
-    /// <summary>Tên độ khó đang được chọn — dùng cho analytics.</summary>
     public string SelectedDifficultyName => selectedDifficulty?.difficultyName ?? "none";
 
     void Awake()
@@ -99,7 +98,7 @@ public class FarmModeManager : MonoBehaviour
             applied++;
         }
 
-        Debug.Log($"FarmModeManager: Đã cập nhật {applied} bậc độ khó từ Remote Config.");
+        Debug.Log($"FarmModeManager: Updated {applied} difficulties from Remote Config.");
     }
 
     private static void ApplyRow(FarmDifficulty target, RcFarmRow row)
@@ -119,14 +118,10 @@ public class FarmModeManager : MonoBehaviour
     
     void Start()
     {
-        // Load trạng thái unlock từ save file
         LoadUnlockStatus();
     }
     
     /// <summary>
-    /// Bảng mặc định trong code — đã tái cân bằng theo thang chỉ số mới
-    /// (mid-range StatBalance của độ hiếm tương ứng × hệ số BossStatScaling).
-    /// Remote Config `farm_difficulty_table` sẽ ghi đè ngay sau khi fetch xong.
     /// </summary>
     private void InitializeDefaultDifficulties()
     {
@@ -149,14 +144,13 @@ public class FarmModeManager : MonoBehaviour
 
         difficulties = new List<FarmDifficulty>
         {
-            Make("Dễ",         "Boss yếu, reward ít",       6000,  180,  360,  780,  90,  0.05f, 1.30f, 500,   0),
-            Make("Trung Bình", "Boss vừa, reward vừa",      11000, 325,  650,  1480, 105, 0.06f, 1.35f, 1200,  0),
-            Make("Khó",        "Boss mạnh, reward nhiều",   24000, 640,  1290, 2790, 121, 0.08f, 1.45f, 3000,  2),
-            Make("Cực Khó",    "Boss cực mạnh, reward lớn", 46000, 1160, 2325, 5270, 141, 0.10f, 1.55f, 7000,  5),
-            Make("Địa Ngục",   "Thử thách tối thượng",      87000, 2125, 4250, 9500, 162, 0.13f, 1.70f, 15000, 10),
+            Make("Easy",         "Weak boss, low reward",       6000,  180,  360,  780,  90,  0.05f, 1.30f, 500,   0),
+            Make("Normal", "Mid boss, mid reward",      11000, 325,  650,  1480, 105, 0.06f, 1.35f, 1200,  0),
+            Make("Hard",        "Strong boss, high reward",   24000, 640,  1290, 2790, 121, 0.08f, 1.45f, 3000,  2),
+            Make("Extreme",    "Very strong boss, big reward", 46000, 1160, 2325, 5270, 141, 0.10f, 1.55f, 7000,  5),
+            Make("Inferno",   "Ultimate challenge",      87000, 2125, 4250, 9500, 162, 0.13f, 1.70f, 15000, 10),
         };
 
-        // Nếu Remote Config đã sẵn sàng ngay lúc này thì áp luôn.
         RefreshDifficultyStats();
     }
     
@@ -173,7 +167,7 @@ public class FarmModeManager : MonoBehaviour
         var team = saveSystem != null ? saveSystem.GetTeam() : null;
         if (team == null || team.team == null || team.team.Count == 0)
         {
-            Debug.LogWarning("Cần ít nhất 1 slime trong team để vào Farm!");
+            Debug.LogWarning("Need 1 slime for Farm.");
             ShowWarning();
             return;
         }
@@ -182,7 +176,7 @@ public class FarmModeManager : MonoBehaviour
 
         if (!IsDifficultyUnlocked(difficultyIndex))
         {
-            Debug.LogWarning($"Độ khó {diffList[difficultyIndex].difficultyName} chưa được mở khóa!");
+            Debug.LogWarning($"Difficulty {diffList[difficultyIndex].difficultyName} locked!");
             return;
         }
         
@@ -222,7 +216,7 @@ public class FarmModeManager : MonoBehaviour
         if (SaveAndLoadSystem.Instance != null)
         {
             SaveAndLoadSystem.Instance.Save();
-            Debug.Log("[FarmModeManager] Đã lưu dữ liệu trước khi vào trận đấu Farm.");
+            Debug.Log("[FarmModeManager] Saved before Farm battle.");
         }
         
         StartCoroutine(SceneLoader.LoadSceneWithLoadingCoroutine(battleSceneName));

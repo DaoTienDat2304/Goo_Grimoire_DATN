@@ -3,15 +3,14 @@ using UnityEngine.UI;
 
 public class CurrencyUI : MonoBehaviour
 {
-    [Header("Currency Display - Chọn 1 trong 2 loại")]
-    [SerializeField] private Text coinsText;           // Unity UI Text thông thường
-    [SerializeField] private Text gemsText;            // Unity UI Text thông thường
+    [Header("Currency Display")]
+    [SerializeField] private Text coinsText;
+    [SerializeField] private Text gemsText;
     
     [Header("Currency Icons (Optional)")]
     [SerializeField] private Image coinsIcon;
     [SerializeField] private Image gemsIcon;
 
-    /// <summary>Sprite icon coin/gem đang dùng trong HUD — cho UI khác (vd breeding) tái sử dụng.</summary>
     public Sprite CoinSprite => coinsIcon != null ? coinsIcon.sprite : null;
     public Sprite GemSprite => gemsIcon != null ? gemsIcon.sprite : null;
     
@@ -19,23 +18,19 @@ public class CurrencyUI : MonoBehaviour
     [SerializeField] private bool useAnimation = false;
     
     [Header("Tower Database (Optional)")]
-    [SerializeField] private TowerSlimeBosses towerDatabase;  // Kéo TowerSlimeBosses asset vào đây
+    [SerializeField] private TowerSlimeBosses towerDatabase;
 
     private void Start()
     {
-        // Đăng ký event listeners
         CurrencyManager.OnCurrencyChanged += OnCurrencyChanged;
         
-        // Cập nhật UI ban đầu
         UpdateAllCurrencyDisplay();
         
-        // Kiểm tra và claim reward từ tower nếu có
         CheckAndClaimTowerRewards();
     }
 
     private void OnDestroy()
     {
-        // Hủy đăng ký event listeners
         if (CurrencyManager.Instance != null)
         {
             CurrencyManager.OnCurrencyChanged -= OnCurrencyChanged;
@@ -81,7 +76,6 @@ public class CurrencyUI : MonoBehaviour
 
     private string FormatCurrencyAmount(int amount)
     {
-        // Format số tiền cho dễ đọc
         if (amount >= 1000000)
             return (amount / 1000000f).ToString("0.0") + "M";
         else if (amount >= 1000)
@@ -106,7 +100,6 @@ public class CurrencyUI : MonoBehaviour
 
         if (targetText != null)
         {
-            // Hiệu ứng đơn giản không cần LeanTween
             StartCoroutine(SimpleScaleAnimation(targetText.transform));
         }
     }
@@ -137,37 +130,30 @@ public class CurrencyUI : MonoBehaviour
         target.localScale = originalScale;
     }
 
-    // Public methods để các script khác có thể gọi
     public void RefreshDisplay()
     {
         UpdateAllCurrencyDisplay();
     }
 
-    // Method để hiển thị popup khi không đủ tiền
     public void ShowInsufficientCurrencyMessage(CurrencyType type, int required, int current)
     {
         string currencyName = type == CurrencyType.Coins ? "Coins" : "Gems";
-        string message = $"Không đủ {currencyName}!\nCần: {FormatCurrencyAmount(required)}\nHiện có: {FormatCurrencyAmount(current)}";
+        string message = $"Not enough {currencyName}!\nNeed: {FormatCurrencyAmount(required)}\nHave: {FormatCurrencyAmount(current)}";
         
         Debug.LogWarning(message);
         
-        // Có thể tích hợp với hệ thống notification/popup nếu có
         // NotificationManager.ShowMessage(message);
     }
     
     /// <summary>
-    /// Kiểm tra và claim reward từ các màn tower đã hoàn thành
     /// </summary>
     private void CheckAndClaimTowerRewards()
     {
-        // Tìm tower database nếu chưa được gán
         if (towerDatabase == null)
         {
-            // Tìm từ TurnSystem hoặc các nơi khác
             var turnSystem = FindAnyObjectByType<TurnSystem>();
             if (turnSystem != null)
             {
-                // Sử dụng reflection hoặc public field nếu có
                 var field = typeof(TurnSystem).GetField("towerBosses", 
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
                 if (field != null)
@@ -176,7 +162,6 @@ public class CurrencyUI : MonoBehaviour
                 }
             }
             
-            // Nếu vẫn null, tìm trong Resources
             if (towerDatabase == null)
             {
                 var allTowers = Resources.FindObjectsOfTypeAll<TowerSlimeBosses>();
@@ -189,13 +174,12 @@ public class CurrencyUI : MonoBehaviour
         
         if (towerDatabase == null)
         {
-            // Không có tower database, bỏ qua
             return;
         }
         
         if (CurrencyManager.Instance == null)
         {
-            Debug.LogWarning("CurrencyManager không tồn tại! Không thể claim tower rewards.");
+            Debug.LogWarning("CurrencyManager missing! Khong the claim tower rewards.");
             return;
         }
         
@@ -203,28 +187,23 @@ public class CurrencyUI : MonoBehaviour
         int totalGemsClaimed = 0;
         int floorsClaimed = 0;
         
-        // Duyệt qua tất cả các màn
         foreach (var floor in towerDatabase.floors)
         {
             if (floor == null) continue;
             
-            // Nếu màn đã completed nhưng chưa claimed
             if (floor.completed && !floor.claimed)
             {
                 int coinsReward = floor.rewardCoins;
                 int gemsReward = floor.rewardGems;
                 
-                // Hỗ trợ tương thích với dữ liệu cũ
                 if (coinsReward == 0 && gemsReward == 0 && floor.rewardCurrency > 0)
                 {
                     coinsReward = floor.rewardCurrency;
                 }
 
-                // Hệ số thưởng remote (`reward_mult_tower`)
                 coinsReward = RemoteBalance.ScaleReward(coinsReward, RemoteBalance.Reward.tower);
                 gemsReward = RemoteBalance.ScaleReward(gemsReward, RemoteBalance.Reward.tower);
 
-                // Thêm reward
                 if (coinsReward > 0)
                 {
                     CurrencyManager.Instance.AddCurrency(CurrencyType.Coins, coinsReward);
@@ -237,15 +216,13 @@ public class CurrencyUI : MonoBehaviour
                     totalGemsClaimed += gemsReward;
                 }
                 
-                // Đánh dấu đã claimed
                 floor.claimed = true;
                 floorsClaimed++;
                 
-                Debug.Log($"Đã claim reward màn {floor.floorNumber}: {coinsReward} Coins, {gemsReward} Gems");
+                Debug.Log($"Claimed floor {floor.floorNumber}: {coinsReward} Coins, {gemsReward} Gems");
             }
         }
         
-        // Lưu vào JSON nếu có reward được claim
         if (floorsClaimed > 0)
         {
             if (SaveAndLoadSystem.Instance != null)
@@ -253,12 +230,11 @@ public class CurrencyUI : MonoBehaviour
                 SaveAndLoadSystem.Instance.Save();
             }
 
-            Debug.Log($"Đã claim {floorsClaimed} màn tower: Tổng {totalCoinsClaimed} Coins, {totalGemsClaimed} Gems");
+            Debug.Log($"Claimed {floorsClaimed} tower floors: Total {totalCoinsClaimed} Coins, {totalGemsClaimed} Gems");
         }
     }
     
     /// <summary>
-    /// Public method để các script khác có thể gọi để check và claim rewards
     /// </summary>
     public void RefreshTowerRewards()
     {

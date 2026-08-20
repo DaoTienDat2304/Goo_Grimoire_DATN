@@ -2,8 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Tiện ích UI dùng chung cho Thành tựu &amp; Nhiệm vụ: phủ một panel đen mờ lên 1 dòng đã
-/// hoàn thành để "che mờ" nó (tạo/toggle bằng code, không cần sửa prefab).
 /// </summary>
 public static class QuestUIEffects
 {
@@ -31,14 +29,14 @@ public static class QuestUIEffects
 
                 var img = ov.GetComponent<Image>();
                 img.color = new Color(0f, 0f, 0f, 0.55f);
-                img.raycastTarget = false; // không chặn cuộn/nhấn
+                img.raycastTarget = false;
             }
             else
             {
                 ov = existing.gameObject;
                 ov.SetActive(true);
             }
-            ov.transform.SetAsLastSibling(); // trên cùng để che các phần tử dưới
+            ov.transform.SetAsLastSibling();
         }
         else if (existing != null)
         {

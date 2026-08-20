@@ -18,13 +18,13 @@ public class NewGameManager : MonoBehaviour
     public bool resetSaveData = true;
     
     [Header("Debug Settings")]
-    [Tooltip("Bỏ qua kiểm tra new game - luôn chạy opening sequence")]
+    [Tooltip("Skip new-game check: always run opening")]
     public bool forceOpeningSequence = false;
-    [Tooltip("Bỏ qua kiểm tra new game - không chạy opening sequence")]
+    [Tooltip("Skip new-game check: never run opening")]
     public bool skipOpeningSequence = false;
     
     [Header("Tutorial Settings")]
-    [Tooltip("Bỏ qua tutorial khi có save file")]
+    [Tooltip("Skip tutorial if save exists")]
     public bool skipTutorialWhenSaveExists = true;
     
     private static NewGameManager instance;
@@ -55,17 +55,14 @@ public class NewGameManager : MonoBehaviour
     
     void Start()
     {
-        // Kiểm tra xem có phải new game không
         bool isNewGame = IsNewGame();
         
-        // Nếu đã có save file, bỏ qua hoàn toàn tutorial này
         if (!isNewGame && skipTutorialWhenSaveExists)
         {
-            LoadMainGame(); // Nhảy ngay lập tức, bỏ qua tutorial
+            LoadMainGame();
             return;
         }
         
-        // Tự động tìm các component nếu chưa được gán
         if (openingDialogueManager == null)
         {
             openingDialogueManager = FindAnyObjectByType<OpeningDialogueManager>();
@@ -76,16 +73,13 @@ public class NewGameManager : MonoBehaviour
             openingDialogueSetup = FindAnyObjectByType<OpeningDialogueSetup>();
         }
         
-        // Kiểm tra xem có phải new game không
         CheckAndStartNewGame();
     }
     
     private void CheckAndStartNewGame()
     {
-        // Kiểm tra xem có phải new game không
         bool isNewGame = IsNewGame();
         
-        // Kiểm tra debug settings trước
         if (forceOpeningSequence)
         {
             StartCoroutine(StartNewGameSequence());
@@ -98,17 +92,14 @@ public class NewGameManager : MonoBehaviour
             return;
         }
         
-        // Logic bình thường
         if (isNewGame && !skipOpeningDialogue)
         {
             StartCoroutine(StartNewGameSequence());
         }
         else if (isNewGame && skipOpeningDialogue)
         {
-            // Bỏ qua hội thoại mở đầu, chuyển thẳng vào game
             LoadMainGame();
         }
-        // Logic này đã được xử lý trong Start() rồi
     }
     
     private bool IsNewGame()
@@ -130,60 +121,46 @@ public class NewGameManager : MonoBehaviour
 
         if (CloudSaveProvider.Instance != null && !CloudSaveProvider.Instance.CloudCheckDone)
             return false;
-        return true; // fallback: chưa check xong → coi như new game
+        return true;
     }
     
     private IEnumerator StartNewGameSequence()
     {
-        // Thiết lập dialogue nếu chưa có
         if (openingDialogueSetup != null)
         {
             openingDialogueSetup.SetupOpeningDialogues();
             yield return new WaitForEndOfFrame();
         }
         
-        // Bắt đầu hội thoại mở đầu
         if (openingDialogueManager != null)
         {
             openingDialogueManager.ForceStartOpeningSequence();
             
-            // Chờ hội thoại hoàn thành
             yield return new WaitUntil(() => !openingDialogueManager.IsOpeningSequenceActive());
         }
         
-        // Có thể thêm logic khác ở đây sau khi hội thoại kết thúc
         CompleteNewGame();
     }
     
     private void CompleteNewGame()
     {
-        // Có thể thêm logic khởi tạo game mới ở đây
-        // Ví dụ: Unlock quest đầu tiên, tạo slime đầu tiên, etc.
         InitializeNewGameData();
         
-        // Gọi event
         OnNewGameCompleted?.Invoke();
     }
     
     private void InitializeNewGameData()
     {
-        // Khởi tạo dữ liệu cho game mới
-        // Ví dụ: Tạo slime đầu tiên, unlock quest tutorial, etc.
         
-        // Có thể gọi từ QuestManager để unlock quest đầu tiên
         if (QuestManager.Instance != null)
         {
-            // Logic để unlock quest đầu tiên
         }
         
-        // Có thể gọi từ BreedingManager để tạo slime đầu tiên
         if (BreedingManager.Instance != null)
         {
-            // Logic để tạo slime đầu tiên
         }
     }
     
-    // Phương thức public để bắt đầu new game từ menu
     public async void StartNewGame()
     {
         if (resetSaveData)
@@ -191,21 +168,16 @@ public class NewGameManager : MonoBehaviour
             ResetSaveData();
         }
         
-        // Reload scene để bắt đầu new game
         await SceneLoader.LoadSceneWithLoading(SceneManager.GetActiveScene().name);
     }
     
-    // Phương thức để reset save data
     private void ResetSaveData()
     {
-        // Cloud-only: không còn local file để xóa
-        // Reset PlayerPrefs nếu cần
         PlayerPrefs.DeleteAll();
         PlayerPrefs.Save();
-        Debug.Log("[NewGame] Save data đã được reset (PlayerPrefs cleared).");
+        Debug.Log("[NewGame] Save reset (PlayerPrefs cleared).");
     }
     
-    // Phương thức để load main game
     public async void LoadMainGame()
     {
         if (!string.IsNullOrEmpty(mainGameSceneName))
@@ -214,7 +186,6 @@ public class NewGameManager : MonoBehaviour
         }
     }
     
-    // Phương thức để load adventure scene
     public async void LoadAdventureScene()
     {
         if (!string.IsNullOrEmpty(adventureSceneName))
@@ -223,7 +194,6 @@ public class NewGameManager : MonoBehaviour
         }
     }
     
-    // Phương thức để bỏ qua hội thoại mở đầu
     public void SkipOpeningDialogue()
     {
         skipOpeningDialogue = true;

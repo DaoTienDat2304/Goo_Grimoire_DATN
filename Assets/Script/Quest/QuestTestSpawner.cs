@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 public class QuestTestSpawner : MonoBehaviour
 {
-    public List<Quest> quests; // kéo vào vài Quest asset (TimeQuest hoặc Quest)
-    public BreedingManager breedingManager; // tham chiếu đến BreedingManager để kiểm tra slime
-    public QuestUIManager questUIManager; // tham chiếu đến QuestUIManager để cập nhật UI
+    public List<Quest> quests;
+    public BreedingManager breedingManager;
+    public QuestUIManager questUIManager;
 
     public bool ConditonMet(Quest quest)
     {
@@ -38,16 +38,15 @@ public class QuestTestSpawner : MonoBehaviour
         }
     }
 
-    [Tooltip("Đã thay bằng MissionCatalog nạp qua QuestManager. Giữ tắt để tránh spawn quest trùng.")]
+    [Tooltip("Replaced by MissionCatalog through QuestManager. Keep off to avoid duplicate quests.")]
     public bool disabled = true;
 
     void Start()
     {
-        if (disabled) return; // Nhiệm vụ giờ nạp từ MissionCatalog (QuestManager). Không spawn ở đây.
+        if (disabled) return;
         foreach (var quest in quests)
         {
             quest.state = Quest.QuestState.Locked;
-            // Thêm quest vào UI
             if (questUIManager != null)
             {
                 questUIManager.AddQuest(quest);
@@ -65,7 +64,6 @@ public class QuestTestSpawner : MonoBehaviour
             if (quest.state == Quest.QuestState.Available) 
             {
                 quest.StartQuest();
-                // Cập nhật UI khi quest bắt đầu
                 if (questUIManager != null)
                 {
                     questUIManager.UpdateQuestState(quest);
@@ -73,13 +71,11 @@ public class QuestTestSpawner : MonoBehaviour
             }
         }
         
-        // Xử lý TimeQuest - chỉ khi đang InProgress
         foreach (var quest in quests)
         {
             if (quest is TimeQuest timeQuest && timeQuest.state == Quest.QuestState.InProgress)
             {
                 timeQuest.RegisterTime();
-                // Cập nhật UI mỗi frame cho TimeQuest để hiển thị progress
                 if (questUIManager != null)
                 {
                     questUIManager.UpdateQuestState(quest);
@@ -87,28 +83,23 @@ public class QuestTestSpawner : MonoBehaviour
             }
         }
         
-        // Xử lý BreedingQuest - chỉ khi đang InProgress
         foreach (var quest in quests)
         {
             if (quest is BreedingQuest breedingQuest && breedingQuest.state == Quest.QuestState.InProgress)
             {
-                // Chỉ update khi số slime thực tế thay đổi
                 int actualSlimeCount = breedingManager.GetAllSlimes().Count;
                 if (actualSlimeCount != breedingQuest.curSlime)
                 {
                     breedingQuest.curSlime = actualSlimeCount;
-                    // Cập nhật UI khi progress thay đổi
                     if (questUIManager != null)
                     {
                         questUIManager.UpdateQuestState(quest);
                     }
                 }
                 
-                // Kiểm tra completion
                 if (breedingQuest.CheckCompletion())
                 {
                     breedingQuest.CompleteQuest();
-                    // Cập nhật UI khi quest hoàn thành
                     if (questUIManager != null)
                     {
                         questUIManager.UpdateQuestState(quest);

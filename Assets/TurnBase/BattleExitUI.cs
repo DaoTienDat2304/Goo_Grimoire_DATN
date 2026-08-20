@@ -3,17 +3,15 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI Nút Thoát Trận Đấu (Exit "X" Button) trong Battle Scene.
-/// Bấm nút X sẽ mở Popup xác nhận bỏ cuộc trước khi quay về scene firstsave.
 /// </summary>
 public class BattleExitUI : MonoBehaviour
 {
     [Header("UI Elements")]
-    public Button exitButton;                  // Nút X ở góc trên màn hình
-    public GameObject confirmPopup;            // Popup xác nhận bỏ cuộc
-    public Text confirmMessageText;            // Chữ thông báo trong popup
-    public Button confirmYesButton;            // Nút Đồng Ý / Xác Nhận
-    public Button confirmNoButton;             // Nút Hủy / Tiếp Tục Trận Đấu
+    public Button exitButton;
+    public GameObject confirmPopup;
+    public Text confirmMessageText;
+    public Button confirmYesButton;
+    public Button confirmNoButton;
 
     private void Awake()
     {
@@ -48,9 +46,8 @@ public class BattleExitUI : MonoBehaviour
     {
         if (confirmPopup != null) confirmPopup.SetActive(false);
 
-        Debug.Log("[BattleExitUI] Người chơi bỏ cuộc, xử lý như thua cuộc.");
+        Debug.Log("[BattleExitUI] Player quit, count as loss.");
         
-        // Gọi xử lý thua cuộc từ TurnSystem
         TurnSystem turnSystem = FindObjectOfType<TurnSystem>();
         if (turnSystem != null)
         {
@@ -58,7 +55,6 @@ public class BattleExitUI : MonoBehaviour
         }
         else
         {
-            // Fallback nếu không tìm thấy TurnSystem
             if (BattleDataManager.Instance != null)
             {
                 BattleDataManager.Instance.ClearBossData();

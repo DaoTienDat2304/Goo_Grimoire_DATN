@@ -16,14 +16,12 @@ public class SimpleSlimeWorldSetup : MonoBehaviour
     [ContextMenu("Setup Slime World")]
     public void SetupSlimeWorld()
     {
-        // Kiểm tra xem đã có SlimeWorldManager trong Scene chưa
         var existingManager = FindAnyObjectByType<SlimeWorldManager>();
         if (existingManager != null)
         {
             return;
         }
         
-        // Tạo SlimeWorldManager nếu chưa có bất kỳ manager nào trong scene
         var worldManager = gameObject.AddComponent<SlimeWorldManager>();
         worldManager.showSlimesInWorld = true;
         worldManager.worldRadius = 12f;

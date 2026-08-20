@@ -48,11 +48,9 @@ public class TowerSlimeBosses : ScriptableObject
         public int rewardCoins = 0;
         public int rewardGems = 0;
         [Tooltip("Deprecated: Use rewardCoins and rewardGems instead")]
-        public int rewardCurrency = 0; // Giữ lại để tương thích với dữ liệu cũ
+        public int rewardCurrency = 0;
         public List<TraitSO> rewardTraits = new List<TraitSO>();
 
-        // Runtime-only — không serialize vào asset, luôn reset về false khi build/start mới
-        // Được fill bởi SaveAndLoadSystem.DeserializeTowerFloors()
         [System.NonSerialized] public bool completed;
         [System.NonSerialized] public bool claimed;
         [System.NonSerialized] public int stars;
@@ -61,9 +59,8 @@ public class TowerSlimeBosses : ScriptableObject
 
     public static int CalculateStars(int turns)
     {
-        if (turns <= 0) return 3; // Màn đã thắng nhưng chưa có lượt turn: mặc định 3 sao
+        if (turns <= 0) return 3;
 
-        // Ngưỡng sao chỉnh từ xa qua key `tower_star_thresholds`.
         var t = RemoteBalance.TowerStars;
         int three = t != null ? t.threeStarMaxTurns : 50;
         int two = t != null ? t.twoStarMaxTurns : 80;
@@ -76,15 +73,10 @@ public class TowerSlimeBosses : ScriptableObject
     [Header("Tower Floors")]
     public List<TowerFloor> floors = new List<TowerFloor>();
 
-    // Runtime-only — không serialize vào asset, luôn reset về 0 khi build/start mới
-    // Được fill bởi SaveAndLoadSystem.DeserializeTowerFloors()
     [System.NonSerialized] public int currentFloor;
     [System.NonSerialized] public int highestFloorReached;
-    // 0 = đánh tầng hiện tại bình thường; >0 = đang chơi lại tầng đã qua (không nhận thưởng lại)
     [System.NonSerialized] public int replayFloor = 0;
 
-    // Cache kết quả tower battle — được set bởi TurnSystem sau khi thắng,
-    // được apply bởi SaveAndLoadSystem sau khi load cloud xong
     [System.NonSerialized] public bool hasPendingResult = false;
     [System.NonSerialized] public int pendingRewardFloor = 0;
     [System.NonSerialized] public int cachedCurrentFloor = 0;
@@ -115,7 +107,6 @@ public class TowerSlimeBosses : ScriptableObject
 
             if (growth != null)
             {
-                // Remote Config (`tower_growth`): chỉ số luỹ tiến theo số tầng.
                 ApplyGrowth(newFloor, growth);
             }
             else
@@ -131,7 +122,6 @@ public class TowerSlimeBosses : ScriptableObject
             floors.Add(newFloor);
         }
 
-        // Chỉ khi bật cờ mới kéo cả các tầng đã thiết kế tay về thang chỉ số mới.
         if (growth != null && growth.applyToAuthoredFloors)
         {
             foreach (var floor in floors)
@@ -139,7 +129,6 @@ public class TowerSlimeBosses : ScriptableObject
         }
     }
 
-    /// <summary>Áp công thức luỹ tiến `tower_growth` lên 1 tầng (không đụng traits/waves).</summary>
     private static void ApplyGrowth(TowerFloor floor, RcTowerGrowth g)
     {
         if (floor == null || g == null) return;
@@ -232,14 +221,11 @@ public class TowerSlimeBosses : ScriptableObject
     }
 
     /// <summary>
-    /// Kiểm tra xem còn floor sau không (sau khi đã advance)
     /// </summary>
     public bool HasNextFloor()
     {
         if (floors == null || floors.Count == 0) return false;
-        // currentFloor là 1-based, sau khi advance đã tăng lên
-        // Kiểm tra xem floor tiếp theo (index = currentFloor) có tồn tại không
-        int nextFloorIndex = currentFloor; // Index của floor tiếp theo (0-based)
+        int nextFloorIndex = currentFloor;
         return nextFloorIndex >= 0 && nextFloorIndex < floors.Count;
     }
 }

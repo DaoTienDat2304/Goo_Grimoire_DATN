@@ -83,14 +83,11 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
         {
             BreedingManager breedingManager = GameObject.Find("BreedingManager").GetComponent<BreedingManager>();
             breedingManager.removeslime(slime);
-            // Điểm hi sinh theo độ hiếm slime (đủ 100 → summon 1 secret).
             int points = SlimeInventory.SacrificePoints(SelectiveBreeding.GetSlimeRarity(slime));
             GetComponentInParent<SlimeInventory>().sacrifice += points;
             
-            // Remove slime khỏi team nếu đang trong team
             if (slime != null && slime.isPicked)
             {
-                // Tìm Team từ SaveAndLoadSystem hoặc tìm trực tiếp
                 Team team = null;
                 if (SaveAndLoadSystem.Instance != null)
                 {
@@ -102,7 +99,6 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
                     }
                 }
                 
-                // Nếu không tìm thấy, tìm trong Resources
                 if (team == null)
                 {
                     var allTeams = Resources.FindObjectsOfTypeAll<Team>();
@@ -116,7 +112,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
                 {
                     team.team.Remove(slime);
                     slime.isPicked = false;
-                    Debug.Log($"Đã remove slime {slime.slimeName} khỏi team khi hiến tế");
+                    Debug.Log($"Da remove slime {slime.slimeName} from team after sacrifice");
                 }
             }
         }

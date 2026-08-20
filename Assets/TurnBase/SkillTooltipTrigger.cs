@@ -39,7 +39,7 @@ public class SkillTooltipTrigger : MonoBehaviour, IPointerDownHandler, IPointerU
         isPointerDown = true;
         pointerDownTime = Time.unscaledTime;
         isTooltipShown = false;
-        Debug.Log($"[SkillTooltipTrigger] PointerDown trên nút: {gameObject.name}");
+        Debug.Log($"[SkillTooltipTrigger] PointerDown on button: {gameObject.name}");
     }
 
     private void Update()
@@ -53,7 +53,7 @@ public class SkillTooltipTrigger : MonoBehaviour, IPointerDownHandler, IPointerU
 
                 if (skillToDisplay != null && skillToDisplay.baseSkill != null)
                 {
-                    Debug.Log($"[SkillTooltipTrigger] Bật thông tin Skill: {skillToDisplay.baseSkill.skillName}");
+                    Debug.Log($"[SkillTooltipTrigger] Show skill: {skillToDisplay.baseSkill.skillName}");
                     if (BattleInfoDisplayUI.Instance != null)
                     {
                         BattleInfoDisplayUI.Instance.ShowSkillInfo(skillToDisplay, currentBattleStats);
@@ -65,7 +65,7 @@ public class SkillTooltipTrigger : MonoBehaviour, IPointerDownHandler, IPointerU
                 }
                 else
                 {
-                    Debug.LogWarning($"[SkillTooltipTrigger] Nút {gameObject.name} chưa tìm thấy dữ liệu Skill!");
+                    Debug.LogWarning($"[SkillTooltipTrigger] Button {gameObject.name} skill data missing!");
                 }
             }
         }
@@ -113,7 +113,6 @@ public class SkillTooltipTrigger : MonoBehaviour, IPointerDownHandler, IPointerU
         {
             currentBattleStats = skillUI.slime.GetComponent<SlimeBattleStats>();
 
-            // Kiểm tra khớp theo SlotType chọn trong Inspector
             if (slotType == SkillSlotType.Body) return skillUI.slime.bodySkill;
             if (slotType == SkillSlotType.Armor) return skillUI.slime.armorSkill;
             if (slotType == SkillSlotType.Weapon)
@@ -126,7 +125,6 @@ public class SkillTooltipTrigger : MonoBehaviour, IPointerDownHandler, IPointerU
                 return skillUI.slime.weaponSkill;
             }
 
-            // Kiểm tra theo reference Image trên SkillUI
             Image img = GetComponent<Image>();
             if (img == null) img = GetComponentInChildren<Image>();
             Button btn = GetComponent<Button>();
@@ -147,11 +145,10 @@ public class SkillTooltipTrigger : MonoBehaviour, IPointerDownHandler, IPointerU
                 }
             }
 
-            // Fallback tên nút
             string nameLower = gameObject.name.ToLower();
-            if (nameLower.Contains("body") || nameLower.Contains("thân")) return skillUI.slime.bodySkill;
-            if (nameLower.Contains("armor") || nameLower.Contains("giáp")) return skillUI.slime.armorSkill;
-            if (nameLower.Contains("weapon") || nameLower.Contains("vũ khí") || nameLower.Contains("kiếm"))
+            if (nameLower.Contains("body") || nameLower.Contains("body")) return skillUI.slime.bodySkill;
+            if (nameLower.Contains("armor") || nameLower.Contains("armor")) return skillUI.slime.armorSkill;
+            if (nameLower.Contains("weapon") || nameLower.Contains("weapon") || nameLower.Contains("sword"))
             {
                 if (currentBattleStats != null && skillUI.slime.weaponUltimateSkill != null && skillUI.slime.weaponUltimateSkill.baseSkill != null)
                 {

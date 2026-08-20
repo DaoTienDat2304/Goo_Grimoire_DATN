@@ -3,7 +3,7 @@ using UnityEngine;
 [System.Serializable]
 public enum ResourceType
 {
-    Marshmallow    // Kẹo dẻo - dùng để bắt slime
+    Marshmallow
 }
 
 [System.Serializable]

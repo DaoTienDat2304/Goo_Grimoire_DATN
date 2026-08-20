@@ -87,7 +87,7 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         transform.SetParent(targetParent, true);
         if (targetParent == unusedSlime)
         {
-            transform.localScale = Vector3.one * 1.3f; // Khôi phục lại kích thước chuẩn khi quay về dự bị
+            transform.localScale = Vector3.one * 1.3f;
         }
         rectTransform.anchoredPosition = Vector2.zero;
         
@@ -105,7 +105,6 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             }
         }
         
-        // Cập nhật formation position cho combat animation
         var combatAnim = GetComponent<SimpleCombatAnimation>();
         if (combatAnim != null)
         {

@@ -21,7 +21,7 @@ public class QuestAndAchievementUI : MonoBehaviour
     [Header("Window & Canvas Controls")]
     public CanvasGroup canvasGroup;
     public Button closeButton;
-    public Button openButton; // Nút bấm mở trên HUD chính (nếu có)
+    public Button openButton;
 
     [Header("Tabs")]
     public Button tabDailyButton;
@@ -37,7 +37,7 @@ public class QuestAndAchievementUI : MonoBehaviour
     public Transform contentContainer;
     public GameObject cardPrefab;
 
-    [Header("Header Info (Tùy chọn)")]
+    [Header("Header Info (Optional)")]
     public GameObject sectionTitleObject;
     public GameObject sectionCounterObject;
 
@@ -79,7 +79,6 @@ public class QuestAndAchievementUI : MonoBehaviour
 
     private void Start()
     {
-        // Đảm bảo ban đầu khi mới vào Scene thì bảng tự động đóng lại
         Close();
     }
 
@@ -104,7 +103,6 @@ public class QuestAndAchievementUI : MonoBehaviour
             canvasGroup.interactable = true;
         }
 
-        // Tắt đàn Slime ngoài thế giới khi mở bảng
         var worldManager = FindFirstObjectByType<SlimeWorldManager>();
         if (worldManager != null)
         {
@@ -124,7 +122,6 @@ public class QuestAndAchievementUI : MonoBehaviour
         }
         gameObject.SetActive(false);
 
-        // Bật lại đàn Slime ngoài thế giới khi đóng bảng
         var worldManager = FindFirstObjectByType<SlimeWorldManager>();
         if (worldManager != null)
         {
@@ -195,7 +192,6 @@ public class QuestAndAchievementUI : MonoBehaviour
         int completedCount = 0;
         int totalCount = dailyQuests.Count;
 
-        // Sắp xếp: Sẵn sàng nhận -> Đang làm -> Đã nhận
         dailyQuests.Sort((a, b) => GetQuestSortOrder(a).CompareTo(GetQuestSortOrder(b)));
 
         foreach (var dq in dailyQuests)
@@ -230,7 +226,6 @@ public class QuestAndAchievementUI : MonoBehaviour
 
         SetText(sectionCounterObject, $"{completedCount} / {totalCount} Completed");
 
-        // Cập nhật thanh Streak Bonus
         if (streakSlider != null)
         {
             streakSlider.minValue = 0;
@@ -373,7 +368,6 @@ public class QuestAndAchievementUI : MonoBehaviour
         int unlockedCount = 0;
         int totalCount = allDefs.Count;
 
-        // Cấu trúc danh sách sắp xếp
         var list = new List<AchievementDef>(allDefs);
         list.Sort((a, b) =>
         {
@@ -411,7 +405,6 @@ public class QuestAndAchievementUI : MonoBehaviour
                     "Gems",
                     isClaimed,
                     () => {
-                        // Nhận Gem và lưu
                         PlayerPrefs.SetInt(PrefKeyPrefix + def.Id, 1);
                         PlayerPrefs.Save();
                         if (CurrencyManager.Instance != null)
@@ -429,9 +422,9 @@ public class QuestAndAchievementUI : MonoBehaviour
 
     private int GetQuestSortOrder(Quest q)
     {
-        if (q.state == Quest.QuestState.Completed) return 0; // Sẵn sàng nhận thưởng
+        if (q.state == Quest.QuestState.Completed) return 0;
         if (q.state == Quest.QuestState.InProgress || q.state == Quest.QuestState.Available) return 1;
-        return 2; // Đã nhận (Rewarded) hoặc Locked
+        return 2;
     }
 
     private void ClearContent()

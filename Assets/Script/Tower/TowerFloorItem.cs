@@ -6,24 +6,24 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Button))]
 public class TowerFloorItem : MonoBehaviour
 {
-    [Header("Sprites Theo Nhóm 5 Màn (Step 1 -> 5)")]
+    [Header("Sprites by 5-floor group")]
     public Sprite[] clusterStepSprites = new Sprite[5];
 
-    [Header("Sprite Sao Sáng / Sao Tối (Gán 1 lần)")]
-    public Sprite activeStarSprite;      // Sprite Sao Sáng
-    public Sprite inactiveStarSprite;    // Sprite Sao Tối
+    [Header("Star sprites")]
+    public Sprite activeStarSprite;
+    public Sprite inactiveStarSprite;
 
-    [Header("3 Ô Ngôi Sao Phía Trên (Tự động tìm hoặc tự tạo nếu để trống)")]
+    [Header("3 Star Slots")]
     public Image star1;
     public Image star2;
     public Image star3;
 
-    [Header("Số Tầng Bên Trong Nút")]
+    [Header("So Floor Ben Trong Button")]
     public Text floorNumberText;
 
-    [Header("Màu Tối Khi Chưa Mở Khóa / Sáng Khi Đã Mở Khóa hoặc Đã Thắng")]
-    public Color uncompletedColor = new Color(0.45f, 0.45f, 0.45f, 1f); // Màu tối khi màn bị khóa
-    public Color completedColor   = Color.white;                        // Màu sáng khi màn đã mở/đã thắng
+    [Header("Locked/Unlocked Colors")]
+    public Color uncompletedColor = new Color(0.45f, 0.45f, 0.45f, 1f);
+    public Color completedColor   = Color.white;
 
     private TowerSlimeBosses.TowerFloor floorData;
     private TowerUIManager uiManager;
@@ -37,7 +37,6 @@ public class TowerFloorItem : MonoBehaviour
 
         if (floor == null) return;
 
-        // Cập nhật nhãn số tầng bên trong nút
         if (floorNumberText != null)
         {
             floorNumberText.text = $"{floor.floorNumber}";
@@ -85,17 +84,14 @@ public class TowerFloorItem : MonoBehaviour
             nodeImage.color = isUnlocked ? completedColor : uncompletedColor;
         }
 
-        // Tính toán số Sao (1 -> 3 sao nếu đã thắng màn)
         int stars = 0;
         if (floor.completed)
         {
             stars = floor.stars > 0 ? floor.stars : TowerSlimeBosses.CalculateStars(floor.bestTurnCount);
         }
 
-        // Tự động tìm hoặc sinh 3 ô Image Sao phía trên nếu chưa kéo thủ công
         EnsureStarUIExists();
 
-        // Cập nhật Sprite Sao Sáng / Sao Tối cho 3 ngôi sao
         UpdateStarImage(star1, stars >= 1);
         UpdateStarImage(star2, stars >= 2);
         UpdateStarImage(star3, stars >= 3);
@@ -105,7 +101,6 @@ public class TowerFloorItem : MonoBehaviour
     {
         if (star1 != null && star2 != null && star3 != null) return;
 
-        // Tìm trong các object con
         var childImages = GetComponentsInChildren<Image>(true);
         var starList = childImages.Where(img => img.gameObject != gameObject && img.name.ToLower().Contains("star")).ToArray();
         if (starList.Length >= 1 && star1 == null) star1 = starList[0];
@@ -114,7 +109,6 @@ public class TowerFloorItem : MonoBehaviour
 
         if (star1 != null && star2 != null && star3 != null) return;
 
-        // Tự động sinh container chứa 3 ô Ngôi sao phía trên nút bấm nếu hoàn toàn chưa có
         Transform containerTransform = transform.Find("StarGroupContainer");
         GameObject containerGO;
         if (containerTransform != null)

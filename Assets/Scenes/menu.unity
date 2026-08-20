@@ -3128,7 +3128,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Qu\xEAn m\u1EADt kh\u1EA9u\n"
+  m_Text: "Forgot password\n"
 --- !u!222 &1268193380
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4427,7 +4427,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u0110\u0103ng nh\u1EADp / \u0110\u0103ng k\xFD\n"
+  m_Text: "Login / Register\n"
 --- !u!222 &1579894738
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4585,7 +4585,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Qu\xEAn m\u1EADt kh\u1EA9u"
+  m_Text: "Forgot password"
 --- !u!222 &1591607268
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5872,7 +5872,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Ch\u1ECDn c\xE1ch \u0111\u0103ng nh\u1EADp\n"
+  m_Text: "Choose login method\n"
 --- !u!222 &2117440190
 CanvasRenderer:
   m_ObjectHideFlags: 0

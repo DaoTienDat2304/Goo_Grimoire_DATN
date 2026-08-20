@@ -1,14 +1,12 @@
 using UnityEngine;
 
 /// <summary>
-/// Nhiệm vụ hàng ngày runtime. Tiến trình = (counter lifetime hiện tại − baseline đầu ngày),
-/// nên chỉ tính phần làm được TRONG NGÀY. Tái dùng state machine/UI của QuestManager.
 /// </summary>
 public class DailyQuest : Quest
 {
     public DailyMetric metric;
     public long target = 1;
-    public long baseline; // giá trị counter lúc bắt đầu ngày
+    public long baseline;
 
     public static long Lifetime(DailyMetric m)
     {

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "ArchievementPre", menuName = "Scriptable Objects/ArchievementPre")]
 public class ArchievementPre : ScriptableObject
@@ -23,8 +23,8 @@ public class ArchievementPre : ScriptableObject
 
 public enum AchievementType
 {
-    CollectItem,      // Số lượng vật phẩm đã thu thập
-    CompleteQuest,    // Số lượng nhiệm vụ đã hoàn thành
-    ReachLevel,       // Cấp độ đã đạt được
-    PlayTime          // Thời gian chơi game
+    CollectItem,
+    CompleteQuest,
+    ReachLevel,
+    PlayTime
 }

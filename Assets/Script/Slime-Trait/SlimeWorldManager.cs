@@ -44,7 +44,7 @@ public class SlimeWorldManager : MonoBehaviour
     public Button traitCollection;
     
     [Header("Hierarchy Optimization")]
-    [SerializeField] private Transform slimesContainer; // Kéo thả WorldSlimesContainer từ Scene vào đây
+    [SerializeField] private Transform slimesContainer;
 
     public bool isWorldViewActive = false;
     private Camera mainCamera;
@@ -95,7 +95,6 @@ public class SlimeWorldManager : MonoBehaviour
             areaBoxCollider = movementArea.GetComponent<BoxCollider2D>();
         }
 
-        // Tạo arrays
         worldSlimes = new GameObject[maxWorldSlimes];
         slimePositions = new Vector3[maxWorldSlimes];
         slimeTargets = new Vector3[maxWorldSlimes];
@@ -103,7 +102,6 @@ public class SlimeWorldManager : MonoBehaviour
         slimeBounceTimes = new float[maxWorldSlimes];
         slimeData = new Slime[maxWorldSlimes];
 
-        // Tạo vị trí ban đầu
         CreateInitialPositions();
     }
 
@@ -121,14 +119,12 @@ public class SlimeWorldManager : MonoBehaviour
 
     private void SetupUI()
     {
-        // Tìm breeding UI nếu không được gán
         if (breedingUI == null)
         {
             breedingUI = FindAnyObjectByType<BreedingUIManager>();
 
         }
 
-        // Luôn tạo buttons mới để đảm bảo
         CreateViewButtons();
 
 
@@ -136,7 +132,6 @@ public class SlimeWorldManager : MonoBehaviour
 
     private void CreateViewButtons()
     {
-        // Tìm Canvas có sẵn (Canvas của breeding UI)
         var canvas = FindAnyObjectByType<Canvas>();
         if (canvas == null)
         {
@@ -146,7 +141,6 @@ public class SlimeWorldManager : MonoBehaviour
 
 
 
-        // Tìm buttons đã được tạo thủ công
         var worldButton = canvas.transform.Find("WorldViewButton");
 
         if (worldButton != null)
@@ -159,7 +153,6 @@ public class SlimeWorldManager : MonoBehaviour
 
         }
 
-        // Thiết lập onClick events nếu buttons tồn tại
         if (worldViewButton != null)
         {
             worldViewButton.onClick.RemoveAllListeners();
@@ -177,7 +170,6 @@ public class SlimeWorldManager : MonoBehaviour
         RefreshBuildingObstacles();
         isWorldViewActive = true;
 
-        // Ẩn breeding UI
         if (breedingUI != null)
         {
             breedingUI.panelBreedingActive = false;
@@ -188,7 +180,6 @@ public class SlimeWorldManager : MonoBehaviour
             breedUI.SetActive(false);
         }
 
-        // Hiển thị world view buttons
         if (worldViewButton != null)
         {
             worldViewButton.gameObject.SetActive(false);
@@ -217,7 +208,6 @@ public class SlimeWorldManager : MonoBehaviour
         {
             inventory.SetActive(true);
         }
-        // Xóa slimes cũ và tạo mới
         ClearWorldSlimes();
     }
     public void StartBreedingView()
@@ -226,7 +216,6 @@ public class SlimeWorldManager : MonoBehaviour
             breedingUI.panelBreedingActive = true;
         isWorldViewActive = false;
 
-        // Hiển thị breeding UI
         if (breedingUI != null)
         {
             breedingUI.gameObject.SetActive(true);
@@ -240,23 +229,19 @@ public class SlimeWorldManager : MonoBehaviour
             traitCollection.gameObject.SetActive(false);
         }
 
-        // Hiển thị world view buttons
         if (worldViewButton != null) worldViewButton.gameObject.SetActive(true);
 
-        // Xóa slime trong thế giới
         ClearWorldSlimes();
     }
 
     public void CreateWorldSlimes()
     {
-        // Kiểm tra BreedingManager
         if (BreedingManager.Instance == null)
         {
 
             return;
         }
 
-        // Lấy danh sách slime từ BreedingManager
         var allSlimes = BreedingManager.Instance.GetAllSlimes();
         if (allSlimes == null || allSlimes.Count == 0)
         {
@@ -266,7 +251,6 @@ public class SlimeWorldManager : MonoBehaviour
 
 
 
-        // Tạo slimes mới
         int slimeCount = Mathf.Min(allSlimes.Count, maxWorldSlimes);
         for (int i = 0; i < slimeCount; i++)
         {
@@ -281,7 +265,6 @@ public class SlimeWorldManager : MonoBehaviour
 
     private void CreateSingleWorldSlime(int index, Slime slime)
     {
-        // Tạo GameObject cho slime
 
         GameObject slimeGO = new GameObject($"WorldSlime_{index}");
         if (slimesContainer != null)
@@ -290,19 +273,16 @@ public class SlimeWorldManager : MonoBehaviour
         }
         slimeGO.transform.position = slimePositions[index];
 
-        // Thêm SlimeAnimationController để quản lý body
         var animationController = slimeGO.AddComponent<SlimeAnimationController>();
         
         if (slime?.body?.hasAnimation == true)
         {
-            // Nếu có animation, khởi tạo với animation
             animationController.Initialize(slime.body.animationAsset, slime.body.animationName);
 
             animationController.PlayAnimation("animation");
         }
         else
         {
-            // Nếu không có animation, khởi tạo với sprite
             animationController.Initialize(null);
             animationController.SetSprite((slime != null ? slime.body?.sprite : null) ?? CreateDefaultSlimeSprite());
         }
@@ -319,7 +299,6 @@ public class SlimeWorldManager : MonoBehaviour
         var weaponRenderer = weaponGO.AddComponent<SpriteRenderer>();
         weaponGO.transform.localPosition = Vector3.up * 4.1f;
 
-        // Gán sprite cho armor và weapon
         armorRenderer.sprite = (slime != null ? slime.armor?.sprite : null) ?? CreateDefaultSlimeSprite();
         armorRenderer.sortingOrder = WorldSlimeSortingOrder + 1;
 
@@ -327,18 +306,15 @@ public class SlimeWorldManager : MonoBehaviour
         weaponRenderer.sortingOrder = WorldSlimeSortingOrder + 2;
 
 
-        // Thêm CircleCollider2D để click
         var collider = slimeGO.AddComponent<CircleCollider2D>();
         collider.radius = 5.5f;
         collider.isTrigger = true;
 
-        // Thêm tên slime
         var nameText = CreateSlimeNameText(slime != null ? slime.slimeName : "Slime");
         nameText.transform.SetParent(slimeGO.transform);
         nameText.transform.localPosition = Vector3.up*12f;
         nameText.characterSize = 2f;
 
-        // Thêm outline cho tên
         var outlineText = CreateSlimeNameText(slime != null ? slime.slimeName : "Slime");
         outlineText.transform.SetParent(slimeGO.transform);
         outlineText.transform.localPosition = Vector3.up*12f;
@@ -354,14 +330,11 @@ public class SlimeWorldManager : MonoBehaviour
         nameText.GetComponent<MeshRenderer>().sortingOrder = WorldSlimeSortingOrder + 3;
         outlineText.GetComponent<MeshRenderer>().sortingOrder = WorldSlimeSortingOrder + 3;
 
-        // Thiết lập kích thước
         slimeGO.transform.localScale = Vector3.one*0.08f;
 
-        // Lưu trữ
         worldSlimes[index] = slimeGO;
         slimeData[index] = slime;
 
-        // Thêm click handler
         if (slime != null)
         {
             var clickHandler = slimeGO.AddComponent<SlimeClickHandler>();
@@ -493,7 +466,6 @@ public class SlimeWorldManager : MonoBehaviour
             }
         }
 
-        // Dọn dẹp triệt để bất kỳ WorldSlime nào còn sót lại trong Scene để chống nhân đôi
         var existingWorldSlimes = GameObject.FindObjectsByType<SlimeAnimationController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (var s in existingWorldSlimes)
         {
@@ -519,11 +491,9 @@ public class SlimeWorldManager : MonoBehaviour
         {
             if (worldSlimes[i] == null) continue;
 
-            // Cập nhật bounce
             slimeBounceTimes[i] += Time.deltaTime * slimeBounceSpeed;
             float bounce = Mathf.Sin(slimeBounceTimes[i] + slimeBounceOffsets[i]) * slimeBounceHeight;
 
-            // Cập nhật vị trí
             Vector3 currentPos = slimePositions[i];
             Vector3 targetPos = slimeTargets[i];
             float distanceToTarget = Vector3.Distance(currentPos, targetPos);
@@ -535,7 +505,6 @@ public class SlimeWorldManager : MonoBehaviour
                 distanceToTarget = Vector3.Distance(currentPos, targetPos);
             }
 
-            // Di chuyển đến vị trí mục tiêu
             if (distanceToTarget > 0.1f)
             {
                 Vector3 newPos = Vector3.MoveTowards(currentPos, targetPos, slimeMoveSpeed * Time.deltaTime);
@@ -547,7 +516,6 @@ public class SlimeWorldManager : MonoBehaviour
             // Xoay slime
             worldSlimes[i].transform.Rotate(0, 0, slimeRotationSpeed * Time.deltaTime);
 
-            // Thay đổi vị trí mục tiêu ngẫu nhiên
             if (Random.Range(0f, 1f) < 0.005f)
             {
                 Vector3 newTarget = GetRandomMovementTarget(slimePositions[i]);

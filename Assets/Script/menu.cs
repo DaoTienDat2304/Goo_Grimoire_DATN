@@ -16,13 +16,13 @@ public class menu : MonoBehaviour
     [SerializeField] private string turnBattleSceneName = "TurnBaseGame";
 
     [Header("Debug Settings")]
-    [Tooltip("Bỏ qua kiểm tra save file - luôn nhảy +2")]
+    [Tooltip("Skip save check: +2")]
     public bool forceSkipTutorial = false;
-    [Tooltip("Bỏ qua kiểm tra save file - luôn nhảy +1")]
+    [Tooltip("Skip save check: +1")]
     public bool forceTutorial = false;
 
     [Header("Tutorial Settings")]
-    [Tooltip("Lần đầu tiên có save file sẽ +2, sau đó +1")]
+    [Tooltip("First save gets +2, then +1")]
     public bool firstTimeSkipTutorial = true;
 
     private void Awake()
@@ -52,11 +52,8 @@ public class menu : MonoBehaviour
     {
         loading.gameObject.SetActive(true);
 
-        // Đã bỏ tutorial (travelSence): luôn vào thẳng firstsave (home) — load theo TÊN
-        // để không phụ thuộc thứ tự build index. firstsave tự chờ Auth/CloudSave khi khởi tạo.
         if (forceTutorial)
         {
-            // Vẫn cho phép ép chạy tutorial nếu bật thủ công trong Inspector.
             await loading.LoadSceneByName("travelSence");
             return;
         }
@@ -84,7 +81,7 @@ public class menu : MonoBehaviour
             return;
         }
 
-        Debug.LogError("Chưa cấu hình scene đích: đặt 'turnBattleSceneName' hoặc 'turnBattleSceneIndex' trong Inspector.");
+        Debug.LogError("Target scene missing: set turnBattleSceneName or turnBattleSceneIndex.");
     }
 
     public async void GoToTurnBaseGame()
@@ -103,7 +100,7 @@ public class menu : MonoBehaviour
     {
         if (buildIndex < 0)
         {
-            UnityEngine.Debug.LogError("Build Index không hợp lệ.");
+            UnityEngine.Debug.LogError("Invalid build index.");
             return;
         }
 
@@ -115,7 +112,7 @@ public class menu : MonoBehaviour
     {
         if (string.IsNullOrEmpty(sceneName))
         {
-            Debug.LogError("Tên scene rỗng.");
+            Debug.LogError("Scene name empty.");
             return;
         }
 

@@ -25,16 +25,14 @@ public class GameManager : MonoBehaviour
 
 	private void EnsureSystems()
 	{
-		// Tìm các system components trong scene (không tự động tạo)
 		if (slimeGen == null) slimeGen = FindAnyObjectByType<SlimeGen>();
 		if (breedingManager == null) breedingManager = FindAnyObjectByType<BreedingManager>();
 		if (breedingUIManager == null) breedingUIManager = FindAnyObjectByType<BreedingUIManager>();
 		if (currencyManager == null) currencyManager = FindAnyObjectByType<CurrencyManager>();
 		
-		// Log warning nếu thiếu components quan trọng
 		if (currencyManager == null)
 		{
-			Debug.LogWarning("CurrencyManager không tìm thấy trong scene! Vui lòng tạo GameObject với CurrencyManager component.");
+			Debug.LogWarning("CurrencyManager not found trong scene! Create GameObject voi CurrencyManager component.");
 		}
 	}
 

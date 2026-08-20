@@ -3,12 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Kho đếm tích luỹ (lifetime) toàn cục — nền tảng cho Thành tựu &amp; Nhiệm vụ.
-/// Game gốc KHÔNG có bộ đếm lifetime nào (mọi thứ chỉ là trạng thái hiện tại),
-/// nên toàn bộ counter ở đây là mới. Bền vững qua GameSaveData (xem SaveAndLoadSystem).
 ///
-/// Singleton tự-sinh &amp; DontDestroyOnLoad để hook đếm được ở MỌI scene
-/// (trận đấu / farm / tower chạy ở scene khác scene chính).
 /// </summary>
 public class PlayerStatsManager : MonoBehaviour
 {
@@ -30,10 +25,8 @@ public class PlayerStatsManager : MonoBehaviour
         }
     }
 
-    /// <summary>Bắn mỗi khi một counter đổi giá trị — AchievementService/DailyMission lắng nghe để chấm lại.</summary>
     public static event Action OnStatsChanged;
 
-    // ─── Bộ đếm lifetime ────────────────────────────────────────────────
     public long TotalSlimesBred   { get; private set; }
     public int  TotalFarmWins     { get; private set; }
     public int  TotalCaptures     { get; private set; }
@@ -43,11 +36,10 @@ public class PlayerStatsManager : MonoBehaviour
     public long TotalGemsEarned   { get; private set; }
     public int  HighestTowerFloor { get; private set; }
 
-    private const int RarityCount = 8; // = số phần tử enum Rarity
-    private readonly int[] rarityObtained = new int[RarityCount];      // đếm theo (int)Rarity
-    private readonly HashSet<string> traitLedger = new HashSet<string>(); // trait KHÁC NHAU đã-từng-thấy
+    private const int RarityCount = 8;
+    private readonly int[] rarityObtained = new int[RarityCount];
+    private readonly HashSet<string> traitLedger = new HashSet<string>();
 
-    // ─── Vòng đời ───────────────────────────────────────────────────────
     private void Awake()
     {
         if (_instance != null && _instance != this)
@@ -69,9 +61,7 @@ public class PlayerStatsManager : MonoBehaviour
         CurrencyManager.OnCurrencyAdded -= HandleCurrencyAdded;
     }
 
-    // ─── Ghi nhận sự kiện (gọi từ các hệ thống) ─────────────────────────
 
-    /// <summary>Lai tạo xong 1 slime con.</summary>
     public void RecordBreed(Slime offspring)
     {
         TotalSlimesBred++;
@@ -81,14 +71,12 @@ public class PlayerStatsManager : MonoBehaviour
         Changed();
     }
 
-    /// <summary>Nhận được 1 slime Secret (từ GenSpecialSlime).</summary>
     public void RecordSecretObtained(Slime s)
     {
         RecordSlimeObtained(s);
         Changed();
     }
 
-    /// <summary>Bắt được 1 slime hoang ở phiêu lưu (minigame thuần hoá hoặc thắng trận).</summary>
     public void RecordCapture(TraitSO[] traits)
     {
         TotalCaptures++;
@@ -100,7 +88,6 @@ public class PlayerStatsManager : MonoBehaviour
     public void AddBattleWin() { TotalBattleWins++; Changed(); }
     public void AddFarmWin()   { TotalFarmWins++;   Changed(); }
 
-    /// <summary>Ghi nhận tầng tháp cao nhất đạt được (chỉ tăng, không giảm).</summary>
     public void RecordTowerFloor(int floor)
     {
         if (floor > HighestTowerFloor) { HighestTowerFloor = floor; Changed(); }
@@ -114,7 +101,6 @@ public class PlayerStatsManager : MonoBehaviour
         Changed();
     }
 
-    // ─── Truy vấn (Thành tựu đọc ở đây) ─────────────────────────────────
     public int DistinctTraitsCount => traitLedger.Count;
     public int GetRarityObtained(Rarity r)
     {
@@ -122,7 +108,6 @@ public class PlayerStatsManager : MonoBehaviour
         return (i >= 0 && i < RarityCount) ? rarityObtained[i] : 0;
     }
 
-    /// <summary>Tổng số slime từng sở hữu có độ hiếm >= r (ví dụ "Rare trở lên").</summary>
     public int GetRarityObtainedAtLeast(Rarity r)
     {
         int sum = 0;
@@ -150,7 +135,6 @@ public class PlayerStatsManager : MonoBehaviour
         }
     }
 
-    // ─── Nội bộ ─────────────────────────────────────────────────────────
     private void RecordSlimeObtained(Slime s)
     {
         if (s == null) return;
@@ -178,7 +162,6 @@ public class PlayerStatsManager : MonoBehaviour
             traitLedger.Add(t.traitName);
     }
 
-    /// <summary>Độ hiếm tổng thể suy từ mảng trait (mirror SelectiveBreeding.GetSlimeRarity).</summary>
     private static Rarity MaxRarity(TraitSO[] traits)
     {
         Rarity best = Rarity.Common;
@@ -198,7 +181,6 @@ public class PlayerStatsManager : MonoBehaviour
 
     private void Changed() => OnStatsChanged?.Invoke();
 
-    // ─── Persistence (gọi từ SaveAndLoadSystem) ─────────────────────────
     public void WriteTo(GameSaveData data)
     {
         data.totalSlimesBred  = TotalSlimesBred;
@@ -239,11 +221,9 @@ public class PlayerStatsManager : MonoBehaviour
         Changed();
     }
 
-    /// <summary>Trả về bản sao read-only của trait ledger — dùng cho Collection Book.</summary>
     public IReadOnlyCollection<string> GetTraitLedger() => traitLedger;
 
 
-    /// <summary>Gộp thêm trait từ các slime đang sở hữu vào ledger (bootstrap save cũ chưa có ledger).</summary>
     public void MergeOwnedSlimeTraits(IEnumerable<Slime> slimes)
     {
         if (slimes == null) return;
@@ -258,7 +238,6 @@ public class PlayerStatsManager : MonoBehaviour
         if (any) Changed();
     }
 
-    /// <summary>Reset về 0 (tài khoản mới).</summary>
     public void ResetAll()
     {
         TotalSlimesBred = 0;

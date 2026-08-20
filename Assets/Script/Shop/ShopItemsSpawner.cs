@@ -3,12 +3,12 @@ using UnityEngine;
 public class ShopItemsSpawner : MonoBehaviour
 {
     [Header("Database")]
-    public ShopItems shopItemsDatabase;          // Kéo asset ShopItems vào đây
-    public ShopItems summerShopItemsDatabase;          // Kéo asset ShopItems mùa hè vào đây (nếu có)
+    public ShopItems shopItemsDatabase;
+    public ShopItems summerShopItemsDatabase;
 
     [Header("Prefabs & Layout")]
-    public GameObject shopItemPrefab;            // Prefab cửa hàng (đã gắn ShopItemUI)
-    public Transform itemsParent;                // Vị trí/parent để chứa các item (ví dụ: Content trong ScrollView)
+    public GameObject shopItemPrefab;
+    public Transform itemsParent;
     public GameObject confirmPopUp;
 
     [Header("Chosen Item")]
@@ -19,7 +19,6 @@ public class ShopItemsSpawner : MonoBehaviour
 
     private void Start()
     {
-        // Chọn database theo Remote Config (nếu có)
         var rc = RemoteConfigManager.Instance;
         if (rc != null && rc.ActiveShopId == "summer" && summerShopItemsDatabase != null)
         {
@@ -29,7 +28,6 @@ public class ShopItemsSpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// Xóa item cũ và spawn lại toàn bộ từ database.
     /// </summary>
     /// 
     public void Confirmed()
@@ -56,49 +54,43 @@ public class ShopItemsSpawner : MonoBehaviour
     {
         if (shopItemsDatabase == null)
         {
-            Debug.LogWarning("ShopItemsSpawner: Chưa gán ShopItems database!");
+            Debug.LogWarning("ShopItemsSpawner: Missing ShopItems database!");
             return;
         }
 
         if (shopItemPrefab == null)
         {
-            Debug.LogWarning("ShopItemsSpawner: Chưa gán prefab shop item!");
+            Debug.LogWarning("ShopItemsSpawner: Missing prefab shop item!");
             return;
         }
 
         if (itemsParent == null)
         {
-            Debug.LogWarning("ShopItemsSpawner: Chưa gán itemsParent (parent để chứa các item)!");
+            Debug.LogWarning("ShopItemsSpawner: Missing itemsParent (item parent)!");
             return;
         }
 
-        // Xóa item cũ
         for (int i = itemsParent.childCount - 1; i >= 0; i--)
         {
             Destroy(itemsParent.GetChild(i).gameObject);
         }
 
-        // Spawn item mới từ database
         foreach (var itemData in shopItemsDatabase.items)
         {
             if (itemData == null) continue;
 
             GameObject go = Instantiate(shopItemPrefab, itemsParent);
 
-            // Tự động scale và position theo LayoutGroup/Content Size Fitter nếu có
 
-            // Lấy component ShopItemUI để set dữ liệu
             var ui = go.GetComponent<ShopItemUI>();
-            ui.shopItemsSpawner = this; // Gán tham chiếu ngược lại nếu cần
+            ui.shopItemsSpawner = this;
             if (ui != null)
             {
                 ui.Setup(itemData);
             }
             else
             {
-                // Nếu bạn muốn tự xử lý UI, có thể bỏ ShopItemUI khỏi prefab
-                // và xử lý thủ công ở đây.
-                Debug.LogWarning("Prefab shop item không có ShopItemUI, bạn tự xử lý UI cho item này.");
+                Debug.LogWarning("Prefab shop item no yes ShopItemUI, handle UI manually.");
             }
         }
     }

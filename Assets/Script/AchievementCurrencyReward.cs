@@ -7,8 +7,8 @@ public class AchievementCurrencyReward
     public CurrencyReward currencyReward;
     
     [Header("Settings")]
-    public bool giveRewardOnUnlock = true; // Tự động thưởng khi unlock
-    public bool showNotification = true; // Hiển thị thông báo
+    public bool giveRewardOnUnlock = true;
+    public bool showNotification = true;
     
     public AchievementCurrencyReward()
     {
@@ -35,7 +35,7 @@ public class AchievementCurrencyReward
     
     public string GetRewardDescription()
     {
-        if (currencyReward == null) return "Không có phần thưởng";
+        if (currencyReward == null) return "No reward";
         return currencyReward.GetRewardDescription();
     }
 }

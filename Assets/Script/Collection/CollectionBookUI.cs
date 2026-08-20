@@ -3,34 +3,29 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Script trung tâm điều khiển quyển sách Collection.
-/// Gắn vào GameObject gốc của Collection Book Canvas/Prefab.
 /// </summary>
 public class CollectionBookUI : MonoBehaviour
 {
-    // ── Tab chuyển trang chính (3 tab ở mép trên sách) ──
     [Header("Tab Buttons (Top)")]
     public Button tabSlimesBtn;
     public Button tabPartsBtn;
     public Button tabSkillsBtn;
 
-    // ── Các container trang phải (Right Page) ──
     [Header("Right Page Containers")]
-    public GameObject slimesGridContainer;  // Cha của ScrollRect/Grid cho Slime
-    public GameObject partsGridContainer;   // Cha của ScrollRect/Grid cho Parts
-    public GameObject skillsGridContainer;  // Cha của ScrollRect/Grid cho Skills
+    public GameObject slimesGridContainer;
+    public GameObject partsGridContainer;
+    public GameObject skillsGridContainer;
 
-    // ── Trang chi tiết bên trái ──
     [Header("Left Detail Panel")]
     public CollectionDetailPanel detailPanel;
 
     // ── Prefabs ──
     [Header("Grid Item Prefab")]
-    public GameObject gridItemPrefab;       // Prefab ô Grid (Dùng chung cho cả 3 tab)
+    public GameObject gridItemPrefab;
 
     // ── Grid content transforms ──
     [Header("Grid Content Parents")]
-    public Transform slimesGridContent;    // Content transform bên trong ScrollRect
+    public Transform slimesGridContent;
     public Transform partsGridContent;
     public Transform skillsGridContent;
 
@@ -75,7 +70,6 @@ public class CollectionBookUI : MonoBehaviour
 
     void OnEnable()
     {
-        // Refresh dữ liệu khi mở sách
         if (CollectionBookManager.Instance != null)
             CollectionBookManager.Instance.RefreshFromSave();
 
@@ -93,12 +87,10 @@ public class CollectionBookUI : MonoBehaviour
         partsGridContainer?.SetActive(tab == BookTab.Parts);
         skillsGridContainer?.SetActive(tab == BookTab.Skills);
 
-        // Cập nhật màu tab button
         SetTabColor(tabSlimesBtn, tab == BookTab.Slimes);
         SetTabColor(tabPartsBtn, tab == BookTab.Parts);
         SetTabColor(tabSkillsBtn, tab == BookTab.Skills);
 
-        // Reset detail panel về trạng thái rỗng khi đổi tab
         detailPanel?.ClearDetail();
     }
 
@@ -138,7 +130,6 @@ public class CollectionBookUI : MonoBehaviour
             bool unlocked = mgr.IsTraitUnlocked(trait);
             Slime bestSlime = unlocked ? mgr.GetBestSlimeForBodyTrait(trait) : null;
 
-            // Hiển thị 3 layer sprite: body, armor, weapon từ con slime tốt nhất
             item.SetupAsSlime(trait, bestSlime, unlocked, () =>
             {
                 if (unlocked && bestSlime != null)
@@ -156,7 +147,6 @@ public class CollectionBookUI : MonoBehaviour
         if (partsGridContent == null || gridItemPrefab == null) return;
         ClearGrid(partsGridContent, _partItems);
 
-        // Hiển thị Armor + Weapon traits (bộ phận thu thập)
         var armorTraits  = mgr.GetAllArmorTraits();
         var weaponTraits = mgr.GetAllWeaponTraits();
         var allParts = new List<TraitSO>();
@@ -219,7 +209,6 @@ public class CollectionBookUI : MonoBehaviour
     {
         gameObject.SetActive(false);
 
-        // Khôi phục lại world slimes khi đóng bách khoa toàn thư
         var worldManager = Object.FindFirstObjectByType<SlimeWorldManager>();
         if (worldManager != null)
         {

@@ -124,7 +124,7 @@ public static class BreedingBookUIBuilder
         Image titleArt = ImageNode("Title_Breeding", header.transform, Sprite("Breeding.png"), new Vector2(-295f, 0f), new Vector2(430f, 110f));
         titleArt.preserveAspect = true;
         Label("PageTitle", header.transform, "Breeding", 26, FontStyle.Normal, new Vector2(-295f, 3f), new Vector2(300f, 42f), TextAnchor.MiddleCenter, Color.white);
-        Label("CollectionTitle", header.transform, "Breeding hien co", 21, FontStyle.Normal, new Vector2(275f, 3f), new Vector2(330f, 40f), TextAnchor.MiddleCenter, Ink);
+        Label("CollectionTitle", header.transform, "Active breeding", 21, FontStyle.Normal, new Vector2(275f, 3f), new Vector2(330f, 40f), TextAnchor.MiddleCenter, Ink);
         close = TextButton("CloseButton", header.transform, "X", new Vector2(575f, 8f), new Vector2(52f, 52f), new Color32(190, 31, 18, 255));
     }
 
@@ -137,7 +137,7 @@ public static class BreedingBookUIBuilder
         panel.AddComponent<Image>().color = Clear;
         Label("ParentALabel", panel.transform, "Parent A", 15, FontStyle.Normal, new Vector2(-138f, 232f), new Vector2(160f, 28f), TextAnchor.MiddleCenter, Ink);
         Label("ParentBLabel", panel.transform, "Parent B", 15, FontStyle.Normal, new Vector2(138f, 232f), new Vector2(160f, 28f), TextAnchor.MiddleCenter, Ink);
-        ImageNode("Plus", panel.transform, Sprite("Dấu cộng.png"), new Vector2(0f, 143f), new Vector2(58f, 58f)).preserveAspect = true;
+        ImageNode("Plus", panel.transform, Sprite("Plus.png"), new Vector2(0f, 143f), new Vector2(58f, 58f)).preserveAspect = true;
 
         parentGrid = Node("ParentSlots", panel.transform, new Vector2(0f, 130f), new Vector2(430f, 170f)).transform;
         GridLayoutGroup parents = parentGrid.gameObject.AddComponent<GridLayoutGroup>();
@@ -147,7 +147,7 @@ public static class BreedingBookUIBuilder
         parents.constraintCount = 2;
         parents.childAlignment = TextAnchor.MiddleCenter;
 
-        Image arrow = ImageNode("ResultArrow", panel.transform, Sprite("Mũi tên result.png"), new Vector2(0f, 22f), new Vector2(170f, 120f));
+        Image arrow = ImageNode("ResultArrow", panel.transform, Sprite("Result arrow.png"), new Vector2(0f, 22f), new Vector2(170f, 120f));
         arrow.preserveAspect = true;
         Label("ResultLabel", panel.transform, "Result", 15, FontStyle.Normal, new Vector2(0f, -34f), new Vector2(120f, 24f), TextAnchor.MiddleCenter, Ink);
         Image resultFrame = ImageNode("ResultFrame", panel.transform, Sprite("KhungSlime.png"), new Vector2(0f, -110f), new Vector2(145f, 145f));
@@ -164,10 +164,10 @@ public static class BreedingBookUIBuilder
         GameObject valueCover = Panel("DynamicCost", costCard.transform, new Vector2(34f, -12f), new Vector2(58f, 27f), new Color32(248, 218, 171, 255));
         coin = ImageNode("CoinIcon", valueCover.transform, null, new Vector2(-20f, 0f), new Vector2(1f, 1f));
         cost = Label("BreedingCostText", valueCover.transform, string.Empty, 15, FontStyle.Bold, new Vector2(5f, 0f), new Vector2(54f, 24f), TextAnchor.MiddleCenter, new Color32(77, 36, 111, 255));
-        preview = Label("BreedingPreviewText", summary.transform, "Chon 2 slime", 12, FontStyle.Normal, new Vector2(0f, -47f), new Vector2(250f, 22f), TextAnchor.MiddleCenter, Ink);
+        preview = Label("BreedingPreviewText", summary.transform, "Select 2 slimes", 12, FontStyle.Normal, new Vector2(0f, -47f), new Vector2(250f, 22f), TextAnchor.MiddleCenter, Ink);
         coin.gameObject.SetActive(false);
         breed = SpriteTextButton("BreedButton", summary.transform, Sprite("BreedButton.png"), "Breed!", Vector2.zero, new Vector2(160f, 66f));
-        cancel = TextButton("CancelButton", panel.transform, "Bo chon", new Vector2(0f, -296f), new Vector2(105f, 32f), new Color32(132, 82, 57, 255));
+        cancel = TextButton("CancelButton", panel.transform, "Clear", new Vector2(0f, -296f), new Vector2(105f, 32f), new Color32(132, 82, 57, 255));
         Image rate = ImageNode("SuccessRate", summary.transform, Sprite("Succese rate.png"), new Vector2(150f, 0f), new Vector2(140f, 72f));
         rate.preserveAspect = true;
         Image tip = ImageNode("Tip", panel.transform, Sprite("Tip.png"), new Vector2(0f, -328f), new Vector2(440f, 76f));
@@ -176,7 +176,7 @@ public static class BreedingBookUIBuilder
         progressPanel = Panel("BreedingProgressPanel", panel.transform, new Vector2(0f, 5f), new Vector2(470f, 380f), new Color32(250, 219, 170, 250));
         progressPanel.transform.SetAsLastSibling();
         Label("ProgressTitle", progressPanel.transform, "DANG LAI TAO", 24, FontStyle.Bold, new Vector2(0f, 120f), new Vector2(360f, 40f), TextAnchor.MiddleCenter, Ink);
-        status = Label("BreedingStatusText", progressPanel.transform, "Dang chuan bi...", 19, FontStyle.Normal, new Vector2(0f, 50f), new Vector2(400f, 90f), TextAnchor.MiddleCenter, Ink);
+        status = Label("BreedingStatusText", progressPanel.transform, "Preparing...", 19, FontStyle.Normal, new Vector2(0f, 50f), new Vector2(400f, 90f), TextAnchor.MiddleCenter, Ink);
         progress = SliderNode("BreedingProgressBar", progressPanel.transform, new Vector2(0f, -30f), new Vector2(390f, 28f));
         gemButton = TextButton("FinishWithGemsButton", progressPanel.transform, "HOAN THANH NGAY", new Vector2(0f, -105f), new Vector2(270f, 56f), Purple);
         gemIcon = ImageNode("GemIcon", gemButton.transform, Sprite("14_Image_16.png"), new Vector2(-92f, 0f), new Vector2(25f, 25f));
@@ -199,15 +199,15 @@ public static class BreedingBookUIBuilder
         layout.childAlignment = TextAnchor.UpperCenter;
 
         GameObject footer = Node("CollectionFooter", panel.transform, new Vector2(0f, -280f), new Vector2(490f, 52f));
-        ImageButton("PreviousPageButton", footer.transform, Sprite("Button chuyển trang trái.png"), new Vector2(-135f, 0f), new Vector2(48f, 40f));
+        ImageButton("PreviousPageButton", footer.transform, Sprite("Prev page button.png"), new Vector2(-135f, 0f), new Vector2(48f, 40f));
         for (int i = 0; i < 6; i++)
         {
             Image dot = ImageNode("PageDot_" + (i + 1), footer.transform,
-                Sprite(i == 0 ? "Dấu chấm trang đang ở.png" : "Dấu chấm trang trống.png"),
+                Sprite(i == 0 ? "Current page dot.png" : "Empty page dot.png"),
                 new Vector2(-65f + i * 27f, 0f), new Vector2(15f, 15f));
             dot.preserveAspect = true;
         }
-        ImageButton("NextPageButton", footer.transform, Sprite("Button chuyển trang phải.png"), new Vector2(135f, 0f), new Vector2(48f, 40f));
+        ImageButton("NextPageButton", footer.transform, Sprite("Next page button.png"), new Vector2(135f, 0f), new Vector2(48f, 40f));
         counter = Label("SlimeCounterText", panel.transform, "0/0", 14, FontStyle.Bold, new Vector2(205f, -280f), new Vector2(70f, 28f), TextAnchor.MiddleCenter, Ink);
     }
 
@@ -234,7 +234,7 @@ public static class BreedingBookUIBuilder
         GameObject body = SpriteLayer("Body", root.transform, new Vector2(0f, bodyY), slimeSize);
         GameObject armor = SpriteLayer("Armor", body.transform, Vector2.zero, slimeSize);
         GameObject weapon = SpriteLayer("Weapon", body.transform, Vector2.zero, slimeSize);
-        Text name = Label("NameText", root.transform, "Chua chon", parentSlot ? 14 : 11, FontStyle.Normal,
+        Text name = Label("NameText", root.transform, "Empty", parentSlot ? 14 : 11, FontStyle.Normal,
             new Vector2(0f, parentSlot ? -63f : -38f), new Vector2(parentSlot ? 130f : 88f, 22f), TextAnchor.MiddleCenter, Ink);
         Text state = Label("StatusText", root.transform, string.Empty, 10, FontStyle.Normal,
             new Vector2(0f, parentSlot ? 66f : 57f), new Vector2(88f, 17f), TextAnchor.MiddleCenter, MutedInk);

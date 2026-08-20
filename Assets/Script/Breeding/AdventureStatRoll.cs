@@ -1,15 +1,11 @@
 using UnityEngine;
 
 /// <summary>
-/// Stat Roll cho enemy Adventure (Turn Base) — theo design "Tỉ lệ Stat Roll cho Turn Base Adventure Scene":
-/// Good 55% (40–60%) · Excellent 28% (60–80%) · Perfect 12% (80–95%) · God 5% (95–100%). Sàn 40%.
-/// Áp lên slime theo StatBalance (per-trait rarity) để chỉ số enemy nằm đúng chuẩn GDD & không quá thấp.
 /// </summary>
 public static class AdventureStatRoll
 {
     public static float RollQuality()
     {
-        // Remote Config (`adventure_quality_bands`) ghi đè nếu có.
         var bands = RemoteBalance.AdventureQuality;
         if (bands != null) { bands.Roll(out float rt); return rt; }
 
@@ -20,7 +16,6 @@ public static class AdventureStatRoll
         return Random.Range(0.95f, 1.00f);
     }
 
-    // Một quality roll chung cho mọi chỉ số ranged (God Roll = mạnh đồng đều). Gọi CalculateStats() sau cùng.
     public static void Apply(Slime s)
     {
         if (s == null) return;

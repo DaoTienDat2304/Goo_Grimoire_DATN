@@ -1,0 +1,483 @@
+fileFormatVersion: 2
+guid: 1302f0a31137053439a6c7ceec7c7268
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7172497292445933298
+    second: Egg&Farm_0
+  - first:
+      213: 754150913622096930
+    second: Egg&Farm_1
+  - first:
+      213: 6818436750874671974
+    second: Egg&Farm_2
+  - first:
+      213: 6228537846229473254
+    second: Egg&Farm_3
+  - first:
+      213: 5353515576659534704
+    second: Egg&Farm_4
+  - first:
+      213: -5155088109581095667
+    second: Egg&Farm_5
+  - first:
+      213: 6789496645726694204
+    second: Egg&Farm_6
+  - first:
+      213: 8393468434150453693
+    second: Egg&Farm_7
+  - first:
+      213: -2056327679862500232
+    second: Egg&Farm_8
+  - first:
+      213: -2163334509912416368
+    second: Egg&Farm_9
+  - first:
+      213: 4607479325052394791
+    second: Egg&Farm_10
+  - first:
+      213: -7722438177167041698
+    second: Egg&Farm_11
+  - first:
+      213: 7593237348942071552
+    second: Egg&Farm_12
+  - first:
+      213: 5186947945259999324
+    second: Egg&Farm_13
+  - first:
+      213: -8801889869947467513
+    second: Egg&Farm_14
+  - first:
+      213: 8418843480448402598
+    second: Egg&Farm_15
+  - first:
+      213: 6947007135725309622
+    second: Egg&Farm_16
+  - first:
+      213: 7222031350737968092
+    second: Egg&Farm_17
+  - first:
+      213: -1323193663109667366
+    second: Egg&Farm_18
+  - first:
+      213: 7817208726075640712
+    second: Egg&Farm_19
+  - first:
+      213: 821108171704549530
+    second: Egg&Farm_20
+  - first:
+      213: 8146739010574016555
+    second: Egg&Farm_21
+  - first:
+      213: -2584213336288208389
+    second: Egg&Farm_22
+  - first:
+      213: 1839431229325845877
+    second: Egg&Farm_23
+  - first:
+      213: 7048193975386047489
+    second: Egg&Farm_24
+  - first:
+      213: -799292857777655868
+    second: Egg&Farm_25
+  - first:
+      213: -4798770526375582793
+    second: Egg&Farm_26
+  - first:
+      213: -7885617097116722243
+    second: Egg&Farm_27
+  - first:
+      213: -5682348889832715852
+    second: Egg&Farm_28
+  - first:
+      213: 4418113548819767239
+    second: Egg&Farm_29
+  - first:
+      213: 453761177954319968
+    second: Egg&Farm_30
+  - first:
+      213: 5330808758339744645
+    second: Egg&Farm_31
+  - first:
+      213: -4511447016821607144
+    second: Egg&Farm_32
+  - first:
+      213: 4488221852611497274
+    second: Egg&Farm_33
+  - first:
+      213: -3661179354742717436
+    second: Egg&Farm_34
+  - first:
+      213: -5318965700155375835
+    second: Egg&Farm_35
+  - first:
+      213: 5399637009351523350
+    second: Egg&Farm_36
+  - first:
+      213: 9069376894261305500
+    second: Egg&Farm_37
+  - first:
+      213: 8957361047592734382
+    second: Egg&Farm_38
+  - first:
+      213: 6540605908647720071
+    second: Egg&Farm_39
+  - first:
+      213: 9081560661214570429
+    second: Egg&Farm_40
+  - first:
+      213: -4759081557039840762
+    second: Egg&Farm_41
+  - first:
+      213: -3720277861836080283
+    second: Egg&Farm_42
+  - first:
+      213: 1551363806404415069
+    second: Egg&Farm_43
+  - first:
+      213: -5971866028127189202
+    second: Egg&Farm_44
+  - first:
+      213: -9062792643442091944
+    second: Egg&Farm_45
+  - first:
+      213: 1625256671720364727
+    second: Egg&Farm_46
+  - first:
+      213: -8400634510341194469
+    second: Egg&Farm_47
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: FarmBG
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 1084
+        width: 694
+        height: 899
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e012f4bc6bb267c90800000000000000
+      internalID: -7172497292445933298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FarmExit
+      rect:
+        serializedVersion: 2
+        x: 1431
+        y: 1840
+        width: 107
+        height: 107
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66b7a5b6914ff9e50800000000000000
+      internalID: 6818436750874671974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FarmMenu
+      rect:
+        serializedVersion: 2
+        x: 749
+        y: 1670
+        width: 712
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e79592cb26307650800000000000000
+      internalID: 6228537846229473254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EggAfterBG
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 593
+        width: 750
+        height: 490
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8741efbbed47673e0800000000000000
+      internalID: -2056327679862500232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EggCrate
+      rect:
+        serializedVersion: 2
+        x: 801
+        y: 679
+        width: 229
+        height: 375
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09f935e99ba4af1e0800000000000000
+      internalID: -2163334509912416368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EggBeforeBG
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 750
+        height: 568
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b20e41387f70f0170800000000000000
+      internalID: 8146739010574016555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Egg
+      rect:
+        serializedVersion: 2
+        x: 799
+        y: 269
+        width: 113
+        height: 134
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e27814bdc7baf1da0800000000000000
+      internalID: -5971866028127189202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EggButton
+      rect:
+        serializedVersion: 2
+        x: 980
+        y: 278
+        width: 337
+        height: 109
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8585c968b1e7a3280800000000000000
+      internalID: -9062792643442091944
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EggExit
+      rect:
+        serializedVersion: 2
+        x: 1383
+        y: 261
+        width: 142
+        height: 142
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bad9baf4521e8610800000000000000
+      internalID: 1625256671720364727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 81bbc276d55546847b73d567b49412d8
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Egg: -5971866028127189202
+      Egg&Farm_1: -372394700
+      Egg&Farm_10: 996029593
+      EggAfterBG: -2056327679862500232
+      EggBeforeBG: 8146739010574016555
+      EggButton: -9062792643442091944
+      EggCrate: -2163334509912416368
+      EggExit: 1625256671720364727
+      FarmBG: -7172497292445933298
+      FarmExit: 6818436750874671974
+      FarmMenu: 6228537846229473254
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

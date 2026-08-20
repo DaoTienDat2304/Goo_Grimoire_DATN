@@ -156,6 +156,8 @@ public class BattleSystemManager : MonoBehaviour
         NotifyPointsChanged();
     }
 
+    public void SpendBattlePoints(int amount) => ConsumeBattlePoints(amount);
+
     public void IncreaseMaxBattlePoints(int amount)
     {
         maxBattlePoints += amount;

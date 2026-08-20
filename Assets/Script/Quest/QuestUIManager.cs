@@ -6,7 +6,7 @@ public class QuestUIManager : MonoBehaviour
 {
     [Header("UI References")]
     public GameObject questItemPrefab;  // Prefab QuestItem
-    public Transform contentParent;     // Content của ScrollView
+    public Transform contentParent;
 
     [Header("Quest Colors")]
     public Color lockedColor = Color.gray;
@@ -18,7 +18,6 @@ public class QuestUIManager : MonoBehaviour
     private Dictionary<int, GameObject> questItems = new Dictionary<int, GameObject>();
     private Dictionary<int, Quest> questData = new Dictionary<int, Quest>();
 
-    // Khi thêm quest mới vào UI
     public void AddQuest(Quest quest)
     {
         if (quest == null || questItemPrefab == null) return;
@@ -33,11 +32,9 @@ public class QuestUIManager : MonoBehaviour
         {
             newItem.transform.SetParent(general.transform, false);
         }
-        // Daily luôn đẩy lên đầu danh sách; nhiệm vụ thường xuống cuối.
         if (quest is DailyQuest) newItem.transform.SetAsFirstSibling();
         else newItem.transform.SetAsLastSibling();
 
-        // Tìm các component UI
         TMP_Text[] texts = newItem.GetComponentsInChildren<TMP_Text>();
         Text progression = newItem.GetComponentInChildren<Text>();
         Image questBackground = newItem.GetComponent<Image>();
@@ -45,7 +42,6 @@ public class QuestUIManager : MonoBehaviour
         Button claimButton = newItem.GetComponentInChildren<Button>();
         Image rewardIcon = newItem.transform.Find("RewardImage").GetComponent<Image>();
 
-        // Thiết lập thông tin cơ bản
         if (texts.Length >= 3)
         {
             texts[0].text = quest.questName;        // Quest Name
@@ -72,7 +68,6 @@ public class QuestUIManager : MonoBehaviour
                     break;
             }
 
-            // Hiển thị reward nếu có - sửa index từ 3 thành 4
             if (texts.Length >= 5 && quest.reward != null)
             {
                 Debug.Log($"Reward: {quest.reward.amount} {quest.reward.rewardType}");
@@ -80,7 +75,6 @@ public class QuestUIManager : MonoBehaviour
             }
             else
             {
-                // Debug: Kiểm tra tại sao reward không hiển thị
                 Debug.Log($"Quest '{quest.questName}' - texts.Length: {texts.Length}, reward: {(quest.reward != null ? "exists" : "null")}");
                 if (texts.Length >= 5)
                 {
@@ -96,7 +90,6 @@ public class QuestUIManager : MonoBehaviour
         questItems.Add(quest.questID, newItem);
     }
 
-    // Cập nhật trạng thái quest trên UI
     public void UpdateQuestState(Quest quest)
     {
         if (!questItems.ContainsKey(quest.questID)) return;
@@ -114,26 +107,22 @@ public class QuestUIManager : MonoBehaviour
 
     private void UpdateQuestDisplay(Quest quest, TMP_Text[] texts, Text progresion, Image questBackground, Slider progressBar, Button claimButton)
     {
-        // Cập nhật màu nền
         if (questBackground != null)
         {
 
         }
 
-        // Cập nhật progress bar
         if (progressBar != null)
         {
             float progress = GetQuestProgress(quest);
             progressBar.value = progress;
             
-            // Hiển thị progress text nếu có - sửa để tránh infinite recursion
             if (texts.Length >= 4)
             {
                 progresion.text = quest.GetProgressText();
             }
         }
 
-        // Cập nhật nút claim reward
         if (claimButton != null && quest.state == Quest.QuestState.Completed)
         {
             claimButton.gameObject.SetActive(true);
@@ -144,7 +133,6 @@ public class QuestUIManager : MonoBehaviour
             }
         }
         
-        // Cập nhật reward text - sửa index từ 3 thành 4
         if (texts.Length >= 4)
         {
             if (quest.reward != null)
@@ -221,7 +209,6 @@ public class QuestUIManager : MonoBehaviour
         UpdateQuestState(quest);
     }
 
-    // Phương thức để refresh tất cả quest
     public void RefreshAllQuests()
     {
         foreach (var kvp in questData)
@@ -230,7 +217,6 @@ public class QuestUIManager : MonoBehaviour
         }
     }
 
-    // Phương thức để xóa quest khỏi UI
     public void RemoveQuest(int questID)
     {
         if (questItems.ContainsKey(questID))

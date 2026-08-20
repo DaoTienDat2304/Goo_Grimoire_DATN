@@ -35,25 +35,25 @@ public class BreedingUIManager : MonoBehaviour
     public Slider breedingProgressBar;
     public Text breedingStatusText;
     public Text selectedSlimesText;
-    [Tooltip("Tom tat cap dang chon: rarity, chi phi va thoi gian du kien.")]
+    [Tooltip("Selected pair summary: rarity, cost, and time.")]
     public Text breedingPreviewText;
 
     [Header("Runtime Safety")]
-    [Tooltip("Chi bat khi scene khong co UI duoc gan san. Tat trong firstsave de tranh tu sinh object long xong.")]
+    [Tooltip("Enable only when the scene has no assigned UI. Disable in firstsave.")]
     public bool createMissingUIAtRuntime;
 
-    [Header("Chi phí lai — kéo vào Inspector cho khớp UI PNG (màn CHỌN slime)")]
-    [Tooltip("Icon coin của bạn, hiện cạnh số Gold. Chỉ bật khi đã chọn đủ 2 slime.")]
+    [Header("Breed Cost UI")]
+    [Tooltip("Coin icon")]
     public Image costCoinIcon;
-    [Tooltip("Text hiển thị SỐ Gold cần để lai cặp đang chọn (đặt cạnh icon coin).")]
+    [Tooltip("Gold cost text")]
     public Text breedingCostText;
 
-    [Header("Tăng tốc bằng Gem — kéo vào Inspector (màn CHỜ đếm ngược)")]
-    [Tooltip("Nút bấm để tốn Gem hoàn thành lai ngay.")]
+    [Header("Gem Speedup UI")]
+    [Tooltip("Finish button")]
     public Button finishWithGemsButton;
-    [Tooltip("Icon gem của bạn, hiện trên/cạnh nút tăng tốc.")]
+    [Tooltip("Gem icon")]
     public Image gemIcon;
-    [Tooltip("Text hiển thị SỐ Gem cần để hoàn thành ngay.")]
+    [Tooltip("Gem cost text")]
     public Text gemCostText;
 
     [Header("Collection UI")]
@@ -94,8 +94,6 @@ public class BreedingUIManager : MonoBehaviour
 
     private void OnEnable()
     {
-        // Mở lại UI breeding (vd sau khi ra world rồi vào lại): dựng lại grid slime (kẻo
-        // mất hình) và hiện ngay đúng màn theo trạng thái (đếm ngược nếu đang lai).
         RefreshAllUI();
         UpdateBreedingProgress();
     }
@@ -104,7 +102,6 @@ public class BreedingUIManager : MonoBehaviour
     {
         yield return new WaitForSeconds(1);
 
-        // Kiểm tra xem BreedingManager đã tạo slimes chưa
         if (BreedingManager.Instance != null)
         {
             var allSlimes = BreedingManager.Instance.GetAllSlimes();
@@ -112,18 +109,18 @@ public class BreedingUIManager : MonoBehaviour
 
             if (slimeCount == 0)
             {
-                yield return new WaitForSeconds(2); // Đợi thêm 2 giây nữa
+                yield return new WaitForSeconds(2);
             }
         }
 
-        RefreshAllUI(); // Refresh UI để đọc slimes đã được tạo sẵn
+        RefreshAllUI();
     }
 
     private void Update()
     {
         UpdateBreedingProgress();
         UpdateSelectedSlimesText();
-        UpdateSlimeCounter(); // Cập nhật counter liên tục
+        UpdateSlimeCounter();
         timer += Time.deltaTime;
 
         if (timer >= interval)
@@ -131,7 +128,6 @@ public class BreedingUIManager : MonoBehaviour
             timer = 0f; // reset
             RefreshCollectionGrid();
 
-            // Kiểm tra và refresh nếu có slimes mới được tạo
             CheckAndRefreshIfNeeded();
         }
     }
@@ -264,9 +260,6 @@ public class BreedingUIManager : MonoBehaviour
 
     private void SetupUI()
     {
-        // UI chi phí Gold + nút Gem là các object THẬT trong scene (dựng bằng Editor tool
-        // "Tools/Goo Grimoire/Build Breeding Cost + Gem UI" để kéo/chỉnh được). Code KHÔNG
-        // tự tạo lúc chạy nữa (tránh lệch & không sửa được). Chỉ điều khiển hiện/ẩn + số liệu.
 
         if (breedButton != null)
         {
@@ -327,7 +320,6 @@ public class BreedingUIManager : MonoBehaviour
         if (BreedingManager.Instance != null) BreedingManager.Instance.FinishActiveWithGems();
     }
 
-    /// <summary>Định dạng giây → mm:ss (hoặc hh:mm:ss nếu ≥ 1 giờ).</summary>
     private static string FormatTime(float seconds)
     {
         int total = Mathf.CeilToInt(Mathf.Max(0f, seconds));
@@ -533,7 +525,7 @@ public class BreedingUIManager : MonoBehaviour
         t.text = content;
         t.fontSize = 14;
         t.color = Color.white;
-        t.raycastTarget = false; // text không chặn click các nút bên dưới (vd dấu X)
+        t.raycastTarget = false;
         var rt = tGO.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(300, 24);
         return t;
@@ -613,11 +605,9 @@ public class BreedingUIManager : MonoBehaviour
         int firstIndex = currentCollectionPage * collectionPageSize;
         int lastIndex = Mathf.Min(firstIndex + collectionPageSize, allSlimes.Count);
 
-        // Create new slots - filter ra các slime có Secret body trait
         for (int i = firstIndex; i < lastIndex; i++)
         {
             Slime slime = allSlimes[i];
-            // Bỏ qua slime có Secret body trait
             if (HasSecretBodyTrait(slime))
             {
                 continue;
@@ -638,7 +628,6 @@ public class BreedingUIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Kiểm tra xem slime có trait body với độ hiếm Secret không
     /// </summary>
     private static void SetSelectedSlime(Image fallback, Image body, Image armor, Image weapon, Slime slime)
     {
@@ -742,9 +731,6 @@ public class BreedingUIManager : MonoBehaviour
         }
         else if (selectedSlime2 == null && selectedSlime1 != slime)
         {
-            // Chỉ kiểm tra khả năng GHÉP CẶP (không khóa, không đang lai). KHÔNG chặn vì
-            // thiếu Gold — để người chơi vẫn chọn được 2 slime và xem chi phí; nút Breed
-            // sẽ tự mờ nếu chưa đủ Gold (UpdateBreedButton).
             bool pairOk = selectedSlime1.CanBreedWith(slime)
                 && (BreedingManager.Instance == null || !BreedingManager.Instance.IsBreeding());
             if (pairOk)
@@ -766,13 +752,10 @@ public class BreedingUIManager : MonoBehaviour
     {
         if (selectedSlime1 == null || selectedSlime2 == null) return false;
         
-        // Kiểm tra slime có thể breeding với nhau
         if (!selectedSlime1.CanBreedWith(selectedSlime2)) return false;
 
-        // Chỉ 1 phiên lai tạo tại một thời điểm (mục 3)
         if (BreedingManager.Instance == null || BreedingManager.Instance.IsBreeding()) return false;
 
-        // Kiểm tra có đủ Gold theo tier độ hiếm (mục 3.1)
         if (CurrencyManager.Instance == null) return false;
         int breedingCost = BreedingManager.Instance.PreviewGoldCost(selectedSlime1, selectedSlime2);
         if (!CurrencyManager.Instance.HasEnoughCurrency(CurrencyType.Coins, breedingCost)) return false;
@@ -788,7 +771,6 @@ public class BreedingUIManager : MonoBehaviour
             AudioManager.Instance.PlayButtonClickSFX();
         }
 
-        // Kiểm tra giới hạn slime trước khi breeding
         if (BreedingManager.Instance == null || !BreedingManager.Instance.CanBreedMore())
         {
             return;
@@ -835,8 +817,6 @@ public class BreedingUIManager : MonoBehaviour
             float remaining = BreedingManager.Instance.GetActiveRemainingSeconds();
             Rarity eggRarity = BreedingManager.Instance.GetActiveEggRarity();
 
-            // UI bám trạng thái: ĐANG LAI thì LUÔN hiện màn đếm ngược và ẩn nút chọn/breed —
-            // kể cả sau khi đóng rồi mở lại popup. Không cho quay về màn chọn slime giữa chừng.
             if (breedingProgressPanel != null) breedingProgressPanel.SetActive(true);
             if (breedButton != null) breedButton.gameObject.SetActive(false);
             if (cancelButton != null) cancelButton.gameObject.SetActive(false);
@@ -847,10 +827,9 @@ public class BreedingUIManager : MonoBehaviour
 
             if (breedingStatusText != null)
             {
-                string s = $"Đang lai tạo ({eggRarity})...\nCòn lại {FormatTime(remaining)} • {(progress * 100):F0}%";
-                // Nếu không gán nút Gem riêng, hiện số Gem tăng tốc ngay trong status text.
+                string s = $"Breeding ({eggRarity})...\nLeft {FormatTime(remaining)} • {(progress * 100):F0}%";
                 if (finishWithGemsButton == null && remaining > 0f)
-                    s += $"\nTăng tốc: {gemCost} Gem";
+                    s += $"\nSpeed up: {gemCost} Gem";
                 breedingStatusText.text = s;
             }
 
@@ -866,7 +845,6 @@ public class BreedingUIManager : MonoBehaviour
             if (gemIcon != null) gemIcon.gameObject.SetActive(false);
             if (gemCostText != null) gemCostText.text = string.Empty;
 
-            // Không lai: ẩn màn đếm ngược, hiện lại nút chọn/breed.
             if (breedingProgressPanel != null) breedingProgressPanel.SetActive(false);
             if (breedButton != null) breedButton.gameObject.SetActive(true);
             if (cancelButton != null) cancelButton.gameObject.SetActive(selectedSlime1 != null || selectedSlime2 != null);
@@ -874,7 +852,6 @@ public class BreedingUIManager : MonoBehaviour
 
             if (currentlyBreeding)
             {
-                // Vừa lai xong.
                 ResetSelection();
                 currentlyBreeding = false;
             }
@@ -891,13 +868,12 @@ public class BreedingUIManager : MonoBehaviour
             if (selectedSlime2 != null)
                 text += $"2: {selectedSlime2.slimeName}\n";
 
-            // Hiện chi phí Gold/thời gian ngay trong text sẵn có (khi chưa gán breedingCostText riêng).
             if (breedingCostText == null && selectedSlime1 != null && selectedSlime2 != null && BreedingManager.Instance != null)
             {
                 Rarity r = BreedingManager.Instance.PreviewEggRarity(selectedSlime1, selectedSlime2);
                 int gold = BreedingManager.Instance.PreviewGoldCost(selectedSlime1, selectedSlime2);
                 float sec = BreedingManager.Instance.PreviewDurationSeconds(selectedSlime1, selectedSlime2);
-                text += $"Giá: {gold:N0} Gold  |  {r}  |  {FormatTime(sec)}";
+                text += $"Cost: {gold:N0} Gold  |  {r}  |  {FormatTime(sec)}";
             }
 
             selectedSlimesText.text = text;
@@ -906,7 +882,6 @@ public class BreedingUIManager : MonoBehaviour
         UpdateBreedingCostPreview();
     }
 
-    /// <summary>Hiện SỐ Gold + icon coin cho cặp đang chọn (mục 3.1). Ẩn khi đang lai/chưa đủ cặp.</summary>
     private void UpdateBreedingCostPreview()
     {
         bool show = selectedSlime1 != null && selectedSlime2 != null
@@ -937,7 +912,7 @@ public class BreedingUIManager : MonoBehaviour
         {
             breedingPreviewText.text = show
                 ? $"Trung {BreedingManager.Instance.PreviewEggRarity(selectedSlime1, selectedSlime2)}  |  {FormatTime(BreedingManager.Instance.PreviewDurationSeconds(selectedSlime1, selectedSlime2))}"
-                : "Chon 2 slime o danh sach ben phai";
+                : "Select 2 slimes from the list";
         }
     }
 
@@ -945,7 +920,6 @@ public class BreedingUIManager : MonoBehaviour
     {
         if (breedButton != null)
         {
-            // Vô hiệu hóa button nếu không thể breeding hoặc đã đạt giới hạn
             bool canBreed = CanBreedSelectedSlimes() && BreedingManager.Instance != null && BreedingManager.Instance.CanBreedMore();
             breedButton.interactable = canBreed;
         }
@@ -962,8 +936,6 @@ public class BreedingUIManager : MonoBehaviour
         if (breedingPanel != null) breedingPanel.SetActive(true);
         if (slimeCollectionPanel != null) slimeCollectionPanel.SetActive(true);
         RefreshAllUI();
-        // KHÔNG ép tắt màn đếm ngược ở đây — để UpdateBreedingProgress quyết định theo
-        // trạng thái: nếu đang lai thì hiện màn đếm ngược ngay, nếu không thì hiện màn chọn.
         UpdateBreedingProgress();
     }
 

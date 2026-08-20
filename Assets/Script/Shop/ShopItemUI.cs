@@ -2,8 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Gắn script này lên prefab Shop Item.
-/// Bạn có thể tự tùy chỉnh code trong hàm Setup hoặc sửa trực tiếp script này cho phù hợp UI của bạn.
 /// </summary>
 public class ShopItemUI : MonoBehaviour
 {
@@ -19,7 +17,6 @@ public class ShopItemUI : MonoBehaviour
     private ShopItems.ShopItemData data;
 
     /// <summary>
-    /// Gọi hàm này sau khi Instantiate prefab để đổ dữ liệu item vào UI.
     /// </summary>
     public void Setup(ShopItems.ShopItemData itemData)
     {
@@ -35,7 +32,6 @@ public class ShopItemUI : MonoBehaviour
 
         if (priceText != null)
         {
-            // Hiển thị giá + đơn vị tiền
             string currencyShort = data.currencyType.ToString(); // Coins / Gems...
             priceText.text = $"{data.price} {currencyShort}";
         }

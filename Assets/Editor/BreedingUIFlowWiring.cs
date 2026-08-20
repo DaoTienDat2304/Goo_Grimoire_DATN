@@ -66,7 +66,7 @@ public static class BreedingUIFlowWiring
         GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(CollectionPrefabPath);
         if (grid.childCount == 0)
         {
-            if (existing == null) throw new System.Exception("CollectionGrid khong co Khung mau de tao prefab.");
+            if (existing == null) throw new System.Exception("CollectionGrid has no template for prefab creation.");
             return UpgradeCollectionPrefab(existing);
         }
 

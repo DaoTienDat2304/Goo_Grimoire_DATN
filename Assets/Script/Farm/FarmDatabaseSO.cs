@@ -17,7 +17,7 @@ public class FarmDatabaseSO : ScriptableObject
     public bool IsDifficultyUnlocked(int index)
     {
         if (difficulties == null || index < 0 || index >= difficulties.Count) return false;
-        if (index == 0) return true; // Độ khó đầu tiên luôn mở
+        if (index == 0) return true;
         return difficulties[index].unlocked;
     }
 

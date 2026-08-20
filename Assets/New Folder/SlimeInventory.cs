@@ -34,11 +34,10 @@ public class SlimeInventory : MonoBehaviour
     public int maxsacrifice = 100;
     public int sacrifice;
     public Slider Slider;
-    [Tooltip("(Tuỳ chọn) Text hiển thị số điểm hi sinh hiện tại, ví dụ 45/100.")]
+    [Tooltip("(Optional) Text hien thi so diem sacrifice current, e.g. 45/100.")]
     public Text sacrificeText;
 
     /// <summary>
-    /// Điểm hi sinh theo độ hiếm của slime. Cộng dồn đủ 100 → summon 1 slime Secret.
     /// Common 1 · Uncommon 3 · Rare 5 · SuperRare 15 · UltraRare 30 · Legendary 50 · Mythic 100 · Secret 1.
     /// </summary>
     public static int SacrificePoints(Rarity r)
@@ -77,7 +76,6 @@ public class SlimeInventory : MonoBehaviour
     {
         yield return new WaitForSeconds(1);
 
-        // Kiểm tra xem BreedingManager đã tạo slimes chưa
         if (BreedingManager.Instance != null)
         {
             var allSlimes = BreedingManager.Instance.GetAllSlimes();
@@ -85,16 +83,16 @@ public class SlimeInventory : MonoBehaviour
 
             if (slimeCount == 0)
             {
-                yield return new WaitForSeconds(2); // Đợi thêm 2 giây nữa
+                yield return new WaitForSeconds(2);
             }
         }
 
-        RefreshAllUI(); // Refresh UI để đọc slimes đã được tạo sẵn
+        RefreshAllUI();
     }
 
     private void Update()
     {
-        /*UpdateSlimeCounter(); // Cập nhật counter liên tục
+        /*UpdateSlimeCounter();
         timer += Time.deltaTime;
 
         if (timer >= interval)
@@ -102,26 +100,21 @@ public class SlimeInventory : MonoBehaviour
             timer = 0f; // reset
             RefreshCollectionGrid();
 
-            // Kiểm tra và refresh nếu có slimes mới được tạo
             CheckAndRefreshIfNeeded();
         }*/
-        // Nút summon chỉ hiện khi ĐÃ chốt đủ 100 điểm (không tính preview).
         if (button != null) button.gameObject.SetActive(sacrifice >= maxsacrifice);
 
         if (Slider != null)
         {
-            // Preview: thanh dâng lên theo điểm của slime đang chọn (demo). Bỏ chọn → hạ về mốc cũ.
             float target = Mathf.Min(sacrifice + PreviewPoints(), maxsacrifice);
             Slider.value = Mathf.MoveTowards(Slider.value, target, 120f * Time.deltaTime);
 
-            // Số X/100 ở vị trí cũ (chữ FUSION) — hoặc sacrificeText nếu đã gán.
             var disp = GetNumberDisplay();
             if (disp != null)
                 disp.text = $"{Mathf.Clamp(Mathf.RoundToInt(Slider.value), 0, maxsacrifice)}/{maxsacrifice}";
         }
     }
 
-    // Tổng điểm hi sinh của các slime ĐANG được chọn (để preview thanh).
     private int PreviewPoints()
     {
         int sum = 0;
@@ -138,8 +131,6 @@ public class SlimeInventory : MonoBehaviour
 
     private Text cachedNumber;
 
-    // Text hiển thị số X/100: ưu tiên sacrificeText; nếu chưa gán thì TỰ TẠO 1 Text căn GIỮA
-    // bên trong thanh (Slider) — giữ nguyên chữ FUSION.
     private Text GetNumberDisplay()
     {
         if (sacrificeText != null) return sacrificeText;
@@ -149,11 +140,10 @@ public class SlimeInventory : MonoBehaviour
         var go = new GameObject("SacrificeNumber", typeof(RectTransform), typeof(Text));
         var rt = go.GetComponent<RectTransform>();
         rt.SetParent(Slider.transform, false);
-        // Đặt ở ĐÚNG TÂM thanh (anchor + pivot giữa), hộp nhỏ cố định.
         rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
         rt.pivot = new Vector2(0.5f, 0.5f);
         rt.sizeDelta = new Vector2(90f, 28f);
-        rt.anchoredPosition = new Vector2(-5f, 0f); // dịch trái 5 cho khớp tâm thanh
+        rt.anchoredPosition = new Vector2(-5f, 0f);
         rt.localScale = Vector3.one;
 
         var txt = go.GetComponent<Text>();
@@ -162,12 +152,11 @@ public class SlimeInventory : MonoBehaviour
         txt.color = Color.white;
         txt.fontStyle = FontStyle.Bold;
         txt.raycastTarget = false;
-        // Tự co chữ cho vừa hộp → không bị to.
         txt.resizeTextForBestFit = true;
         txt.resizeTextMinSize = 6;
         txt.resizeTextMaxSize = 16;
 
-        go.transform.SetAsLastSibling(); // nổi trên phần fill để luôn nhìn thấy số
+        go.transform.SetAsLastSibling();
         cachedNumber = txt;
         return txt;
     }
@@ -207,10 +196,8 @@ public class SlimeInventory : MonoBehaviour
             if (i != null) i.removedslime();
         }
         RefreshCollectionGrid();
-        // Kiểm tra và refresh nếu có slimes mới được tạo
         CheckAndRefreshIfNeeded();
 
-        // Lưu trạng thái ngay lập tức để không bị mất tiến trình fusion và không hồi lại slime
         SaveAndLoadSystem.Instance?.Save();
     }
 

@@ -1,18 +1,9 @@
 // ============================================================
 // LoginUIManager.cs
 //
-// Đặt script này vào scene "menu".
 // Setup trong Inspector:
-//   loginPanel          — panel chứa 3 nút: Google, Email, Guest
-//   emailPanel          — panel nhập email + password
-//   forgotPasswordPanel — panel nhập email để đặt lại mật khẩu
-//   loadingPanel        — hiển thị khi đang chờ auth
-//   errorText           — Text hiển thị lỗi (trong emailPanel)
 //   emailField          — InputField cho email
 //   passwordField       — InputField cho password
-//   forgotEmailField    — InputField nhập email trong forgotPasswordPanel
-//   forgotStatusText    — Text hiển thị kết quả gửi email đặt lại mật khẩu
-//   userInfoText        — Text hiện tên user sau khi login (optional)
 // ============================================================
 
 using System.Collections;
@@ -33,13 +24,13 @@ public class LoginUIManager : MonoBehaviour
 
     [Header("Login Panel — Forgot Password")]
     public InputField forgotEmailField;
-    public Text       forgotStatusText;  // Hiển thị kết quả gửi ("Đã gửi!" hoặc lỗi)
+    public Text       forgotStatusText;
 
     [Header("Texts")]
     public Text errorText;
-    public Text userInfoText;  // Hiển thị "Xin chào, {DisplayName}" sau login
+    public Text userInfoText;
 
-    [Header("Buttons — ẩn khi đang loading")]
+    [Header("Buttons")]
     public Button googleButton;
     public Button guestButton;
     public Button emailPanelOpenButton;
@@ -51,7 +42,7 @@ public class LoginUIManager : MonoBehaviour
     {
         if (AuthManager.Instance == null)
         {
-            Debug.LogWarning("[LoginUI] AuthManager chưa có trong scene.");
+            Debug.LogWarning("[LoginUI] AuthManager missing trong scene.");
             return;
         }
 
@@ -61,7 +52,6 @@ public class LoginUIManager : MonoBehaviour
         AuthManager.Instance.OnPasswordResetSent += HandlePasswordResetSent;
         AuthManager.Instance.OnPasswordResetFailed += HandlePasswordResetFailed;
 
-        // Nếu đã có session từ lần trước → ẩn login panel ngay
         if (AuthManager.Instance.IsLoggedIn)
             HideAllPanels();
         else
@@ -104,7 +94,6 @@ public class LoginUIManager : MonoBehaviour
         if (forgotPasswordPanel != null) forgotPasswordPanel.SetActive(true);
         if (loadingPanel        != null) loadingPanel.SetActive(false);
         if (forgotStatusText    != null) forgotStatusText.text = "";
-        // Điền sẵn email nếu người dùng đã nhập ở emailPanel
         if (forgotEmailField != null && emailField != null && string.IsNullOrEmpty(forgotEmailField.text))
             forgotEmailField.text = emailField.text;
     }
@@ -127,7 +116,7 @@ public class LoginUIManager : MonoBehaviour
 
         if (userInfoText != null && AuthManager.Instance != null)
         {
-            userInfoText.text = $"Xin chào, {AuthManager.Instance.DisplayName}";
+            userInfoText.text = $"Hi, {AuthManager.Instance.DisplayName}";
             userInfoText.gameObject.SetActive(true);
             StartCoroutine(HideUserInfoAfterDelay(2f));
         }
@@ -150,7 +139,6 @@ public class LoginUIManager : MonoBehaviour
         if (errorText != null) errorText.text = message;
     }
 
-    // ── Button callbacks (kéo vào OnClick trong Inspector) ───
     public void OnGoogleSignIn()
     {
         ShowLoading();
@@ -189,10 +177,10 @@ public class LoginUIManager : MonoBehaviour
         string email = forgotEmailField.text.Trim();
         if (string.IsNullOrEmpty(email))
         {
-            if (forgotStatusText != null) forgotStatusText.text = "Vui lòng nhập email.";
+            if (forgotStatusText != null) forgotStatusText.text = "Enter email.";
             return;
         }
-        if (forgotStatusText != null) forgotStatusText.text = "Đang gửi...";
+        if (forgotStatusText != null) forgotStatusText.text = "Sending...";
         AuthManager.Instance.SendPasswordResetEmail(email);
     }
 
@@ -225,13 +213,13 @@ public class LoginUIManager : MonoBehaviour
     // ── Auth event handlers ──────────────────────────────────
     void HandleLoginSuccess(string uid)
     {
-        Debug.Log($"[LoginUI] Login thành công: {uid}");
+        Debug.Log($"[LoginUI] Login OK: {uid}");
         HideAllPanels();
     }
 
     void HandleLoginFailed(string error)
     {
-        Debug.LogWarning($"[LoginUI] Login thất bại: {error}");
+        Debug.LogWarning($"[LoginUI] Login failed: {error}");
         ShowEmailPanel();
         ShowError(error);
     }
@@ -243,14 +231,14 @@ public class LoginUIManager : MonoBehaviour
 
     void HandlePasswordResetSent(string email)
     {
-        Debug.Log($"[LoginUI] Đã gửi email đặt lại mật khẩu tới: {email}");
+        Debug.Log($"[LoginUI] Reset email sent to: {email}");
         if (forgotStatusText != null)
-            forgotStatusText.text = $"Đã gửi! Kiểm tra hộp thư của {email}";
+            forgotStatusText.text = $"Sent. Check inbox: {email}";
     }
 
     void HandlePasswordResetFailed(string error)
     {
-        Debug.LogWarning($"[LoginUI] Gửi email đặt lại mật khẩu thất bại: {error}");
+        Debug.LogWarning($"[LoginUI] Reset email failed: {error}");
         if (forgotStatusText != null)
             forgotStatusText.text = error;
     }

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-/// <summary>Chỉ số của 1 daily — đều là counter TÍCH LUỸ để tính "delta trong ngày".</summary>
 public enum DailyMetric
 {
     TotalBred,
@@ -8,11 +7,10 @@ public enum DailyMetric
     Captures,
     FarmWins,
     CoinsEarned,
-    TowerFloor,     // dùng HighestTowerFloor (delta = leo cao hơn bao nhiêu tầng so với đầu ngày)
-    RareObtained    // số slime Rare trở lên sở hữu thêm trong ngày
+    TowerFloor,
+    RareObtained
 }
 
-/// <summary>1 nhiệm vụ hàng ngày (data thuần). Thưởng VÀNG.</summary>
 public class DailyDef
 {
     public int Id;
@@ -29,8 +27,6 @@ public class DailyDef
 }
 
 /// <summary>
-/// Pool nhiệm vụ hàng ngày (code). Mỗi ngày chọn ngẫu nhiên DailyMissionManager.DailyCount cái.
-/// ID bắt đầu từ 2001 để không đụng nhiệm vụ chính (1001+) hay quest asset cũ.
 /// </summary>
 public static class DailyCatalog
 {

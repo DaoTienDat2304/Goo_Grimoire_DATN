@@ -115,14 +115,11 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
     {
         if (isOccupied == false)
         {
-            // Kiểm tra và trừ tiền trước khi xây dựng
             if (building.CanAfford())
             {
-                // Trừ tiền
                 bool purchaseSuccess = building.Purchase();
                 if (purchaseSuccess)
                 {
-                    // Xây dựng thành công
                     if (placedBuildingIcon != null)
                     {
                         placedBuildingIcon.sprite = building.sprite;
@@ -131,9 +128,8 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
                         slotID = building.buildingID;
                         RefreshBuildingCollider();
 
-                        Debug.Log($"Đã xây dựng {building.buildingName} với chi phí: {building.GetCostDescription()}");
+                        Debug.Log($"Built {building.buildingName} cost: {building.GetCostDescription()}");
 
-                        // Refresh menu để cập nhật trạng thái building (làm nhạt và disable drag)
                         if (buildingMenuManager != null)
                         {
                             buildingMenuManager.RefreshMenu();
@@ -144,12 +140,12 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
                 }
                 else
                 {
-                    Debug.Log($"Không thể xây dựng {building.buildingName}: Không đủ tiền!");
+                    Debug.Log($"Cannot build {building.buildingName}: Not enough money!");
                 }
             }
             else
             {
-                Debug.Log($"Không thể xây dựng {building.buildingName}: Không đủ tiền! Cần: {building.GetCostDescription()}");
+                Debug.Log($"Cannot build {building.buildingName}: Not enough money! Need: {building.GetCostDescription()}");
             }
         }
         else return;

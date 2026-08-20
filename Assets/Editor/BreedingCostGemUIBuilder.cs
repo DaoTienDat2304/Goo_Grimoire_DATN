@@ -6,10 +6,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Dựng UI THẬT vào scene (kéo/resize được trong Hierarchy) cho phần chi phí lai (mục 3):
-/// - Cụm "icon coin + số Gold" trên màn CHỌN slime (dưới breedingPanel).
-/// - Nút "icon gem + số Gem" tăng tốc trên màn CHỜ (dưới breedingProgressPanel).
-/// Gán sẵn vào các field của BreedingUIManager. Chạy lại được (xoá cái cũ rồi dựng lại).
 /// Menu: Tools/Goo Grimoire/Build Breeding Cost + Gem UI
 /// </summary>
 public static class BreedingCostGemUIBuilder
@@ -27,9 +23,8 @@ public static class BreedingCostGemUIBuilder
     {
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         var manager = Object.FindFirstObjectByType<BreedingUIManager>(FindObjectsInactive.Include);
-        if (manager == null) throw new System.Exception("Không tìm thấy BreedingUIManager trong firstsave.");
+        if (manager == null) throw new System.Exception("BreedingUIManager not found in firstsave.");
 
-        // Lấy icon coin/gem: ưu tiên icon đang dùng ở HUD (CurrencyUI), fallback coin.png / màu.
         var currencyUI = Object.FindFirstObjectByType<CurrencyUI>(FindObjectsInactive.Include);
         Sprite coinSprite = currencyUI != null ? currencyUI.CoinSprite : null;
         Sprite gemSprite = currencyUI != null ? currencyUI.GemSprite : null;
@@ -40,15 +35,13 @@ public static class BreedingCostGemUIBuilder
         Transform costParent = manager.breedingPanel != null ? manager.breedingPanel.transform : canvas;
         Transform gemParent = manager.breedingProgressPanel != null ? manager.breedingProgressPanel.transform : canvas;
         if (costParent == null || gemParent == null)
-            throw new System.Exception("Không tìm thấy breedingPanel/breedingProgressPanel/Canvas để đặt UI.");
+            throw new System.Exception("Breeding UI roots missing.");
 
-        // Chạy lại an toàn: xoá cụm cũ nếu có.
         DestroyChild(costParent, "BreedCostGroup");
         DestroyChild(gemParent, "FinishWithGemsButton");
 
-        // ---------- Cụm chi phí (icon coin + số Gold) ----------
         GameObject group = Node("BreedCostGroup", costParent, new Vector2(0.5f, 0f), new Vector2(0f, 140f), new Vector2(240f, 64f));
-        group.AddComponent<LayoutElement>().ignoreLayout = true; // không bị layout group của cha đẩy
+        group.AddComponent<LayoutElement>().ignoreLayout = true;
         var hl = group.AddComponent<HorizontalLayoutGroup>();
         hl.childAlignment = TextAnchor.MiddleCenter; hl.spacing = 8f;
         hl.childControlWidth = false; hl.childControlHeight = false;
@@ -56,7 +49,6 @@ public static class BreedingCostGemUIBuilder
         Image coinIcon = Icon("CoinIcon", group.transform, coinSprite, new Vector2(52f, 52f), GoldPlaceholder);
         Text costText = Label("BreedCostText", group.transform, "0", 32, Ink, new Vector2(150f, 56f), TextAnchor.MiddleLeft);
 
-        // ---------- Nút tăng tốc (icon gem + số Gem) ----------
         GameObject btnGO = Node("FinishWithGemsButton", gemParent, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(250f, 66f));
         btnGO.AddComponent<LayoutElement>().ignoreLayout = true;
         Image btnImg = btnGO.AddComponent<Image>(); btnImg.color = Purple;
@@ -75,7 +67,6 @@ public static class BreedingCostGemUIBuilder
         Image gemIcon = Icon("GemIcon", content.transform, gemSprite, new Vector2(40f, 40f), GemPlaceholder);
         Text gemText = Label("GemText", content.transform, "0", 26, Color.white, new Vector2(80f, 46f), TextAnchor.MiddleCenter);
 
-        // ---------- Gán vào BreedingUIManager ----------
         manager.costCoinIcon = coinIcon;
         manager.breedingCostText = costText;
         manager.finishWithGemsButton = btn;
@@ -85,8 +76,8 @@ public static class BreedingCostGemUIBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[BreedingUI] Đã dựng Cost + Gem UI vào " + ScenePath +
-                  ". Chọn 'BreedCostGroup' (dưới breedingPanel) và 'FinishWithGemsButton' (dưới breedingProgressPanel) trong Hierarchy để kéo/chỉnh vị trí & kích thước.");
+        Debug.Log("[BreedingUI] Built Cost + Gem UI in " + ScenePath +
+                  ". Select 'BreedCostGroup' (overflowoi breedingPanel) va 'FinishWithGemsButton' (overflowoi breedingProgressPanel) trong Hierarchy to adjust position/size.");
     }
 
     private static void DestroyChild(Transform parent, string name)

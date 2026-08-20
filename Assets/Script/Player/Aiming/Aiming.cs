@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Aiming : MonoBehaviour
@@ -16,12 +16,12 @@ public class Aiming : MonoBehaviour
     [SerializeField] private ThrowingCatcher catcherPrefab;
     [SerializeField] private float force = 8f;
     [SerializeField] private GameObject tamingUI;
-    [SerializeField] private int marshmallowCostPerThrow = 1; // Số marshmallow cần để ném 1 catcher
+    [SerializeField] private int marshmallowCostPerThrow = 1;
+    [SerializeField] private PlayerMovement playerMovement;
     private ThrowingCatcher spawnedCatcher;
     private bool spriteFacesRight = true;
     
     /// <summary>
-    /// Kiểm tra xem có đang ở travel scene không (không trừ marshmallow trong travel scene)
     /// </summary>
     private bool IsTravelScene()
     {
@@ -55,7 +55,6 @@ public class Aiming : MonoBehaviour
         spriteFacesRight = (lineRenderer.GetPosition(0).x > lineRenderer.GetPosition(1).x);
         if (pointerPressed && (isVirtualThrowButton || (aimingarea != null && aimingarea.isWithinArea(pointerPosition))))
         {
-            // Trong travel scene thì không cần check marshmallow
             bool isTravel = IsTravelScene();
             bool canSpawn = isTravel || 
                            (ResourceManager.Instance != null && 
@@ -64,11 +63,12 @@ public class Aiming : MonoBehaviour
             if (canSpawn)
             {
                 clickedWithinArea = true;
+                playerMovement?.HoldAttackFrame();
                 SpawnCatcher();
             }
             else
             {
-                Debug.LogWarning("Không đủ Marshmallow để ném catcher!");
+                Debug.LogWarning("Not enough Marshmallow.");
             }
         }
         if (pointerHeld && clickedWithinArea)
@@ -80,6 +80,7 @@ public class Aiming : MonoBehaviour
 
             CatcherRotation();
             spawnedCatcher.transform.SetParent(this.transform);
+            playerMovement?.DragAttackFrame();
         }
         if (pointerReleased)
         {
@@ -91,24 +92,24 @@ public class Aiming : MonoBehaviour
                 spawnedCatcher = null;
                 SetLine(startPosition.position);
                 lineRenderer.enabled = false;
+                playerMovement?.CancelAttack();
                 return;
             }
 
-            if (spawnedCatcher != null) // chỉ bắn khi còn object
+            if (spawnedCatcher != null)
             {
-                // Tiêu hao marshmallow khi ném catcher (không trừ trong travel scene)
                 bool isTravel = IsTravelScene();
                 if (!isTravel && ResourceManager.Instance != null)
                 {
                     bool spent = ResourceManager.Instance.SpendResource(ResourceType.Marshmallow, marshmallowCostPerThrow);
                     if (!spent)
                     {
-                        // Nếu không đủ marshmallow, hủy việc ném và destroy catcher
-                        Debug.LogWarning("Không đủ Marshmallow! Hủy ném catcher.");
+                        Debug.LogWarning("Not enough Marshmallow. Throw canceled.");
                         Destroy(spawnedCatcher.gameObject);
                         spawnedCatcher = null;
                         SetLine(startPosition.position);
                         lineRenderer.enabled = false;
+                        playerMovement?.CancelAttack();
                         return;
                     }
                 }
@@ -119,17 +120,23 @@ public class Aiming : MonoBehaviour
                 Vector2 dir = (b - a);
 
                 spawnedCatcher.throwCatcher(dir, force);
-                spawnedCatcher = null; // reset biến để tránh reuse sau khi đã destroy
+                spawnedCatcher = null;
 
                 // Play catcher throw sound effect
                 if (AudioManager.Instance != null)
                 {
                     AudioManager.Instance.PlayCatcherThrowSFX();
                 }
+
+                playerMovement?.ReleaseAttack();
+            }
+            else
+            {
+                playerMovement?.CancelAttack();
             }
 
             SetLine(startPosition.position);
-            lineRenderer.enabled = false; // tắt hẳn line khi thả chuột
+            lineRenderer.enabled = false;
         }
     }
     private void DrawLine(Vector2 screenPosition)
@@ -193,5 +200,7 @@ public class Aiming : MonoBehaviour
             if (panel != null)
                 tamingUI = panel;
         }
+        if (playerMovement == null)
+            playerMovement = FindAnyObjectByType<PlayerMovement>(FindObjectsInactive.Include);
     }
 }

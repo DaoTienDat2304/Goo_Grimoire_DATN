@@ -21,7 +21,6 @@ public class Archievement
         this.ArchievementRef = Archievement;
         this.MaxProgression = MaxValue;
         LoadArchievement();
-        // Xóa dòng PlayerPrefs.DeleteAll() - nó xóa tất cả dữ liệu đã lưu!
     }
 
     public bool EarnArchievement()
@@ -37,7 +36,6 @@ public class Archievement
         return false;
     }
     
-    // Thêm method để thưởng currency (sẽ được gọi từ AchievementManager)
     public void GiveCurrencyReward(AchievementCurrencyReward currencyReward)
     {
         if (currencyReward != null && currencyReward.giveRewardOnUnlock)

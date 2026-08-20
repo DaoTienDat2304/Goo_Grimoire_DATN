@@ -2,8 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Bảng hiển thị thông số, bộ chỉ số chiến đấu (HP/ATK/DEF/SPD/Crit) và Trait trang bị của Slime
-/// khi người chơi bấm vào bất kỳ Slime nào trong trận đấu (Player Slime hoặc Enemy Slime).
 /// </summary>
 public class SlimeStatsInspectorUI : MonoBehaviour
 {
@@ -50,7 +48,6 @@ public class SlimeStatsInspectorUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Hiển thị thông số chi tiết của Slime khi người chơi chạm vào
     /// </summary>
     public void InspectSlime(SlimeStats slime)
     {
@@ -59,13 +56,11 @@ public class SlimeStatsInspectorUI : MonoBehaviour
 
         if (inspectorPanel != null) inspectorPanel.SetActive(true);
 
-        // Ẩn icon/avatar khi xem thông tin Slime trong trận theo yêu cầu
         if (slimeAvatarImage != null)
         {
             slimeAvatarImage.gameObject.SetActive(false);
         }
 
-        // Hiện nút Exit/Đóng khi xem thông tin Slime
         if (closeButton != null)
         {
             closeButton.gameObject.SetActive(true);
@@ -80,7 +75,6 @@ public class SlimeStatsInspectorUI : MonoBehaviour
 
         if (slimeLevelText != null)
         {
-            // Game không có hệ thống cấp độ (Lv) riêng biệt -> Ẩn text Lv hoặc hiển thị độ hiếm
             slimeLevelText.gameObject.SetActive(false);
         }
 

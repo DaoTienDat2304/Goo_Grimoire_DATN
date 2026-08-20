@@ -18,7 +18,6 @@ public class TraitInstance
     public float critRate;
     public float critDMG;
 
-    // Base stats trước khi nhân rarity multiplier
     public int baseHP;
     public int baseAttack;
     public int baseMagicAttack;
@@ -48,7 +47,6 @@ public class TraitInstance
         TraitType = so != null ? so.type : TraitType.Body;
         allTraits = new List<TraitSO>();
         
-        // Gán skill cho trait theo ScriptableObject
         if (so != null && so.skill != null)
         {
             skill = new SkillInstance(so.skill);
@@ -58,7 +56,6 @@ public class TraitInstance
             skill = null;
         }
 
-        // Chỉ gán Ultimate Skill cho Rare trở lên
         if (so != null && so.ultimateSkill != null && Rarity != Rarity.Common && Rarity != Rarity.Uncommon)
         {
             ultimateSkill = new SkillInstance(so.ultimateSkill);
@@ -125,9 +122,6 @@ public class TraitInstance
         baseCritRate = 0f;
         baseCritDMG = 0f;
 
-        // Secret: slime Secret dùng chỉ số BODY-ONLY (xem Slime.CalculateStats), nên body phải
-        // mang ĐỦ mọi chỉ số. Roll full-block theo chuẩn StatBalance.Secret (khớp GDD/battle) —
-        // đồng thời sửa lỗi cũ khiến Secret bị ATK/Magic/Crit = 0.
         if (Rarity == Rarity.Secret && TraitType == TraitType.Body)
         {
             var rs = StatBalance.Get(Rarity.Secret);
@@ -153,7 +147,6 @@ public class TraitInstance
         }
         else if (TraitType == TraitType.Weapon)
         {
-            // Design: MỌI độ hiếm đều có ATK và Magic ATK (bỏ random 50% cho bậc thấp).
             baseAttack = RollGDDATK(Rarity);
             attack = baseAttack;
             baseMagicAttack = RollGDDMagicATK(Rarity);
@@ -161,7 +154,6 @@ public class TraitInstance
         }
         else if (TraitType == TraitType.Armor || TraitType == TraitType.special)
         {
-            // Design: MỌI độ hiếm đều có CẢ Crit Rate & Crit Damage (bỏ random chỉ 1 trong 2).
             baseCritRate = RollGDDCritRate(Rarity);
             baseCritDMG = RollGDDCritDMG(Rarity);
             critRate = baseCritRate;
@@ -173,6 +165,7 @@ public class TraitInstance
     {
         switch (rarity)
         {
+<<<<<<< HEAD
             case Rarity.Common:    return Random.Range(1500, 2001);
             case Rarity.Uncommon:  return Random.Range(2000, 2701);
             case Rarity.Rare:      return Random.Range(2700, 3701);
@@ -182,6 +175,17 @@ public class TraitInstance
             case Rarity.Mythic:    return Random.Range(8300, 10001);
             case Rarity.Secret:    return Random.Range(5000, 6501);
             default:               return Random.Range(1500, 2001);
+=======
+            case Rarity.Common:    return Random.Range(1000, 2001);
+            case Rarity.Uncommon:  return Random.Range(1800, 3501);
+            case Rarity.Rare:      return Random.Range(3200, 6001);
+            case Rarity.SuperRare: return Random.Range(5500, 10001);
+            case Rarity.UltraRare: return Random.Range(9000, 16001);
+            case Rarity.Legendary: return Random.Range(14000, 25001);
+            case Rarity.Mythic:    return Random.Range(22000, 50001);
+            case Rarity.Secret:    return Random.Range(9000, 16001);
+            default:               return Random.Range(1000, 2001);
+>>>>>>> Player
         }
     }
 
@@ -282,24 +286,17 @@ public class TraitInstance
     }
 
     /// <param name="newMultiplier">
-    /// Không còn dùng — giữ tham số để các call site cũ không phải sửa.
     /// </param>
     public void RecalculateStats(float newMultiplier = 1f)
     {
-        // GDD: chỉ số ATK/DEF/SPD là GIÁ TRỊ CUỐI CÙNG — KHÔNG nhân hệ số độ hiếm nữa.
-        // (Trước đây nhân rarityMultiplier lúc load khiến slime đã-lưu mạnh lệch so với slime
-        //  mới-tạo/battle. Nay mọi nơi đều dùng đúng giá trị GDD/StatBalance.)
         attack = baseAttack;
         defense = baseDefense;
         speed = baseSpeed;
 
-        // Sức mạnh kỹ năng vẫn scale theo độ hiếm như GDD.
         if (skill != null) skill.power = GetSkillPower();
     }
 
     /// <summary>
-    /// Sức mạnh kỹ năng = thang độ hiếm × hệ số remote `battle_skill_power_mult` (mặc định 1.5).
-    /// Dùng chung ở TurnSystem/Member để mọi nơi cùng một công thức.
     /// </summary>
     public float GetSkillPower()
         => GetRarityMultiplier(Rarity) * RemoteBalance.Battle.skillPowerMult;
@@ -310,9 +307,6 @@ public class TraitInstance
     }
 
     /// <summary>
-    /// Thang độ hiếm dùng cho SỨC MẠNH KỸ NĂNG và ĐỘ KHÓ THUẦN HOÁ.
-    /// KHÔNG còn nhân vào chỉ số (HP/ATK/DEF/SPD) — chỉ số nay lấy thẳng từ StatBalance,
-    /// nên các key `rarity_mult_*` cũ trên Remote Config đã bị loại bỏ.
     /// </summary>
     public float GetRarityMultiplier(Rarity rarity)
     {

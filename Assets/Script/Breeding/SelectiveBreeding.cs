@@ -1,22 +1,15 @@
 using UnityEngine;
 
 /// <summary>
-/// Mục 3 - Lai tạo tự chọn (Breeding-Collection.docx).
-/// Chọn 2 Slime bất kỳ để lai. Độ hiếm trứng = độ hiếm cao nhất của cặp.
-/// Slime con KHÔNG kế thừa chỉ số trực tiếp: mọi chỉ số được roll trong range của
-/// độ hiếm trứng (bảng "Cân bằng chỉ số.xlsx"). Bố mẹ chỉ ảnh hưởng chất lượng roll
-/// và tỷ lệ đột biến. Đột biến là cơ chế duy nhất nâng tier (theo từng trait).
 /// </summary>
 public static class SelectiveBreeding
 {
     // ------------------------------------------------------------------
-    // 3.1 Chi phí (Gold) và thời gian (giây) theo độ hiếm cao nhất của cặp.
     // ------------------------------------------------------------------
     public struct TierCost { public int gold; public float minutes; }
 
     public static TierCost GetTierCost(Rarity rarity)
     {
-        // Remote Config (`breeding_tier_table`) ghi đè nếu có.
         if (RemoteBalance.TryGetBreedingTier(rarity, out var remote)) return remote;
 
         switch (rarity)
@@ -37,9 +30,6 @@ public static class SelectiveBreeding
     public static float GetDurationSeconds(Rarity rarity) => GetTierCost(rarity).minutes * 60f;
 
     // ------------------------------------------------------------------
-    // 3.2 Tăng tốc bằng Gem: Gem = thời gian còn lại (phút) × 0.8 (làm tròn lên).
-    // Bảng đối chiếu: 10p→8, 25p→20, 50p→40, 90p→72, 120p→96, 240p→192.
-    // Hệ số 0.8 chỉnh từ xa qua key `breeding_gem_per_minute`.
     // ------------------------------------------------------------------
     public static int GetGemCostForRemaining(float remainingSeconds)
     {
@@ -48,11 +38,9 @@ public static class SelectiveBreeding
     }
 
     // ------------------------------------------------------------------
-    // 3.3 Tỷ lệ đột biến theo độ hiếm (tính theo TỪNG trait, 3 trait riêng biệt).
     // ------------------------------------------------------------------
     public static float GetMutationRate(Rarity rarity)
     {
-        // Remote Config (`breeding_tier_table`, cột `mutation`) ghi đè nếu có.
         if (RemoteBalance.TryGetMutationRate(rarity, out var remote)) return remote;
 
         switch (rarity)
@@ -78,11 +66,10 @@ public static class SelectiveBreeding
             case Rarity.SuperRare: return Rarity.UltraRare;
             case Rarity.UltraRare: return Rarity.Legendary;
             case Rarity.Legendary: return Rarity.Mythic;
-            default:               return Rarity.Mythic; // Mythic là trần
+            default:               return Rarity.Mythic;
         }
     }
 
-    /// <summary>Độ hiếm tổng thể của 1 slime = trait có độ hiếm cao nhất.</summary>
     public static Rarity GetSlimeRarity(Slime s)
     {
         Rarity best = Rarity.Common;
@@ -90,7 +77,6 @@ public static class SelectiveBreeding
         if (s.body != null && s.body.Rarity > best && s.body.Rarity != Rarity.Secret) best = s.body.Rarity;
         if (s.armor != null && s.armor.Rarity > best && s.armor.Rarity != Rarity.Secret) best = s.armor.Rarity;
         if (s.weapon != null && s.weapon.Rarity > best && s.weapon.Rarity != Rarity.Secret) best = s.weapon.Rarity;
-        // Secret vẫn được coi là độ hiếm của chính nó nếu cả 3 đều Secret.
         if (best == Rarity.Common && s.body != null && s.body.Rarity == Rarity.Secret) best = Rarity.Secret;
         return best;
     }
@@ -103,12 +89,9 @@ public static class SelectiveBreeding
     }
 
     // ------------------------------------------------------------------
-    // Stat Roll cho lai tạo (mục 3.4.2): Good / Excellent / Perfect / God Roll.
-    // Bảng chất lượng cao (Turn Base) — không có Poor/Normal.
     // ------------------------------------------------------------------
     public static string RollBreedingQuality(out float t)
     {
-        // Remote Config (`breeding_quality_bands`) ghi đè nếu có.
         var bands = RemoteBalance.BreedingQuality;
         if (bands != null) return bands.Roll(out t);
 
@@ -122,12 +105,9 @@ public static class SelectiveBreeding
         return quality;
     }
 
-    // Độ mạnh của "thiên lệch roll" khi bố mẹ khác độ hiếm (mục 3.4.3).
-    // Chỉnh từ xa qua key `breeding_diff_rarity_bias`.
     private static float DifferentRarityRollBias => RemoteBalance.BreedingDiffRarityBias;
 
     /// <summary>
-    /// Sinh slime con theo mục 3. eggRarity đã tính = độ hiếm cao nhất của cặp.
     /// </summary>
     public static Slime GenerateChild(Slime parent1, Slime parent2, Rarity eggRarity)
     {
@@ -145,7 +125,6 @@ public static class SelectiveBreeding
             breedingCooldown = 0f
         };
 
-        // Mỗi trait roll đột biến độc lập (3.3): nếu đột biến → nâng 1 tier cho trait đó.
         float mutRate = GetMutationRate(eggRarity);
         bool bodyMut   = Random.value < mutRate;
         bool armorMut  = Random.value < mutRate;
@@ -159,10 +138,8 @@ public static class SelectiveBreeding
         child.armor  = MakeTrait(TraitType.Armor,  armorRarity);
         child.weapon = MakeTrait(TraitType.Weapon, weaponRarity);
 
-        // 3.4.2 Stat Roll (một quality roll dùng chung cho mọi chỉ số → God Roll đồng đều).
         RollBreedingQuality(out float t);
 
-        // 3.4.3 Khác độ hiếm → thiên lệch roll nhẹ (60% từ slime cao hơn, 40% từ thấp hơn).
         Rarity r1 = GetSlimeRarity(parent1);
         Rarity r2 = GetSlimeRarity(parent2);
         if (r1 != r2)
@@ -173,18 +150,16 @@ public static class SelectiveBreeding
             t = Mathf.Clamp01(Mathf.Lerp(t, 1f, influence * DifferentRarityRollBias));
         }
 
-        // Áp chỉ số theo range của độ hiếm từng trait (mọi chỉ số nằm trong range).
         ApplyBodyStats(child.body, bodyRarity, t);
         ApplyWeaponStats(child.weapon, weaponRarity, t);
         ApplyArmorStats(child.armor, armorRarity);
 
-        // Bố mẹ không quyết định stat trực tiếp — chỉ ghi nhận chất lượng roll (metadata).
         child.eggStatRollPercent = t * 100f;
         child.eggStatQuality = (bodyMut || armorMut || weaponMut)
             ? "Mutation"
             : DescribeQuality(t);
 
-        child.RollRandomSkillsMatchingRarity(); // skill khớp độ hiếm (đã đột biến) từng trait
+        child.RollRandomSkillsMatchingRarity();
         child.CalculateStats();
         return child;
     }
@@ -203,7 +178,6 @@ public static class SelectiveBreeding
         TraitInstance ti = so != null ? so.GenerateInstance() : null;
         if (ti == null)
         {
-            // Fallback: nếu không tìm được TraitSO của rarity này, hạ về eggRarity gốc đã đảm bảo tồn tại.
             return null;
         }
         ti.Rarity = rarity;
@@ -211,7 +185,6 @@ public static class SelectiveBreeding
         return ti;
     }
 
-    // ---- Áp stat theo bảng cân bằng chính thức (Cân bằng chỉ số.xlsx = bảng GDD) ----
     private static void ApplyBodyStats(TraitInstance body, Rarity rarity, float t)
     {
         if (body == null) return;
@@ -233,7 +206,6 @@ public static class SelectiveBreeding
     {
         if (armor == null) return;
         var b = StatBalance.Get(rarity);
-        // Crit theo giá trị điểm của tier (mục 2/xlsx: Crit ở Head/Armor).
         armor.critRate = armor.baseCritRate = b.critRate;
         armor.critDMG  = armor.baseCritDMG  = b.critDmg;
     }

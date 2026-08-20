@@ -5,11 +5,10 @@ public class BreedingQuest : Quest
 {
     [Header("Breeding Quest Settings")]
     public int slimeGoal;
-    public int curSlime = 0; // Sửa: bắt đầu từ 0 thay vì 3
+    public int curSlime = 0;
 
     public void RegisterSlime()
     {
-        // Sửa: chỉ tăng khi cần thiết, không tăng vô hạn
         if (curSlime < slimeGoal)
         {
             curSlime++;

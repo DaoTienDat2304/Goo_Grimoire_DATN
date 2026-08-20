@@ -78,7 +78,6 @@ public class TeamPicking : MonoBehaviour
         int i = 0;
         foreach (var mem in teamSlime.team)
         {
-            // Bảo vệ tránh lỗi IndexOutOfRangeException khi số slime trong team vượt quá số ô slot
             if (i >= collectionSlots.Count) break;
             if (collectionSlots[i] == null) { i++; continue; }
             if (mem == null || slotPrefab == null) { i++; continue; }

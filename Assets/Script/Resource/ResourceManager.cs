@@ -11,7 +11,6 @@ public class ResourceManager : MonoBehaviour
 
     private Dictionary<ResourceType, int> resources = new Dictionary<ResourceType, int>();
 
-    // Events để thông báo khi tài nguyên thay đổi
     public static event Action<ResourceType, int, int> OnResourceChanged; // type, oldAmount, newAmount
     public static event Action<ResourceType, int> OnResourceAdded; // type, amount
     public static event Action<ResourceType, int> OnResourceSpent; // type, amount
@@ -31,14 +30,12 @@ public class ResourceManager : MonoBehaviour
 
     private void InitializeResources()
     {
-        // Khởi tạo tài nguyên ban đầu
         resources[ResourceType.Marshmallow] = startingMarshmallow;
         
         Debug.Log($"Resources initialized: {startingMarshmallow} Marshmallow");
     }
 
     /// <summary>
-    /// Lấy số lượng tài nguyên hiện tại
     /// </summary>
     public int GetResource(ResourceType type)
     {
@@ -46,7 +43,6 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Thêm tài nguyên
     /// </summary>
     public void AddResource(ResourceType type, int amount)
     {
@@ -58,11 +54,10 @@ public class ResourceManager : MonoBehaviour
         OnResourceChanged?.Invoke(type, oldAmount, resources[type]);
         OnResourceAdded?.Invoke(type, amount);
         
-        Debug.Log($"Thêm {amount} {type}. Tổng: {resources[type]}");
+        Debug.Log($"Add {amount} {type}. Total: {resources[type]}");
     }
 
     /// <summary>
-    /// Trừ tài nguyên (sử dụng)
     /// </summary>
     public bool SpendResource(ResourceType type, int amount)
     {
@@ -71,7 +66,7 @@ public class ResourceManager : MonoBehaviour
         int currentAmount = GetResource(type);
         if (currentAmount < amount)
         {
-            Debug.LogWarning($"Không đủ {type}! Cần: {amount}, Có: {currentAmount}");
+            Debug.LogWarning($"Not enough {type}! Need: {amount}, Have: {currentAmount}");
             return false;
         }
 
@@ -81,12 +76,11 @@ public class ResourceManager : MonoBehaviour
         OnResourceChanged?.Invoke(type, oldAmount, resources[type]);
         OnResourceSpent?.Invoke(type, amount);
         
-        Debug.Log($"Tiêu {amount} {type}. Còn lại: {resources[type]}");
+        Debug.Log($"Spend {amount} {type}. Left: {resources[type]}");
         return true;
     }
 
     /// <summary>
-    /// Kiểm tra có đủ tài nguyên hay không
     /// </summary>
     public bool HasEnoughResource(ResourceType type, int amount)
     {
@@ -94,7 +88,6 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Kiểm tra có đủ nhiều loại tài nguyên hay không
     /// </summary>
     public bool HasEnoughResource(List<ResourceData> costs)
     {
@@ -107,7 +100,6 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Trừ nhiều loại tài nguyên cùng lúc
     /// </summary>
     public bool SpendResource(List<ResourceData> costs)
     {
@@ -121,7 +113,6 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Đặt lại số tài nguyên (chỉ dùng cho debug/testing hoặc load game)
     /// </summary>
     public void SetResource(ResourceType type, int amount)
     {
@@ -132,13 +123,11 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Reset tất cả tài nguyên về giá trị ban đầu
     /// </summary>
     public void ResetAllResources()
     {
         resources[ResourceType.Marshmallow] = startingMarshmallow;
         
-        // Thông báo UI cập nhật
         foreach (var resource in resources)
         {
             OnResourceChanged?.Invoke(resource.Key, 0, resource.Value);

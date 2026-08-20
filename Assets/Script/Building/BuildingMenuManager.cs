@@ -71,7 +71,6 @@ public class BuildingMenuManager : MonoBehaviour
             }
             else
             {
-                // Tạm thời: FreeBuildMode → mọi building đều mở khóa (bỏ điều kiện đủ slime).
                 if (BuildingManager.FreeBuildMode) b.buildable = true;
                 else if (breedingManager != null && b.slimeRequirement > breedingManager.GetAllSlimes().Count) b.buildable = false;
                 else b.buildable = true;
@@ -91,11 +90,9 @@ public class BuildingMenuManager : MonoBehaviour
             if (drag == null) drag = go.AddComponent<BuildingDraggable>();
             drag.SetBuilding(b);
 
-            // Kiểm tra xem building đã được đặt chưa
             bool isAlreadyPlaced = IsBuildingAlreadyPlaced(b);
             if (isAlreadyPlaced)
             {
-                // Làm nhạt màu building
                 if (ui != null) ui.SetDimmed(true);
                 
                 // Disable drag
@@ -103,7 +100,6 @@ public class BuildingMenuManager : MonoBehaviour
             }
             else
             {
-                // Đảm bảo màu sáng và có thể drag
                 if (ui != null) ui.SetDimmed(false);
                 if (drag != null) drag.SetDraggable(true);
             }
@@ -113,7 +109,6 @@ public class BuildingMenuManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Kiểm tra xem building đã được đặt trong slot nào chưa
     /// </summary>
     private bool IsBuildingAlreadyPlaced(Building building)
     {

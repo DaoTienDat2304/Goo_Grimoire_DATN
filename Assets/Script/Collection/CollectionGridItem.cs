@@ -3,17 +3,15 @@ using UnityEngine.UI;
 using System;
 
 /// <summary>
-/// Script cho mỗi ô item trong lưới Collection Book.
-/// Dùng được cho cả 3 tab: Slime, Trait (Parts), Skill.
 /// </summary>
 public class CollectionGridItem : MonoBehaviour
 {
-    [Header("Common UI — có ở tất cả 3 loại item")]
-    public Image rarityBorder;        // Viền màu theo độ hiếm
-    public Text itemNameText;         // Tên hiển thị
-    public GameObject lockOverlay;    // Lớp phủ tối khi chưa unlock
-    [Header("Icon (Dùng chung cho Slime, Trait, Skill)")]
-    public Image iconImage;           // Hình ảnh (slime body / trait / skill icon)
+    [Header("Common UI — yes o tat ca 3 loai item")]
+    public Image rarityBorder;
+    public Text itemNameText;
+    public GameObject lockOverlay;
+    [Header("Icon")]
+    public Image iconImage;
 
     [Header("Rarity Border Sprites")]
     public Sprite[] rarityBorderSprites; // 0=Common 1=Uncommon 2=Rare 3=SuperRare 4=UltraRare 5=Legendary 6=Mythic 7=Secret
@@ -37,32 +35,26 @@ public class CollectionGridItem : MonoBehaviour
     // Setup Methods
     // ─────────────────────────────────────────
 
-    /// <summary>Thiết lập ô hiển thị Loài Slime (tab 1).</summary>
     public void SetupAsSlime(TraitSO bodyTrait, Slime bestSlime, bool unlocked, Action onClick)
     {
         _onClickCallback = onClick;
 
         if (unlocked && bestSlime != null)
         {
-            // Chỉ hiển thị hình ảnh body của slime vào Icon
             SetLayer(iconImage, bestSlime.body?.sprite);
 
-            // Tên = tên con slime
             if (itemNameText != null) itemNameText.text = bestSlime.slimeName;
 
-            // Viền theo rarity của body trait
             SetRarityBorder(bodyTrait.rarity);
         }
         else if (unlocked)
         {
-            // Đã unlock nhưng chưa có con tốt nhất → chỉ hiển thị sprite body trait
             SetLayer(iconImage, bodyTrait.sprite);
             if (itemNameText != null) itemNameText.text = bodyTrait.traitName;
             SetRarityBorder(bodyTrait.rarity);
         }
         else
         {
-            // Chưa unlock → bóng đen + dấu ?
             SetLayer(iconImage, null);
             if (itemNameText != null) itemNameText.text = "???";
             if (rarityBorder != null) rarityBorder.color = Color.gray;
@@ -71,7 +63,6 @@ public class CollectionGridItem : MonoBehaviour
         if (lockOverlay != null) lockOverlay.SetActive(!unlocked);
     }
 
-    /// <summary>Thiết lập ô hiển thị Bộ phận (tab 2).</summary>
     public void SetupAsTrait(TraitSO trait, bool unlocked, Action onClick)
     {
         _onClickCallback = onClick;
@@ -92,7 +83,6 @@ public class CollectionGridItem : MonoBehaviour
         if (lockOverlay != null) lockOverlay.SetActive(!unlocked);
     }
 
-    /// <summary>Thiết lập ô hiển thị Kỹ năng (tab 3).</summary>
     public void SetupAsSkill(SkillSO skill, bool unlocked, Action onClick)
     {
         _onClickCallback = onClick;
@@ -136,7 +126,6 @@ public class CollectionGridItem : MonoBehaviour
         }
         else
         {
-            // Fallback: chỉ đổi màu border theo rarity
             rarityBorder.color = GetRarityColor(rarity);
         }
     }

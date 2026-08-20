@@ -11,7 +11,7 @@ public class BuildingDraggable : MonoBehaviour, IBeginDragHandler, IDragHandler,
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
     private Vector2 dragOffset;
-    private bool isDraggable = true; // Mặc định có thể kéo
+    private bool isDraggable = true;
 
     public void SetBuilding(Building b)
     {
@@ -19,13 +19,11 @@ public class BuildingDraggable : MonoBehaviour, IBeginDragHandler, IDragHandler,
     }
 
     /// <summary>
-    /// Đặt trạng thái có thể kéo hay không
     /// </summary>
     public void SetDraggable(bool draggable)
     {
         isDraggable = draggable;
         
-        // Disable/enable CanvasGroup để ngăn tương tác khi không thể kéo
         if (canvasGroup != null)
         {
             canvasGroup.blocksRaycasts = draggable;
@@ -43,7 +41,6 @@ public class BuildingDraggable : MonoBehaviour, IBeginDragHandler, IDragHandler,
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // Không cho phép kéo nếu đã disable
         if (!isDraggable) return;
 
         originalParent = transform.parent;
@@ -66,7 +63,6 @@ public class BuildingDraggable : MonoBehaviour, IBeginDragHandler, IDragHandler,
 
     public void OnDrag(PointerEventData eventData)
     {
-        // Không cho phép kéo nếu đã disable
         if (!isDraggable) return;
 
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -81,10 +77,9 @@ public class BuildingDraggable : MonoBehaviour, IBeginDragHandler, IDragHandler,
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // Không cho phép kéo nếu đã disable
         if (!isDraggable) return;
 
-        canvasGroup.blocksRaycasts = isDraggable; // Sử dụng giá trị isDraggable
+        canvasGroup.blocksRaycasts = isDraggable;
         canvasGroup.alpha = 1f;
         transform.SetParent(originalParent, true);
         rectTransform.anchoredPosition = Vector2.zero;

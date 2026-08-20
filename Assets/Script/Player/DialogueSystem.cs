@@ -37,17 +37,17 @@ public class DialogueSystem : MonoBehaviour
     public float autoAdvanceDelay = 2f;
     
     [Header("Scene Transition")]
-    [Tooltip("Tên scene để chuyển khi hết hội thoại")]
+    [Tooltip("Next scene name")]
     public string nextSceneName = "MainGame";
-    [Tooltip("Index scene để chuyển khi hết hội thoại")]
+    [Tooltip("Next scene index")]
     public int nextSceneIndex = 2;
-    [Tooltip("Sử dụng scene index thay vì tên scene")]
+    [Tooltip("Use scene index")]
     public bool useSceneIndex = true;
-    [Tooltip("Bật chuyển scene khi hết hội thoại")]
+    [Tooltip("Change scene after dialogue")]
     public bool enableSceneTransition = true;
-    [Tooltip("Tự động chuyển scene khi hết hội thoại")]
+    [Tooltip("Auto scene change")]
     public bool autoTransitionOnEnd = false;
-    [Tooltip("Delay trước khi chuyển scene (giây)")]
+    [Tooltip("Scene delay (s)")]
     public float transitionDelay = 1f;
     
     [Header("Dialogue Data")]
@@ -94,7 +94,6 @@ public class DialogueSystem : MonoBehaviour
             return;
         }
         
-        // Tìm sequence theo tên hoặc sử dụng sequence đầu tiên
         if (!string.IsNullOrEmpty(sequenceName))
         {
             currentSequenceIndex = dialogueSequences.FindIndex(seq => seq.dialogueName == sequenceName);
@@ -151,19 +150,16 @@ public class DialogueSystem : MonoBehaviour
         
         DialogueLine currentLine = dialogueSequences[currentSequenceIndex].lines[currentLineIndex];
         
-        // Hiển thị tên người nói
         if (speakerNameText != null)
         {
             speakerNameText.text = currentLine.speakerName;
         }
         
-        // Hiển thị chân dung
         if (speakerPortrait != null && currentLine.speakerPortrait != null)
         {
             speakerPortrait.sprite = currentLine.speakerPortrait;
         }
         
-        // Hiển thị text với hiệu ứng typing
         if (typingCoroutine != null)
         {
             StopCoroutine(typingCoroutine);
@@ -192,7 +188,6 @@ public class DialogueSystem : MonoBehaviour
         
         isTyping = false;
         
-        // Tự động chuyển tiếp nếu được bật
         if (autoAdvance)
         {
             autoAdvanceCoroutine = StartCoroutine(AutoAdvance());
@@ -209,7 +204,6 @@ public class DialogueSystem : MonoBehaviour
     {
         if (isTyping)
         {
-            // Nếu đang typing, hiển thị toàn bộ text ngay lập tức
             if (typingCoroutine != null)
             {
                 StopCoroutine(typingCoroutine);
@@ -252,7 +246,6 @@ public class DialogueSystem : MonoBehaviour
         }
         c++;
         
-        // Đánh dấu sequence đã hoàn thành
         if (currentSequenceIndex < dialogueSequences.Count)
         {
             dialogueSequences[currentSequenceIndex].isCompleted = true;
@@ -261,7 +254,6 @@ public class DialogueSystem : MonoBehaviour
         
         OnDialogueEnded?.Invoke();
         
-        // Tự động chuyển scene nếu được bật
         if (enableSceneTransition && autoTransitionOnEnd)
         {
             StartCoroutine(TransitionToNextScene());
@@ -288,12 +280,10 @@ public class DialogueSystem : MonoBehaviour
     {
         if (useSceneIndex)
         {
-            // Sử dụng scene index
             await SceneLoader.LoadSceneWithLoading(nextSceneIndex);
         }
         else
         {
-            // Sử dụng tên scene
             if (!string.IsNullOrEmpty(nextSceneName))
             {
                 await SceneLoader.LoadSceneWithLoading(nextSceneName);
@@ -336,13 +326,11 @@ public class DialogueSystem : MonoBehaviour
     
     void Update()
     {
-        // Có thể thêm input để tiếp tục dialogue
         if (IsDialogueActive() && IsContinueInputDown())
         {
             ContinueDialogue();
         }
         
-        // Nút R để chuyển scene khi hết hội thoại
         if (Input.GetKeyDown(KeyCode.R))
         {
             if (enableSceneTransition)

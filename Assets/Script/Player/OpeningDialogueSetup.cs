@@ -32,10 +32,8 @@ public class OpeningDialogueSetup : MonoBehaviour
     
     void Start()
     {
-        // Chỉ setup dialogue data, không kích hoạt dialogue
         SetupOpeningDialogues();
         
-        // Đảm bảo dialogue panel bị ẩn
         if (dialogueSystem != null && dialogueSystem.dialoguePanel != null)
         {
             dialogueSystem.dialoguePanel.SetActive(false);
@@ -55,7 +53,6 @@ public class OpeningDialogueSetup : MonoBehaviour
             }
         }
 
-        // Tạo dialogue sequences
         dialogueSystem.dialogueSequences.Clear();
         CreateProfessorDialogue();
         CreateSlimeDialogue();
@@ -65,41 +62,37 @@ public class OpeningDialogueSetup : MonoBehaviour
     
     private void CreateProfessorDialogue()
     {
-        // Tạo dialogue sequence cho giáo sư
         DialogueSequence professorSequence = new DialogueSequence
         {
             dialogueName = dialogueData.professorSequenceName,
             lines = new List<DialogueLine>()
         };
         
-        // Thêm các dòng hội thoại mẫu cho giáo sư
         if (dialogueData.professorLines.Count == 0)
         {
-            // Tạo hội thoại mẫu nếu chưa có
             professorSequence.lines.Add(new DialogueLine
             {
-                text = "Xin chào! Tôi là giáo sư nghiên cứu về Slime.",
-                speakerName = "Giáo sư",
+                text = "Hi! I study Slimes.",
+                speakerName = "Professor",
                 speakerPortrait = professorPortrait
             });
             
             professorSequence.lines.Add(new DialogueLine
             {
-                text = "Bạn đã sẵn sàng để khám phá thế giới Slime chưa?",
-                speakerName = "Giáo sư",
+                text = "Ready to explore Slime world?",
+                speakerName = "Professor",
                 speakerPortrait = professorPortrait
             });
             
             professorSequence.lines.Add(new DialogueLine
             {
-                text = "Hãy cùng tôi bắt đầu cuộc phiêu lưu tuyệt vời này!",
-                speakerName = "Giáo sư",
+                text = "Let us begin!",
+                speakerName = "Professor",
                 speakerPortrait = professorPortrait
             });
         }
         else
         {
-            // Sử dụng hội thoại đã thiết lập
             foreach (var line in dialogueData.professorLines)
             {
                 professorSequence.lines.Add(new DialogueLine
@@ -111,47 +104,42 @@ public class OpeningDialogueSetup : MonoBehaviour
             }
         }
         
-        // Thêm vào dialogue system
         dialogueSystem.AddDialogueSequence(professorSequence);
     }
     
     private void CreateSlimeDialogue()
     {
-        // Tạo dialogue sequence cho slime
         DialogueSequence slimeSequence = new DialogueSequence
         {
             dialogueName = dialogueData.slimeSequenceName,
             lines = new List<DialogueLine>()
         };
         
-        // Thêm các dòng hội thoại mẫu cho slime
         if (dialogueData.slimeLines.Count == 0)
         {
-            // Tạo hội thoại mẫu nếu chưa có
             slimeSequence.lines.Add(new DialogueLine
             {
-                text = "Pui pui! Chào bạn mới!",
+                text = "Pui pui! Hi!",
                 speakerName = "Slime",
                 speakerPortrait = slimePortrait
             });
             
             slimeSequence.lines.Add(new DialogueLine
             {
-                text = "Tôi là slime đầu tiên của bạn. Chúng ta sẽ là bạn tốt!",
+                text = "I am your first slime. We will be friends!",
                 speakerName = "Slime",
                 speakerPortrait = slimePortrait
             });
             
             slimeSequence.lines.Add(new DialogueLine
             {
-                text = "Pui pui pui! Hãy chăm sóc tôi thật tốt nhé!",
+                text = "Pui pui! Take care of me!",
                 speakerName = "Slime",
                 speakerPortrait = slimePortrait
             });
         }
         else
         {
-            // Sử dụng hội thoại đã thiết lập
             foreach (var line in dialogueData.slimeLines)
             {
                 slimeSequence.lines.Add(new DialogueLine
@@ -163,47 +151,42 @@ public class OpeningDialogueSetup : MonoBehaviour
             }
         }
         
-        // Thêm vào dialogue system
         dialogueSystem.AddDialogueSequence(slimeSequence);
     }
     
     private void CreatePlayerDialogue()
     {
-        // Tạo dialogue sequence cho player
         DialogueSequence playerSequence = new DialogueSequence
         {
             dialogueName = dialogueData.playerSequenceName,
             lines = new List<DialogueLine>()
         };
         
-        // Thêm các dòng hội thoại mẫu cho player
         if (dialogueData.playerLines.Count == 0)
         {
-            // Tạo hội thoại mẫu nếu chưa có
             playerSequence.lines.Add(new DialogueLine
             {
-                text = "Cảm ơn giáo sư! Tôi rất vui được học hỏi về thế giới Slime.",
+                text = "Thanks, Professor! I want to learn.",
                 speakerName = "Player",
                 speakerPortrait = playerPortrait
             });
             
             playerSequence.lines.Add(new DialogueLine
             {
-                text = "Chào bạn Slime! Tôi sẽ chăm sóc bạn thật tốt.",
+                text = "Hi Slime! I will care for you.",
                 speakerName = "Player",
                 speakerPortrait = playerPortrait
             });
             
             playerSequence.lines.Add(new DialogueLine
             {
-                text = "Hãy cùng nhau khám phá thế giới Slime tuyệt vời này!",
+                text = "Let us explore Slime world!",
                 speakerName = "Player",
                 speakerPortrait = playerPortrait
             });
         }
         else
         {
-            // Sử dụng hội thoại đã thiết lập
             foreach (var line in dialogueData.playerLines)
             {
                 playerSequence.lines.Add(new DialogueLine
@@ -215,18 +198,15 @@ public class OpeningDialogueSetup : MonoBehaviour
             }
         }
         
-        // Thêm vào dialogue system
         dialogueSystem.AddDialogueSequence(playerSequence);
     }
     
-    // Phương thức để cập nhật dialogue data từ inspector
     [ContextMenu("Update Dialogue Data")]
     public void UpdateDialogueData()
     {
         SetupOpeningDialogues();
     }
     
-    // Phương thức để xóa tất cả dialogue sequences (để reset)
     [ContextMenu("Clear All Dialogues")]
     public void ClearAllDialogues()
     {

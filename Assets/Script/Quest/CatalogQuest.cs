@@ -1,20 +1,17 @@
 using UnityEngine;
 
-/// <summary>Chỉ số một nhiệm vụ (CatalogQuest) chấm — trỏ vào PlayerStatsManager / slime đang sở hữu.</summary>
 public enum MissionMetric
 {
-    TotalBred,     // tổng slime đã lai tạo
-    OwnedSlimes,   // số slime đang sở hữu
-    BattleWins,    // tổng trận thắng
-    Captures,      // slime bắt được
-    TowerFloor,    // tầng tháp cao nhất
-    FarmWins,      // số lần thắng Farm
-    RarityAtLeast  // số slime có độ hiếm >= RarityTarget
+    TotalBred,
+    OwnedSlimes,
+    BattleWins,
+    Captures,
+    TowerFloor,
+    FarmWins,
+    RarityAtLeast
 }
 
 /// <summary>
-/// Nhiệm vụ định nghĩa bằng code (không cần asset). Tái dùng toàn bộ state machine &amp; UI
-/// của QuestManager/QuestUIManager. Tiến trình đọc từ bộ đếm lifetime (PlayerStatsManager).
 /// </summary>
 public class CatalogQuest : Quest
 {

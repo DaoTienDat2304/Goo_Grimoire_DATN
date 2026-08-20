@@ -226,8 +226,6 @@ public class MobileUIFeedback : MonoBehaviour,
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            // SmootherStep có vận tốc bằng 0 ở cả hai đầu, tránh cảm giác giật
-            // khi chuyển giữa nhấn, thả và focus.
             t = 1f - Mathf.Pow(1f - t, 3f);
             transform.localScale = Vector3.LerpUnclamped(start, target, t);
             yield return null;

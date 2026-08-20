@@ -16,7 +16,6 @@ public class CurrencyManager : MonoBehaviour
 
     private Dictionary<CurrencyType, int> currencies = new Dictionary<CurrencyType, int>();
 
-    // Events để thông báo khi tiền tệ thay đổi
     public static event Action<CurrencyType, int, int> OnCurrencyChanged; // type, oldAmount, newAmount
     public static event Action<CurrencyType, int> OnCurrencyAdded; // type, amount
     public static event Action<CurrencyType, int> OnCurrencySpent; // type, amount
@@ -52,7 +51,6 @@ public class CurrencyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Lấy số lượng tiền tệ hiện tại
     /// </summary>
     public int GetCurrency(CurrencyType type)
     {
@@ -60,7 +58,6 @@ public class CurrencyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Thêm tiền tệ
     /// </summary>
     public void AddCurrency(CurrencyType type, int amount)
     {
@@ -74,11 +71,10 @@ public class CurrencyManager : MonoBehaviour
         
         SaveCurrencyData();
         
-        Debug.Log($"Thêm {amount} {type}. Tổng: {currencies[type]}");
+        Debug.Log($"Add {amount} {type}. Total: {currencies[type]}");
     }
 
     /// <summary>
-    /// Trừ tiền tệ (mua đồ, nâng cấp)
     /// </summary>
     public bool SpendCurrency(CurrencyType type, int amount)
     {
@@ -87,7 +83,7 @@ public class CurrencyManager : MonoBehaviour
         int currentAmount = GetCurrency(type);
         if (currentAmount < amount)
         {
-            Debug.LogWarning($"Không đủ {type}! Cần: {amount}, Có: {currentAmount}");
+            Debug.LogWarning($"Not enough {type}! Need: {amount}, Have: {currentAmount}");
             return false;
         }
 
@@ -99,12 +95,11 @@ public class CurrencyManager : MonoBehaviour
         
         SaveCurrencyData();
         
-        Debug.Log($"Tiêu {amount} {type}. Còn lại: {currencies[type]}");
+        Debug.Log($"Spend {amount} {type}. Left: {currencies[type]}");
         return true;
     }
 
     /// <summary>
-    /// Kiểm tra có đủ tiền hay không
     /// </summary>
     public bool HasEnoughCurrency(CurrencyType type, int amount)
     {
@@ -112,7 +107,6 @@ public class CurrencyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Kiểm tra có đủ nhiều loại tiền hay không
     /// </summary>
     public bool HasEnoughCurrency(List<CurrencyData> costs)
     {
@@ -125,7 +119,6 @@ public class CurrencyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Trừ nhiều loại tiền cùng lúc
     /// </summary>
     public bool SpendCurrency(List<CurrencyData> costs)
     {
@@ -139,7 +132,6 @@ public class CurrencyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Đặt lại số tiền (chỉ dùng cho debug/testing)
     /// </summary>
     public void SetCurrency(CurrencyType type, int amount)
     {
@@ -151,7 +143,6 @@ public class CurrencyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Lưu dữ liệu tiền tệ
     /// </summary>
     public void SaveCurrencyData()
     {
@@ -163,7 +154,6 @@ public class CurrencyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Tải dữ liệu tiền tệ
     /// </summary>
     private void LoadCurrencyData()
     {
@@ -178,7 +168,6 @@ public class CurrencyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Xóa tất cả dữ liệu tiền tệ (reset game)
     /// </summary>
     public void ResetAllCurrency()
     {
@@ -192,7 +181,6 @@ public class CurrencyManager : MonoBehaviour
         
         SaveCurrencyData();
         
-        // Thông báo UI cập nhật
         foreach (var currency in currencies)
         {
             OnCurrencyChanged?.Invoke(currency.Key, 0, currency.Value);

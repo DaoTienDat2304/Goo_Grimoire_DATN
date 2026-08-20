@@ -1,26 +1,25 @@
 using UnityEngine;
 
-/// <summary>Slot nào của slime cần kiểm tra. "Any" = bất kỳ slot nào đạt điều kiện là đủ.</summary>
 public enum TraitSlotFilter { Any, Body, Armor, Weapon }
 
 [CreateAssetMenu(menuName = "Quests/Collect Quest")]
 public class CollectQuest : Quest
 {
     [Header("Collect Quest Settings")]
-    [Tooltip("Cần sưu tầm bao nhiêu slime đạt điều kiện")]
+    [Tooltip("Required slimes")]
     public int slimeGoal = 1;
 
     [Header("Trait Filter")]
-    [Tooltip("Slot cần kiểm tra. Any = bất kỳ slot nào đạt là đủ")]
+    [Tooltip("Slot to check")]
     public TraitSlotFilter traitSlot = TraitSlotFilter.Any;
 
-    [Tooltip("Trait cụ thể cần có. Để trống = chấp nhận mọi trait")]
+    [Tooltip("Required trait. Empty accepts any trait.")]
     public TraitSO requiredTrait;
 
-    [Tooltip("Độ hiếm tối thiểu cần đạt")]
+    [Tooltip("Minimum rarity")]
     public Rarity minimumRarity = Rarity.Common;
 
-    [Tooltip("Nếu bật: chỉ chấp nhận đúng độ hiếm. Tắt: >= minimumRarity")]
+    [Tooltip("Exact rarity only")]
     public bool exactRarity = false;
 
     // ── Public API ────────────────────────────────────────────────────
@@ -75,11 +74,9 @@ public class CollectQuest : Quest
     {
         if (t == null) return false;
 
-        // Kiểm tra trait cụ thể
         if (requiredTrait != null && t.baseTrait != requiredTrait)
             return false;
 
-        // Kiểm tra độ hiếm
         return exactRarity
             ? t.Rarity == minimumRarity
             : (int)t.Rarity >= (int)minimumRarity;

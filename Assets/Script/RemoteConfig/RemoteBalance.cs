@@ -1,16 +1,8 @@
 // ============================================================
 // RemoteBalance.cs
 //
-// Lớp phủ (override) cân bằng game lấy từ Remote Config.
 //
-// NGUYÊN TẮC: Remote Config KHÔNG phải nguồn dữ liệu bắt buộc.
-//   - Chưa có RemoteConfigManager / offline / JSON hỏng
-//       → mọi TryGet* trả false → code rơi về bảng hardcode sẵn có.
-//   - Các khối "tuning" (Battle/Egg/Reward) LUÔN có giá trị: khởi tạo
-//     bằng đúng hằng số đang dùng trong code, RC chỉ ghi đè khi có.
 //
-// Điểm nạp duy nhất: RemoteConfigManager gọi RemoteBalance.Apply(this)
-// sau khi fetch xong (và ngay lúc Awake ở chế độ offline).
 // ============================================================
 
 using System;
@@ -20,14 +12,13 @@ using UnityEngine;
 public static class RemoteBalance
 {
     // ------------------------------------------------------------------
-    // Các khối tuning — luôn có giá trị (default = hằng số hiện hành)
     // ------------------------------------------------------------------
 
     public class BattleTuning
     {
         public float critRateCap = 0.75f;
         public float critDmgCap = 2.50f;
-        public float defReductionPerPoint = 0.00008f; // 1 DEF = 0.008% giảm sát thương (0.00008). 10,000 DEF = 80% (Hard cap)
+        public float defReductionPerPoint = 0.00008f;
         public float maxDefReduction = 0.80f;
         public float critOverflowToAtk = 5f;
         public float poisonPercentHp = 0.04f;
@@ -48,7 +39,6 @@ public static class RemoteBalance
         public int dailyStreakBonusGold = 500;
     }
 
-    /// <summary>Bảng dải chất lượng roll đã chuẩn hoá trọng số.</summary>
     public class QualityBands
     {
         private readonly List<RcQualityBand> bands;
@@ -63,7 +53,6 @@ public static class RemoteBalance
 
         public bool IsValid => bands != null && bands.Count > 0 && totalWeight > 0f;
 
-        /// <summary>Roll 1 dải theo trọng số; trả tên dải, xuất giá trị t (0..1).</summary>
         public string Roll(out float t)
         {
             float pick = UnityEngine.Random.value * totalWeight;
@@ -84,20 +73,16 @@ public static class RemoteBalance
     }
 
     // ------------------------------------------------------------------
-    // Trạng thái hiện hành
     // ------------------------------------------------------------------
 
     public static BattleTuning Battle { get; private set; } = new BattleTuning();
     public static RewardTuning Reward { get; private set; } = new RewardTuning();
     public static RcFeatureFlags Flags { get; private set; } = new RcFeatureFlags();
 
-    /// <summary>Số Gem mỗi phút còn lại khi tăng tốc lai tạo (SelectiveBreeding 3.2).</summary>
     public static float BreedingGemPerMinute { get; private set; } = 0.8f;
 
-    /// <summary>Độ mạnh thiên lệch roll khi bố mẹ khác độ hiếm (SelectiveBreeding 3.4.3).</summary>
     public static float BreedingDiffRarityBias { get; private set; } = 0.20f;
 
-    // null = chưa có override → dùng bảng hardcode trong code
     public static QualityBands BreedingQuality { get; private set; }
     public static QualityBands EggQuality { get; private set; }
     public static QualityBands AdventureQuality { get; private set; }
@@ -112,11 +97,9 @@ public static class RemoteBalance
     private static readonly List<RcRarityWeightRow> eggRarityWeights = new List<RcRarityWeightRow>();
     private static float eggRarityTotalWeight;
 
-    /// <summary>True khi đã nạp ít nhất 1 lần (dùng cho log/debug).</summary>
     public static bool IsApplied { get; private set; }
 
     // ------------------------------------------------------------------
-    // Tra cứu — trả false khi không có override
     // ------------------------------------------------------------------
 
     public static bool TryGetStatRange(Rarity rarity, out StatBalance.Range range)
@@ -131,7 +114,6 @@ public static class RemoteBalance
     public static bool TryGetMutationRate(Rarity rarity, out float rate)
         => mutationRates.TryGetValue(rarity, out rate);
 
-    /// <summary>Roll độ hiếm trứng theo trọng số remote. False = dùng bảng hardcode.</summary>
     public static bool TryRollEggRarity(out Rarity rarity)
     {
         rarity = Rarity.Common;
@@ -152,7 +134,6 @@ public static class RemoteBalance
         return true;
     }
 
-    /// <summary>Tìm 1 dòng Farm theo key (easy/medium/...). Null = không có override.</summary>
     public static RcFarmRow GetFarmRow(string key)
     {
         if (FarmRows == null || string.IsNullOrEmpty(key)) return null;
@@ -169,7 +150,6 @@ public static class RemoteBalance
     }
 
     // ------------------------------------------------------------------
-    // Nạp từ Remote Config
     // ------------------------------------------------------------------
 
     public static void Apply(RemoteConfigManager rc)
@@ -178,12 +158,11 @@ public static class RemoteBalance
 
         Clear();
 
-        // ── Nhóm 1: chỉ số & chiến đấu ──
         var battle = new BattleTuning();
         battle.critRateCap = rc.GetFloat(RemoteConfigKeys.BattleCritRateCap, battle.critRateCap);
         battle.critDmgCap = rc.GetFloat(RemoteConfigKeys.BattleCritDmgCap, battle.critDmgCap);
         battle.defReductionPerPoint = rc.GetFloat(RemoteConfigKeys.BattleDefReductionPer, battle.defReductionPerPoint);
-        if (battle.defReductionPerPoint > 0.001f) battle.defReductionPerPoint /= 100f; // Phòng ngừa nhập 0.008 thay vì 0.00008
+        if (battle.defReductionPerPoint > 0.001f) battle.defReductionPerPoint /= 100f;
         battle.maxDefReduction = rc.GetFloat(RemoteConfigKeys.BattleMaxDefReduction, battle.maxDefReduction);
         battle.critOverflowToAtk = rc.GetFloat(RemoteConfigKeys.BattleCritOverflowToAtk, battle.critOverflowToAtk);
         battle.poisonPercentHp = rc.GetFloat(RemoteConfigKeys.BattlePoisonPercentHp, battle.poisonPercentHp);
@@ -224,7 +203,6 @@ public static class RemoteBalance
             }
         }
 
-        // ── Nhóm 2: lai tạo ──
         var tierTable = rc.GetJson<RcBreedTierTable>(RemoteConfigKeys.BreedingTierTable);
         if (tierTable != null && tierTable.rows != null)
         {
@@ -239,9 +217,6 @@ public static class RemoteBalance
         BreedingGemPerMinute = Mathf.Max(0f, rc.GetFloat(RemoteConfigKeys.BreedingGemPerMinute, BreedingGemPerMinute));
         BreedingDiffRarityBias = rc.GetFloat(RemoteConfigKeys.BreedingDiffBias, BreedingDiffRarityBias);
 
-        // ── Nhóm 3: trứng ──
-        // Các tham số vô hướng của trứng đọc trực tiếp qua FloatOr/IntOr tại SlimeEggSystem
-        // để giá trị đặt trong Inspector vẫn là fallback thật khi Remote Config vắng mặt.
         EggQuality = ParseBands(rc, RemoteConfigKeys.EggQualityBands);
 
         var weights = rc.GetJson<RcRarityWeightTable>(RemoteConfigKeys.EggRarityWeights);
@@ -255,18 +230,14 @@ public static class RemoteBalance
             }
         }
 
-        // ── Nhóm 4: Adventure ──
         AdventureQuality = ParseBands(rc, RemoteConfigKeys.AdventureQualityBands);
 
-        // ── Nhóm 5: Farm ──
         var farm = rc.GetJson<RcFarmTable>(RemoteConfigKeys.FarmDifficultyTable);
         FarmRows = (farm != null && farm.rows != null && farm.rows.Count > 0) ? farm.rows : null;
 
-        // ── Nhóm 6: Tháp ──
         TowerGrowth = rc.GetJson<RcTowerGrowth>(RemoteConfigKeys.TowerGrowth);
         TowerStars = rc.GetJson<RcTowerStars>(RemoteConfigKeys.TowerStarThresholds);
 
-        // ── Nhóm 7: thưởng & tiến trình ──
         var reward = new RewardTuning();
         reward.missionGold = Mathf.Max(0f, rc.GetFloat(RemoteConfigKeys.RewardMultMissionGold, reward.missionGold));
         reward.dailyGold = Mathf.Max(0f, rc.GetFloat(RemoteConfigKeys.RewardMultDailyGold, reward.dailyGold));
@@ -276,16 +247,14 @@ public static class RemoteBalance
         reward.dailyCount = Mathf.Max(1, rc.GetInt(RemoteConfigKeys.DailyCount, reward.dailyCount));
         reward.dailyStreakBonusGold = Mathf.Max(0, rc.GetInt(RemoteConfigKeys.DailyStreakBonusGold, reward.dailyStreakBonusGold));
         Reward = reward;
-        // starting_coins / starting_gems đọc qua IntOr tại CurrencyManager (Inspector là fallback).
 
-        // ── Nhóm 0: feature flags ──
         Flags = rc.GetJson<RcFeatureFlags>(RemoteConfigKeys.FeatureFlags) ?? new RcFeatureFlags();
 
         IsApplied = true;
 
-        Debug.Log($"[RemoteBalance] Đã nạp override — stat:{statRanges.Count} boss:{bossMults.Count} " +
+        Debug.Log($"[RemoteBalance] Loaded overrides — stat:{statRanges.Count} boss:{bossMults.Count} " +
                   $"breed:{breedTiers.Count} farm:{(FarmRows != null ? FarmRows.Count : 0)} " +
-                  $"tower:{(TowerGrowth != null ? "có" : "không")}");
+                  $"tower:{(TowerGrowth != null ? "yes" : "no")}");
     }
 
     public static void Clear()
@@ -315,11 +284,7 @@ public static class RemoteBalance
     // ------------------------------------------------------------------
 
     // ------------------------------------------------------------------
-    // Đọc thẳng 1 key với fallback do NƠI GỌI cung cấp.
     //
-    // Dùng cho các tham số vốn được chỉnh trong Inspector (SlimeEggSystem,
-    // CurrencyManager, BreedingManager): khi Remote Config không có key,
-    // giá trị Inspector phải thắng — chứ không phải hằng số trong code.
     // ------------------------------------------------------------------
 
     public static float FloatOr(string key, float fallback)
@@ -346,7 +311,6 @@ public static class RemoteBalance
         return rc != null ? rc.GetString(key, fallback) : fallback;
     }
 
-    /// <summary>Nhân hệ số thưởng, luôn giữ tối thiểu 1 khi giá trị gốc &gt; 0.</summary>
     public static int ScaleReward(int baseAmount, float multiplier)
     {
         if (baseAmount <= 0) return baseAmount;

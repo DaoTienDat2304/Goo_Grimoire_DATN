@@ -230,7 +230,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Chua chon
+  m_Text: Empty
 --- !u!1 &5973070211893454789
 GameObject:
   m_ObjectHideFlags: 0

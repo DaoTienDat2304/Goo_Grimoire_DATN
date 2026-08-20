@@ -7,17 +7,14 @@ public class AutoSetupTraitAnimations
 {
     static AutoSetupTraitAnimations()
     {
-        // Chạy sau khi Unity load xong
         EditorApplication.delayCall += CheckAndSetupAnimations;
     }
     
     private static void CheckAndSetupAnimations()
     {
-        // Chỉ chạy một lần khi project được mở
         if (EditorPrefs.GetBool("TraitAnimationsSetup", false))
             return;
             
-        // Tìm SlimeAnimation prefab
         string[] guids = AssetDatabase.FindAssets("Slimeanimation t:Prefab");
         if (guids.Length == 0)
         {
@@ -41,10 +38,8 @@ public class AutoSetupTraitAnimations
             return;
         }
         
-        // Setup animation cho tất cả Body traits
         SetupBodyTraitsWithAnimation(skeletonAnimation.skeletonDataAsset);
         
-        // Đánh dấu đã setup
         EditorPrefs.SetBool("TraitAnimationsSetup", true);
         
         Debug.Log("AutoSetupTraitAnimations: Successfully setup animations for Body traits");

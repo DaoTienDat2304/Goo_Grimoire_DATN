@@ -37,7 +37,7 @@ public class CurrencyReward
 
     public string GetRewardDescription()
     {
-        if (rewards.Count == 0) return "Không có phần thưởng";
+        if (rewards.Count == 0) return "No reward";
 
         List<string> descriptions = new List<string>();
         foreach (var reward in rewards)
@@ -50,5 +50,3 @@ public class CurrencyReward
     }
 }
 
-// CurrencyRewardGiver đã được loại bỏ để đơn giản hóa
-// Sử dụng trực tiếp CurrencyReward.GiveRewards() thay vì component này

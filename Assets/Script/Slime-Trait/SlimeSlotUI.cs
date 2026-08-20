@@ -81,7 +81,7 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
     {
         if (slime == null)
         {
-            if (nameText != null) nameText.text = "Chua chon";
+            if (nameText != null) nameText.text = "Empty";
             if (slimeNameText != null) slimeNameText.text = string.Empty;
             if (slimeImage != null)
             {
@@ -142,8 +142,6 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
             else
                 backgroundImage.color = breedingColor;
         }
-            // Chống NullReference: nếu 1 slot lỗi (thiếu renderer/worldManager) thì cả grid
-            // sẽ dừng dựng và mất hình slime. Guard từng phần để luôn dựng xong.
             UpdateCompositeSlime();
     }
 

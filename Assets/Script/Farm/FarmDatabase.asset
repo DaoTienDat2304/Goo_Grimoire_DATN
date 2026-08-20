@@ -55,7 +55,7 @@ MonoBehaviour:
     rewardGems: 15
     unlocked: 0
     completed: 0
-  - difficultyName: "Kinh Ho\xE0ng"
+  - difficultyName: "Nightmare"
     description: "Th\xE0nh th\u1EA1o"
     bossHP: 45000
     bossAttack: 1200
@@ -69,7 +69,7 @@ MonoBehaviour:
     rewardGems: 30
     unlocked: 0
     completed: 0
-  - difficultyName: "\u0110\u1ECBa ng\u1EE5c"
+  - difficultyName: "Hell"
     description: "Am hi\u1EC3u"
     bossHP: 100000
     bossAttack: 2500

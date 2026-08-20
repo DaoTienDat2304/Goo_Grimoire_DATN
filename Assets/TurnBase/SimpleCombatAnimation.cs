@@ -5,26 +5,26 @@ using Spine.Unity;
 public class SimpleCombatAnimation : MonoBehaviour
 {
     [Header("Movement Settings")]
-    public float attackMoveDistance = 1.5f; // Khoảng cách lao vào
-    public float attackMoveSpeed = 8f; // Tốc độ lao vào
-    public float returnSpeed = 6f; // Tốc độ quay về vị trí ban đầu
+    public float attackMoveDistance = 1.5f;
+    public float attackMoveSpeed = 8f;
+    public float returnSpeed = 6f;
     
     [Header("Visual Effects")]
-    public float scaleMultiplier = 1.3f; // Phóng to khi tấn công
-    public float scaleBackMultiplier = 0.7f; // Thu nhỏ sau khi tấn công (0.7 * 1.3 = 0.91)
-    public Color attackColor = Color.red; // Màu khi tấn công
-    public Color hitColor = new Color(1f, 0.8f, 0.8f, 1f); // Màu hồng nhạt khi bị đánh
+    public float scaleMultiplier = 1.3f;
+    public float scaleBackMultiplier = 0.7f;
+    public Color attackColor = Color.red;
+    public Color hitColor = new Color(1f, 0.8f, 0.8f, 1f);
     
     [Header("Timing")]
-    public float prepareTime = 0.15f; // Thời gian chuẩn bị
-    public float impactTime = 0.1f; // Thời gian impact
-    public float scaleBackTime = 0.2f; // Thời gian thu nhỏ lại
-    public float hitEffectTime = 0.3f; // Thời gian hiệu ứng bị đánh
+    public float prepareTime = 0.15f;
+    public float impactTime = 0.1f;
+    public float scaleBackTime = 0.2f;
+    public float hitEffectTime = 0.3f;
     
     private Vector3 originalPosition;
-    private Vector3 formationPosition; // Vị trí formation để quay về
+    private Vector3 formationPosition;
     private Vector3 originalScale;
-    private Vector3 lockedOriginalScale; // Backup scale để không bị ghi đè
+    private Vector3 lockedOriginalScale;
     private Color originalColor;
     private SkeletonGraphic skeletonGraphic;
     private SlimeAnimationController slimeAnimationController;
@@ -33,36 +33,32 @@ public class SimpleCombatAnimation : MonoBehaviour
     
     void Start()
     {
-        // Delay một chút để đảm bảo transform đã được setup hoàn toàn
         StartCoroutine(DelayedInitialization());
     }
     
     private IEnumerator DelayedInitialization()
     {
         yield return new WaitForEndOfFrame();
-        yield return new WaitForEndOfFrame(); // Thêm delay để đảm bảo scale đã được set đúng
+        yield return new WaitForEndOfFrame();
         
-        // Lưu vị trí, scale và màu ban đầu
         originalPosition = transform.position;
-        formationPosition = GetFormationPosition(); // Lấy vị trí formation
+        formationPosition = GetFormationPosition();
         
         
-        // Force set originalScale đúng ngay từ đầu
         var isEnemy = GetComponent<SlimeStats>()?.isEnemy ?? false;
         if (!isEnemy)
         {
-            originalScale = Vector3.one * 1.3f; // Team slimes luôn là 1.3f
-            lockedOriginalScale = originalScale; // Backup không thể thay đổi
-            transform.localScale = originalScale; // Đảm bảo current scale cũng đúng
+            originalScale = Vector3.one * 1.3f;
+            lockedOriginalScale = originalScale;
+            transform.localScale = originalScale;
         }
         else
         {
-            originalScale = Vector3.one; // Boss là 1.0f
-            lockedOriginalScale = originalScale; // Backup không thể thay đổi
+            originalScale = Vector3.one;
+            lockedOriginalScale = originalScale;
             transform.localScale = originalScale;
         }
         
-        // Lấy các component cần thiết
         skeletonGraphic = GetComponentInChildren<SkeletonGraphic>();
         slimeAnimationController = GetComponent<SlimeAnimationController>();
         
@@ -71,7 +67,6 @@ public class SimpleCombatAnimation : MonoBehaviour
             originalColor = skeletonGraphic.color;
         }
         
-        // Đảm bảo animation idle đang chạy
         if (slimeAnimationController != null)
         {
             slimeAnimationController.PlayAnimation("animation");
@@ -82,23 +77,18 @@ public class SimpleCombatAnimation : MonoBehaviour
     
     private Vector3 GetFormationPosition()
     {
-        // Tìm DropZone parent (vị trí formation hiện tại sau khi drag & drop)
         DropZone dropZone = GetComponentInParent<DropZone>();
         if (dropZone != null)
         {
-            // Quay về vị trí của DropZone (formation slot hiện tại)
             return dropZone.transform.position;
         }
         
-        // Nếu không có DropZone, tìm Member component
         Member member = GetComponentInParent<Member>();
         if (member != null)
         {
-            // Quay về vị trí của member (formation position ban đầu)
             return member.transform.position;
         }
         
-        // Nếu là boss hoặc không tìm thấy gì, quay về original position
         return originalPosition;
     }
     
@@ -108,25 +98,19 @@ public class SimpleCombatAnimation : MonoBehaviour
         
         isAnimating = true;
         
-        // 1. Chuẩn bị tấn công - phóng to và đổi màu
         yield return StartCoroutine(PrepareAttack());
         
-        // 2. Lao về phía target
         Vector3 targetPosition = target.position;
         Vector3 attackPosition = CalculateAttackPosition(originalPosition, targetPosition);
         
         yield return StartCoroutine(MoveToTarget(attackPosition));
         
-        // 3. Hiệu ứng impact
         yield return StartCoroutine(ImpactEffect());
         
-        // 4. Thu nhỏ lại về kích thước ban đầu
         yield return StartCoroutine(ScaleBackToOriginal());
         
-        // 5. Quay về vị trí formation
         yield return StartCoroutine(ReturnToFormationPosition());
         
-        // 6. Khôi phục trạng thái ban đầu (màu sắc)
         ResetToOriginalState();
         
         isAnimating = false;
@@ -138,16 +122,13 @@ public class SimpleCombatAnimation : MonoBehaviour
         
         isAnimating = true;
         
-        // Hiệu ứng bị đánh - đổi màu và rung lắc
         if (skeletonGraphic != null)
         {
             skeletonGraphic.color = hitColor;
         }
         
-        // Rung lắc mạnh
         yield return StartCoroutine(ShakeEffect(hitEffectTime, 0.15f));
         
-        // Khôi phục màu ban đầu
         if (skeletonGraphic != null)
         {
             skeletonGraphic.color = originalColor;
@@ -169,10 +150,8 @@ public class SimpleCombatAnimation : MonoBehaviour
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / prepareTime;
             
-            // Phóng to dần từ lockedOriginalScale
             transform.localScale = Vector3.Lerp(lockedOriginalScale, targetScale, t);
             
-            // Đổi màu dần
             if (skeletonGraphic != null)
             {
                 skeletonGraphic.color = Color.Lerp(originalColor, attackColor, t);
@@ -207,7 +186,6 @@ public class SimpleCombatAnimation : MonoBehaviour
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / duration;
             
-            // Sử dụng ease-out curve để tạo chuyển động tự nhiên
             t = 1f - Mathf.Pow(1f - t, 3f);
             
             transform.position = Vector3.Lerp(startPosition, targetPosition, t);
@@ -219,16 +197,15 @@ public class SimpleCombatAnimation : MonoBehaviour
     
     private IEnumerator ImpactEffect()
     {
-        // Rung lắc nhẹ khi đánh trúng
         yield return StartCoroutine(ShakeEffect(impactTime, 0.08f));
     }
     
     private IEnumerator ScaleBackToOriginal()
     {
         Vector3 currentScale = transform.localScale;
-        Vector3 targetScale = lockedOriginalScale * scaleBackMultiplier; // Thu nhỏ hơn ban đầu
+        Vector3 targetScale = lockedOriginalScale * scaleBackMultiplier;
         float elapsedTime = 0f;
-        float duration = scaleBackTime; // Thời gian thu nhỏ lại từ setting
+        float duration = scaleBackTime;
         
         Debug.Log($"{gameObject.name} ScaleBackToOriginal - From: {currentScale} To: {targetScale} (original: {lockedOriginalScale})");
         
@@ -237,10 +214,8 @@ public class SimpleCombatAnimation : MonoBehaviour
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / duration;
             
-            // Thu nhỏ dần về targetScale (nhỏ hơn ban đầu)
             transform.localScale = Vector3.Lerp(currentScale, targetScale, t);
             
-            // Đổi màu về ban đầu dần
             if (skeletonGraphic != null)
             {
                 skeletonGraphic.color = Color.Lerp(attackColor, originalColor, t);
@@ -249,7 +224,6 @@ public class SimpleCombatAnimation : MonoBehaviour
             yield return null;
         }
         
-        // Đảm bảo về đúng kích thước nhỏ và màu ban đầu
         transform.localScale = targetScale;
         if (skeletonGraphic != null)
         {
@@ -263,7 +237,6 @@ public class SimpleCombatAnimation : MonoBehaviour
     {
         Vector3 startPosition = transform.position;
         
-        // Cập nhật formation position để đảm bảo có vị trí mới nhất
         Vector3 targetFormationPos = GetFormationPosition();
         
         float distance = Vector3.Distance(startPosition, targetFormationPos);
@@ -284,7 +257,6 @@ public class SimpleCombatAnimation : MonoBehaviour
         
         transform.position = targetFormationPos;
         
-        // Cập nhật original position thành formation position
         originalPosition = targetFormationPos;
         transform.SetParent(formationSlot);
     }
@@ -297,7 +269,7 @@ public class SimpleCombatAnimation : MonoBehaviour
         while (elapsed < duration)
         {
             Vector3 randomOffset = Random.insideUnitSphere * intensity;
-            randomOffset.z = 0; // Chỉ rung trong mặt phẳng 2D
+            randomOffset.z = 0;
             transform.position = originalPos + randomOffset;
             
             elapsed += Time.deltaTime;
@@ -309,11 +281,9 @@ public class SimpleCombatAnimation : MonoBehaviour
     
     private void ResetToOriginalState()
     {
-        // Chỉ đảm bảo vị trí đúng, scale đã được set trong ScaleBackToOriginal()
         Vector3 targetPos = GetFormationPosition();
         transform.position = targetPos;
         
-        // Đảm bảo màu đúng
         if (skeletonGraphic != null && skeletonGraphic.color != originalColor)
         {
             skeletonGraphic.color = originalColor;
@@ -334,17 +304,14 @@ public class SimpleCombatAnimation : MonoBehaviour
         ResetToOriginalState();
     }
     
-    // Method để force reset scale về ban đầu
     public void ForceResetScale()
     {
         transform.localScale = originalScale;
         Debug.Log($"{gameObject.name} force reset scale to {originalScale}");
     }
     
-    // Method để force set originalScale đúng cho team slimes
     public void ForceSetOriginalScale()
     {
-        // Team slimes phải có scale 1.3f
         var isEnemy = GetComponent<SlimeStats>()?.isEnemy ?? false;
         if (!isEnemy)
         {
@@ -352,14 +319,13 @@ public class SimpleCombatAnimation : MonoBehaviour
         }
         else
         {
-            originalScale = Vector3.one; // Boss giữ 1.0f
+            originalScale = Vector3.one;
         }
         
         transform.localScale = originalScale;
         Debug.Log($"{gameObject.name} force set original scale to {originalScale} (isEnemy: {isEnemy})");
     }
     
-    // Method để check và fix scale nếu bị sai
     [ContextMenu("Check And Fix Scale")]
     public void CheckAndFixScale()
     {
@@ -386,13 +352,11 @@ public class SimpleCombatAnimation : MonoBehaviour
         }
     }
     
-    // Method để cập nhật formation position khi cần
     public void UpdateFormationPosition()
     {
         Vector3 newFormationPos = GetFormationPosition();
         formationPosition = newFormationPos;
         
-        // Chỉ cập nhật original position nếu đây không phải là boss
         var isEnemy = GetComponent<SlimeStats>()?.isEnemy ?? false;
         if (!isEnemy)
         {
@@ -402,10 +366,8 @@ public class SimpleCombatAnimation : MonoBehaviour
         Debug.Log($"{gameObject.name} updated formation position to {newFormationPos} (isEnemy: {isEnemy})");
     }
     
-    // Method được gọi khi slime được drag vào formation slot mới
     public void OnDroppedToFormation()
     {
-        // Delay một chút để đảm bảo transform đã được cập nhật
         StartCoroutine(DelayedUpdateFormationPosition());
     }
     
@@ -415,7 +377,6 @@ public class SimpleCombatAnimation : MonoBehaviour
         UpdateFormationPosition();
     }
     
-    // Debug method để kiểm tra formation position
     [ContextMenu("Debug Formation Position")]
     public void DebugFormationPosition()
     {
@@ -438,7 +399,6 @@ public class SimpleCombatAnimation : MonoBehaviour
         if (member != null) Debug.Log($"Member Position: {member.transform.position}");
     }
     
-    // Test method để kiểm tra scale animation
     [ContextMenu("Test Scale Animation")]
     public void TestScaleAnimation()
     {
@@ -452,18 +412,15 @@ public class SimpleCombatAnimation : MonoBehaviour
     {
         Debug.Log($"{gameObject.name} starting scale test - Original: {originalScale}");
         
-        // Phóng to
         yield return StartCoroutine(PrepareAttack());
         Debug.Log($"{gameObject.name} after prepare attack - Scale: {transform.localScale}");
         
         yield return new WaitForSeconds(0.5f);
         
-        // Thu nhỏ lại
         yield return StartCoroutine(ScaleBackToOriginal());
         Debug.Log($"{gameObject.name} after scale back - Scale: {transform.localScale}");
     }
     
-    // Gọi khi slime bị destroy hoặc HP <= 0
     void OnDestroy()
     {
         StopAllCoroutines();

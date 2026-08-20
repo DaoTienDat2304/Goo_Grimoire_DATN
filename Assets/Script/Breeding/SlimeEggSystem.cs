@@ -34,19 +34,19 @@ public class SlimeEggSystem : MonoBehaviour
         public List<Egg> eggs = new List<Egg>();
         public List<WorldEggData> worldEggs = new List<WorldEggData>();
         public float layTimer;
-        public long lastTickUnixMs; // mốc tick theo thời gian thực (chạy nền/offline)
+        public long lastTickUnixMs;
     }
 
     public enum StatQuality { Poor, Normal, Good, Excellent, Perfect, GodRoll }
 
-    [Header("Egg production (fallback — Remote Config ghi đè khi có)")]
+    [Header("Egg production (fallback — Remote Config Remote Config override)")]
     [Min(1f)] public float checkIntervalSeconds = 60f;
     [Range(0f, 1f)] public float eggChance = 0.5f;
     [Min(1)] public int maxUnhatchedEggs = 3;
     [Min(2)] public int requiredSlimes = 2;
-    [Tooltip("BẬT (mặc định) = trứng rơi ngoài world phải đi nhặt. Nếu scene không có " +
-             "SlimeSpawner/Player thì trứng rơi trong tầm nhìn camera. " +
-             "TẮT = trứng sinh thẳng vào túi trứng.")]
+    [Tooltip("ON (default) = eggs drop in world. If scene lacks " +
+             "SlimeSpawner/Player, eggs drop in camera. " +
+             "OFF: eggs go to bag.")]
     public bool spawnAsWorldEgg = true;
 
     [Header("World egg spawning")]
@@ -58,13 +58,12 @@ public class SlimeEggSystem : MonoBehaviour
     public LayerMask worldEggObstacleMask;
     
     [Header("Hierarchy Optimization")]
-    [SerializeField] private Transform eggsContainer; // Kéo thả WorldEggsContainer từ Scene vào đây
+    [SerializeField] private Transform eggsContainer;
 
-    [Header("Incubation (fallback — Remote Config ghi đè khi có)")]
+    [Header("Incubation (fallback — Remote Config Remote Config override)")]
     [Min(1f)] public float incubationDurationSeconds = 600f;
     [Min(1f)] public float secondsPerGem = 60f;
 
-    // ── Giá trị đang hiệu lực: Remote Config (nhóm key `egg_*`) ưu tiên, Inspector là fallback ──
     private float CheckInterval      => Mathf.Max(1f, RemoteBalance.FloatOr(RemoteConfigKeys.EggCheckInterval, checkIntervalSeconds));
     private float EggChance          => Mathf.Clamp01(RemoteBalance.FloatOr(RemoteConfigKeys.EggChance, eggChance));
     private int   MaxUnhatchedEggs   => Mathf.Max(1, RemoteBalance.IntOr(RemoteConfigKeys.EggMaxUnhatched, maxUnhatchedEggs));
@@ -77,7 +76,7 @@ public class SlimeEggSystem : MonoBehaviour
     private readonly Dictionary<string, WorldEggPickup> activeWorldEggs = new Dictionary<string, WorldEggPickup>();
     private float layTimer;
     private float saveTimer;
-    private long lastTickUnixMs; // mốc tick trước theo thời gian thực (để tính offline)
+    private long lastTickUnixMs;
     private const string SaveKey = "SlimeEggSystem_v1";
 
     private static long NowMs() => System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -97,7 +96,7 @@ public class SlimeEggSystem : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         LoadState();
-        if (lastTickUnixMs <= 0) lastTickUnixMs = NowMs(); // lần đầu (chưa có save) → mốc = bây giờ
+        if (lastTickUnixMs <= 0) lastTickUnixMs = NowMs();
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -112,8 +111,6 @@ public class SlimeEggSystem : MonoBehaviour
 
     private void Update()
     {
-        // Delta theo THỜI GIAN THỰC → sinh trứng & ấp trứng chạy nền (kể cả khi đóng game).
-        // Lần Update đầu sau khi load sẽ có dt lớn = khoảng thời gian offline.
         long now = NowMs();
         float dt = Mathf.Max(0f, (now - lastTickUnixMs) / 1000f);
         lastTickUnixMs = now;
@@ -133,13 +130,11 @@ public class SlimeEggSystem : MonoBehaviour
         float interval = CheckInterval;
         int maxEggs = MaxUnhatchedEggs;
 
-        // Luôn cộng dồn layTimer (kể cả khi chưa đủ điều kiện) để không mất thời gian offline
-        // trong lúc slime chưa load xong. Chặn trần để tránh phình vô hạn và vòng lặp dài.
         layTimer = Mathf.Min(layTimer + dt, interval * (maxEggs + 1));
 
         var manager = BreedingManager.Instance;
         if (manager == null || manager.GetCurrentSlimeCount() < RequiredSlimes)
-            return; // chưa đủ điều kiện: giữ layTimer, chờ lần sau
+            return;
 
         float chance = EggChance;
         while (layTimer >= interval && TotalUnhatchedEggCount < maxEggs)
@@ -148,12 +143,11 @@ public class SlimeEggSystem : MonoBehaviour
             if (UnityEngine.Random.value < chance)
             {
                 if (spawnAsWorldEgg) SpawnWorldEgg();
-                else eggs.Add(new Egg { id = Guid.NewGuid().ToString("N") }); // thẳng vào túi trứng
+                else eggs.Add(new Egg { id = Guid.NewGuid().ToString("N") });
                 SaveAndNotify();
             }
         }
 
-        // Đã đầy trứng thì không tích thêm layTimer.
         if (TotalUnhatchedEggCount >= maxEggs)
             layTimer = Mathf.Min(layTimer, interval);
     }
@@ -185,8 +179,6 @@ public class SlimeEggSystem : MonoBehaviour
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
         if (playerObject != null) player = playerObject.transform;
 
-        // Nếu không có mốc (worldEggSpawnCenter) và không có Player, rơi trứng vào trong
-        // tầm nhìn camera thay vì gốc (0,0,0) — để trứng luôn hiện trên màn hình ở mọi scene.
         if (worldEggSpawnCenter == null && player == null)
         {
             Vector3 camPoint = GetRandomPointInCameraView();
@@ -210,12 +202,10 @@ public class SlimeEggSystem : MonoBehaviour
         return center;
     }
 
-    /// <summary>Điểm ngẫu nhiên trong vùng nhìn của camera chính, trên mặt phẳng z = 0.</summary>
     private Vector3 GetRandomPointInCameraView()
     {
         Camera cam = Camera.main;
         if (cam == null) return Vector3.zero;
-        // Chừa lề 20% mỗi bên để trứng không dính sát mép màn hình.
         float vx = UnityEngine.Random.Range(0.2f, 0.8f);
         float vy = UnityEngine.Random.Range(0.2f, 0.8f);
         float depth = cam.orthographic ? Mathf.Abs(cam.transform.position.z) : 10f;
@@ -318,7 +308,6 @@ public class SlimeEggSystem : MonoBehaviour
         eggs.RemoveAt(eggIndex);
         BreedingManager.Instance.GetAllSlimes().Add(slime);
 
-        // Hiện slime mới ngay trên màn chơi (world) — trước đây phải ra/vào lại mới thấy.
         var worldManager = FindAnyObjectByType<SlimeWorldManager>();
         if (worldManager != null) worldManager.RefreshWorldSlimes();
 
@@ -333,23 +322,17 @@ public class SlimeEggSystem : MonoBehaviour
         Rarity rarity = RollRarity();
         if (SlimeGen.Instance == null) return null;
 
-        // Dùng GenerateSlimeOfRarity: CÓ fallback nếu thiếu trait đúng độ hiếm → luôn ra
-        // được slime (trước đây PickTrait không fallback nên trả null → hatch không ra gì).
         string name = $"Egg_{rarity}_{BreedingManager.Instance.GetCurrentSlimeCount() + 1}";
         var slime = SlimeGen.Instance.GenerateSlimeOfRarity(name, rarity);
         if (slime == null)
         {
-            Debug.LogError("[Egg] Không tạo được slime — SlimeGen chưa có trait nào? Kiểm tra allTraits.");
+            Debug.LogError("[Egg] Khong tao duoc slime — SlimeGen has no trait ? Check allTraits.");
             return null;
         }
 
         StatQuality quality = RollQuality(out float roll);
-        // Dùng CHUNG bảng StatBalance (chuẩn GDD) — cùng scale với TraitInstance/battle & hệ lai tạo,
-        // để slime nở-từ-trứng không còn lệch chỉ số so với slime cùng độ hiếm ở nơi khác.
         StatBalance.Range range = StatBalance.Get(rarity);
 
-        // Một quality roll dùng chung cho mọi chỉ số ranged (God Roll = mạnh đồng đều). Map vào
-        // model main: HP/DEF/Speed ở Body, ATK/Magic ở Weapon, Crit ở Armor (Head).
         if (slime.body != null)
         {
             slime.body.HP = slime.body.baseHP = LerpInt(range.hpMin, range.hpMax, roll);
@@ -363,7 +346,6 @@ public class SlimeEggSystem : MonoBehaviour
         }
         if (slime.armor != null)
         {
-            // GDD: Crit là giá trị cố định theo độ hiếm, đã đúng đơn vị (rate=phân số, dmg=hệ số nhân).
             slime.armor.critRate = slime.armor.baseCritRate = range.critRate;
             slime.armor.critDMG = slime.armor.baseCritDMG = range.critDmg;
         }
@@ -381,7 +363,6 @@ public class SlimeEggSystem : MonoBehaviour
 
     private static Rarity RollRarity()
     {
-        // Remote Config (`egg_rarity_weights`) ghi đè nếu có.
         if (RemoteBalance.TryRollEggRarity(out var remote)) return remote;
 
         float r = UnityEngine.Random.value * 100f;
@@ -394,7 +375,6 @@ public class SlimeEggSystem : MonoBehaviour
 
     private static StatQuality RollQuality(out float roll)
     {
-        // Remote Config (`egg_quality_bands`) ghi đè nếu có.
         var bands = RemoteBalance.EggQuality;
         if (bands != null)
         {
@@ -416,7 +396,6 @@ public class SlimeEggSystem : MonoBehaviour
         return quality;
     }
 
-    // Range chỉ số nở-từ-trứng nay lấy từ StatBalance (chuẩn GDD) — xem GenerateEggSlime.
     private static int LerpInt(int min, int max, float t) => Mathf.RoundToInt(Mathf.Lerp(min, max, t));
     private bool TryGetEgg(int index, out Egg egg) { egg = index >= 0 && index < eggs.Count ? eggs[index] : null; return egg != null; }
     private void SaveAndNotify() { SaveState(); EggsChanged?.Invoke(); }

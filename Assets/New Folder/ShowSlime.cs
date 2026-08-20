@@ -26,9 +26,9 @@ public class ShowSlime : MonoBehaviour
     public Text DEF;
     public Text ATK;
     public Text SPD;
-    public Text EVA;       // dùng cho Crit Rate
-    public Text MAGIC;     // Magic ATK — ô Text riêng (kéo-thả trong Inspector)
-    public Text CRITDMG;   // Crit Damage — ô Text riêng (kéo-thả trong Inspector)
+    public Text EVA;
+    public Text MAGIC;
+    public Text CRITDMG;
 
 
     private Slime slime;
@@ -84,12 +84,10 @@ public class ShowSlime : MonoBehaviour
             special.text = $"Name : {slime.slimeName}";
         }
 
-        // Hiển thị theo đúng chỉ số THỰC CHIẾN (giống trong trận, player không có hệ số boss/buff).
         int effAtk = BattleStatFormula.EffectiveAttack(slime.totalAttack, slime.totalCritRate, slime.totalCritDMG);
         float finalCritRate = BattleStatFormula.FinalCritRate(slime.totalCritRate);
         float finalCritDMG = BattleStatFormula.FinalCritDMG(slime.totalCritRate, slime.totalCritDMG);
 
-        // Mỗi chỉ số 1 ô Text RIÊNG, mỗi ô đúng 1 dòng — tự do sắp xếp vị trí trong scene.
         HP.text = $"Health : {slime.totalHP}";
         ATK.text = $"Attack : {effAtk}";
         DEF.text = $"Defense : {slime.totalDefense}";
@@ -126,12 +124,10 @@ public class ShowSlime : MonoBehaviour
             bodyRenderer.sortingOrder = 2;
         }
     }
-    // Tự tạo 2 ô Text còn thiếu (Magic ATK, Crit Damage) & tự xếp 7 ô thành 2 cột dọc: trái 4 — phải 3.
-    // Chạy 1 lần. Lưu ý: chỉ hiệu lực nếu panel KHÔNG dùng Layout Group (nếu có, layout group sẽ đè vị trí).
     private void ArrangeStatTexts()
     {
         if (_statsArranged) return;
-        if (HP == null) return; // cần ô HP làm mẫu
+        if (HP == null) return;
         _statsArranged = true;
 
         if (MAGIC == null) MAGIC = CloneStatText("MagicText");
@@ -139,12 +135,12 @@ public class ShowSlime : MonoBehaviour
 
         var baseRt = HP.rectTransform;
         Vector2 start = baseRt.anchoredPosition;
-        float rowH = (baseRt.rect.height > 1f ? baseRt.rect.height : 36f) + 6f;   // khoảng cách dòng
-        float boxW = Mathf.Max(baseRt.rect.width > 1f ? baseRt.rect.width : 200f, 320f); // nới rộng ô cho chữ dài
-        float colW = boxW + 40f;                                                  // khoảng cách 2 cột
+        float rowH = (baseRt.rect.height > 1f ? baseRt.rect.height : 36f) + 6f;
+        float boxW = Mathf.Max(baseRt.rect.width > 1f ? baseRt.rect.width : 200f, 320f);
+        float colW = boxW + 40f;
 
-        Text[] leftCol  = { HP, ATK, MAGIC, DEF };   // cột trái: 4 chỉ số
-        Text[] rightCol = { SPD, EVA, CRITDMG };     // cột phải: 3 chỉ số
+        Text[] leftCol  = { HP, ATK, MAGIC, DEF };
+        Text[] rightCol = { SPD, EVA, CRITDMG };
 
         for (int i = 0; i < leftCol.Length; i++)
             PlaceStat(leftCol[i], baseRt, start.x, start.y - i * rowH, boxW);
@@ -168,7 +164,6 @@ public class ShowSlime : MonoBehaviour
         rt.pivot = baseRt.pivot;
         rt.sizeDelta = new Vector2(width, baseRt.sizeDelta.y);
         rt.anchoredPosition = new Vector2(x, y);
-        // Không bao giờ cắt chữ: cho tràn ngang/dọc để chỉ số dài (Crit Damage : 130%) luôn hiện đủ.
         t.horizontalOverflow = HorizontalWrapMode.Overflow;
         t.verticalOverflow = VerticalWrapMode.Overflow;
         t.resizeTextForBestFit = false;

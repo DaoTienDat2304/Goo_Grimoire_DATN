@@ -3,13 +3,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Quản lý Thành tựu — chạy theo AchievementCatalog (định nghĩa bằng code) và chấm điểm
-/// thật từ PlayerStatsManager. Mở khóa → thưởng GEM → lưu. Tái dùng prefab UI cũ.
 /// </summary>
 public class ArchievementManager : MonoBehaviour
 {
-    // ── Giữ lại field cũ để không vỡ tham chiếu trong scene ──
-    public List<ArchievementPre> listArchievement; // (không còn dùng cho logic — giữ cho scene)
+    public List<ArchievementPre> listArchievement;
     public GameObject ArchievementPrefab;
     public GameObject visualprefab;
     public CanvasGroup CanvasGroup;
@@ -23,7 +20,7 @@ public class ArchievementManager : MonoBehaviour
     public int sortingOrder = 9999;
 
     [Header("Options")]
-    [Tooltip("Nếu bật, mỗi lần nhấn Play tất cả thành tựu sẽ được reset (xóa PlayerPrefs).")]
+    [Tooltip("Reset achievements on Play.")]
     public bool resetAchievementsOnPlay = false;
 
     public Button archivementButton;
@@ -78,7 +75,6 @@ public class ArchievementManager : MonoBehaviour
         EvaluateAll();
     }
 
-    // ── Dựng UI từ catalog ──────────────────────────────────────────────
     private void BuildRows()
     {
         if (_built || ArchievementPrefab == null) return;
@@ -113,7 +109,6 @@ public class ArchievementManager : MonoBehaviour
         _built = true;
     }
 
-    // ── Chấm điểm & mở khóa ─────────────────────────────────────────────
     private void HandleStatsChanged() => EvaluateAll();
 
     public void EvaluateAll()
@@ -135,7 +130,7 @@ public class ArchievementManager : MonoBehaviour
                     {
                         Unlock(row);
                         anyNew = true;
-                        changedInPass = true; // gem thưởng có thể mở khóa bậc khác → quét lại
+                        changedInPass = true;
                     }
                     UpdateRowVisual(row, cur);
                 }
@@ -158,13 +153,12 @@ public class ArchievementManager : MonoBehaviour
         row.unlocked = true;
         PlayerPrefs.SetInt(PrefKeyPrefix + row.def.Id, 1);
 
-        // Hệ số thưởng remote (`reward_mult_achievement_gem`)
         int gem = RemoteBalance.ScaleReward(row.def.GemReward, RemoteBalance.Reward.achievementGem);
 
         if (gem > 0 && CurrencyManager.Instance != null)
             CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, gem);
 
-        Debug.Log($"[Achievement] Mở khóa '{row.def.Title}' (+{gem} Gem)");
+        Debug.Log($"[Achievement] Unlocked '{row.def.Title}' (+{gem} Gem)");
     }
 
     private long Current(AchievementDef def)
@@ -201,7 +195,7 @@ public class ArchievementManager : MonoBehaviour
         {
             if (bg != null) bg.color = Color.yellow;
             if (icon != null) icon.color = Color.white;
-            SetChildText(row.go, 1, $"{row.def.Description}  (Đã đạt)");
+            SetChildText(row.go, 1, $"{row.def.Description}  (Done)");
         }
         else
         {
@@ -211,11 +205,9 @@ public class ArchievementManager : MonoBehaviour
             SetChildText(row.go, 1, $"{row.def.Description}  ({shown}/{row.def.Target})");
         }
 
-        // Đã mở khóa → phủ panel đen mờ che lại.
         QuestUIEffects.SetDimmed(row.go, row.unlocked);
     }
 
-    /// <summary>Nạp lại trạng thái mở khóa từ PlayerPrefs (gọi sau khi load save).</summary>
     public void ReloadUnlockStates()
     {
         if (!_built) return;
@@ -226,7 +218,6 @@ public class ArchievementManager : MonoBehaviour
         EvaluateAll();
     }
 
-    // ── Shim tương thích code cũ (BreedingManager/Quest/BuildingSlot gọi) ──
     public void GetArchivement(int dex) => EvaluateAll();
 
     // ── UI helpers ──────────────────────────────────────────────────────

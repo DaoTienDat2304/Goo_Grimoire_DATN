@@ -24,7 +24,6 @@ public class Member : MonoBehaviour
 
         if (teamSlimes == null || teamSlimes.team == null || formationManager == null) yield break;
 
-        // Tìm vị trí (index) của Member này trong danh sách teamMembers của FormationManager
         int myIndex = formationManager.teamMembers.IndexOf(this);
         if (myIndex < 0 || myIndex >= teamSlimes.team.Count || teamSlimes.team[myIndex] == null)
         {
@@ -37,10 +36,8 @@ public class Member : MonoBehaviour
 
         Slime s = teamSlimes.team[myIndex];
 
-        // Cập nhật id theo slime được gán
         id = s.id;
 
-        // Tự động sửa/khôi phục SkillInstance từ TraitSO gốc nếu dữ liệu đã lưu bị null
         if (s.body != null && (s.body.skill == null || s.body.skill.baseSkill == null) && s.body.baseTrait != null && s.body.baseTrait.skill != null)
         {
             s.body.skill = new SkillInstance(s.body.baseTrait.skill);
@@ -62,10 +59,8 @@ public class Member : MonoBehaviour
         slimeGO.transform.position = transform.position;
         slimeGO.transform.localScale = Vector3.one * 1.3f;
 
-        // Thêm SlimeAnimationController để quản lý body
         var skeletonGraphic = slimeGO.GetComponentInChildren<SkeletonGraphic>();
 
-        // Thêm SlimeDragHandler để hỗ trợ drag and drop
         var dragHandler = slimeGO.GetComponent<SlimeDragHandler>();
 
         if (s?.body?.hasAnimation == true)
@@ -74,7 +69,6 @@ public class Member : MonoBehaviour
             skeletonGraphic.allowMultipleCanvasRenderers = true;
             skeletonGraphic.enableSeparatorSlots = true;
 
-            // Khởi tạo lại Skeleton
             skeletonGraphic.Initialize(true);
 
             // Set animation
@@ -89,7 +83,6 @@ public class Member : MonoBehaviour
         var weaponGO = slimeGO.GetComponent<SlimeDragHandler>().weapon;
         var weaponRenderer = weaponGO.GetComponent<Image>();
 
-        // Gán sprite cho armor và weapon
         armorRenderer.sprite = (s != null ? s.armor?.sprite : null) ?? formationManager.CreateDefaultSlimeSprite();
         weaponRenderer.sprite = (s != null ? s.weapon?.sprite : null) ?? formationManager.CreateDefaultSlimeSprite();
         var stat = slimeGO.GetComponent<SlimeStats>();

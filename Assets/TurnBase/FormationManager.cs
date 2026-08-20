@@ -8,8 +8,8 @@ public class FormationManager : MonoBehaviour
     public List<Member> teamMembers;
     public List<Transform> dropZones;
     public List<GameObject> slimeFormation;
-    public int rows = 3;   // 3 hàng
-    public int cols = 3;   // 3 cột 
+    public int rows = 3;
+    public int cols = 3;
     public Transform gridParent;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public Sprite CreateDefaultSlimeSprite()
@@ -40,7 +40,7 @@ public class FormationManager : MonoBehaviour
 
     public Transform GetSlot(int row, int col)
     {
-        int index = row * cols + col;  // tính index trong grid
+        int index = row * cols + col;
         if (index < 0 || index >= gridParent.childCount) return null;
         Debug.Log(gridParent.GetChild(index).name);
         return gridParent.GetChild(index);
@@ -48,19 +48,16 @@ public class FormationManager : MonoBehaviour
 
     public GameObject GetRandomRowLastAlive()
     {
-        // Chọn ngẫu nhiên 1 hàng
         List<int> rowList = new List<int>();
         for (int i = 0; i < rows; i++)
             rowList.Add(i);
 
-        // Trộn ngẫu nhiên danh sách hàng
         for (int i = 0; i < rowList.Count; i++)
         {
             int rnd = Random.Range(i, rowList.Count);
             (rowList[i], rowList[rnd]) = (rowList[rnd], rowList[i]);
         }
 
-        // Duyệt theo thứ tự ngẫu nhiên
         foreach (int row in rowList)
         {
             for (int col = cols - 1; col >= 0; col--)
@@ -74,13 +71,11 @@ public class FormationManager : MonoBehaviour
             }
         }
 
-        // Không tìm thấy slime còn sống
         return null;
     }
 
     void Start()
     {
-        // Tự động ẩn các ô vượt quá giới hạn 3x3 (max = 9)
         int maxSlots = rows * cols;
         if (gridParent != null)
         {
@@ -90,7 +85,6 @@ public class FormationManager : MonoBehaviour
             }
         }
 
-        // Delay để đảm bảo team đã được load
         Invoke(nameof(RefreshTeamDisplay), 0.1f);
     }
     
@@ -157,15 +151,12 @@ public class FormationManager : MonoBehaviour
         }
     }
 
-    // Update() đã được xóa — không có logic nào cần chạy mỗi frame.
     
-    // Method để refresh team từ bên ngoài
     public void ForceRefreshTeam()
     {
         RefreshTeamDisplay();
     }
     
-    // Method để kiểm tra team có hợp lệ không
     public bool IsTeamValid()
     {
         return teamSlimes != null && teamSlimes.team != null && teamMembers != null && teamMembers.Count > 0;
@@ -173,7 +164,6 @@ public class FormationManager : MonoBehaviour
 
     // --- Spatial Query Methods ---
 
-    // Tìm vị trí (row, col) của một slime trong grid ally
     public bool TryGetSlimePosition(GameObject slime, out int row, out int col)
     {
         for (int r = 0; r < rows; r++)
@@ -193,7 +183,6 @@ public class FormationManager : MonoBehaviour
         return false;
     }
 
-    // Tất cả ally còn sống
     public List<GameObject> GetAllAliveAllies()
     {
         var result = new List<GameObject>();
@@ -225,7 +214,6 @@ public class FormationManager : MonoBehaviour
         return result;
     }
 
-    // Ally còn sống trong một hàng
     public List<GameObject> GetAliveSlimesInRow(int row)
     {
         var result = new List<GameObject>();
@@ -240,7 +228,6 @@ public class FormationManager : MonoBehaviour
         return result;
     }
 
-    // Ally còn sống trong một cột
     public List<GameObject> GetAliveSlimesInColumn(int col)
     {
         var result = new List<GameObject>();
@@ -255,7 +242,6 @@ public class FormationManager : MonoBehaviour
         return result;
     }
 
-    // Slime còn sống đầu tiên trong hàng (scan trái → phải)
     public GameObject GetFirstAliveInRow(int row)
     {
         for (int c = 0; c < cols; c++)
@@ -269,7 +255,6 @@ public class FormationManager : MonoBehaviour
         return null;
     }
 
-    // Slime còn sống đầu tiên trong cột (scan trên → dưới)
     public GameObject GetFirstAliveInColumn(int col)
     {
         for (int r = 0; r < rows; r++)
@@ -310,12 +295,10 @@ public class FormationManager : MonoBehaviour
         return alive[0];
     }
 
-    // Resolve danh sách target cho một effect — dùng chung giữa TurnSystem và SkillTestHelper
     public List<GameObject> ResolveTargets(EffectEntry entry, GameObject caster, GameObject directTarget, GameObject boss)
     {
         var fx = entry.effect;
 
-        // Bước 1: Resolve anchor
         GameObject anchor = fx.anchorType switch
         {
             AnchorType.Self           => caster,
@@ -325,7 +308,6 @@ public class FormationManager : MonoBehaviour
 
         if (anchor == null) return new();
 
-        // Bước 2: Expand theo AoEShape
         List<GameObject> candidates;
         if (fx.aoeShape == AoEShape.FullSide)
         {
@@ -348,13 +330,11 @@ public class FormationManager : MonoBehaviour
         {
             candidates = new() { anchor };
             
-            // Tìm các ô lân cận trong grid (chỉ áp dụng nếu anchor là player slime trên grid 3x3)
             bool anchorIsBoss = (anchor == boss || anchor.GetComponent<SlimeStats>()?.isEnemy == true);
             if (!anchorIsBoss)
             {
                 if (TryGetSlimePosition(anchor, out int row, out int col))
                 {
-                    // Lân cận trên cùng một hàng (cột col-1 và col+1)
                     if (col > 0)
                     {
                         Transform leftSlot = GetSlot(row, col - 1);
@@ -375,11 +355,9 @@ public class FormationManager : MonoBehaviour
             candidates = new() { anchor };
         }
 
-        // Bước 3: Filter theo TargetSide
         bool targetIsEnemySide = (fx.targetSide == TargetSide.Enemies);
         bool casterIsEnemySide = (caster == boss || caster.GetComponent<SlimeStats>()?.isEnemy == true);
         
-        // Xác định xem mục tiêu có thuộc phe đối địch với caster hay không
         bool wantEnemyOfCaster = targetIsEnemySide;
 
         candidates.RemoveAll(go => {
@@ -389,19 +367,17 @@ public class FormationManager : MonoBehaviour
             
             if (wantEnemyOfCaster)
             {
-                return isAllyOfCaster; // Loại bỏ nếu là đồng đội của caster
+                return isAllyOfCaster;
             }
             else
             {
-                return !isAllyOfCaster; // Loại bỏ nếu là kẻ địch của caster
+                return !isAllyOfCaster;
             }
         });
 
-        // Bước 4: Filter dead / null
         candidates.RemoveAll(go => go == null
             || go.GetComponent<SlimeBattleStats>()?.CurrentHP <= 0);
 
-        // Bước 5: Roll applyChance mỗi target
         if (entry.applyChance < 100f)
             candidates.RemoveAll(_ => Random.Range(0f, 100f) >= entry.applyChance);
 

@@ -6,12 +6,9 @@ using System.Xml.Xsl;
 public class BreedingManager : MonoBehaviour
 {
     [Header("Breeding Settings")]
-    [Tooltip("Fallback nếu Remote Config chưa sẵn sàng")]
+    [Tooltip("Fallback if Remote Config not ready")]
     public int maxSlimes = 30;
 
-    // Giá / thời gian / tỷ lệ đột biến của một lứa nay lấy theo BẢNG TIER trong
-    // SelectiveBreeding (đồng bộ Remote Config qua `breeding_tier_table`), không còn
-    // là hằng số toàn cục — nên các key breeding_time/cost/cooldown/mutation cũ đã bị bỏ.
     private int MaxSlimes => Mathf.Max(1, RemoteBalance.IntOr(RemoteConfigKeys.BreedingMaxSlimes, maxSlimes));
     public WildSlimes wildSlimes;
 
@@ -24,19 +21,17 @@ public class BreedingManager : MonoBehaviour
     private Slime selectedSlime2;
     public GameObject showslot;
 
-    /// <summary>Một phiên lai tạo đang chạy (mục 3). Chỉ 1 phiên tại một thời điểm.</summary>
     public class BreedingSession
     {
         public Slime parent1;
         public Slime parent2;
         public Rarity eggRarity;
-        public long startUnixMs; // mốc bắt đầu theo THỜI GIAN THỰC (chạy nền/offline)
-        public float duration;   // tổng thời gian (giây)
+        public long startUnixMs;
+        public float duration;
         public int goldPaid;
     }
     private BreedingSession activeSession;
 
-    // Đồng hồ thực để lai tạo chạy nền: đóng game rồi mở lại vẫn tính thời gian đã trôi.
     private static long NowUnixMs() => System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
     private float SessionElapsedSeconds()
         => activeSession == null ? 0f : Mathf.Max(0f, (NowUnixMs() - activeSession.startUnixMs) / 1000f);
@@ -72,7 +67,6 @@ public class BreedingManager : MonoBehaviour
             CreateInitialSlimes();
         }
 
-        // Cập nhật lại UI sau khi đảm bảo có slimes
         var ui = FindAnyObjectByType<BreedingUIManager>();
         if (ui != null)
         {
@@ -82,14 +76,12 @@ public class BreedingManager : MonoBehaviour
     }
     private void Update()
     {
-        // Cập nhật breeding cooldown cho tất cả slime (không ghi đè id để bảo toàn Team)
         foreach (var slime in allSlimes)
         {
             if (slime != null)
                 slime.UpdateBreedingCooldown(Time.deltaTime);
         }
 
-        // Tiến trình phiên lai tạo (mục 3): tính theo thời gian thực → chạy nền/offline.
         if (activeSession != null && SessionElapsedSeconds() >= activeSession.duration)
         {
             CompleteBreeding();
@@ -120,7 +112,6 @@ public class BreedingManager : MonoBehaviour
 
     public void CreateInitialSlimes()
     {
-        // Bảo đảm có SlimeGen nếu cần fallback random
         if (SlimeGen.Instance == null)
         {
             var slimeGenGO = FindAnyObjectByType<SlimeGen>();
@@ -131,7 +122,6 @@ public class BreedingManager : MonoBehaviour
             }
         }
 
-        // Nếu đã cấu hình slime cố định, tạo 2 slime theo cấu hình
         if (useFixedInitialSlimes
             && fixed1Body != null && fixed1Armor != null && fixed1Weapon != null
             && fixed2Body != null && fixed2Armor != null && fixed2Weapon != null)
@@ -143,7 +133,6 @@ public class BreedingManager : MonoBehaviour
             return;
         }
 
-        // Fallback: random như cũ
         if (SlimeGen.Instance == null) return;
         for (int i = 0; i < 2; i++)
         {
@@ -163,7 +152,6 @@ public class BreedingManager : MonoBehaviour
         s.armor = armor.GenerateInstance();
         s.weapon = weapon.GenerateInstance();
 
-        // Slime khởi đầu: áp dụng chỉ số tân thủ thân thiện để người chơi dễ làm quen (không có Ultimate)
         if (name.StartsWith("Starter_") || name.StartsWith("Slime_"))
         {
             if (s.body != null)
@@ -278,7 +266,6 @@ public class BreedingManager : MonoBehaviour
             selectedSlime2 = slime;
 
 
-            // Kiểm tra xem có thể breeding không
             if (CanBreedSelectedSlimes())
             {
                 StartBreeding();
@@ -299,10 +286,9 @@ public class BreedingManager : MonoBehaviour
 
     private void StartBreeding()
     {
-        // Mục 3: mỗi lần chỉ 1 phiên lai tạo.
         if (activeSession != null)
         {
-            Debug.LogWarning("Đang có một phiên lai tạo khác chạy! Chờ hoàn thành.");
+            Debug.LogWarning("Another breeding session is running. Please wait.");
             ResetSelection();
             return;
         }
@@ -315,31 +301,29 @@ public class BreedingManager : MonoBehaviour
 
         if (CurrencyManager.Instance == null)
         {
-            Debug.LogWarning("CurrencyManager không tồn tại! Không thể breeding.");
+            Debug.LogWarning("CurrencyManager missing! Khong the breeding.");
             ResetSelection();
             return;
         }
 
-        // Độ hiếm trứng = độ hiếm cao nhất của cặp; chi phí & thời gian theo tier.
         Rarity eggRarity = SelectiveBreeding.GetEggRarity(selectedSlime1, selectedSlime2);
         int cost = SelectiveBreeding.GetGoldCost(eggRarity);
         float duration = SelectiveBreeding.GetDurationSeconds(eggRarity);
 
         if (!CurrencyManager.Instance.HasEnoughCurrency(CurrencyType.Coins, cost))
         {
-            Debug.LogWarning($"Không đủ Gold để lai tạo! Cần: {cost}, Có: {CurrencyManager.Instance.GetCurrency(CurrencyType.Coins)}");
+            Debug.LogWarning($"Not enough Gold to breed! Need: {cost}, Have: {CurrencyManager.Instance.GetCurrency(CurrencyType.Coins)}");
             ResetSelection();
             return;
         }
 
         if (!CurrencyManager.Instance.SpendCurrency(CurrencyType.Coins, cost))
         {
-            Debug.LogWarning("Không thể trừ Gold! Lai tạo bị hủy.");
+            Debug.LogWarning("Cannot spend Gold. Breeding canceled.");
             ResetSelection();
             return;
         }
 
-        // Khóa cặp bố mẹ cho tới khi hoàn thành.
         selectedSlime1.breedingLocked = true;
         selectedSlime1.canBreed = false;
         selectedSlime2.breedingLocked = true;
@@ -375,17 +359,15 @@ public class BreedingManager : MonoBehaviour
         activeSession = null;
         if (session == null) return;
 
-        // Sinh slime con theo mục 3 (không kế thừa stat trực tiếp; đột biến theo từng trait).
         var offspring = SelectiveBreeding.GenerateChild(session.parent1, session.parent2, session.eggRarity);
         bool hadMutation = offspring != null && offspring.eggStatQuality == "Mutation";
 
-        // Mở khóa bố mẹ.
         UnlockParent(session.parent1);
         UnlockParent(session.parent2);
 
         if (offspring == null)
         {
-            Debug.LogError("[Breeding] Không sinh được slime con!");
+            Debug.LogError("[Breeding] Cannot create child slime!");
             var failUi = FindAnyObjectByType<BreedingUIManager>();
             if (failUi != null) failUi.RefreshAllUI();
             return;
@@ -394,7 +376,6 @@ public class BreedingManager : MonoBehaviour
         offspring.slimeName = $"Slime_{allSlimes.Count + 1}";
         allSlimes.Add(offspring);
 
-        // Hiện slime con ngay trên màn chơi (world).
         var worldManager = FindAnyObjectByType<SlimeWorldManager>();
         if (worldManager != null) worldManager.RefreshWorldSlimes();
 
@@ -443,12 +424,10 @@ public class BreedingManager : MonoBehaviour
 
     public List<Slime> GetBreedableSlimes()
     {
-        // Filter ra các slime có thể breeding, không bị khóa và không có Secret body trait
         return allSlimes.Where(s => s.canBreed && !s.breedingLocked && !HasSecretBodyTrait(s)).ToList();
     }
 
     /// <summary>
-    /// Kiểm tra xem slime có trait body với độ hiếm Secret không
     /// </summary>
     private bool HasSecretBodyTrait(Slime slime)
     {
@@ -467,15 +446,11 @@ public class BreedingManager : MonoBehaviour
         return activeSession != null;
     }
 
-    // ---------- API cho UI (mục 3) ----------
 
-    /// <summary>Xem trước độ hiếm trứng của một cặp (độ hiếm cao nhất).</summary>
     public Rarity PreviewEggRarity(Slime s1, Slime s2) => SelectiveBreeding.GetEggRarity(s1, s2);
 
-    /// <summary>Chi phí Gold để lai một cặp.</summary>
     public int PreviewGoldCost(Slime s1, Slime s2) => SelectiveBreeding.GetGoldCost(SelectiveBreeding.GetEggRarity(s1, s2));
 
-    /// <summary>Thời gian lai (giây) của một cặp.</summary>
     public float PreviewDurationSeconds(Slime s1, Slime s2) => SelectiveBreeding.GetDurationSeconds(SelectiveBreeding.GetEggRarity(s1, s2));
 
     public Rarity GetActiveEggRarity() => activeSession != null ? activeSession.eggRarity : Rarity.Common;
@@ -488,10 +463,8 @@ public class BreedingManager : MonoBehaviour
         return Mathf.Max(0f, activeSession.duration - SessionElapsedSeconds());
     }
 
-    /// <summary>Số Gem cần để hoàn thành ngay phiên đang chạy (mục 3.2).</summary>
     public int GetActiveFinishGemCost() => SelectiveBreeding.GetGemCostForRemaining(GetActiveRemainingSeconds());
 
-    /// <summary>Tăng tốc bằng Gem: trả phí Gem để hoàn thành ngay.</summary>
     public bool FinishActiveWithGems()
     {
         if (activeSession == null) return false;
@@ -502,16 +475,14 @@ public class BreedingManager : MonoBehaviour
         return true;
     }
 
-    // ---------- Persistence (Save/Load phiên lai tạo) ----------
 
     public BreedingSession GetActiveSessionForSave() => activeSession;
 
-    /// <summary>Khôi phục phiên lai tạo từ save. parent1/parent2 tra theo id.</summary>
     public void RestoreSession(int parent1Id, int parent2Id, Rarity eggRarity, long startUnixMs, float duration, int goldPaid)
     {
         var p1 = allSlimes.FirstOrDefault(s => s != null && s.id == parent1Id);
         var p2 = allSlimes.FirstOrDefault(s => s != null && s.id == parent2Id);
-        if (p1 == null || p2 == null) return; // bố mẹ không còn → bỏ phiên
+        if (p1 == null || p2 == null) return;
 
         p1.breedingLocked = true; p1.canBreed = false;
         p2.breedingLocked = true; p2.canBreed = false;

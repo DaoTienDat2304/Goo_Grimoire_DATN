@@ -36,6 +36,6 @@ public class BattleQuest : Quest
 
     public override string GetProgressText()
     {
-        return $"{curBattles} / {battleGoal} trận ({GetProgressPercentage():F0}%)";
+        return $"{curBattles} / {battleGoal} battle ({GetProgressPercentage():F0}%)";
     }
 }

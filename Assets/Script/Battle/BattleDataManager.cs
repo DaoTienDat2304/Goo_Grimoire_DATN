@@ -2,9 +2,9 @@ using UnityEngine;
 
 public enum BattleMode
 {
-    Adventure,  // Từ adventure scene (wild slime)
-    Tower,      // Từ menu (tower mode)
-    Farm        // Chế độ farm coin
+    Adventure,
+    Tower,
+    Farm
 }
 
 public class BattleDataManager : MonoBehaviour

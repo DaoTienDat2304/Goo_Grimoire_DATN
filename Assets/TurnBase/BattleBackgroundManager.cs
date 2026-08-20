@@ -2,19 +2,15 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Quản lý ảnh Nền Trận Đấu cho Tower Mode.
-/// Tự động đổi nền theo tầng hiện tại: 6 map cho 30 tầng (mỗi 5 tầng = 1 map).
 /// </summary>
 public class BattleBackgroundManager : MonoBehaviour
 {
     [Header("Background Display")]
-    public SpriteRenderer worldSpriteRenderer; // Nền 2D World Space
-    public Image canvasBackgroundImage;        // Nền UI Canvas
+    public SpriteRenderer worldSpriteRenderer;
+    public Image canvasBackgroundImage;
 
-    [Header("6 Map Nền (Kéo 6 ảnh map vào đây)")]
+    [Header("6 Backgrounds")]
     public Sprite[] towerMaps = new Sprite[6];
-    // [0] = Tầng 1-5, [1] = Tầng 6-10, [2] = Tầng 11-15
-    // [3] = Tầng 16-20, [4] = Tầng 21-25, [5] = Tầng 26-30
 
     private void Start()
     {

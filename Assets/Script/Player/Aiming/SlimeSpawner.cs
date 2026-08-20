@@ -75,7 +75,7 @@ public class SlimeSpawner : MonoBehaviour
     public void SetSustainedPerformanceMode(bool enabled)
     {
         if (!Application.isMobilePlatform) return;
-        // Chi giam tan suat tac vu culling nen khong lam slime dang hien thi
+        // Only lowers culling frequency, so visible slimes are unaffected.
         // bi dung AI/animation trong mot phien choi dai.
         simulationCullInterval = enabled ? Mathf.Max(simulationCullInterval, 0.25f) : Mathf.Max(simulationCullInterval, 0.15f);
         simulationCullTimer = 0f;
@@ -83,8 +83,6 @@ public class SlimeSpawner : MonoBehaviour
 
     private void Awake()
     {
-        // Scene cũ có thể vẫn lưu các giá trị trước khi tối ưu. Ép cấu hình an
-        // toàn ở runtime để mọi map, kể cả map tạo sau này, có cùng hành vi.
         simulationCullInterval = Application.isMobilePlatform
             ? Mathf.Max(simulationCullInterval, 0.15f)
             : Mathf.Min(simulationCullInterval, 0.05f);
@@ -97,8 +95,6 @@ public class SlimeSpawner : MonoBehaviour
             maxActiveSlimeAI = Mathf.Min(maxActiveSlimeAI, 3);
             maxAnimatedSlimes = Mathf.Min(maxAnimatedSlimes, 4);
         }
-        // 8 slime hiển thị tốt trên màn hình nhỏ nhưng nhẹ hơn đáng kể so với
-        // 10-12 bộ mesh Spine, collider và trait object ở các scene cũ.
         maxSlimeCount = Mathf.Min(maxSlimeCount, 8);
         minSlimeCount = Mathf.Min(minSlimeCount, maxSlimeCount);
 
@@ -299,9 +295,6 @@ public class SlimeSpawner : MonoBehaviour
             Debug.LogWarning("Slime prefab does not have SlimeAI component!");
         }
 
-        // Để vòng culling ở Update xử lý sau khi Start của WildSlimeTraits đã
-        // tạo xong renderer và Spine animation. Nếu tắt ngay tại đây, các
-        // component hình ảnh được tạo sau đó sẽ không nhận trạng thái culling.
     }
 
     void CleanupSlimesForRespawn()
@@ -480,8 +473,6 @@ public class SlimeSpawner : MonoBehaviour
             int instanceId = slime.GetInstanceID();
             bool isSimulating = slimeSimulationStates.TryGetValue(instanceId, out bool state) && state;
 
-            // Tắt đối tượng ngoài màn hình ngay, nhưng chỉ bật một số ít slime
-            // mỗi nhịp để tránh AI, physics và Spine cùng khởi động trong một frame.
             if (shouldSimulate && !isSimulating)
             {
                 if (activationsLeft <= 0)
@@ -558,8 +549,6 @@ public class SlimeSpawner : MonoBehaviour
         {
             if (!shouldSimulate)
                 slimeRb.linearVelocity = Vector2.zero;
-            // Rigidbody kinematic + trigger rất rẻ. Giữ simulated để catcher
-            // vẫn bắt được cả slime đang ở chế độ AI nhẹ.
             if (!slimeRb.simulated)
                 slimeRb.simulated = true;
         }

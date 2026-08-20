@@ -5,7 +5,6 @@ using UnityEngine;
 [Serializable]
 public class GameSaveData
 {
-    /// <summary>Unix timestamp (ms) lúc save — dùng để conflict resolution giữa local và cloud.</summary>
     public long lastSavedAt;
 
     public List<SlimeDTO> slimes = new List<SlimeDTO>();
@@ -15,16 +14,15 @@ public class GameSaveData
     public List<QuestDTO> quests = new List<QuestDTO>();
     public List<AchievementDTO> achievements = new List<AchievementDTO>();
     public List<CurrencyEntry> currencies = new List<CurrencyEntry>();
-    public List<ResourceEntry> resources = new List<ResourceEntry>(); // Lưu tài nguyên (marshmallow, etc.)
-    public List<WildSlimeTraitsDTO> tamedSlimes = new List<WildSlimeTraitsDTO>(); // Lưu tamedSlimes
-    public List<TowerFloorProgressDTO> towerFloors = new List<TowerFloorProgressDTO>(); // Lưu trạng thái tower floors
-    public int towerCurrentFloor = 0;    // currentFloor của TowerSlimeBosses
-    public int towerHighestFloor = 0;    // highestFloorReached của TowerSlimeBosses
-    public List<FarmDifficultyDTO> farmDifficulties = new List<FarmDifficultyDTO>(); // Lưu trạng thái farm difficulties
-    public BreedingSessionDTO breedingSession; // Phiên lai tạo đang chạy (mục 3), null nếu không có
-    public int sacrificePoints; // Tiến trình điểm hiến tế (Fusion) (0 -> 100)
+    public List<ResourceEntry> resources = new List<ResourceEntry>();
+    public List<WildSlimeTraitsDTO> tamedSlimes = new List<WildSlimeTraitsDTO>();
+    public List<TowerFloorProgressDTO> towerFloors = new List<TowerFloorProgressDTO>();
+    public int towerCurrentFloor = 0;
+    public int towerHighestFloor = 0;
+    public List<FarmDifficultyDTO> farmDifficulties = new List<FarmDifficultyDTO>();
+    public BreedingSessionDTO breedingSession;
+    public int sacrificePoints;
 
-    // ─── Bộ đếm tích luỹ (lifetime) — nền tảng cho Thành tựu & Nhiệm vụ ───
     public long totalSlimesBred;
     public int  totalFarmWins;
     public int  totalCaptures;
@@ -32,15 +30,14 @@ public class GameSaveData
     public int  totalMutations;
     public long totalCoinsEarned;
     public long totalGemsEarned;
-    public int  towerHighestFloorStat;                            // tầng tháp cao nhất (cho thành tựu leo tháp)
-    public List<int> rarityObtainedCount = new List<int>();      // đếm theo (int)Rarity, 8 phần tử
-    public List<string> unlockedTraitsEver = new List<string>(); // ledger trait KHÁC NHAU đã-từng-thấy
+    public int  towerHighestFloorStat;
+    public List<int> rarityObtainedCount = new List<int>();
+    public List<string> unlockedTraitsEver = new List<string>();
 
-    // ─── Nhiệm vụ hàng ngày (Daily) ───
-    public string lastDailyResetDate;                            // "yyyy-MM-dd" của bộ daily hiện tại
-    public List<int> todayDailyIDs = new List<int>();            // ID các daily được chọn hôm nay
-    public List<long> todayDailyBaselines = new List<long>();    // baseline counter lúc sang ngày (song song IDs)
-    public bool dailyStreakClaimed;                              // đã nhận bonus hoàn thành cả 3 chưa
+    public string lastDailyResetDate;
+    public List<int> todayDailyIDs = new List<int>();
+    public List<long> todayDailyBaselines = new List<long>();
+    public bool dailyStreakClaimed;
 }
 
 [Serializable]
@@ -50,7 +47,7 @@ public class BreedingSessionDTO
     public int parent1Id;
     public int parent2Id;
     public int eggRarity;    // (int)Rarity
-    public long startUnixMs; // mốc bắt đầu (thời gian thực) — để lai tạo chạy nền/offline
+    public long startUnixMs;
     public float duration;
     public int goldPaid;
 }
@@ -59,8 +56,8 @@ public class BreedingSessionDTO
 public class WildSlimeTraitsDTO
 {
     public int slimeID;
-    public string[] traitNames = new string[3]; // Lưu tên của TraitSO
-    public TraitType[] traitTypes = new TraitType[3]; // Lưu type để tìm lại đúng
+    public string[] traitNames = new string[3];
+    public TraitType[] traitTypes = new TraitType[3];
     public int slimeType; // 0 = Friendly, 1 = Aggressive
 }
 
@@ -102,7 +99,6 @@ public class SlimeDTO
     public int totalSpeed;
     public float totalCritRate;
     public float totalCritDMG;
-    // Metadata từ hệ thống trứng (mục 1) & lai tạo (mục 3): chất lượng roll khi sinh ra.
     public float eggStatRollPercent;
     public string eggStatQuality;
 }
@@ -121,7 +117,6 @@ public class TraitInstanceDTO
     public float critRate;
     public float critDMG;
 
-    // Base stats trước multiplier — nếu = 0 là save cũ, cần migrate
     public int baseHP;
     public int baseAttack;
     public int baseMagicAttack;
@@ -130,7 +125,6 @@ public class TraitInstanceDTO
     public float baseCritRate;
     public float baseCritDMG;
 
-    // Skill được roll khi tạo slime — lưu theo tên SkillSO
     public string skillName;
     public string ultimateSkillName;
 }
@@ -164,10 +158,10 @@ public class AchievementDTO
 public class TowerFloorProgressDTO
 {
     public int floorNumber;
-    public bool completed; // Đã thắng floor này (chờ claim reward)
-    public bool claimed;   // Đã nhận thưởng
-    public int stars;      // Số sao đạt được (1, 2, hoặc 3 sao)
-    public int bestTurnCount; // Số lượt tốt nhất
+    public bool completed;
+    public bool claimed;
+    public int stars;
+    public int bestTurnCount;
 }
 
 [Serializable]

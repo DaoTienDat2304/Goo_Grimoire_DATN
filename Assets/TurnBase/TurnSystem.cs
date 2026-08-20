@@ -40,16 +40,12 @@ public class TurnSystem : MonoBehaviour
     [SerializeField] protected GameObject resultPanel;
     [SerializeField] protected Text resultText;
 
-    // Các biến cho hệ thống Chọn Mục tiêu
     protected GameObject targetIndicator;
 
     // ── Performance Cache ──
-    // Cache Canvas để tránh FindObjectOfType mỗi lần tạo popup
     private Canvas _cachedCanvas;
-    // Object Pool cho damage popup — tái sử dụng thay vì Instantiate/Destroy
     private readonly Queue<GameObject> _popupPool = new Queue<GameObject>();
     private const int POPUP_POOL_SIZE = 10;
-    // List tái sử dụng tránh tạo allocation mỗi NextTurn
     private readonly List<GameObject> _activeParticipantsCache = new List<GameObject>();
 
     protected virtual void Start()
@@ -74,7 +70,6 @@ public class TurnSystem : MonoBehaviour
             resultPanel.SetActive(false);
         }
 
-        // Tạo Target Indicator
         CreateTargetIndicator();
 
         turnList = formationManager.slimeFormation;
@@ -87,7 +82,6 @@ public class TurnSystem : MonoBehaviour
             isFarmMode = BattleDataManager.Instance.IsFarmMode();
         }
 
-        // Farm mode luôn có boss data từ FarmModeManager
         if (isFarmMode && BattleDataManager.Instance != null && BattleDataManager.Instance.HasBossData())
         {
             InitializeBossFromData(BattleDataManager.Instance.GetBossData());
@@ -133,16 +127,15 @@ public class TurnSystem : MonoBehaviour
         if (newTarget == null) return;
 
         var stats = newTarget.GetComponent<SlimeBattleStats>();
-        if (stats == null || stats.CurrentHP <= 0) return; // Không chọn quái đã chết
+        if (stats == null || stats.CurrentHP <= 0) return;
 
-        boss = newTarget; // Gán lại biến boss thành mục tiêu mới
+        boss = newTarget;
 
         if (targetIndicator == null)
         {
             CreateTargetIndicator();
         }
 
-        // Di chuyển Indicator lên đầu quái vật
         targetIndicator.transform.SetParent(newTarget.transform, false);
         targetIndicator.transform.localPosition = new Vector3(0, 100.0f, 0);
         targetIndicator.transform.localScale = new Vector3(4f, 4f, 4f);
@@ -161,18 +154,16 @@ public class TurnSystem : MonoBehaviour
         if (handler == null) handler = enemyGo.AddComponent<SlimeBattleClickHandler>();
         handler.Init(this, enemyGo.GetComponent<SlimeStats>());
 
-        // 1. Tạo hitbox vô hình để dễ click trên Mobile
         var hitbox = new GameObject("ClickHitbox");
         hitbox.transform.SetParent(enemyGo.transform);
         hitbox.transform.localPosition = Vector3.zero;
         hitbox.transform.localScale = Vector3.one;
 
         var hitboxImg = hitbox.AddComponent<Image>();
-        hitboxImg.color = new Color(1, 1, 1, 0); // Trong suốt hoàn toàn
+        hitboxImg.color = new Color(1, 1, 1, 0);
         var hitboxRt = hitbox.GetComponent<RectTransform>();
-        hitboxRt.sizeDelta = new Vector2(150, 200); // Kích thước hitbox bao trọn quái
+        hitboxRt.sizeDelta = new Vector2(150, 200);
 
-        // 2. Gắn EventTrigger
         var pointerClick = hitbox.AddComponent<UnityEngine.EventSystems.EventTrigger>();
         var clickEntry = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick };
         clickEntry.callback.AddListener((data) => {
@@ -224,7 +215,6 @@ public class TurnSystem : MonoBehaviour
     {
         if (boss == null || slimeData == null) return;
 
-        // Tự động khôi phục SkillInstance từ TraitSO gốc cho Boss nếu bị null do lưu trữ
         if (slimeData.body != null && (slimeData.body.skill == null || slimeData.body.skill.baseSkill == null) && slimeData.body.baseTrait != null && slimeData.body.baseTrait.skill != null)
         {
             slimeData.body.skill = new SkillInstance(slimeData.body.baseTrait.skill);
@@ -261,7 +251,7 @@ public class TurnSystem : MonoBehaviour
         bool isFarm = BattleDataManager.Instance != null && BattleDataManager.Instance.IsFarmMode();
         if (isFarm)
         {
-            bossStats.useRarityBossScaling = false; // Farm Mode: Dùng đúng 100% chỉ số từ Farm Database
+            bossStats.useRarityBossScaling = false;
         }
         else
         {
@@ -322,13 +312,11 @@ public class TurnSystem : MonoBehaviour
 
         var stats = go.GetComponent<SlimeStats>();
 
-        // 1. Slime của PHE TA (Player) luôn dùng Spine + nón + vũ khí -> KHÔNG dùng Static Avatar!
         if (stats != null && !stats.isEnemy)
         {
             return null;
         }
 
-        // 2. Với PHE ĐỊCH (Enemy): Ưu tiên 1 - Child "StaticSprite" được sinh ra từ SpawnEnemy
         var staticChild = go.transform.Find("StaticSprite");
         if (staticChild != null)
         {
@@ -339,7 +327,6 @@ public class TurnSystem : MonoBehaviour
             if (sr != null && sr.sprite != null) return sr.sprite;
         }
 
-        // 3. Ưu tiên 2: Tra cứu từ enemyVisualSetups trong TowerTurnSystem theo tên quái
         var towerSystem = this as TowerTurnSystem;
         if (towerSystem != null && towerSystem.enemyVisualSetups != null)
         {
@@ -355,7 +342,6 @@ public class TurnSystem : MonoBehaviour
             }
         }
 
-        // 4. Ưu tiên 3: Nếu quái KHÔNG CÓ Spine animation (spine == null hoặc skeletonDataAsset == null)
         var spine = go.GetComponentInChildren<SkeletonGraphic>(true);
         if (spine == null || spine.skeletonDataAsset == null)
         {
@@ -388,12 +374,10 @@ public class TurnSystem : MonoBehaviour
 
             if (staticSprite != null)
             {
-                // Tắt các thành phần Spine & vũ khí mặc định của Slime 3 thành phần
                 if (display.body != null) display.body.gameObject.SetActive(false);
                 if (display.hat != null) display.hat.gameObject.SetActive(false);
                 if (display.weapon != null) display.weapon.gameObject.SetActive(false);
 
-                // Hiển thị Avatar Tĩnh (2D Image)
                 Image avatarImg = display.staticAvatar;
                 if (avatarImg == null)
                 {
@@ -425,12 +409,10 @@ public class TurnSystem : MonoBehaviour
             }
             else
             {
-                // Nếu có staticAvatar UI cũ thì ẩn đi
                 if (display.staticAvatar != null) display.staticAvatar.gameObject.SetActive(false);
                 Transform staticTrans = display.transform.Find("StaticAvatar");
                 if (staticTrans != null) staticTrans.gameObject.SetActive(false);
 
-                // Hiển thị Spine Avatar cho Slime phe ta
                 var spine = go.GetComponentInChildren<SkeletonGraphic>(true);
                 if (spine != null && spine.skeletonDataAsset != null)
                 {
@@ -473,13 +455,10 @@ public class TurnSystem : MonoBehaviour
 
     protected virtual IEnumerator DelayedSetupCombatAnimations()
     {
-        // Đợi 1 giây để đảm bảo team slimes đã được tạo
         yield return new WaitForSeconds(1f);
 
-        // Setup animation cho tất cả slime trong formation
         SetupCombatAnimations();
 
-        // Setup battle stats và skills cho tất cả slimes
         SetupBattleStats();
     }
 
@@ -517,7 +496,6 @@ public class TurnSystem : MonoBehaviour
 
     private void EnsureAllSlimesHaveAnimation()
     {
-        // Kiểm tra và thêm animation cho tất cả slimes trong turnList
         foreach (var slime in turnList)
         {
             if (slime != null && slime.GetComponent<SimpleCombatAnimation>() == null)
@@ -529,7 +507,6 @@ public class TurnSystem : MonoBehaviour
 
     protected virtual void TurnSorting()
     {
-        // Tạo list tạm thời — chỉ một GetComponent mỗi slime
         var scored = new List<(GameObject go, int score)>(turnList.Count);
         for (int i = 0; i < turnList.Count; i++)
         {
@@ -577,13 +554,11 @@ public class TurnSystem : MonoBehaviour
         var dragHandlers = FindObjectsByType<SlimeDragHandler>(FindObjectsSortMode.None);
         foreach (var handler in dragHandlers) handler.enabled = false;
 
-        // Lấy danh sách phe ta
         turnList = formationManager.slimeFormation
             .Where(s => s != null && (s.GetComponent<SlimeDragHandler>() == null || s.GetComponent<SlimeDragHandler>().isUsed))
             .Where(s => s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
             .ToList();
 
-        // Lấy TẤT CẢ kẻ địch đang có trên sân để đưa vào Turn
         var allEnemies = FindObjectsByType<SlimeStats>(FindObjectsSortMode.None)
             .Where(s => s != null && s.isEnemy && s.gameObject.activeInHierarchy && s.GetComponent<SlimeBattleStats>()?.CurrentHP > 0)
             .Select(s => s.gameObject).ToList();
@@ -691,7 +666,6 @@ public class TurnSystem : MonoBehaviour
         if (currentSlime != null) currentSlime.GetComponent<SlimeStats>().turnHalo.SetActive(false);
         yield return new WaitForSeconds(0.3f);
 
-        // Lọc danh sách còn sống và active — tái sử dụng list, không tạo mới
         _activeParticipantsCache.Clear();
         foreach (var kvp in remainingAV)
         {
@@ -707,7 +681,6 @@ public class TurnSystem : MonoBehaviour
 
         if (activeParticipants.Count == 0)
         {
-            // Reset nếu trống
             InitializeAVSystem();
         _activeParticipantsCache.Clear();
             foreach (var kvp in remainingAV)
@@ -722,7 +695,6 @@ public class TurnSystem : MonoBehaviour
             }
         }
 
-        // Chọn nhân vật có Action Value (AV) nhỏ nhất để đi tiếp
         GameObject nextSlime = null;
         float minAV = float.MaxValue;
         foreach (var slime in activeParticipants)
@@ -736,13 +708,11 @@ public class TurnSystem : MonoBehaviour
 
         if (nextSlime != null)
         {
-            // Trừ AV đã đi qua cho các nhân vật khác (để tiến hành động)
             foreach (var slime in activeParticipants)
             {
                 remainingAV[slime] -= minAV;
             }
 
-            // Đặt lại AV mới cho nhân vật vừa hành động xong
             float speed = GetSpeedOf(nextSlime);
             remainingAV[nextSlime] = 10000f / speed;
 
@@ -755,7 +725,6 @@ public class TurnSystem : MonoBehaviour
 
         StartCoroutine(turnDisplay());
 
-        // Bắt đầu lượt mới theo AV: reset trần sinh ĐCK (≤ +2/lượt)
         if (BattleSystemManager.Instance != null)
         {
             BattleSystemManager.Instance.OnNewTurnStarted();
@@ -763,7 +732,6 @@ public class TurnSystem : MonoBehaviour
 
         var battleStats = currentSlime.GetComponent<SlimeBattleStats>();
 
-        // Tích giảm thời gian Buff và Stun vào ĐẦU lượt của Slime đó (Chuẩn RPG)
         if (battleStats != null)
         {
             battleStats.TickBuffs();
@@ -772,7 +740,7 @@ public class TurnSystem : MonoBehaviour
 
         if (battleStats != null && battleStats.IsStunned)
         {
-            Debug.Log($"{currentSlime.name} bị stun, mất lượt!");
+            Debug.Log($"{currentSlime.name} is stunned, skips turn!");
             yield return new WaitForSeconds(0.8f);
             StartCoroutine(NextTurn());
             yield break;
@@ -802,7 +770,6 @@ public class TurnSystem : MonoBehaviour
         turnCount++;
         skillPanel.SetActive(true);
 
-        // Cache GetComponent — tránh gọi 3 lần trên cùng một object
         var slimeStats = currentSlime.GetComponent<SlimeStats>();
         if (slimeStats != null)
         {
@@ -834,7 +801,6 @@ public class TurnSystem : MonoBehaviour
 
         curSlimeBorder.color = Color.white;
 
-        // Cập nhật SkillUI — event-driven thay vì Update() mỗi frame
         var skillUI = skillPanel.GetComponent<SkillUI>();
         if (skillUI != null)
         {
@@ -853,7 +819,6 @@ public class TurnSystem : MonoBehaviour
         if (stats.weaponSkill != null && stats.weaponSkill.currentCooldown > 0) stats.weaponSkill.currentCooldown--;
     }
 
-    // Gọi cuối lượt của chính slime đó (sau khi hành động hoặc bỏ lượt vì stun)
     protected void TickCurrentSlimeEffects()
     {
         var battleStats = currentSlime?.GetComponent<SlimeBattleStats>();
@@ -862,8 +827,8 @@ public class TurnSystem : MonoBehaviour
     }
     public void DoAutoAttack()
     {
-        if (!skillPanel.activeSelf) return; // Tránh spam click nhiều lần
-        skillPanel.SetActive(false); // Ẩn ngay lập tức để không click thêm được nữa
+        if (!skillPanel.activeSelf) return;
+        skillPanel.SetActive(false);
         StartCoroutine(AutoAttack());
     }
 
@@ -874,8 +839,9 @@ public class TurnSystem : MonoBehaviour
 
         if (target != null && attacker != null && attacker.CurrentHP > 0)
         {
-            attacker.AddEnergy(20); // +20 Energy khi đánh đòn thường
+            attacker.AddEnergy(20);
 
+<<<<<<< HEAD
             // Cộng +1 Điểm Chiến Kỹ (SP) khi đánh thường
             if (BattleSystemManager.Instance != null)
             {
@@ -884,10 +850,11 @@ public class TurnSystem : MonoBehaviour
             }
 
             // Lấy SimpleCombatAnimation của slime tấn công
+=======
+>>>>>>> Player
             var attackerAnimController = currentSlime.GetComponent<SimpleCombatAnimation>();
             var targetAnimController = boss.GetComponent<SimpleCombatAnimation>();
 
-            // Chơi animation tấn công
             if (attackerAnimController != null && attackerAnimController.gameObject.activeInHierarchy)
             {
                 yield return StartCoroutine(attackerAnimController.PlayAttackAnimation(boss.transform));
@@ -917,7 +884,6 @@ public class TurnSystem : MonoBehaviour
             Debug.Log($"{currentSlime.name} attacks {boss.name} for {damage} damage!");
 #endif
 
-            // Chơi animation bị đánh cho target
             if (targetAnimController != null && targetAnimController.gameObject.activeInHierarchy)
             {
                 yield return StartCoroutine(targetAnimController.PlayHitAnimation());
@@ -977,7 +943,6 @@ public class TurnSystem : MonoBehaviour
         var battleStats = currentSlime.GetComponent<SlimeBattleStats>();
         SkillInstance skillToUse = stats.weaponSkill;
 
-        // Auto fallback ultimate skill nếu chưa có
         if (stats.weaponUltimateSkill == null && stats.weaponSkill?.baseSkill != null && SlimeGen.Instance != null)
         {
             var ultSO = SlimeGen.Instance.GetMatchingUltimateWeaponSkill(stats.weaponSkill.baseSkill);
@@ -1000,35 +965,35 @@ public class TurnSystem : MonoBehaviour
     {
         if (skillInstance == null || skillInstance.baseSkill == null)
         {
-            Debug.Log("Không có kỹ năng.");
+            Debug.Log("No skill.");
             return;
         }
 
         if (skillInstance.baseSkill.type == SkillType.Passive)
         {
+<<<<<<< HEAD
             CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, "Can't use Passive!", Color.yellow);
+=======
+            Debug.Log("Passive skill.");
+>>>>>>> Player
             return;
         }
 
         var caster = currentSlime.GetComponent<SlimeBattleStats>();
 
-        // Kiểm tra tài nguyên ĐCK / NL thông qua BattleSystemManager
         if (BattleSystemManager.Instance != null)
         {
             if (!BattleSystemManager.Instance.CanUseSkill(skillInstance.baseSkill, caster))
             {
-                Debug.Log($"Không đủ điểm để dùng {skillInstance.baseSkill.skillName}");
+                Debug.Log($"Not enough points for {skillInstance.baseSkill.skillName}");
                 return;
             }
 
-            // Trừ điểm ngay lập tức nếu đủ điều kiện
             BattleSystemManager.Instance.ExecuteSkill(skillInstance.baseSkill, caster);
         }
 
-        // Tắt bảng điều khiển kỹ năng
         skillPanel.SetActive(false);
 
-        // Kích hoạt kỹ năng
         StartCoroutine(DoSkill(skillInstance, boss));
     }
 
@@ -1046,7 +1011,6 @@ public class TurnSystem : MonoBehaviour
             CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, skill.baseSkill.skillName, popupColor);
         }
 
-        // Animation tấn công của caster — play 1 lần trước toàn bộ effects
         if (attackerAnim != null)
             yield return StartCoroutine(attackerAnim.PlayAttackAnimation(target.transform));
 
@@ -1079,7 +1043,7 @@ public class TurnSystem : MonoBehaviour
                         {
                             CreateDamagePopup(targetGo.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
                         }
-                        Debug.Log($"{currentSlime.name} dùng {skill.baseSkill.skillName} lên {targetGo.name}: {finalDamage} damage");
+                        Debug.Log($"{currentSlime.name} uses {skill.baseSkill.skillName} on {targetGo.name}: {finalDamage} damage");
                         var hitAnim = targetGo.GetComponent<SimpleCombatAnimation>();
                         if (hitAnim != null)
                             yield return StartCoroutine(hitAnim.PlayHitAnimation());
@@ -1098,17 +1062,17 @@ public class TurnSystem : MonoBehaviour
 
                     case EffectType.Buff:
                         targetStats.ApplyBuff(entry.effect.buffStat, skill.power * entry.value, entry.duration, false);
-                        Debug.Log($"{currentSlime.name} buff {entry.effect.buffStat} lên {targetGo.name} x{skill.power * entry.value:F2} ({entry.duration} lượt)");
+                        Debug.Log($"{currentSlime.name} buff {entry.effect.buffStat} on {targetGo.name} x{skill.power * entry.value:F2} ({entry.duration} turn)");
                         break;
 
                     case EffectType.Debuff:
                         targetStats.ApplyBuff(entry.effect.buffStat, skill.power * entry.value, entry.duration, true);
-                        Debug.Log($"{currentSlime.name} debuff {entry.effect.buffStat} lên {targetGo.name} x{skill.power * entry.value:F2} ({entry.duration} lượt)");
+                        Debug.Log($"{currentSlime.name} debuff {entry.effect.buffStat} on {targetGo.name} x{skill.power * entry.value:F2} ({entry.duration} turn)");
                         break;
 
                     case EffectType.Stun:
                         targetStats.ApplyStun(entry.duration);
-                        Debug.Log($"{currentSlime.name} stun {targetGo.name} {entry.duration} lượt");
+                        Debug.Log($"{currentSlime.name} stun {targetGo.name} {entry.duration} turn");
                         break;
                 }
 
@@ -1167,11 +1131,9 @@ public class TurnSystem : MonoBehaviour
             var bossStats = boss.GetComponent<SlimeBattleStats>();
             var targetStats = target.GetComponent<SlimeBattleStats>();
 
-            // Lấy SimpleCombatAnimation của boss và target
             var bossAnimController = boss.GetComponent<SimpleCombatAnimation>();
             var targetAnimController = target.GetComponent<SimpleCombatAnimation>();
 
-            // Chơi animation tấn công cho boss
             if (bossAnimController != null && bossAnimController.gameObject.activeInHierarchy)
             {
                 yield return StartCoroutine(bossAnimController.PlayAttackAnimation(target.transform));
@@ -1203,7 +1165,6 @@ public class TurnSystem : MonoBehaviour
 
             Debug.Log($"{boss.name} attacks {target.name} for {damage} damage!");
 
-            // Chơi animation bị đánh cho target
             if (targetAnimController != null)
             {
                 yield return StartCoroutine(targetAnimController.PlayHitAnimation());
@@ -1216,7 +1177,6 @@ public class TurnSystem : MonoBehaviour
             }
         }
 
-        // Kiểm tra điều kiện thắng/thua
         if (CheckWinCondition())
         {
             yield return StartCoroutine(HandleVictory());
@@ -1306,13 +1266,11 @@ public class TurnSystem : MonoBehaviour
 
     protected virtual bool CheckWinCondition()
     {
-        // Dùng formationManager để kiểm tra enemy còn sống — tránh FindObjectsByType
         var aliveEnemies = formationManager.GetAllAliveEnemies(boss);
         return aliveEnemies == null || aliveEnemies.Count == 0;
     }
 
 
-    // Kiểm tra điều kiện thua (tất cả team slimes HP = 0)
     protected bool CheckLoseCondition()
     {
         if (formationManager == null || formationManager.slimeFormation == null)
@@ -1322,12 +1280,11 @@ public class TurnSystem : MonoBehaviour
         foreach (var slime in formationManager.slimeFormation)
         {
             if (slime == null) continue;
-            if (slime == boss) continue; // Bỏ qua boss kẻ địch
+            if (slime == boss) continue;
 
             var slimeStats = slime.GetComponent<SlimeStats>();
-            if (slimeStats != null && slimeStats.isEnemy) continue; // Bỏ qua kẻ địch
+            if (slimeStats != null && slimeStats.isEnemy) continue;
 
-            // Bỏ qua các slime nằm trên hàng chờ (chưa kéo ra sân)
             var dragHandler = slime.GetComponent<SlimeDragHandler>();
             if (dragHandler != null && !dragHandler.isUsed) continue;
 
@@ -1336,18 +1293,18 @@ public class TurnSystem : MonoBehaviour
             var battleStats = slime.GetComponent<SlimeBattleStats>();
             if (battleStats != null && battleStats.CurrentHP > 0)
             {
-                return false; // Còn ít nhất 1 slime chiến đấu sống
+                return false;
             }
             else
             {
                 if (slimeStats != null && slimeStats.HP > 0)
                 {
-                    return false; // Còn ít nhất 1 slime sống
+                    return false;
                 }
             }
         }
 
-        return true; // Tất cả đều chết
+        return true;
     }
 
     protected virtual IEnumerator HandleVictory()
@@ -1365,14 +1322,11 @@ public class TurnSystem : MonoBehaviour
             FirebaseAnalyticsManager.LogBattleWin(bMode, diff, turnCount, coinsEarned);
         }
 
-        // Đếm lifetime: 1 trận thắng (mọi chế độ) cho Thành tựu "Chiến binh".
         PlayerStatsManager.Instance?.AddBattleWin();
 
-        // Thông báo quest system về trận thắng
         if (QuestManager.Instance != null && BattleDataManager.Instance != null)
             QuestManager.Instance.RegisterBattleWin(BattleDataManager.Instance.GetBattleMode());
 
-        // Hiển thị panel kết quả thắng
         ShowResultPanel(true);
 
         bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
@@ -1403,7 +1357,7 @@ public class TurnSystem : MonoBehaviour
             }
 
             yield return new WaitForSeconds(2f);
-            Debug.Log("Thắng farm mode, về firstsave");
+            Debug.Log("Farm won, return firstsave");
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
             yield break;
         }
@@ -1417,8 +1371,7 @@ public class TurnSystem : MonoBehaviour
 
                 if (isReplay)
                 {
-                    // Chơi lại tầng đã qua — không thay đổi tiến trình, không nhận thưởng
-                    Debug.Log($"Replay tầng {towerBosses.replayFloor} hoàn thành, không cộng thưởng.");
+                    Debug.Log($"Replay floor {towerBosses.replayFloor} refund thanh, no cong thuong.");
                     towerBosses.replayFloor = 0;
                 }
                 else
@@ -1432,7 +1385,7 @@ public class TurnSystem : MonoBehaviour
                         if (newStars > currentFloor.stars) currentFloor.stars = newStars;
                         if (currentFloor.bestTurnCount == 0 || turnCount < currentFloor.bestTurnCount) currentFloor.bestTurnCount = turnCount;
 
-                        Debug.Log($"Đã hoàn thành màn {currentFloor.floorNumber}: {currentFloor.floorName} trong {turnCount} lượt ({newStars} sao)");
+                        Debug.Log($"Da refund thanh man {currentFloor.floorNumber}: {currentFloor.floorName} trong {turnCount} turn ({newStars} stars)");
 
                         towerBosses.cachedCompletedFloorNumber = currentFloor.floorNumber;
                         towerBosses.cachedCurrentFloor = towerBosses.currentFloor;
@@ -1454,8 +1407,7 @@ public class TurnSystem : MonoBehaviour
 
             yield return new WaitForSeconds(2f);
 
-            // Luôn về firstsave sau khi thắng tower
-            Debug.Log("Thắng tower, về firstsave");
+            Debug.Log("Tower won, return firstsave");
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
 
             yield break;
@@ -1533,7 +1485,6 @@ public class TurnSystem : MonoBehaviour
             FirebaseAnalyticsManager.LogBattleLose(bMode, diff, turnCount);
         }
 
-        // Hiển thị panel kết quả thua
         ShowResultPanel(false);
 
         bool isTowerMode = BattleDataManager.Instance != null && BattleDataManager.Instance.IsTowerMode();
@@ -1555,6 +1506,11 @@ public class TurnSystem : MonoBehaviour
         yield return SceneLoader.LoadSceneWithLoadingCoroutine(targetReturnScene);
     }
 
+<<<<<<< HEAD
+=======
+    /// <summary>
+    /// </summary>
+>>>>>>> Player
     protected void ShowResultPanel(bool isVictory)
     {
         if (resultPanel != null)
@@ -1579,6 +1535,7 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
+<<<<<<< HEAD
     private Font GetDefaultFont()
     {
         var existingText = FindFirstObjectByType<Text>();
@@ -1590,6 +1547,9 @@ public class TurnSystem : MonoBehaviour
             ?? Font.CreateDynamicFontFromOSFont("Arial", 28);
     }
 
+=======
+    // ── Popup damage & stats indicator ──────────────────────────────────
+>>>>>>> Player
     private GameObject CreatePopupObject()
     {
         var go = new GameObject("BattlePopupText");
@@ -1623,10 +1583,31 @@ public class TurnSystem : MonoBehaviour
         Canvas parentCanvas = FindObjectOfType<Canvas>();
         if (parentCanvas == null) return;
 
+<<<<<<< HEAD
         GameObject popupGO = new GameObject("BattlePopupText");
         popupGO.transform.SetParent(parentCanvas.transform, false);
 
         Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector3.zero;
+=======
+        GameObject popupGO;
+        if (_popupPool.Count > 0)
+        {
+            popupGO = _popupPool.Dequeue();
+            popupGO.SetActive(true);
+            popupGO.transform.SetParent(_cachedCanvas.transform, false);
+        }
+        else
+        {
+            popupGO = CreatePopupObject();
+            popupGO.transform.SetParent(_cachedCanvas.transform, false);
+        }
+
+        var textComponent = popupGO.GetComponent<Text>();
+        textComponent.text = text;
+        textComponent.color = color;
+
+        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector2.zero;
+>>>>>>> Player
         Vector2 localPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             parentCanvas.transform as RectTransform,

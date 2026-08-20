@@ -29,14 +29,12 @@ public class SlimeAnimationController : MonoBehaviour
     
     private void SetupAnimation()
     {
-        // Xóa SpriteRenderer nếu có
         if (spriteRenderer != null)
         {
             DestroyImmediate(spriteRenderer);
             spriteRenderer = null;
         }
         
-        // Thêm SkeletonAnimation
         skeletonAnimation = GetComponent<SkeletonAnimation>();
         if (skeletonAnimation == null)
         {
@@ -52,14 +50,12 @@ public class SlimeAnimationController : MonoBehaviour
     
     private void SetupSpriteRenderer()
     {
-        // Xóa SkeletonAnimation nếu có
         if (skeletonAnimation != null)
         {
             DestroyImmediate(skeletonAnimation);
             skeletonAnimation = null;
         }
         
-        // Thêm SpriteRenderer
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer == null)
         {
@@ -75,8 +71,8 @@ public class SlimeAnimationController : MonoBehaviour
         }
         if (skeletonAnimation != null && spriteRenderer != null)
         {
-            Color c = spriteRenderer.color; // lấy màu hiện tại
-            c.a = 0f;                        // alpha = 0 → trong suốt
+            Color c = spriteRenderer.color;
+            c.a = 0f;
             spriteRenderer.color = c;
         }
     }

@@ -90,12 +90,9 @@ public class MovePlayer : MonoBehaviour
 
     void Update()
     {
-        // bạn có thể thêm logic khác ở đây
     }
 
     /// <summary>
-    /// Bật/tắt animation theo trạng thái di chuyển, 
-    /// nếu cả 2 SkeletonAnimation null thì bỏ qua.
     /// </summary>
     private void UpdateAnimations()
     {

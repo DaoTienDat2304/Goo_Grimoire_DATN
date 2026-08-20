@@ -18,12 +18,10 @@ public class SelectDifficulties : MonoBehaviour
     
     void OnEnable()
     {
-        // Cập nhật trạng thái button mỗi khi panel được mở
         UpdateButtonStates();
     }
     
     /// <summary>
-    /// Cập nhật trạng thái của các button (unlock/lock và alpha)
     /// </summary>
     private void UpdateButtonStates()
     {
@@ -37,7 +35,6 @@ public class SelectDifficulties : MonoBehaviour
     }
     
     /// <summary>
-    /// Cập nhật trạng thái của một button
     /// </summary>
     private void UpdateButtonState(Button button, int difficultyIndex)
     {
@@ -45,7 +42,6 @@ public class SelectDifficulties : MonoBehaviour
         
         bool isUnlocked = farmModeManager.IsDifficultyUnlocked(difficultyIndex);
         
-        // Đặt alpha = 0.6 nếu chưa unlock, 1.0 nếu đã unlock
         CanvasGroup canvasGroup = button.GetComponent<CanvasGroup>();
         if (canvasGroup == null)
         {

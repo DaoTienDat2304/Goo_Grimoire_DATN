@@ -8,24 +8,24 @@ public class ShopItems : ScriptableObject
     public class ShopItemData
     {
         [Header("Basic Info")]
-        public string itemId;              // ID duy nhất (tùy chọn, dùng cho logic mua/bán)
-        public string itemName;            // Tên item hiển thị
+        public string itemId;
+        public string itemName;
         [TextArea]
-        public string description;         // Mô tả item
+        public string description;
 
         [Header("Visual")]
-        public Sprite icon;                // Ảnh icon item
+        public Sprite icon;
 
         [Header("Price")]
-        public int price;                  // Giá
-        public CurrencyType currencyType;  // Đơn vị tiền (Coins / Gems, ... dùng lại CurrencyType có sẵn)
+        public int price;
+        public CurrencyType currencyType;
 
         [Header("Item")]
-        public ResourceType resourceGranted; // Loại tài nguyên được nhận khi mua (nếu là item tài nguyên)
-        public int resourceAmount;         // Số lượng tài nguyên được nhận khi mua
+        public ResourceType resourceGranted;
+        public int resourceAmount;
     }
 
-    [Header("Danh sách item trong shop")]
+    [Header("Shop items")]
     public List<ShopItemData> items = new List<ShopItemData>();
 }
 

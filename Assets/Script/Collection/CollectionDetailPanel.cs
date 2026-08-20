@@ -3,9 +3,6 @@ using UnityEngine.UI;
 using System.Text;
 
 /// <summary>
-/// Trang chi tiết bên trái của Collection Book.
-/// Cập nhật nội dung khi người chơi nhấn vào một item trong lưới.
-/// Hỗ trợ hiển thị 3 chế độ: chi tiết Slime, chi tiết Trait, chi tiết Skill.
 /// </summary>
 public class CollectionDetailPanel : MonoBehaviour
 {
@@ -13,14 +10,14 @@ public class CollectionDetailPanel : MonoBehaviour
     public Image avatarBody;
     public Image avatarArmor;
     public Image avatarWeapon;
-    public Image avatarFrame;       // Khung viền avatar theo rarity
+    public Image avatarFrame;
 
     [Header("Basic Info")]
-    public Text titleText;          // Tên slime / tên trait / tên skill
-    public Text subtitleText;       // Loại (Body/Armor/Weapon) + Rarity
+    public Text titleText;
+    public Text subtitleText;
 
     [Header("Stats Display")]
-    public GameObject statsGroup;   // Group ẩn/hiện tùy loại item
+    public GameObject statsGroup;
     public Text hpText;
     public Text atkText;
     public Text matkText;
@@ -28,14 +25,13 @@ public class CollectionDetailPanel : MonoBehaviour
     public Text spdText;
     public Text critRateText;
 
-    [Header("Equipment Slots (6 ô: Thân, Giáp, Vũ khí, Skill Thân, Skill Giáp, Skill Vũ khí)")]
+    [Header("Equipment Slots")]
     public Image[] equipSlots = new Image[6];
 
-    [Header("Description (dùng cho Skill/Trait)")]
+    [Header("Description")]
     public GameObject descriptionGroup;
     public Text descriptionText;
 
-    // ── Stat display max values (dùng để tính tỉ lệ bar) ──
     private const int MAX_DISPLAY_HP = 60000;
     private const int MAX_DISPLAY_STAT = 5000;
 
@@ -43,7 +39,6 @@ public class CollectionDetailPanel : MonoBehaviour
     // Public Show Methods
     // ─────────────────────────────────────────
 
-    /// <summary>Hiển thị chi tiết một con Slime cụ thể.</summary>
     public void ShowSlimeDetail(Slime slime, TraitSO bodyTrait)
     {
         if (slime == null) return;
@@ -59,22 +54,18 @@ public class CollectionDetailPanel : MonoBehaviour
         SetStats(slime.totalHP, slime.totalAttack, slime.totalMagicAttack,
                  slime.totalDefense, slime.totalSpeed, slime.totalCritRate);
 
-        // Equipment slots: hiển thị skill icon trong 3 ô đầu
         SetRowActive(0, true);
         SetRowActive(1, true);
         SetRowActive(2, true);
         SetEquipSlots(slime);
 
-        // Ẩn description
         if (descriptionGroup != null) descriptionGroup.SetActive(false);
     }
 
-    /// <summary>Hiển thị chi tiết một Trait (bộ phận).</summary>
     public void ShowTraitDetail(TraitSO trait)
     {
         if (trait == null) return;
 
-        // Avatar: chỉ hiển thị sprite của trait
         SetAvatarLayers(trait.sprite, null, null);
         SetAvatarFrameColor(trait.rarity);
 
@@ -84,16 +75,13 @@ public class CollectionDetailPanel : MonoBehaviour
         bool isArmor = trait.type == TraitType.Armor;
         bool isWeapon = trait.type == TraitType.Weapon;
 
-        // Bật/tắt các hàng cha dựa trên loại bộ phận đang xem
         SetRowActive(0, isBody);
         SetRowActive(1, isArmor);
         SetRowActive(2, isWeapon);
 
-        // Stats — hiển thị range stats của bộ phận này
         ShowStats(true);
         SetTraitStats(trait);
 
-        // Reset toàn bộ các ô con
         for (int i = 0; i < equipSlots.Length; i++)
         {
             if (equipSlots[i] == null) continue;
@@ -102,7 +90,6 @@ public class CollectionDetailPanel : MonoBehaviour
             equipSlots[i].gameObject.SetActive(false);
         }
         
-        // Hiện ô bộ phận tương ứng
         int traitSlotIndex = isBody ? 0 : (isArmor ? 1 : 2);
         if (equipSlots[traitSlotIndex] != null && trait.sprite != null)
         {
@@ -111,7 +98,6 @@ public class CollectionDetailPanel : MonoBehaviour
             equipSlots[traitSlotIndex].color = Color.white;
         }
 
-        // Hiện ô skill tương ứng nếu bộ phận có skill
         int skillSlotIndex = isBody ? 3 : (isArmor ? 4 : 5);
         if (trait.skill != null && equipSlots[skillSlotIndex] != null)
         {
@@ -120,7 +106,6 @@ public class CollectionDetailPanel : MonoBehaviour
             equipSlots[skillSlotIndex].color = Color.white;
         }
 
-        // Description: hiển thị tên skill nếu có
         if (descriptionGroup != null)
         {
             descriptionGroup.SetActive(true);
@@ -135,18 +120,15 @@ public class CollectionDetailPanel : MonoBehaviour
         }
     }
 
-    /// <summary>Hiển thị chi tiết một Skill.</summary>
     public void ShowSkillDetail(SkillSO skill)
     {
         if (skill == null) return;
 
-        // Avatar: icon của skill
         SetAvatarLayers(skill.icon, null, null);
         SetAvatarFrameColor(skill.rarity);
 
         SetTitle(skill.skillName, $"Skill • {skill.rarity}", skill.rarity);
 
-        // Ẩn stats, hiển thị description
         ShowStats(false);
         SetRowActive(0, false);
         SetRowActive(1, false);
@@ -167,7 +149,6 @@ public class CollectionDetailPanel : MonoBehaviour
             }
         }
 
-        // Ẩn toàn bộ 6 ô trang bị
         for (int i = 0; i < equipSlots.Length; i++)
         {
             if (equipSlots[i] != null)
@@ -179,7 +160,6 @@ public class CollectionDetailPanel : MonoBehaviour
         }
     }
 
-    /// <summary>Xóa nội dung chi tiết về trạng thái trống (khi chuyển tab).</summary>
     public void ClearDetail()
     {
         SetAvatarLayers(null, null, null);
@@ -330,9 +310,6 @@ public class CollectionDetailPanel : MonoBehaviour
 
     private void SetEquipSlots(Slime slime)
     {
-        // 6 ô:
-        // Slot 0: Thân, Slot 1: Giáp, Slot 2: Vũ khí
-        // Slot 3: Skill Thân, Slot 4: Skill Giáp, Slot 5: Skill Vũ khí
         
         Sprite[] sprites = {
             slime.body?.sprite,
@@ -348,8 +325,8 @@ public class CollectionDetailPanel : MonoBehaviour
             if (equipSlots[i] == null) continue;
             var spr = i < sprites.Length ? sprites[i] : null;
             equipSlots[i].sprite = spr;
-            equipSlots[i].gameObject.SetActive(true); // Luôn hiện đủ 6 ô khi xem Slime
-            equipSlots[i].color = spr != null ? Color.white : Color.clear; // Nếu trống thì ẩn icon chính nhưng giữ khung active
+            equipSlots[i].gameObject.SetActive(true);
+            equipSlots[i].color = spr != null ? Color.white : Color.clear;
         }
     }
 }

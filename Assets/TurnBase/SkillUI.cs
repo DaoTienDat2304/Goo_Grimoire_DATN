@@ -11,12 +11,10 @@ public class SkillUI : MonoBehaviour
     public Image fullSetSkill;
     public Sprite border;
 
-    // ── Cache components để không gọi GetComponent mỗi frame ──
     private SlimeBattleStats _cachedBattleStats;
     private Button _bodyBtn, _armorBtn, _weaponBtn;
     private Text _bodyText, _armorText, _weaponText;
 
-    // Theo dõi giá trị trước đó để chỉ refresh khi thực sự thay đổi
     private int _lastEnergy = -1;
     private int _lastBattlePoints = -1;
     private SkillInstance _lastWeaponSkill;
@@ -51,8 +49,8 @@ public class SkillUI : MonoBehaviour
     {
         CacheComponents();
         EnsureTooltipTriggers();
-        if (fullSetSkill != null) fullSetSkill.gameObject.SetActive(false); // Ẩn hoàn toàn ô fullSetSkill theo yêu cầu
-        ForceRefresh(); // Refresh lần đầu
+        if (fullSetSkill != null) fullSetSkill.gameObject.SetActive(false);
+        ForceRefresh();
     }
 
     private void CacheComponents()
@@ -111,7 +109,6 @@ public class SkillUI : MonoBehaviour
     {
         while (_isUltimateActive)
         {
-            // Đổi màu cầu vồng nhấp nháy liên tục cho ô Tuyệt Kỹ
             float hue = Mathf.Repeat(Time.time * 0.8f, 1.0f);
             Color rainbowColor = Color.HSVToRGB(hue, 0.75f, 1.0f);
 
@@ -131,7 +128,6 @@ public class SkillUI : MonoBehaviour
         if (_weaponText != null) _weaponText.color = Color.white;
     }
 
-    // Gọi từ TurnSystem khi năng lượng / BattlePoints thay đổi — thay thế Update()
     public void OnStatsChanged()
     {
         if (slime == null) return;
@@ -148,13 +144,11 @@ public class SkillUI : MonoBehaviour
         int newEnergy = _cachedBattleStats != null ? _cachedBattleStats.CurrentEnergy : 0;
         int newBP = BattleSystemManager.Instance != null ? BattleSystemManager.Instance.TeamBattlePoints : 0;
 
-        // Xác định skill vũ khí hiện tại (normal hoặc ultimate)
         bool isUltReady = false;
         SkillInstance weaponSkillToDisplay = slime.weaponSkill;
 
         if (_cachedBattleStats != null)
         {
-            // Auto fallback ultimate skill nếu chưa có (khi slime nạp từ save cũ)
             if (slime.weaponUltimateSkill == null && slime.weaponSkill?.baseSkill != null && SlimeGen.Instance != null)
             {
                 var ultSO = SlimeGen.Instance.GetMatchingUltimateWeaponSkill(slime.weaponSkill.baseSkill);
@@ -177,7 +171,6 @@ public class SkillUI : MonoBehaviour
 
         UpdateUltimateVisualState(isUltReady);
 
-        // Chỉ refresh khi giá trị thay đổi
         bool needsRefresh = newEnergy != _lastEnergy || newBP != _lastBattlePoints || weaponSkillToDisplay != _lastWeaponSkill;
         if (!needsRefresh) return;
 
@@ -190,7 +183,6 @@ public class SkillUI : MonoBehaviour
         UpdateSkillUI(weaponSkill, _weaponBtn, _weaponText, weaponSkillToDisplay, _cachedBattleStats);
     }
 
-    // Force refresh toàn bộ — dùng khi chuyển lượt hoặc khởi tạo
     public void ForceRefresh()
     {
         _lastEnergy = -1;
@@ -199,8 +191,6 @@ public class SkillUI : MonoBehaviour
         OnStatsChanged();
     }
 
-    // Không còn dùng Update() — đã chuyển sang event-driven (gọi OnStatsChanged từ TurnSystem)
-    // void Update() { ... } — ĐÃ XÓA để loại bỏ 180+ GetComponent/frame
 
     private void UpdateSkillUI(Image skillImage, Button btn, Text textComp, SkillInstance skill, SlimeBattleStats battleStats)
     {
@@ -211,7 +201,6 @@ public class SkillUI : MonoBehaviour
         skillImage.raycastTarget = true;
         if (btn != null && btn.image != null) btn.image.raycastTarget = true;
 
-        // Nếu không có skill hoặc baseSkill
         if (skill == null || skill.baseSkill == null)
         {
             skillImage.sprite = border;
@@ -219,7 +208,7 @@ public class SkillUI : MonoBehaviour
             if (btn != null) btn.interactable = false;
             if (textComp != null)
             {
-                textComp.text = "Trống";
+                textComp.text = "Empty";
                 textComp.color = Color.gray;
             }
             var emptyTrigger = targetGO.GetComponent<SkillTooltipTrigger>();
@@ -227,7 +216,6 @@ public class SkillUI : MonoBehaviour
             return;
         }
 
-        // Cập nhật Sprite
         skillImage.sprite = skill.baseSkill.icon != null ? skill.baseSkill.icon : border;
 
         bool isInteractable = false;
@@ -237,16 +225,22 @@ public class SkillUI : MonoBehaviour
         switch (skill.baseSkill.type)
         {
             case SkillType.Passive:
+<<<<<<< HEAD
                 // Kỹ năng nội tại (Body Skill): hiển thị sáng rõ bình thường, bấm vào sẽ hiện popup thông báo
                 isInteractable = true;
                 textColor = Color.white;
+=======
+                isInteractable = false;
+                skillInfo += "\n(Passive)";
+                textColor = new Color(0.2f, 0.8f, 1f);
+>>>>>>> Player
                 skillImage.color = Color.white;
                 break;
 
             case SkillType.BasicAttack:
                 isInteractable = true;
                 if (skill.baseSkill.battlePointGain > 0)
-                    skillInfo += $"\n(+{skill.baseSkill.battlePointGain} ĐCK)";
+                    skillInfo += $"\n(+{skill.baseSkill.battlePointGain} BP)";
                 textColor = Color.green;
                 skillImage.color = Color.white;
                 break;
@@ -255,7 +249,7 @@ public class SkillUI : MonoBehaviour
                 int currentBP = BattleSystemManager.Instance != null ? BattleSystemManager.Instance.TeamBattlePoints : 0;
                 isInteractable = (currentBP >= skill.baseSkill.battlePointCost);
                 if (skill.baseSkill.battlePointCost > 0)
-                    skillInfo += $"\n(-{skill.baseSkill.battlePointCost} ĐCK)";
+                    skillInfo += $"\n(-{skill.baseSkill.battlePointCost} BP)";
                 textColor = isInteractable ? Color.white : Color.red;
                 skillImage.color = isInteractable ? Color.white : new Color(0.35f, 0.35f, 0.35f, 0.7f);
                 break;
@@ -282,7 +276,6 @@ public class SkillUI : MonoBehaviour
             textComp.color = textColor;
         }
 
-        // Tooltip chỉ gắn 1 lần trong Start — không gắn lại mỗi frame
         var trigger = targetGO.GetComponent<SkillTooltipTrigger>();
         if (trigger != null) trigger.Setup(skill, battleStats);
     }
@@ -294,7 +287,6 @@ public class SkillUI : MonoBehaviour
         if (weaponSkill != null) AttachTooltipTriggerOnce(weaponSkill.gameObject, null, null);
     }
 
-    // Gắn tooltip trigger CHỈ MỘT LẦN — không clear và re-add listener mỗi frame
     private void AttachTooltipTriggerOnce(GameObject go, SkillInstance skill, SlimeBattleStats battleStats)
     {
         if (go == null) return;
@@ -308,9 +300,8 @@ public class SkillUI : MonoBehaviour
         if (holdTrigger == null) holdTrigger = go.AddComponent<SkillTooltipTrigger>();
         holdTrigger.Setup(skill, battleStats);
 
-        // Chỉ thêm EventTrigger nếu chưa có — tránh duplicate listeners
         var eventTrigger = go.GetComponent<EventTrigger>();
-        if (eventTrigger != null) return; // Đã có, bỏ qua
+        if (eventTrigger != null) return;
 
         eventTrigger = go.AddComponent<EventTrigger>();
 

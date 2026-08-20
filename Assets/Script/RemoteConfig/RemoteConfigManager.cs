@@ -1,20 +1,9 @@
 // ============================================================
 // RemoteConfigManager.cs
 //
-// Đặt GameObject này vào scene "menu" — DontDestroyOnLoad sẽ
-// giữ nó tồn tại xuyên suốt toàn bộ game.
 //
-// Khi Firebase chưa cài đặt (mặc định):
-//   → Compile bình thường, dùng hardcode defaults ngay lập tức.
 //
-// Khi Firebase đã sẵn sàng:
-//   1. Import Firebase SDK vào project.
-//   2. Project Settings → Player → Scripting Define Symbols → thêm: FIREBASE_REMOTE_CONFIG
-//   → Firebase sẽ init, fetch config, rồi nạp lại toàn bộ bảng cân bằng.
 //
-// Danh sách key: xem REMOTE_CONFIG_KEYS.md (cùng thư mục).
-// Giá trị mặc định: RemoteConfigKeys.BuildDefaults() trong RemoteConfigSchema.cs.
-// Bảng cân bằng sau khi parse nằm ở RemoteBalance.
 // ============================================================
 
 using System.Collections.Generic;
@@ -31,34 +20,27 @@ public class RemoteConfigManager : MonoBehaviour
     public static RemoteConfigManager Instance { get; private set; }
 
     /// <summary>
-    /// True khi đã sẵn sàng trả giá trị (Firebase fetch xong HOẶC offline mode).
     /// </summary>
     public bool IsReady { get; private set; } = false;
 
-    /// <summary>True nếu Firebase init thành công (chỉ có nghĩa khi có FIREBASE_REMOTE_CONFIG).</summary>
     public bool IsFirebaseReady { get; private set; } = false;
 
     [Header("Dev Settings")]
-    [Tooltip("Bật khi dev: bỏ qua cache 12h, luôn fetch từ server mỗi lần chạy game.")]
+    [Tooltip("Bat khi dev: ignore cache 12h, luon fetch tu server each lan chay game.")]
     public bool forceFetchOnStart = true;
     [Tooltip("Editor Windows can crash with Firebase SDK 13.5.0 during automatic network fetches. Enable only when testing Remote Config in Editor.")]
     public bool fetchRemoteConfigInEditor = false;
 
     // -------------------------------------------------------
-    // Nhóm 0 — Vận hành
     // -------------------------------------------------------
 
-    /// <summary>Số hiệu bộ config đang chạy — dùng để đối chiếu log với Console.</summary>
     public int ConfigVersion => GetInt(RemoteConfigKeys.ConfigVersion, 1);
 
-    /// <summary>Bật cờ bảo trì. UI chặn màn hình chưa được gắn — hiện chỉ expose + log.</summary>
     public bool MaintenanceEnabled => GetBool(RemoteConfigKeys.MaintenanceEnabled, false);
     public string MaintenanceMessage => GetString(RemoteConfigKeys.MaintenanceMessage, "");
 
-    /// <summary>Version tối thiểu được hỗ trợ (vd "1.2.0"). Rỗng = tắt kiểm tra.</summary>
     public string MinSupportedVersion => GetString(RemoteConfigKeys.MinSupportedVersion, "");
 
-    /// <summary>True khi Application.version thấp hơn min_supported_version.</summary>
     public bool NeedsForceUpdate
     {
         get
@@ -69,33 +51,24 @@ public class RemoteConfigManager : MonoBehaviour
         }
     }
 
-    /// <summary>Chọn database shop đang hiển thị ("default" | "summer" | ...).</summary>
     public string ActiveShopId => GetString(RemoteConfigKeys.ActiveShopId, "default");
 
     /// <summary>
-    /// Salt dùng để derive HMAC key cho save data.
-    /// Đặt giá trị thực sự bí mật trên Firebase Remote Config console.
-    /// Fallback hardcode trong SaveIntegrity.cs chỉ là lưới an toàn khi offline.
     /// </summary>
     public string SaveHmacSalt => GetString(RemoteConfigKeys.SaveHmacSalt, RemoteConfigKeys.DefaultSaveHmacSalt);
 
-    /// <summary>Email của tài khoản dev. Set trên Firebase Console. Trống = không có dev account.</summary>
     public string DevAccountEmail => GetString(RemoteConfigKeys.DevAccountEmail, "");
 
     // -------------------------------------------------------
-    // Nhóm 2 — Giới hạn bộ sưu tập
     // -------------------------------------------------------
 
-    /// <summary>Giới hạn tối đa slime trong bộ sưu tập.</summary>
     public int MaxSlimes => GetInt(RemoteConfigKeys.BreedingMaxSlimes, 30);
 
-    // Internal override storage (dùng để test mà không cần Firebase)
     private readonly Dictionary<string, float> _floats = new Dictionary<string, float>();
     private readonly Dictionary<string, int> _ints = new Dictionary<string, int>();
     private readonly Dictionary<string, string> _strings = new Dictionary<string, string>();
     private readonly Dictionary<string, bool> _bools = new Dictionary<string, bool>();
 
-    // Cache object đã parse từ JSON — tránh parse lại mỗi frame.
     private readonly Dictionary<string, object> _jsonCache = new Dictionary<string, object>();
 
     // -------------------------------------------------------
@@ -117,10 +90,9 @@ public class RemoteConfigManager : MonoBehaviour
 #if FIREBASE_REMOTE_CONFIG
         InitializeFirebase();
 #else
-        // Không có Firebase — ready ngay với defaults hardcode trong code.
         IsReady = true;
         ReapplyBalance();
-        Debug.Log("[RemoteConfig] Offline mode — dùng default values trong code.");
+        Debug.Log("[RemoteConfig] Offline mode — using code defaults.");
 #endif
     }
 
@@ -131,19 +103,15 @@ public class RemoteConfigManager : MonoBehaviour
 
 #if FIREBASE_REMOTE_CONFIG
     // -------------------------------------------------------
-    // Firebase init flow (bắt buộc theo thứ tự):
-    //   1. CheckAndFixDependenciesAsync  — kiểm tra Google Play Services / dependencies
-    //   2. SetDefaultsAsync             — đặt giá trị mặc định (game chạy được ngay cả khi offline)
-    //   3. FetchAndActivateAsync        — kéo config mới nhất từ server
     // -------------------------------------------------------
     void InitializeFirebase()
     {
-        Debug.Log("[RemoteConfig] Bắt đầu kiểm tra Firebase dependencies...");
+        Debug.Log("[RemoteConfig] Checking Firebase dependencies...");
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(checkTask =>
         {
             if (checkTask.IsFaulted)
             {
-                Debug.LogError($"[RemoteConfig] CheckDependencies lỗi: {checkTask.Exception}. Dùng defaults.");
+                Debug.LogError($"[RemoteConfig] CheckDependencies error: {checkTask.Exception}. Using defaults.");
                 IsReady = true;
                 ReapplyBalance();
                 return;
@@ -152,7 +120,7 @@ public class RemoteConfigManager : MonoBehaviour
             var status = checkTask.Result;
             if (status != DependencyStatus.Available)
             {
-                Debug.LogError($"[RemoteConfig] Firebase không khởi động được: {status}. Dùng defaults.");
+                Debug.LogError($"[RemoteConfig] Firebase init failed: {status}. Using defaults.");
                 IsReady = true;
                 ReapplyBalance();
                 return;
@@ -168,7 +136,7 @@ public class RemoteConfigManager : MonoBehaviour
     void SetDefaults()
     {
         var defaults = RemoteConfigKeys.BuildDefaults();
-        Debug.Log($"[RemoteConfig] Đang set {defaults.Count} default values...");
+        Debug.Log($"[RemoteConfig] Setting {defaults.Count} default values...");
 
         FirebaseRemoteConfig.DefaultInstance
             .SetDefaultsAsync(defaults)
@@ -177,7 +145,7 @@ public class RemoteConfigManager : MonoBehaviour
                 IsReady = true;
                 _jsonCache.Clear();
                 ReapplyBalance();
-                Debug.Log($"[RemoteConfig] ✓ Defaults set ({defaults.Count} keys) — game sẵn sàng chạy.");
+                Debug.Log($"[RemoteConfig] ✓ Defaults set ({defaults.Count} keys) — game ready.");
 
 #if UNITY_EDITOR
                 if (!fetchRemoteConfigInEditor)
@@ -194,11 +162,8 @@ public class RemoteConfigManager : MonoBehaviour
     {
         var rc = FirebaseRemoteConfig.DefaultInstance;
 
-        // Nguyên nhân #1: Cache 12 giờ mặc định
-        // forceFetchOnStart = true → set interval = 0 để luôn gọi server (dùng khi dev)
-        // forceFetchOnStart = false → dùng interval 1 giờ (phù hợp production)
         ulong intervalMs = forceFetchOnStart ? 0UL : 3600000UL;
-        Debug.Log($"[RemoteConfig] Đang set fetch interval: {(forceFetchOnStart ? "0s — luôn fetch mới" : "1h")}...");
+        Debug.Log($"[RemoteConfig] Setting fetch interval: {(forceFetchOnStart ? "0s — always fetch fresh" : "1h")}...");
 
         rc.SetConfigSettingsAsync(new ConfigSettings
         {
@@ -206,7 +171,7 @@ public class RemoteConfigManager : MonoBehaviour
         })
         .ContinueWithOnMainThread(_ =>
         {
-            Debug.Log($"[RemoteConfig] Đang fetch config từ server...");
+            Debug.Log($"[RemoteConfig] Fetching config...");
             var fetchStart = System.DateTime.Now;
 
             rc.FetchAndActivateAsync().ContinueWithOnMainThread(task =>
@@ -215,20 +180,20 @@ public class RemoteConfigManager : MonoBehaviour
 
                 if (task.IsFaulted)
                 {
-                    Debug.LogWarning($"[RemoteConfig] ✗ Fetch thất bại ({elapsed:F0}ms): {task.Exception?.InnerException?.Message ?? "unknown error"}");
-                    Debug.LogWarning("[RemoteConfig] Kiểm tra: (1) Có kết nối mạng? (2) google-services.json đúng project? (3) Remote Config đã Publish trên Console?");
+                    Debug.LogWarning($"[RemoteConfig] ✗ Fetch failed ({elapsed:F0}ms): {task.Exception?.InnerException?.Message ?? "unknown error"}");
+                    Debug.LogWarning("[RemoteConfig] Kiem tra: (1) Co nextt noi mang? (2) google-services.json right project? (3) Remote Config published in Console?");
                 }
                 else if (task.IsCanceled)
                 {
-                    Debug.LogWarning($"[RemoteConfig] ✗ Fetch bị huỷ ({elapsed:F0}ms).");
+                    Debug.LogWarning($"[RemoteConfig] ✗ Fetch canceled ({elapsed:F0}ms).");
                 }
                 else
                 {
                     bool newDataFetched = task.Result;
                     if (newDataFetched)
-                        Debug.Log($"[RemoteConfig] ✓ Fetch xong ({elapsed:F0}ms) — đã lấy config MỚI từ server.");
+                        Debug.Log($"[RemoteConfig] ✓ Fetch done ({elapsed:F0}ms) — got fresh server config.");
                     else
-                        Debug.Log($"[RemoteConfig] ✓ Fetch xong ({elapsed:F0}ms) — dùng CACHED config (không có thay đổi mới).");
+                        Debug.Log($"[RemoteConfig] ✓ Fetch done ({elapsed:F0}ms) — using cached config.");
                 }
 
                 IsReady = true;
@@ -239,12 +204,9 @@ public class RemoteConfigManager : MonoBehaviour
 #endif
 
     // -------------------------------------------------------
-    // Áp dụng config
     // -------------------------------------------------------
 
     /// <summary>
-    /// Nạp lại toàn bộ bảng cân bằng vào RemoteBalance.
-    /// Gọi thủ công sau khi dùng SetFloat/SetInt/SetString/SetJson để test trong Editor.
     /// </summary>
     public void ReapplyBalance()
     {
@@ -260,17 +222,17 @@ public class RemoteConfigManager : MonoBehaviour
 
         var bm = BreedingManager.Instance;
         int slimeCount = (bm != null && bm.GetAllSlimes() != null) ? bm.GetAllSlimes().Count : 0;
-        Debug.Log($"[RemoteConfig] Áp dụng config mới — recalculate {slimeCount} slimes + farm difficulties...");
+        Debug.Log($"[RemoteConfig] Apply config — recalculate {slimeCount} slimes + farm difficulties...");
 
         RecalculateAllSlimes();
         if (FarmModeManager.Instance != null) FarmModeManager.Instance.RefreshDifficultyStats();
 
         if (MaintenanceEnabled)
-            Debug.LogWarning($"[RemoteConfig] ⚠ CHẾ ĐỘ BẢO TRÌ đang BẬT: \"{MaintenanceMessage}\"");
+            Debug.LogWarning($"[RemoteConfig] ⚠ MAINTENANCE ON: \"{MaintenanceMessage}\"");
         if (NeedsForceUpdate)
-            Debug.LogWarning($"[RemoteConfig] ⚠ Bản build {Application.version} thấp hơn min_supported_version {MinSupportedVersion}.");
+            Debug.LogWarning($"[RemoteConfig] ⚠ Build {Application.version} is below min_supported_version {MinSupportedVersion}.");
 
-        Debug.Log("[RemoteConfig] ✓ Áp dụng xong.");
+        Debug.Log("[RemoteConfig] ✓ Applied.");
     }
 
     void LogAllValues()
@@ -278,17 +240,16 @@ public class RemoteConfigManager : MonoBehaviour
         var b = RemoteBalance.Battle;
         var r = RemoteBalance.Reward;
 
-        Debug.Log("[RemoteConfig] ══════════ Giá trị hiện tại ══════════");
+        Debug.Log("[RemoteConfig] ══════════ Current values ══════════");
         Debug.Log($"[RemoteConfig] [Meta]     config_version={ConfigVersion} | maintenance={MaintenanceEnabled} | min_version=\"{MinSupportedVersion}\" | shop=\"{ActiveShopId}\"");
         Debug.Log($"[RemoteConfig] [Battle]   critRateCap={b.critRateCap:P0} critDmgCap={b.critDmgCap:F2} defPerPoint={b.defReductionPerPoint} maxDefRed={b.maxDefReduction:P0} overflow→ATK={b.critOverflowToAtk} skillPower={b.skillPowerMult}");
         Debug.Log($"[RemoteConfig] [Breeding] maxSlimes={MaxSlimes} gemPerMinute={RemoteBalance.BreedingGemPerMinute} diffBias={RemoteBalance.BreedingDiffRarityBias}");
-        // Nhóm egg_* / starting_* dùng Inspector làm fallback nên log giá trị THÔ từ server.
         Debug.Log($"[RemoteConfig] [Egg]      interval={GetFloat(RemoteConfigKeys.EggCheckInterval, 60f)}s chance={GetFloat(RemoteConfigKeys.EggChance, 0.5f):P0} max={GetInt(RemoteConfigKeys.EggMaxUnhatched, 3)} required={GetInt(RemoteConfigKeys.EggRequiredSlimes, 2)} incubation={GetFloat(RemoteConfigKeys.EggIncubationSecs, 600f)}s gemPer={GetFloat(RemoteConfigKeys.EggSecondsPerGem, 60f)}s");
-        Debug.Log($"[RemoteConfig] [Reward]   mission×{r.missionGold} daily×{r.dailyGold} achievement×{r.achievementGem} farm×{r.farmCoins} tower×{r.tower} | dailyCount={r.dailyCount} streak={r.dailyStreakBonusGold} | start={GetInt(RemoteConfigKeys.StartingCoins, 5000)} vàng / {GetInt(RemoteConfigKeys.StartingGems, 5000)} gem");
+        Debug.Log($"[RemoteConfig] [Reward]   mission×{r.missionGold} daily×{r.dailyGold} achievement×{r.achievementGem} farm×{r.farmCoins} tower×{r.tower} | dailyCount={r.dailyCount} streak={r.dailyStreakBonusGold} | start={GetInt(RemoteConfigKeys.StartingCoins, 5000)} gold / {GetInt(RemoteConfigKeys.StartingGems, 5000)} gem");
 
         if (RemoteBalance.FarmRows != null)
             foreach (var row in RemoteBalance.FarmRows)
-                Debug.Log($"[RemoteConfig] [Farm] {row.key,-8} HP={row.hp} ATK={row.atk} MAG={row.magic} DEF={row.def} SPD={row.speed} → {row.coins} vàng + {row.gems} gem");
+                Debug.Log($"[RemoteConfig] [Farm] {row.key,-8} HP={row.hp} ATK={row.atk} MAG={row.magic} DEF={row.def} SPD={row.speed} → {row.coins} gold + {row.gems} gem");
 
         var salt = SaveHmacSalt;
         var saltPreview = salt.Length > 4 ? salt.Substring(0, 4) + "****" : "****";
@@ -304,14 +265,14 @@ public class RemoteConfigManager : MonoBehaviour
         var bm = BreedingManager.Instance;
         if (bm == null)
         {
-            Debug.Log("[RemoteConfig] RecalculateAllSlimes: BreedingManager chưa có — bỏ qua.");
+            Debug.Log("[RemoteConfig] RecalculateAllSlimes: BreedingManager missing — ignore.");
             return;
         }
 
         var allSlimes = bm.GetAllSlimes();
         if (allSlimes == null || allSlimes.Count == 0)
         {
-            Debug.Log("[RemoteConfig] RecalculateAllSlimes: Chưa có slime nào — bỏ qua.");
+            Debug.Log("[RemoteConfig] RecalculateAllSlimes: No slime  — ignore.");
             return;
         }
 
@@ -328,7 +289,6 @@ public class RemoteConfigManager : MonoBehaviour
     }
 
     // -------------------------------------------------------
-    // Đọc giá trị (public — RemoteBalance và code game dùng chung)
     // -------------------------------------------------------
     public float GetFloat(string key, float fallback)
     {
@@ -379,8 +339,6 @@ public class RemoteConfigManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Đọc 1 key kiểu JSON và parse thành T. Trả null khi key trống / JSON hỏng
-    /// — nơi gọi phải tự rơi về bảng hardcode.
     /// </summary>
     public T GetJson<T>(string key) where T : class
     {
@@ -396,7 +354,7 @@ public class RemoteConfigManager : MonoBehaviour
             }
             catch (System.Exception ex)
             {
-                Debug.LogWarning($"[RemoteConfig] Key \"{key}\" không parse được thành {typeof(T).Name}: {ex.Message}. Dùng bảng hardcode.");
+                Debug.LogWarning($"[RemoteConfig] Key \"{key}\" cannot parse as {typeof(T).Name}: {ex.Message}. Using hardcode.");
                 result = null;
             }
         }
@@ -406,14 +364,11 @@ public class RemoteConfigManager : MonoBehaviour
     }
 
     // -------------------------------------------------------
-    // Override thủ công — dùng để test trong Editor không cần Firebase.
-    // Nhớ gọi ReapplyBalance() sau khi set xong.
     // -------------------------------------------------------
     public void SetFloat(string key, float value) { _floats[key] = value; }
     public void SetInt(string key, int value) { _ints[key] = value; }
     public void SetString(string key, string value) { _strings[key] = value; _jsonCache.Remove(key); }
     public void SetBool(string key, bool value) { _bools[key] = value; }
-    /// <summary>Override 1 key JSON bằng chuỗi thô.</summary>
     public void SetJson(string key, string json) { SetString(key, json); }
 
     public void ClearOverrides()
@@ -429,7 +384,6 @@ public class RemoteConfigManager : MonoBehaviour
     // Helpers
     // -------------------------------------------------------
 
-    /// <summary>So sánh version dạng "1.2.3". &lt;0 nghĩa là a cũ hơn b.</summary>
     private static int CompareVersion(string a, string b)
     {
         string[] pa = (a ?? "").Split('.');

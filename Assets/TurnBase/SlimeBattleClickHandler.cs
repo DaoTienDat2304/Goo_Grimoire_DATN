@@ -30,21 +30,18 @@ public class SlimeBattleClickHandler : MonoBehaviour, IPointerClickHandler
         if (slimeStats == null) slimeStats = GetComponentInParent<SlimeStats>();
         if (turnSystem == null) turnSystem = Object.FindFirstObjectByType<TurnSystem>();
 
-        //  Tự tạo BoxCollider2D lớn bao trọn Slime
         if (GetComponent<Collider2D>() == null)
         {
             var col = gameObject.AddComponent<BoxCollider2D>();
             col.size = new Vector2(2.5f, 2.5f);
         }
 
-        // Bật RaycastTarget hoặc Hitbox
         var sr = GetComponent<SpriteRenderer>();
         if (sr != null && GetComponent<Collider2D>() != null)
         {
             GetComponent<Collider2D>().enabled = true;
         }
 
-        //  Bật raycastTarget cho Image
         var img = GetComponent<Image>();
         if (img != null)
         {
@@ -66,9 +63,8 @@ public class SlimeBattleClickHandler : MonoBehaviour, IPointerClickHandler
     {
         EnsureClickable();
 
-        Debug.Log($"[SlimeBattleClickHandler] Chạm vào Slime: {gameObject.name}");
+        Debug.Log($"[SlimeBattleClickHandler] Slime clicked: {gameObject.name}");
 
-        // Chỉ chọn mục tiêu nếu là Enemy
         if (slimeStats != null && slimeStats.isEnemy && turnSystem != null)
         {
             turnSystem.SelectTarget(gameObject);

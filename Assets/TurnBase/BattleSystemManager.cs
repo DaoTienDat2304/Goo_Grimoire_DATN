@@ -24,10 +24,10 @@ public class BattleSystemManager : MonoBehaviour
         }
     }
 
-    [Header("Battle Points (ĐCK)")]
+    [Header("Battle Points (BP)")]
     [SerializeField] private int teamBattlePoints = 3;
     [SerializeField] private int maxBattlePoints = 5;
-    [SerializeField] private int maxPointsGainedPerTurn = 2; // Trần sinh thêm ≤ +2/lượt (mọi nguồn)
+    [SerializeField] private int maxPointsGainedPerTurn = 2;
 
     private int _pointsGainedThisTurn = 0;
 
@@ -63,7 +63,6 @@ public class BattleSystemManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Reset ĐCK đầu trận (Đầu trận = 3 ĐCK, Max = 5)
     /// </summary>
     public void ResetBattlePoints()
     {
@@ -73,7 +72,6 @@ public class BattleSystemManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Gọi mỗi khi bắt đầu một lượt hành động mới theo AV để reset trần sinh điểm của lượt đó
     /// </summary>
     public void OnNewTurnStarted()
     {
@@ -86,10 +84,9 @@ public class BattleSystemManager : MonoBehaviour
 
         if (skill.type == SkillType.Ultimate)
         {
-            return caster != null && caster.CurrentEnergy >= skill.energyCost; // Tuyệt kỹ cần đủ năng lượng
+            return caster != null && caster.CurrentEnergy >= skill.energyCost;
         }
 
-        // Kỹ năng thường / Chiến kỹ cần đủ ĐCK của đội
         return teamBattlePoints >= skill.battlePointCost;
     }
 
@@ -97,11 +94,10 @@ public class BattleSystemManager : MonoBehaviour
     {
         if (!CanUseSkill(skill, caster))
         {
-            Debug.LogWarning("Không đủ tài nguyên để dùng kỹ năng này!");
+            Debug.LogWarning("Not enough resources.");
             return;
         }
 
-        // Trừ chi phí
         if (skill.type == SkillType.Ultimate)
         {
             caster?.UseEnergy(skill.energyCost);
@@ -111,11 +107,9 @@ public class BattleSystemManager : MonoBehaviour
             ConsumeBattlePoints(skill.battlePointCost);
         }
 
-        // Hồi tài nguyên (ĐCK hoặc Năng lượng)
         int pointGain = skill.battlePointGain;
         if (pointGain <= 0 && skill.battlePointCost == 0 && skill.type != SkillType.Ultimate)
         {
-            // Mọi đòn đánh thường hoặc kỹ năng không tốn ĐCK đều mặc định hồi +1 ĐCK
             pointGain = 1;
         }
 
@@ -132,11 +126,10 @@ public class BattleSystemManager : MonoBehaviour
         int energyGain = skill.energyGain > 0 ? skill.energyGain : (skill.type == SkillType.BasicAttack ? 20 : 25);
         caster?.AddEnergy(energyGain);
 
-        Debug.Log($"[ĐCK] {caster?.name} thi triển {skill.skillName}. ĐCK còn: {teamBattlePoints}/{maxBattlePoints}");
+        Debug.Log($"[BP] {caster?.name} casts {skill.skillName}. BP left: {teamBattlePoints}/{maxBattlePoints}");
     }
 
     /// <summary>
-    /// Thêm ĐCK cho đội, tuân thủ trần sinh thêm ≤ +2/lượt (mọi nguồn)
     /// </summary>
     public void AddBattlePoints(int amount, bool bypassTurnCap = false)
     {
@@ -163,7 +156,6 @@ public class BattleSystemManager : MonoBehaviour
         NotifyPointsChanged();
     }
 
-    // Tăng giới hạn ĐCK (Cho nội tại Độc Quyền của Secret)
     public void IncreaseMaxBattlePoints(int amount)
     {
         maxBattlePoints += amount;

@@ -28,13 +28,13 @@ public static class DevAccountInitializer
     {
         if (SlimeGen.Instance == null || BreedingManager.Instance == null)
         {
-            Debug.LogError("[DevInit] SlimeGen hoặc BreedingManager chưa sẵn sàng.");
+            Debug.LogError("[DevInit] SlimeGen or BreedingManager not ready.");
             return;
         }
-        Debug.Log("[DevInit] Tài khoản dev — khởi tạo 30 slimes...");
+        Debug.Log("[DevInit] Dev account: creating 30 slimes...");
         var devSlimes = BuildDevSlimeList();
         BreedingManager.Instance.SetAllSlimes(devSlimes);
-        Debug.Log($"[DevInit] Xong. Đã tạo {devSlimes.Count} slimes.");
+        Debug.Log($"[DevInit] Done. Created {devSlimes.Count} slimes.");
     }
 
     private static List<Slime> BuildDevSlimeList()
@@ -50,7 +50,7 @@ public static class DevAccountInitializer
         var bodyPool = GetBodyTraitsForRarity(rarity);
         if (bodyPool.Count == 0)
         {
-            Debug.LogWarning($"[DevInit] Không có body trait cho rarity={rarity}. Bỏ qua.");
+            Debug.LogWarning($"[DevInit] No body trait cho rarity={rarity}. Skip.");
             return new List<Slime>();
         }
 
@@ -62,7 +62,7 @@ public static class DevAccountInitializer
             var weaponSO = GetRandomTraitOfType(TraitType.Weapon);
             if (armorSO == null || weaponSO == null)
             {
-                Debug.LogWarning($"[DevInit] Thiếu armor/weapon. Bỏ qua {namePrefix}_{i}.");
+                Debug.LogWarning($"[DevInit] Missing armor/weapon. Skip {namePrefix}_{i}.");
                 continue;
             }
             var s = new Slime

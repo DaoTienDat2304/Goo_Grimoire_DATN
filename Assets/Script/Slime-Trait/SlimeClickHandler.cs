@@ -16,7 +16,6 @@ public class SlimeClickHandler : MonoBehaviour, IPointerClickHandler
     {
         ToggleInfoPanel();
         
-        // Log thông tin slime
         if (slime != null)
         {
 
@@ -51,7 +50,6 @@ public class SlimeClickHandler : MonoBehaviour, IPointerClickHandler
         background.color = new Color(0, 0, 0, 0.9f);
         background.sortingOrder = 30;
         
-        // Tên slime
         var nameText = CreateTextMesh("Name", slime?.slimeName ?? "Unknown", 16, Color.white);
         nameText.transform.SetParent(infoPanel.transform);
         nameText.transform.localPosition = Vector3.up * 0.8f;
@@ -76,14 +74,12 @@ public class SlimeClickHandler : MonoBehaviour, IPointerClickHandler
         expText.transform.SetParent(infoPanel.transform);
         expText.transform.localPosition = Vector3.up * -0.8f;
         
-        // Thiết lập kích thước panel
         var panelRect = infoPanel.GetComponent<SpriteRenderer>();
         if (panelRect != null)
         {
             panelRect.size = new Vector2(4f, 3f);
         }
         
-        // Ẩn panel ban đầu
         infoPanel.SetActive(false);
     }
     
@@ -149,7 +145,6 @@ public class SlimeClickHandler : MonoBehaviour, IPointerClickHandler
     {
         if (infoPanel == null || slime == null) return;
         
-        // Cập nhật các text
         var nameText = infoPanel.transform.Find("Name")?.GetComponent<TextMesh>();
         if (nameText != null)
         {

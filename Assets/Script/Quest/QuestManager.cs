@@ -10,10 +10,10 @@ public class QuestManager : MonoBehaviour
     public BreedingManager breedingManager;
     public TowerSlimeBosses towerDatabase;
 
-    [Header("Mission Catalog (định nghĩa bằng code)")]
-    [Tooltip("Tự nạp chuỗi nhiệm vụ chính từ MissionCatalog khi Start.")]
+    [Header("Mission Catalog")]
+    [Tooltip("Tu charge chuoi missions chinh tu MissionCatalog khi Start.")]
     public bool autoLoadMissionCatalog = true;
-    [Tooltip("Xoá các quest cũ đang có trước khi nạp catalog.")]
+    [Tooltip("Clear old active quests before loading the catalog.")]
     public bool clearExistingOnLoad = true;
     
     private static QuestManager instance;
@@ -50,7 +50,6 @@ public class QuestManager : MonoBehaviour
     
     void Start()
     {
-        // Tự tìm QuestUIManager nếu chưa gán trong Inspector (để nạp UI không cần wire tay).
         if (questUIManager == null) questUIManager = FindAnyObjectByType<QuestUIManager>();
 
         InitializeQuests();
@@ -59,8 +58,6 @@ public class QuestManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Nạp chuỗi nhiệm vụ chính từ MissionCatalog (code) thành CatalogQuest runtime.
-    /// Không cần tạo asset trong Unity — tái dùng toàn bộ state machine &amp; UI sẵn có.
     /// </summary>
     public void LoadMissionCatalog()
     {
@@ -83,7 +80,6 @@ public class QuestManager : MonoBehaviour
             q.rarityTarget = def.RarityTarget;
             q.target = def.Target;
 
-            // Hệ số thưởng remote (`reward_mult_mission_gold`)
             int gold = RemoteBalance.ScaleReward(def.GoldReward, RemoteBalance.Reward.missionGold);
 
             q.currencyReward = new CurrencyReward(CurrencyType.Coins, gold);
@@ -91,19 +87,18 @@ public class QuestManager : MonoBehaviour
             {
                 rewardType = "coins",
                 amount = gold,
-                description = $"{gold} vàng"
+                description = $"{gold} gold"
             };
             q.state = Quest.QuestState.Locked;
 
             AddQuest(q);
         }
 
-        Debug.Log($"[Mission] Đã nạp {MissionCatalog.All.Count} nhiệm vụ chính từ catalog.");
+        Debug.Log($"[Mission] Loaded {MissionCatalog.All.Count} main missions.");
     }
     
     void Update()
     {
-        // Chỉ update quest system mỗi 0.1 giây để tránh performance issue
         if (Time.time - lastUpdateTime >= 0.1f)
         {
             UpdateQuestSystem();
@@ -115,12 +110,10 @@ public class QuestManager : MonoBehaviour
     
     private void InitializeQuests()
     {
-        // Khởi tạo tất cả quest về trạng thái Locked
         foreach (var quest in allQuests)
         {
             quest.state = Quest.QuestState.Locked;
             
-            // Thêm quest vào UI
             if (questUIManager != null)
             {
                 questUIManager.AddQuest(quest);
@@ -130,10 +123,8 @@ public class QuestManager : MonoBehaviour
     
     private void UpdateQuestSystem()
     {
-        // Kiểm tra và unlock quest
         CheckQuestUnlock();
         
-        // Cập nhật quest đang active
         UpdateActiveQuests();
     }
     
@@ -144,7 +135,7 @@ public class QuestManager : MonoBehaviour
             if (quest.state == Quest.QuestState.Locked && CanUnlockQuest(quest))
             {
                 quest.state = Quest.QuestState.Available;
-                Debug.Log($"Quest '{quest.questName}' đã được unlock!");
+                Debug.Log($"Quest '{quest.questName}' unlocked!");
 
                 string unlockType = quest is TimeQuest ? "time"
                     : quest is BreedingQuest ? "breeding"
@@ -164,13 +155,11 @@ public class QuestManager : MonoBehaviour
     
     private bool CanUnlockQuest(Quest quest)
     {
-        // Kiểm tra slime requirement
         if (breedingManager != null && breedingManager.GetAllSlimes().Count < quest.slimeRequirement)
         {
             return false;
         }
         
-        // Kiểm tra quest requirements
         foreach (var requiredQuestID in quest.questreq)
         {
             var requiredQuest = allQuests.Find(q => q.questID == requiredQuestID);
@@ -187,7 +176,6 @@ public class QuestManager : MonoBehaviour
     {
         foreach (var quest in allQuests)
         {
-            // Tự động start quest khi available
             if (quest.state == Quest.QuestState.Available)
             {
                 quest.StartQuest();
@@ -197,7 +185,6 @@ public class QuestManager : MonoBehaviour
                 }
             }
             
-            // Cập nhật quest đang in progress
             if (quest.state == Quest.QuestState.InProgress)
             {
                 UpdateQuestProgress(quest);
@@ -240,21 +227,18 @@ public class QuestManager : MonoBehaviour
         }
         else
         {
-            // CatalogQuest (định nghĩa bằng code) & mọi loại quest khác: chấm trực tiếp.
             questCompleted = quest.CheckCompletion();
         }
 
-        // Cập nhật UI
         if (questUIManager != null)
         {
             questUIManager.UpdateQuestState(quest);
         }
         
-        // Hoàn thành quest nếu đạt điều kiện
         if (questCompleted && quest.state == Quest.QuestState.InProgress)
         {
             quest.CompleteQuest();
-            Debug.Log($"Quest '{quest.questName}' đã hoàn thành!");
+            Debug.Log($"Quest '{quest.questName}' completed!");
 
             string completeType = quest is TimeQuest ? "time"
                     : quest is BreedingQuest ? "breeding"
@@ -271,7 +255,6 @@ public class QuestManager : MonoBehaviour
         }
     }
     
-    // Gọi khi player thắng một trận chiến
     public void RegisterBattleWin(BattleMode mode)
     {
         foreach (var quest in allQuests)
@@ -281,7 +264,6 @@ public class QuestManager : MonoBehaviour
         }
     }
 
-    // Public methods để các system khác có thể gọi
     public void AddQuest(Quest quest)
     {
         if (!allQuests.Contains(quest))

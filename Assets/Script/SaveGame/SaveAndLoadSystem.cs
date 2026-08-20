@@ -13,9 +13,9 @@ public class SaveAndLoadSystem : MonoBehaviour
     [SerializeField] private GameObject TeamPanel;
     public WildSlimes wildSlimes;
     [SerializeField] private SlimeInventory slimeInventory;
-    [SerializeField] private Team teamSlime; // drag Team.asset vào đây trong Inspector
-    [SerializeField] private TowerSlimeBosses towerDatabase; // Kéo TowerSlimeBosses asset vào đây
-    [SerializeField] private FarmDatabaseSO farmDatabase; // Kéo FarmDatabase asset vào đây (chuẩn ScriptableObject)
+    [SerializeField] private Team teamSlime;
+    [SerializeField] private TowerSlimeBosses towerDatabase;
+    [SerializeField] private FarmDatabaseSO farmDatabase;
 
     private GameSaveData _cachedSaveData;
 
@@ -31,26 +31,21 @@ public class SaveAndLoadSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Chờ user login → chờ cloud check → Load từ cloud JSON → LoadWorld.
     /// </summary>
     IEnumerator InitializeAsync()
     {
-        // 1. Chờ AuthManager sẵn sàng và user đã login
-        Debug.Log("[Save] Đang chờ Auth...");
+        Debug.Log("[Save] Waiting for Auth...");
         yield return new WaitUntil(() =>
             AuthManager.Instance != null && AuthManager.Instance.IsLoggedIn);
 
         Debug.Log($"[Save] Auth xong. uid={AuthManager.Instance.CurrentUserId}");
 
-        // 2. Chờ CloudSaveProvider kiểm tra xong cloud save cho tài khoản này
         yield return new WaitUntil(() =>
             CloudSaveProvider.Instance == null || CloudSaveProvider.Instance.CloudCheckDone);
 
-        // Reset flag để đảm bảo Load() chạy đầy đủ khi đăng nhập lại trong cùng session
         if (CurrencyManager.Instance != null)
             CurrencyManager.Instance.firstLoadDone = false;
 
-        // 3. Chọn save mới hơn giữa cloud và local (PlayerPrefs), ưu tiên bản có nhiều dữ liệu hơn
         string cloudJson = (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.HasCloudSave)
             ? CloudSaveProvider.Instance.GetCachedJson()
             : null;
@@ -62,10 +57,9 @@ public class SaveAndLoadSystem : MonoBehaviour
             long localTime = LocalSaveStore.GetSavedAt(localJson);
             long cloudTime = LocalSaveStore.GetSavedAt(cloudJson);
 
-            // Ưu tiên mốc thời gian (timestamp) mới nhất: thao tác xóa/hiến tế slime gần nhất sẽ được bảo toàn.
             bool localBetter = localTime >= cloudTime;
             chosenJson = localBetter ? localJson : cloudJson;
-            Debug.Log($"[Save] Có cả cloud lẫn local — dùng {(localBetter ? "local" : "cloud")} (Local time: {localTime}, Cloud time: {cloudTime}).");
+            Debug.Log($"[Save] Cloud and local found. Using {(localBetter ? "local" : "cloud")} (Local time: {localTime}, Cloud time: {cloudTime}).");
         }
         else
         {
@@ -78,7 +72,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         }
         else
         {
-            Debug.Log("[Save] Tài khoản mới — bắt đầu game với dữ liệu mặc định.");
+            Debug.Log("[Save] Tai khoan moi — bat dau game voi du lieu default.");
             ResetGameState();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (DevAccountInitializer.IsDevAccount())
@@ -88,37 +82,29 @@ public class SaveAndLoadSystem : MonoBehaviour
             else
 #endif
             {
-                // Tài khoản mới thường: tạo 2 slime khởi đầu (Starter_1, Starter_2).
-                // ResetGameState() vừa xóa sạch slime nên phải tạo lại ở đây,
-                // nếu không người chơi vào game sau tutorial sẽ không có slime nào.
                 if (BreedingManager.Instance != null)
                     BreedingManager.Instance.CreateInitialSlimes();
             }
-            // Tài khoản mới: khởi tạo bộ daily đầu tiên.
             DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
         }
 
-        // Đã nạp xong toàn bộ dữ liệu vào RAM -> Mở cờ _initialized để cho phép Save()
         _initialized = true;
 
-        // 4. Nếu có kết quả tower hoặc farm chưa được lưu, apply lên dữ liệu vừa load rồi save lại
         ApplyTowerResultCache();
         ApplyFarmResultCache();
 
         // 5. Load world
         yield return StartCoroutine(LoadWorld());
 
-        // 6. Bật auto-save sau khi đã load xong
         if (autoSaveEnabled) StartCoroutine(AutoSaveLoop());
     }
 
     // ---------- Auto Save ----------
     [Header("Auto Save")]
     [SerializeField] private bool autoSaveEnabled = true;
-    [Tooltip("Khoảng thời gian (giây) giữa các lần tự lưu định kỳ.")]
+    [Tooltip("Autosave interval (s).")]
     [SerializeField] private float autoSaveInterval = 60f;
 
-    /// <summary>Chỉ true sau khi InitializeAsync load xong — gate cho mọi auto-save.</summary>
     private bool _initialized;
 
     IEnumerator AutoSaveLoop()
@@ -138,7 +124,6 @@ public class SaveAndLoadSystem : MonoBehaviour
 
     void OnApplicationPause(bool paused)
     {
-        // Trên mobile OnApplicationQuit thường không bắn — lưu khi app xuống nền.
         if (paused && _initialized) Save();
     }
 
@@ -148,7 +133,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (wildSlimes != null && wildSlimes.tamedSlimes != null && wildSlimes.tamedSlimes.Count > 0)
         {
             breedingManager.GenTamedSlime();
-            Save(); // Lưu lại ngay để dọn sạch tamedSlimes khỏi save, tránh nhân bản ở các lần vào game sau
+            Save();
         }
         if (SlimeWorldManager != null) SlimeWorldManager.RefreshWorldSlimes();
         else FindAnyObjectByType<SlimeWorldManager>()?.RefreshWorldSlimes();
@@ -158,7 +143,6 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
 
-        // Nếu _cachedSaveData chưa có, load từ PlayerPrefs/LocalSaveStore
         if (_cachedSaveData == null)
         {
             string existingJson = LocalSaveStore.Load(localId);
@@ -193,19 +177,15 @@ public class SaveAndLoadSystem : MonoBehaviour
         // Pretty printing is useful for diagnostics, but this is a runtime save path.
         var json = JsonUtility.ToJson(data, false);
 
-        // Luôn lưu cục bộ bằng PlayerPrefs — không mất save khi thoát/replay,
-        // kể cả ở offline dev mode khi cloud chưa bật. Dùng LocalSaveId (guest = key
-        // cố định) để save không bị lệch key mỗi phiên đăng nhập ẩn danh.
         LocalSaveStore.Save(localId, json);
 
-        // Lưu cloud (khi đã đăng nhập và bật Firebase)
         if (CloudSaveProvider.Instance != null
             && AuthManager.Instance != null
             && AuthManager.Instance.IsLoggedIn)
         {
             CloudSaveProvider.Instance.StartSave(
                 AuthManager.Instance.CurrentUserId, json);
-            Debug.Log($"[Save] Đang lưu cloud. savedAt={data.lastSavedAt}");
+            Debug.Log($"[Save] Saving cloud. savedAt={data.lastSavedAt}");
         }
     }
 
@@ -213,7 +193,7 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         if (string.IsNullOrEmpty(json))
         {
-            Debug.Log("[Save] Load: json trống, bỏ qua.");
+            Debug.Log("[Save] Load: empty json, ignored.");
             return;
         }
 
@@ -248,15 +228,12 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (SlimeWorldManager != null) SlimeWorldManager.RefreshWorldSlimes();
         if (slimeInventory != null) slimeInventory.RefreshAllUI();
 
-        Debug.Log($"[Save] Game loaded thành công. Slimes count: {data.slimes?.Count ?? 0}, Placed Buildings count: {data.placedBuildings?.Count ?? 0}");
+        Debug.Log($"[Save] Game loaded. Slimes count: {data.slimes?.Count ?? 0}, Placed Buildings count: {data.placedBuildings?.Count ?? 0}");
     }
 
-    /// <summary>Trả về Team asset để các hệ thống khác kiểm tra team trước khi vào battle.</summary>
     public Team GetTeam() => teamSlime;
 
     /// <summary>
-    /// Apply kết quả tower battle đã cache vào dữ liệu in-memory (sau khi Load từ cloud),
-    /// sau đó save lên cloud một lần và xóa cache.
     /// </summary>
     void ApplyTowerResultCache()
     {
@@ -269,7 +246,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         var floor = towerDatabase.GetFloor(completedFloor);
         if (floor != null) floor.completed = true;
 
-        // Xóa cache trước khi save
         towerDatabase.hasPendingResult         = false;
         towerDatabase.cachedCurrentFloor       = 0;
         towerDatabase.cachedHighestFloor       = 0;
@@ -281,7 +257,6 @@ public class SaveAndLoadSystem : MonoBehaviour
 
     void ApplyFarmResultCache()
     {
-        // 1. Kiểm tra cache từ FarmDatabaseSO (chuẩn mới tương tự Tower)
         if (farmDatabase != null && farmDatabase.hasPendingResult)
         {
             int completedIndex = farmDatabase.cachedCompletedIndex;
@@ -310,7 +285,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             return;
         }
 
-        // 2. Fallback PlayerPrefs nếu còn sót
         if (PlayerPrefs.HasKey("PendingFarm_Index"))
         {
             int completedIndex = PlayerPrefs.GetInt("PendingFarm_Index", -1);
@@ -350,7 +324,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         var bm = BreedingManager.Instance;
         if (bm != null) bm.SetAllSlimes(new List<Slime>());
 
-        // Tài khoản mới → xoá sạch bộ đếm lifetime.
         PlayerStatsManager.Instance?.ResetAll();
     }
 
@@ -398,7 +371,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
         }
 
-        // Fallback: Nếu không tìm thấy theo ID nhưng có Slime được đánh dấu isPicked
         if (teamSlime.team.Count == 0)
         {
             foreach (var s in all)
@@ -475,7 +447,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             data.lastDailyResetDate, data.todayDailyIDs, data.todayDailyBaselines, data.dailyStreakClaimed);
     }
 
-    // ---------- Stats (bộ đếm lifetime cho Thành tựu/Nhiệm vụ) ----------
     void SerializeStats(GameSaveData data)
     {
         var st = PlayerStatsManager.Instance;
@@ -489,7 +460,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (st == null) return;
         st.LoadFrom(data);
 
-        // Bootstrap ledger trait cho save cũ: gộp trait của các slime đang sở hữu.
         var bm = BreedingManager.Instance;
         if (bm != null) st.MergeOwnedSlimeTraits(bm.GetAllSlimes());
     }
@@ -520,8 +490,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             var all = bm.GetAllSlimes();
             int cachedCount = (_cachedSaveData != null && _cachedSaveData.slimes != null) ? _cachedSaveData.slimes.Count : 0;
             
-            // Chỉ ghi nhận danh sách mới nếu số lượng Slime trong RAM lớn hơn hoặc bằng danh sách đã lưu
-            // (tránh trường hợp RAM mới chỉ có 2 con Starter ghi đè làm mất 5-10 con Slime đã lưu).
             if (all != null && all.Count >= cachedCount && all.Count > 0)
             {
                 data.slimes.Clear();
@@ -571,7 +539,7 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         if (data.slimes == null || data.slimes.Count == 0)
         {
-            Debug.Log("[Save] Save file có 0 slimes — bảo toàn danh sách hiện có hoặc tạo Slime khởi đầu.");
+            Debug.Log("[Save] Save has 0 slimes. Keep current or create starter.");
             if (bm.GetAllSlimes() == null || bm.GetAllSlimes().Count == 0)
             {
                 bm.CreateInitialSlimes();
@@ -592,8 +560,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             s.happiness = dto.happiness;
             s.experience = dto.experience;
             s.isPicked = dto.isPicked;
-            // totalMagicAttack/crit sẽ được CalculateStats() tính lại từ trait bên dưới.
-            // Chỉ giữ metadata chất lượng roll (không tái tạo được từ trait).
             s.eggStatRollPercent = dto.eggStatRollPercent;
             s.eggStatQuality = dto.eggStatQuality;
 
@@ -601,8 +567,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             s.armor = FromTraitDTO(dto.armor);
             s.weapon = FromTraitDTO(dto.weapon);
 
-            // Tính lại totals từ traits (đã được recalculate theo Remote Config trong FromTraitDTO)
-            // KHÔNG dùng dto.totalXxx vì đó là giá trị cũ trước khi Remote Config thay đổi
             s.CalculateStats();
             s.id = dto.id;
             list.Add(s);
@@ -610,7 +574,6 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         if (list.Count > 0)
         {
-            // Loại bỏ slime trùng lặp (nếu có do bug phiên trước)
             var uniqueList = new List<Slime>();
             var seenIds = new HashSet<int>();
             foreach (var slime in list)
@@ -622,7 +585,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
             list = uniqueList;
 
-            // Chuẩn hoá slime cũ về đúng quy chuẩn GDD (Secret/nở-trứng/Mythic-HP). Idempotent.
             StatStandardMigration.NormalizeAll(list);
             bm.SetAllSlimes(list);
         }
@@ -635,7 +597,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         }
     }
 
-    // ---------- Breeding Session (mục 3) ----------
     void SerializeBreedingSession(GameSaveData data)
     {
         var bm = BreedingManager.Instance;
@@ -710,7 +671,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         var so = ResolveTraitSO(dto.traitName, dto.type);
         if (so == null)
         {
-            Debug.LogWarning($"[Save] ResolveTraitSO không tìm thấy '{dto.traitName}' (type={dto.type}). Dùng fallback trait.");
+            Debug.LogWarning($"[Save] ResolveTraitSO not found '{dto.traitName}' (type={dto.type}). Use fallback trait.");
             if (SlimeGen.Instance != null && SlimeGen.Instance.allTraits != null && SlimeGen.Instance.allTraits.Count > 0)
             {
                 so = SlimeGen.Instance.allTraits.FirstOrDefault(t => t != null && t.type == dto.type)
@@ -733,7 +694,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         ti.defense = dto.defense;
         ti.speed = dto.speed;
 
-        // Migration: save cũ không có base stats → ước tính từ multiplier mặc định
         if (dto.baseAttack == 0 && dto.attack > 0)
         {
             float defaultMult = ti.GetRarityMultiplier(dto.rarity);
@@ -756,11 +716,9 @@ public class SaveAndLoadSystem : MonoBehaviour
             ti.baseCritDMG      = dto.baseCritDMG > 0 ? dto.baseCritDMG : dto.critDMG;
         }
 
-        // Áp dụng multiplier hiện tại (có thể đã thay đổi qua Remote Config)
         float currentMult = ti.GetRarityMultiplier(dto.rarity);
         ti.RecalculateStats(currentMult);
 
-        // Khôi phục skill từ tên đã lưu
         var gen = SlimeGen.Instance;
         if (gen != null)
         {
@@ -771,6 +729,7 @@ public class SaveAndLoadSystem : MonoBehaviour
                 if (skillSO != null) ti.skill = new SkillInstance(skillSO);
             }
 
+<<<<<<< HEAD
             // Fallback nếu chưa có skill: lấy từ Trait gốc hoặc bốc random theo độ hiếm
             if (ti.skill == null)
             {
@@ -788,6 +747,8 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
 
             // Khôi phục ultimate skill từ tên đã lưu hoặc tự động ghép nếu là Rare+ Weapon
+=======
+>>>>>>> Player
             if (!string.IsNullOrEmpty(dto.ultimateSkillName))
             {
                 var ultSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.ultimateSkillName);
@@ -1019,7 +980,6 @@ public class SaveAndLoadSystem : MonoBehaviour
     // ---------- Achievements ----------
     void SerializeAchievements(GameSaveData data)
     {
-        // Lưu theo AchievementCatalog (định nghĩa bằng code). Trạng thái mở khóa nằm ở PlayerPrefs "ACH_{id}".
         foreach (var def in AchievementCatalog.All)
         {
             string key = "ACH_" + def.Id;
@@ -1043,7 +1003,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        // Đồng bộ lại UI/visual thành tựu theo trạng thái vừa nạp.
         ArchievementManager.Instance?.ReloadUnlockStates();
     }
 
@@ -1080,20 +1039,17 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         if (wildSlimes == null || data.tamedSlimes == null) return;
         
-        // Khởi tạo list nếu chưa có
         if (wildSlimes.tamedSlimes == null)
         {
             wildSlimes.tamedSlimes = new System.Collections.Generic.List<WildSlimes.WildSlimeTraits>();
         }
         
-        // Clear và load lại từ save file để đảm bảo đồng bộ
         wildSlimes.tamedSlimes.Clear();
         
         foreach (var dto in data.tamedSlimes)
         {
             if (dto == null) continue;
             
-            // Tạo lại WildSlimeTraits từ DTO
             var tamed = new WildSlimes.WildSlimeTraits();
             tamed.slimeID = dto.slimeID;
             tamed.slimeType = (WildSlimeType)dto.slimeType;
@@ -1103,7 +1059,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             {
                 if (!string.IsNullOrEmpty(dto.traitNames[i]))
                 {
-                    // Tìm TraitSO bằng tên và type
                     tamed.wildSlimeTraits[i] = ResolveTraitSO(dto.traitNames[i], dto.traitTypes[i]);
                 }
             }
@@ -1117,10 +1072,8 @@ public class SaveAndLoadSystem : MonoBehaviour
     // ---------- Tower Floors ----------
     void SerializeTowerFloors(GameSaveData data)
     {
-        // Tìm towerDatabase nếu chưa được gán
         if (towerDatabase == null)
         {
-            // Tìm từ TurnSystem
             var turnSystem = FindAnyObjectByType<TurnSystem>();
             if (turnSystem != null)
             {
@@ -1131,26 +1084,25 @@ public class SaveAndLoadSystem : MonoBehaviour
                     towerDatabase = field.GetValue(turnSystem) as TowerSlimeBosses;
                     if (towerDatabase != null)
                     {
-                        Debug.Log("Tự động tìm thấy TowerDatabase từ TurnSystem");
+                        Debug.Log("Found TowerDatabase from TurnSystem");
                     }
                 }
             }
             
-            // Nếu vẫn null, tìm từ Resources
             if (towerDatabase == null)
             {
                 var allTowers = Resources.FindObjectsOfTypeAll<TowerSlimeBosses>();
                 if (allTowers != null && allTowers.Length > 0)
                 {
                     towerDatabase = allTowers[0];
-                    Debug.Log("Tự động tìm thấy TowerDatabase từ Resources");
+                    Debug.Log("Found TowerDatabase from Resources");
                 }
             }
         }
         
         if (towerDatabase == null)
         {
-            Debug.LogWarning("TowerDatabase không tồn tại! Không thể lưu tower progress.");
+            Debug.LogWarning("TowerDatabase missing. Cannot save tower progress.");
             return;
         }
         
@@ -1185,10 +1137,8 @@ public class SaveAndLoadSystem : MonoBehaviour
     
     void DeserializeTowerFloors(GameSaveData data)
     {
-        // Tìm towerDatabase nếu chưa được gán
         if (towerDatabase == null)
         {
-            // Tìm từ TurnSystem
             var turnSystem = FindAnyObjectByType<TurnSystem>();
             if (turnSystem != null)
             {
@@ -1199,26 +1149,25 @@ public class SaveAndLoadSystem : MonoBehaviour
                     towerDatabase = field.GetValue(turnSystem) as TowerSlimeBosses;
                     if (towerDatabase != null)
                     {
-                        Debug.Log("Tự động tìm thấy TowerDatabase từ TurnSystem");
+                        Debug.Log("Found TowerDatabase from TurnSystem");
                     }
                 }
             }
             
-            // Nếu vẫn null, tìm từ Resources
             if (towerDatabase == null)
             {
                 var allTowers = Resources.FindObjectsOfTypeAll<TowerSlimeBosses>();
                 if (allTowers != null && allTowers.Length > 0)
                 {
                     towerDatabase = allTowers[0];
-                    Debug.Log("Tự động tìm thấy TowerDatabase từ Resources");
+                    Debug.Log("Found TowerDatabase from Resources");
                 }
             }
         }
         
         if (towerDatabase == null)
         {
-            Debug.LogWarning("TowerDatabase không tồn tại! Không thể load tower progress.");
+            Debug.LogWarning("TowerDatabase missing. Cannot load tower progress.");
             return;
         }
         
@@ -1230,11 +1179,10 @@ public class SaveAndLoadSystem : MonoBehaviour
         
         if (data.towerFloors == null)
         {
-            Debug.Log("Không có tower floors data trong save file.");
+            Debug.Log("No tower floor data in save.");
             return;
         }
         
-        // Tạo dictionary để tìm floor nhanh
         var floorDict = new Dictionary<int, TowerSlimeBosses.TowerFloor>();
         foreach (var floor in towerDatabase.floors)
         {
@@ -1259,7 +1207,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Không tìm thấy floor {dto.floorNumber} trong towerDatabase!");
+                Debug.LogWarning($"Floor not found {dto.floorNumber} in towerDatabase!");
             }
         }
         
@@ -1288,7 +1236,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
         }
 
-        Debug.Log($"SerializeFarmDifficulties: Lưu {data.farmDifficulties.Count} difficulties");
+        Debug.Log($"SerializeFarmDifficulties: Save {data.farmDifficulties.Count} difficulties");
     }
 
     void DeserializeFarmDifficulties(GameSaveData data)
@@ -1309,7 +1257,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
         }
         
-        // Đảm bảo độ khó đầu tiên luôn unlock
         if (difficulties.Count > 0)
         {
             difficulties[0].unlocked = true;
@@ -1319,20 +1266,18 @@ public class SaveAndLoadSystem : MonoBehaviour
     }
     
     /// <summary>
-    /// Public method để FarmModeManager gọi khi cần load farm difficulties.
-    /// Dùng JSON đã cache sẵn từ cloud (không load lại).
     /// </summary>
     public void LoadFarmDifficulties()
     {
         string json = CloudSaveProvider.Instance?.GetCachedJson();
         if (string.IsNullOrEmpty(json))
         {
-            Debug.Log("[Save] LoadFarmDifficulties: chưa có cloud JSON.");
+            Debug.Log("[Save] LoadFarmDifficulties: no cloud JSON.");
             return;
         }
 
         var data = JsonUtility.FromJson<GameSaveData>(json);
-        if (data == null) { Debug.LogWarning("[Save] LoadFarmDifficulties: parse thất bại."); return; }
+        if (data == null) { Debug.LogWarning("[Save] LoadFarmDifficulties: parse failed."); return; }
 
         DeserializeFarmDifficulties(data);
     }

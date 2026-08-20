@@ -10,25 +10,25 @@ public class TowerUIManager : MonoBehaviour
     public TowerSlimeBosses towerDatabase;
 
     [Header("Panel & Horizontal Scroll View")]
-    public GameObject towerPanel;               // Root panel (bật/tắt)
-    public ScrollRect mapScrollRect;            // ScrollRect cuộn ngang
-    public Transform floorListContainer;        // Container chứa nút (tùy chọn)
-    public GameObject floorItemPrefab;          // Prefab nút chọn màn (FloorItem)
+    public GameObject towerPanel;
+    public ScrollRect mapScrollRect;
+    public Transform floorListContainer;
+    public GameObject floorItemPrefab;
 
-    [Header("Map Nodes Trực Tiếp Trên Canvas")]
+    [Header("Map Nodes Truc Tiep Tren Canvas")]
     public List<TowerFloorItem> mapNodes = new List<TowerFloorItem>();
 
-    [Header("Auto-Spawn Settings (Nếu chưa kéo nút sẵn)")]
-    public float nodeHorizontalSpacing = 220f;  // Khoảng cách ngang giữa các nút sinh thêm
-    public float nodeZigZagAmplitude = 80f;     // Độ nhấp nhô Ziczac Lên/Xuống theo chiều cao Y
-    public float startMarginX = 150f;           // Lề xuất phát bên trái
+    [Header("Auto-Spawn Settings (No Button Assigned)")]
+    public float nodeHorizontalSpacing = 220f;
+    public float nodeZigZagAmplitude = 80f;
+    public float startMarginX = 150f;
 
-    [Header("Sprites Theo Nhóm 5 Màn (Gán chung 1 lần cho Màn 1->5)")]
-    public Sprite[] globalClusterSprites = new Sprite[5]; // 5 Sprite cho Màn 1, 2, 3, 4, 5 (Hoặc 6-10, 11-15)
+    [Header("Sprites Theo Nhom 5 Man (Gan chung 1 lan cho Man 1->5)")]
+    public Sprite[] globalClusterSprites = new Sprite[5];
 
-    [Header("Global Star Sprites (Gán 1 lần cho toàn bộ Nút)")]
-    public Sprite globalActiveStarSprite;      // Sprite Sao Sáng
-    public Sprite globalInactiveStarSprite;    // Sprite Sao Tối
+    [Header("Global Star Sprites (Gan 1 lan cho all Button)")]
+    public Sprite globalActiveStarSprite;
+    public Sprite globalInactiveStarSprite;
 
     [Header("Header Info")]
     public Text headerText;                     // "Tower of Slimes"
@@ -36,14 +36,14 @@ public class TowerUIManager : MonoBehaviour
     public Text highestFloorText;               // "Highest Reached: Floor 2"
 
     [Header("Warning")]
-    public GameObject warningText;              // Hiện khi team chưa có slime hoặc tầng bị khóa
-    public Text warningTextLabel;               // (Tùy chọn) Label thông báo
+    public GameObject warningText;
+    public Text warningTextLabel;
 
     private static readonly WaitForSeconds WarningDelay = new(3f);
 
-    [Header("Reward Popup (tuỳ chọn)")]
-    public GameObject rewardPopup;              // Panel hiện khi claim
-    public Text rewardPopupText;                // Nội dung phần thưởng
+    [Header("Reward Popup (Optional)")]
+    public GameObject rewardPopup;
+    public Text rewardPopupText;
     public Button rewardPopupCloseButton;
 
     private void Awake()
@@ -90,7 +90,6 @@ public class TowerUIManager : MonoBehaviour
     {
         if (towerPanel != null) towerPanel.SetActive(false);
 
-        // Khôi phục lại world slimes khi đóng bảng Tower
         var worldManager = Object.FindFirstObjectByType<SlimeWorldManager>();
         if (worldManager != null)
         {
@@ -102,7 +101,7 @@ public class TowerUIManager : MonoBehaviour
     {
         if (towerDatabase == null)
         {
-            Debug.LogWarning("TowerUIManager: towerDatabase chưa được gán!");
+            Debug.LogWarning("TowerUIManager: towerDatabase not assigned!");
             return;
         }
 
@@ -110,7 +109,6 @@ public class TowerUIManager : MonoBehaviour
         RebuildFloorList();
     }
 
-    // ── Thao tác Trận đấu & Phần thưởng ───────────────────────────────
 
     public void OnStartBattle()
     {
@@ -120,7 +118,7 @@ public class TowerUIManager : MonoBehaviour
         var team = saveSystem != null ? saveSystem.GetTeam() : null;
         if (team == null || team.team == null || team.team.Count == 0)
         {
-            ShowWarning("Cần ít nhất 1 slime trong team để vào Tower!");
+            ShowWarning("Need 1 slime for Tower.");
             return;
         }
 
@@ -139,7 +137,7 @@ public class TowerUIManager : MonoBehaviour
         if (SaveAndLoadSystem.Instance != null)
         {
             SaveAndLoadSystem.Instance.Save();
-            Debug.Log("[TowerUIManager] Đã lưu dữ liệu trước khi vào trận đấu chính.");
+            Debug.Log("[TowerUIManager] Da luu du lieu truoc khi vao battle dau chinh.");
         }
         StartCoroutine(LoadBattleScene());
     }
@@ -152,7 +150,7 @@ public class TowerUIManager : MonoBehaviour
         var team = saveSystem != null ? saveSystem.GetTeam() : null;
         if (team == null || team.team == null || team.team.Count == 0)
         {
-            ShowWarning("Cần ít nhất 1 slime trong team để vào Tower!");
+            ShowWarning("Need 1 slime for Tower.");
             return;
         }
 
@@ -174,8 +172,6 @@ public class TowerUIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Phát thưởng ngay khi thắng trận tower + hiện popup.
-    /// Được gọi từ TowerTurnSystem sau khi thắng.
     /// </summary>
     public static void GrantAndShowReward(int floorLevel)
     {
@@ -186,7 +182,6 @@ public class TowerUIManager : MonoBehaviour
 
         string msg = $"FLOOR {floorLevel} — VICTORY!\n";
 
-        // ── Gold & Gem (100% guaranteed) — nhân hệ số remote `reward_mult_tower` ──
         gold = RemoteBalance.ScaleReward(gold, RemoteBalance.Reward.tower);
         gem = RemoteBalance.ScaleReward(gem, RemoteBalance.Reward.tower);
         if (CurrencyManager.Instance != null)
@@ -203,7 +198,6 @@ public class TowerUIManager : MonoBehaviour
             msg += $"+{marshmallowCount} Marshmallow Ball (S)\n";
         }
 
-        // ── Roll Slime Reward (từ hiếm nhất → phổ thông nhất) ──
         if (SlimeGen.Instance != null && BreedingManager.Instance != null)
         {
             float roll = Random.Range(0f, 1f);
@@ -253,7 +247,6 @@ public class TowerUIManager : MonoBehaviour
             }
         }
 
-        // ── Hiện popup phần thưởng (tìm instance trong scene) ──
         var ui = FindFirstObjectByType<TowerUIManager>();
         if (ui != null)
         {
@@ -267,7 +260,7 @@ public class TowerUIManager : MonoBehaviour
 
     public void OnLockedFloorClicked(int floorNumber)
     {
-        ShowWarning($"Tầng {floorNumber} chưa mở khóa! Hãy hoàn thành các tầng trước.");
+        ShowWarning($"Floor {floorNumber} is locked! Clear previous floors first.");
     }
 
     // ── Private helpers ───────────────────────────────────────────────
@@ -320,7 +313,6 @@ public class TowerUIManager : MonoBehaviour
         int currentFloor = Mathf.Max(1, towerDatabase.currentFloor);
         int totalFloors = towerDatabase.floors.Count;
 
-        // Container chứa Nút
         Transform parentContainer = mapScrollRect != null ? mapScrollRect.content : null;
 
         if ((mapNodes == null || mapNodes.Count == 0) && parentContainer != null)
@@ -330,7 +322,6 @@ public class TowerUIManager : MonoBehaviour
 
         int preplacedCount = mapNodes != null ? mapNodes.Count : 0;
 
-        // Nếu làm sẵn ít nút hơn tổng số tầng, tự động sinh thêm các nút còn lại nối tiếp nút cuối cùng
         if (preplacedCount < totalFloors && floorItemPrefab != null && parentContainer != null)
         {
             float lastX = startMarginX;
@@ -371,13 +362,12 @@ public class TowerUIManager : MonoBehaviour
 
         if (mapNodes == null || mapNodes.Count == 0)
         {
-            Debug.LogWarning("TowerUIManager: Chưa có nút TowerFloorItem nào!");
+            Debug.LogWarning("TowerUIManager: Missing TowerFloorItem button!");
             return;
         }
 
         float maxX = 0f;
 
-        // Cài đặt thông số & Hiển thị cho từng Nút
         for (int i = 0; i < mapNodes.Count; i++)
         {
             var item = mapNodes[i];
@@ -390,7 +380,6 @@ public class TowerUIManager : MonoBehaviour
                 RectTransform rt = item.GetComponent<RectTransform>();
                 if (rt != null)
                 {
-                    // Chỉ sắp xếp vị trí tự động nếu HOÀN TOÀN KHÔNG CÓ NÚT NÀO ĐẶT SẴN
                     if (preplacedCount == 0)
                     {
                         rt.anchorMin = new Vector2(0f, 0.5f);
@@ -507,7 +496,6 @@ public class TowerUIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Bảng phần thưởng Tower Mode đầy đủ 30 tầng.
     /// </summary>
     public static void GetFloorReward(int level,
         out int gold, out int gem, out int marshmallowCount, out float marshmallowChance,
@@ -520,42 +508,36 @@ public class TowerUIManager : MonoBehaviour
 
         switch (level)
         {
-            // ── Khu vực 1: Tầng 1-5 ──
             case 1:  gold=50;   gem=1;  marshmallowCount=1; marshmallowChance=0.10f; commonChance=0.10f; break;
             case 2:  gold=70;   gem=1;  marshmallowCount=1; marshmallowChance=0.12f; commonChance=0.15f; uncommonChance=0.03f; break;
             case 3:  gold=100;  gem=2;  marshmallowCount=1; marshmallowChance=0.15f; commonChance=0.20f; uncommonChance=0.05f; rareChance=0.01f; break;
             case 4:  gold=140;  gem=2;  marshmallowCount=1; marshmallowChance=0.18f; commonChance=0.25f; uncommonChance=0.08f; rareChance=0.03f; break;
             case 5:  gold=300;  gem=5;  marshmallowCount=1; marshmallowChance=0.30f; commonChance=0.30f; uncommonChance=0.15f; rareChance=0.08f; break;
 
-            // ── Khu vực 2: Tầng 6-10 ──
             case 6:  gold=90;   gem=2;  marshmallowCount=1; marshmallowChance=0.20f; commonChance=0.40f; uncommonChance=0.15f; rareChance=0.05f; break;
             case 7:  gold=110;  gem=2;  marshmallowCount=1; marshmallowChance=0.22f; commonChance=0.45f; uncommonChance=0.18f; rareChance=0.07f; break;
             case 8:  gold=140;  gem=3;  marshmallowCount=1; marshmallowChance=0.25f; commonChance=0.50f; uncommonChance=0.20f; rareChance=0.08f; superRareChance=0.01f; break;
             case 9:  gold=180;  gem=3;  marshmallowCount=1; marshmallowChance=0.28f; commonChance=0.55f; uncommonChance=0.25f; rareChance=0.10f; superRareChance=0.02f; break;
             case 10: gold=450;  gem=8;  marshmallowCount=1; marshmallowChance=0.45f; commonChance=0.60f; uncommonChance=0.30f; rareChance=0.15f; superRareChance=0.05f; break;
 
-            // ── Khu vực 3: Tầng 11-15 ──
             case 11: gold=220;  gem=4;  marshmallowCount=1; marshmallowChance=0.30f; uncommonChance=0.40f; rareChance=0.18f; superRareChance=0.08f; ultraRareChance=0.02f; break;
             case 12: gold=260;  gem=4;  marshmallowCount=1; marshmallowChance=0.33f; uncommonChance=0.45f; rareChance=0.22f; superRareChance=0.10f; ultraRareChance=0.03f; break;
             case 13: gold=310;  gem=5;  marshmallowCount=1; marshmallowChance=0.36f; uncommonChance=0.50f; rareChance=0.25f; superRareChance=0.12f; ultraRareChance=0.04f; break;
             case 14: gold=360;  gem=5;  marshmallowCount=1; marshmallowChance=0.40f; uncommonChance=0.55f; rareChance=0.30f; superRareChance=0.15f; ultraRareChance=0.05f; break;
             case 15: gold=700;  gem=12; marshmallowCount=2; marshmallowChance=0.50f; uncommonChance=0.60f; rareChance=0.40f; superRareChance=0.20f; ultraRareChance=0.10f; break;
 
-            // ── Khu vực 4: Tầng 16-20 ──
             case 16: gold=420;  gem=6;  marshmallowCount=2; marshmallowChance=0.35f; rareChance=0.45f; superRareChance=0.22f; ultraRareChance=0.10f; break;
             case 17: gold=470;  gem=6;  marshmallowCount=2; marshmallowChance=0.38f; rareChance=0.50f; superRareChance=0.28f; ultraRareChance=0.12f; legendaryChance=0.01f; break;
             case 18: gold=530;  gem=7;  marshmallowCount=2; marshmallowChance=0.42f; rareChance=0.55f; superRareChance=0.32f; ultraRareChance=0.15f; legendaryChance=0.02f; break;
             case 19: gold=600;  gem=8;  marshmallowCount=2; marshmallowChance=0.45f; rareChance=0.60f; superRareChance=0.35f; ultraRareChance=0.18f; legendaryChance=0.03f; break;
             case 20: gold=1000; gem=20; marshmallowCount=3; marshmallowChance=0.60f; rareChance=0.70f; superRareChance=0.45f; ultraRareChance=0.25f; legendaryChance=0.08f; break;
 
-            // ── Khu vực 5: Tầng 21-25 ──
             case 21: gold=700;  gem=9;  marshmallowCount=2; marshmallowChance=0.45f; superRareChance=0.55f; ultraRareChance=0.25f; legendaryChance=0.05f; break;
             case 22: gold=800;  gem=10; marshmallowCount=2; marshmallowChance=0.50f; superRareChance=0.60f; ultraRareChance=0.30f; legendaryChance=0.08f; break;
             case 23: gold=900;  gem=12; marshmallowCount=2; marshmallowChance=0.55f; superRareChance=0.65f; ultraRareChance=0.35f; legendaryChance=0.10f; break;
             case 24: gold=1000; gem=14; marshmallowCount=3; marshmallowChance=0.60f; superRareChance=0.70f; ultraRareChance=0.40f; legendaryChance=0.12f; break;
             case 25: gold=1500; gem=30; marshmallowCount=4; marshmallowChance=0.70f; superRareChance=0.80f; ultraRareChance=0.50f; legendaryChance=0.15f; break;
 
-            // ── Khu vực 6: Tầng 26-30 ──
             case 26: gold=1200; gem=15; marshmallowCount=3; marshmallowChance=0.65f; superRareChance=0.75f; ultraRareChance=0.45f; legendaryChance=0.15f; break;
             case 27: gold=1350; gem=16; marshmallowCount=3; marshmallowChance=0.70f; superRareChance=0.80f; ultraRareChance=0.50f; legendaryChance=0.18f; break;
             case 28: gold=1500; gem=18; marshmallowCount=4; marshmallowChance=0.75f; superRareChance=0.85f; ultraRareChance=0.55f; legendaryChance=0.20f; break;

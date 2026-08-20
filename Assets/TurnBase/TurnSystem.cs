@@ -1625,39 +1625,13 @@ public class TurnSystem : MonoBehaviour
 
     public void CreateDamagePopup(Vector3 worldPosition, string text, Color color)
     {
-        Canvas parentCanvas = _cachedCanvas != null ? _cachedCanvas : FindObjectOfType<Canvas>();
+        Canvas parentCanvas = FindObjectOfType<Canvas>();
         if (parentCanvas == null) return;
-        _cachedCanvas = parentCanvas;
 
-        GameObject popupGO;
-        if (_popupPool.Count > 0)
-        {
-            popupGO = _popupPool.Dequeue();
-            if (popupGO != null)
-            {
-                popupGO.SetActive(true);
-                popupGO.transform.SetParent(parentCanvas.transform, false);
-            }
-            else
-            {
-                popupGO = CreatePopupObject();
-                popupGO.transform.SetParent(parentCanvas.transform, false);
-            }
-        }
-        else
-        {
-            popupGO = CreatePopupObject();
-            popupGO.transform.SetParent(parentCanvas.transform, false);
-        }
+        GameObject popupGO = new GameObject("BattlePopupText");
+        popupGO.transform.SetParent(parentCanvas.transform, false);
 
-        var textComponent = popupGO.GetComponent<Text>();
-        if (textComponent != null)
-        {
-            textComponent.text = text;
-            textComponent.color = color;
-        }
-
-        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector2.zero;
+        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector3.zero;
         Vector2 localPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             parentCanvas.transform as RectTransform,
@@ -1666,11 +1640,21 @@ public class TurnSystem : MonoBehaviour
             out localPos
         );
 
-        var rectTransform = popupGO.GetComponent<RectTransform>();
-        if (rectTransform != null)
-        {
-            rectTransform.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f));
-        }
+        RectTransform rectTransform = popupGO.AddComponent<RectTransform>();
+        rectTransform.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f)); // Random offset
+        rectTransform.sizeDelta = new Vector2(300, 80);
+
+        Text textComponent = popupGO.AddComponent<Text>();
+        textComponent.text = text;
+        textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textComponent.fontSize = 28;
+        textComponent.fontStyle = FontStyle.Bold;
+        textComponent.alignment = TextAnchor.MiddleCenter;
+        textComponent.color = color;
+
+        Outline outline = popupGO.AddComponent<Outline>();
+        outline.effectColor = Color.black;
+        outline.effectDistance = new Vector2(2, -2);
 
         StartCoroutine(AnimatePopupText(popupGO, textComponent));
     }

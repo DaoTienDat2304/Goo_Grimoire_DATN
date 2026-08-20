@@ -26,10 +26,16 @@ public class Member : MonoBehaviour
 
         // Tìm vị trí (index) của Member này trong danh sách teamMembers của FormationManager
         int myIndex = formationManager.teamMembers.IndexOf(this);
-        if (myIndex < 0 || myIndex >= teamSlimes.team.Count) yield break;
+        if (myIndex < 0 || myIndex >= teamSlimes.team.Count || teamSlimes.team[myIndex] == null)
+        {
+            // Giữ ô hiển thị (không ẩn ô đi), chỉ tắt hình ảnh body/armor/weapon
+            if (body != null) { var img = body.GetComponent<Image>(); if (img != null) { img.sprite = null; img.enabled = false; } }
+            if (armor != null) { var img = armor.GetComponent<Image>(); if (img != null) { img.sprite = null; img.enabled = false; } }
+            if (weapon != null) { var img = weapon.GetComponent<Image>(); if (img != null) { img.sprite = null; img.enabled = false; } }
+            yield break;
+        }
 
         Slime s = teamSlimes.team[myIndex];
-        if (s == null) yield break;
 
         // Cập nhật id theo slime được gán
         id = s.id;

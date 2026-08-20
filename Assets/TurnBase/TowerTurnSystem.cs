@@ -406,176 +406,176 @@ public class TowerTurnSystem : TurnSystem
         switch (type)
         {
             // ==========================================
-            // CHAPTER 1
+            // CHAPTER 1 (Common Tier — F1-5)
             // ==========================================
             case TowerEnemyType.GreenSlime:
-                if (level == 1) return new TowerStatData(900, 90, 70, 60, 90, 0.02f, 1.50f);
-                if (level == 2) return new TowerStatData(1004, 99, 77, 65, 91, 0.04f, 1.50f);
-                if (level == 3) return new TowerStatData(1119, 109, 85, 71, 92, 0.06f, 1.50f);
-                if (level == 4) return new TowerStatData(1248, 120, 94, 77, 93, 0.08f, 1.50f);
-                return new TowerStatData(1392, 133, 104, 84, 94, 0.10f, 1.50f);
+                if (level == 1) return new TowerStatData(1600, 200, 180, 220, 85, 0.08f, 1.30f);
+                if (level == 2) return new TowerStatData(1750, 225, 200, 240, 87, 0.09f, 1.30f);
+                if (level == 3) return new TowerStatData(1900, 250, 220, 260, 89, 0.10f, 1.30f);
+                if (level == 4) return new TowerStatData(2050, 275, 240, 280, 91, 0.11f, 1.30f);
+                return new TowerStatData(2200, 300, 260, 300, 93, 0.12f, 1.30f);
 
             case TowerEnemyType.TinyBat:
-                if (level == 3) return new TowerStatData(780, 105, 60, 50, 95, 0.06f, 1.50f);
-                if (level == 4) return new TowerStatData(870, 116, 66, 55, 96, 0.08f, 1.50f);
-                return new TowerStatData(970, 128, 73, 60, 97, 0.10f, 1.50f);
+                if (level == 3) return new TowerStatData(1400, 280, 150, 180, 96, 0.12f, 1.35f);
+                if (level == 4) return new TowerStatData(1550, 310, 170, 200, 98, 0.13f, 1.35f);
+                return new TowerStatData(1700, 340, 190, 220, 100, 0.14f, 1.35f);
 
             case TowerEnemyType.SlimeKing:
-                return new TowerStatData(4250, 150, 100, 105, 97, 0.15f, 1.70f);
+                return new TowerStatData(10000, 360, 480, 420, 95, 0.18f, 1.40f);
 
             // ==========================================
-            // CHAPTER 2
+            // CHAPTER 2 (Uncommon Tier — F6-10)
             // ==========================================
             case TowerEnemyType.GoblinWarrior:
-                if (level == 6) return new TowerStatData(1550, 155, 0, 95, 96, 0.12f, 1.50f);
-                if (level == 7) return new TowerStatData(1705, 168, 0, 103, 97, 0.13f, 1.50f);
-                if (level == 8) return new TowerStatData(1875, 182, 0, 112, 98, 0.14f, 1.50f);
-                if (level == 9) return new TowerStatData(2062, 197, 0, 121, 99, 0.15f, 1.50f);
-                return new TowerStatData(2268, 214, 0, 131, 100, 0.16f, 1.50f);
+                if (level == 6) return new TowerStatData(2800, 360, 0, 450, 94, 0.15f, 1.35f);
+                if (level == 7) return new TowerStatData(3050, 390, 0, 490, 96, 0.16f, 1.35f);
+                if (level == 8) return new TowerStatData(3300, 420, 0, 530, 98, 0.17f, 1.35f);
+                if (level == 9) return new TowerStatData(3550, 450, 0, 570, 100, 0.18f, 1.35f);
+                return new TowerStatData(3800, 480, 0, 610, 102, 0.19f, 1.35f);
 
             case TowerEnemyType.GoblinArcher:
-                if (level == 7) return new TowerStatData(1320, 178, 0, 72, 108, 0.14f, 1.55f);
-                if (level == 8) return new TowerStatData(1452, 193, 0, 78, 109, 0.15f, 1.55f);
-                if (level == 9) return new TowerStatData(1597, 208, 0, 84, 110, 0.16f, 1.55f);
-                return new TowerStatData(1757, 225, 0, 90, 111, 0.17f, 1.55f);
+                if (level == 7) return new TowerStatData(2400, 420, 0, 350, 106, 0.20f, 1.40f);
+                if (level == 8) return new TowerStatData(2600, 455, 0, 380, 108, 0.21f, 1.40f);
+                if (level == 9) return new TowerStatData(2800, 490, 0, 410, 110, 0.22f, 1.40f);
+                return new TowerStatData(3000, 525, 0, 440, 112, 0.23f, 1.40f);
 
             case TowerEnemyType.GoblinShaman:
-                if (level == 8) return new TowerStatData(1480, 70, 165, 88, 102, 0.12f, 1.50f);
-                if (level == 9) return new TowerStatData(1628, 75, 180, 95, 103, 0.13f, 1.50f);
-                return new TowerStatData(1790, 80, 196, 102, 104, 0.14f, 1.50f);
+                if (level == 8) return new TowerStatData(2600, 180, 460, 400, 100, 0.18f, 1.35f);
+                if (level == 9) return new TowerStatData(2850, 195, 500, 430, 102, 0.19f, 1.35f);
+                return new TowerStatData(3100, 210, 540, 460, 104, 0.20f, 1.35f);
 
             case TowerEnemyType.GoblinChief:
-                return new TowerStatData(8200, 245, 160, 165, 105, 0.18f, 1.80f);
+                return new TowerStatData(22000, 550, 720, 750, 104, 0.22f, 1.50f);
 
             // ==========================================
-            // CHAPTER 3
+            // CHAPTER 3 (Rare Tier — F11-15)
             // ==========================================
             case TowerEnemyType.PoisonSlime:
-                if (level == 11) return new TowerStatData(2450, 180, 150, 145, 100, 0.16f, 1.55f);
-                if (level == 12) return new TowerStatData(2695, 195, 165, 158, 101, 0.17f, 1.55f);
-                if (level == 13) return new TowerStatData(2965, 212, 182, 172, 102, 0.18f, 1.60f);
-                if (level == 14) return new TowerStatData(3262, 231, 200, 188, 103, 0.19f, 1.60f);
-                return new TowerStatData(3588, 252, 220, 205, 104, 0.20f, 1.65f);
+                if (level == 11) return new TowerStatData(5000, 420, 580, 680, 100, 0.22f, 1.45f);
+                if (level == 12) return new TowerStatData(5400, 450, 620, 730, 102, 0.23f, 1.45f);
+                if (level == 13) return new TowerStatData(5800, 480, 660, 780, 104, 0.24f, 1.45f);
+                if (level == 14) return new TowerStatData(6200, 510, 700, 830, 106, 0.25f, 1.50f);
+                return new TowerStatData(6600, 540, 740, 880, 108, 0.26f, 1.50f);
 
             case TowerEnemyType.CorruptedGoblin:
-                if (level == 11) return new TowerStatData(2600, 235, 0, 160, 102, 0.16f, 1.60f);
-                if (level == 12) return new TowerStatData(2860, 255, 0, 175, 103, 0.17f, 1.60f);
-                if (level == 13) return new TowerStatData(3146, 278, 0, 191, 104, 0.18f, 1.65f);
-                if (level == 14) return new TowerStatData(3460, 303, 0, 208, 105, 0.19f, 1.65f);
-                return new TowerStatData(3806, 330, 0, 227, 106, 0.20f, 1.70f);
+                if (level == 11) return new TowerStatData(5200, 560, 0, 720, 102, 0.22f, 1.45f);
+                if (level == 12) return new TowerStatData(5650, 600, 0, 770, 104, 0.23f, 1.45f);
+                if (level == 13) return new TowerStatData(6100, 640, 0, 820, 106, 0.24f, 1.50f);
+                if (level == 14) return new TowerStatData(6550, 680, 0, 870, 108, 0.25f, 1.50f);
+                return new TowerStatData(7000, 720, 0, 920, 110, 0.26f, 1.55f);
 
             case TowerEnemyType.DarkGoblinShaman:
-                if (level == 12) return new TowerStatData(2180, 85, 250, 135, 106, 0.16f, 1.55f);
-                if (level == 13) return new TowerStatData(2398, 92, 275, 148, 107, 0.17f, 1.60f);
-                if (level == 14) return new TowerStatData(2638, 100, 302, 162, 108, 0.18f, 1.60f);
-                return new TowerStatData(2902, 108, 332, 177, 109, 0.19f, 1.65f);
+                if (level == 12) return new TowerStatData(4600, 220, 650, 600, 105, 0.22f, 1.45f);
+                if (level == 13) return new TowerStatData(5000, 240, 700, 640, 107, 0.23f, 1.45f);
+                if (level == 14) return new TowerStatData(5400, 260, 750, 680, 109, 0.24f, 1.50f);
+                return new TowerStatData(5800, 280, 800, 720, 111, 0.25f, 1.50f);
 
             case TowerEnemyType.CorruptedGoblinChief:
-                return new TowerStatData(15500, 360, 220, 260, 110, 0.22f, 1.85f);
+                return new TowerStatData(48000, 850, 1150, 1200, 110, 0.28f, 1.60f);
 
             // ==========================================
-            // CHAPTER 4
+            // CHAPTER 4 (SuperRare Tier — F16-20)
             // ==========================================
             case TowerEnemyType.StoneGoblin:
-                if (level == 16) return new TowerStatData(4200, 360, 0, 260, 108, 0.20f, 1.70f);
-                if (level == 17) return new TowerStatData(4620, 385, 0, 285, 109, 0.21f, 1.70f);
-                if (level == 18) return new TowerStatData(5082, 412, 0, 312, 110, 0.22f, 1.75f);
-                if (level == 19) return new TowerStatData(5590, 441, 0, 342, 111, 0.23f, 1.75f);
-                return new TowerStatData(6150, 472, 0, 375, 112, 0.24f, 1.80f);
+                if (level == 16) return new TowerStatData(8500, 820, 0, 1100, 108, 0.28f, 1.55f);
+                if (level == 17) return new TowerStatData(9300, 875, 0, 1180, 110, 0.29f, 1.55f);
+                if (level == 18) return new TowerStatData(10100, 930, 0, 1260, 112, 0.30f, 1.60f);
+                if (level == 19) return new TowerStatData(10900, 985, 0, 1340, 114, 0.31f, 1.60f);
+                return new TowerStatData(11800, 1050, 0, 1420, 116, 0.32f, 1.65f);
 
             case TowerEnemyType.CrystalSlime:
-                if (level == 16) return new TowerStatData(3900, 250, 295, 245, 108, 0.20f, 1.70f);
-                if (level == 17) return new TowerStatData(4290, 270, 322, 268, 109, 0.21f, 1.70f);
-                if (level == 18) return new TowerStatData(4720, 292, 351, 294, 110, 0.22f, 1.75f);
-                if (level == 19) return new TowerStatData(5192, 316, 382, 322, 111, 0.23f, 1.75f);
-                return new TowerStatData(5711, 342, 416, 353, 112, 0.24f, 1.80f);
+                if (level == 16) return new TowerStatData(8000, 580, 860, 1050, 108, 0.28f, 1.55f);
+                if (level == 17) return new TowerStatData(8750, 620, 920, 1120, 110, 0.29f, 1.55f);
+                if (level == 18) return new TowerStatData(9500, 660, 980, 1190, 112, 0.30f, 1.60f);
+                if (level == 19) return new TowerStatData(10250, 700, 1040, 1260, 114, 0.31f, 1.60f);
+                return new TowerStatData(11000, 740, 1100, 1330, 116, 0.32f, 1.65f);
 
             case TowerEnemyType.AncientShaman:
-                if (level == 17) return new TowerStatData(3300, 120, 365, 225, 113, 0.20f, 1.70f);
-                if (level == 18) return new TowerStatData(3630, 130, 398, 247, 114, 0.21f, 1.75f);
-                if (level == 19) return new TowerStatData(3993, 141, 434, 271, 115, 0.22f, 1.75f);
-                return new TowerStatData(4392, 153, 473, 298, 116, 0.23f, 1.80f);
+                if (level == 17) return new TowerStatData(7200, 320, 980, 950, 112, 0.28f, 1.55f);
+                if (level == 18) return new TowerStatData(7800, 345, 1050, 1010, 114, 0.29f, 1.60f);
+                if (level == 19) return new TowerStatData(8400, 370, 1120, 1070, 116, 0.30f, 1.60f);
+                return new TowerStatData(9000, 395, 1200, 1130, 118, 0.32f, 1.65f);
 
             case TowerEnemyType.AncientGuardian:
-                return new TowerStatData(25000, 520, 380, 420, 115, 0.25f, 1.90f);
+                return new TowerStatData(95000, 1300, 1750, 2200, 118, 0.35f, 1.70f);
 
             // ==========================================
-            // CHAPTER 5
+            // CHAPTER 5 (UltraRare Tier — F21-25)
             // ==========================================
             case TowerEnemyType.StoneGolem:
-                if (level == 21) return new TowerStatData(8400, 620, 0, 520, 114, 0.25f, 1.85f);
-                if (level == 22) return new TowerStatData(9240, 655, 0, 550, 116, 0.26f, 1.85f);
-                if (level == 23) return new TowerStatData(10164, 692, 0, 583, 118, 0.27f, 1.90f);
-                if (level == 24) return new TowerStatData(11180, 731, 0, 618, 120, 0.28f, 1.90f);
-                return new TowerStatData(12300, 772, 0, 655, 122, 0.30f, 1.95f);
+                if (level == 21) return new TowerStatData(15000, 1250, 0, 1800, 116, 0.32f, 1.65f);
+                if (level == 22) return new TowerStatData(16500, 1330, 0, 1930, 118, 0.33f, 1.65f);
+                if (level == 23) return new TowerStatData(18000, 1410, 0, 2060, 120, 0.34f, 1.70f);
+                if (level == 24) return new TowerStatData(19500, 1490, 0, 2190, 122, 0.35f, 1.70f);
+                return new TowerStatData(21000, 1580, 0, 2320, 124, 0.36f, 1.75f);
 
             case TowerEnemyType.IronGolem:
-                if (level == 21) return new TowerStatData(10800, 480, 0, 760, 112, 0.22f, 1.80f);
-                if (level == 22) return new TowerStatData(11880, 508, 0, 805, 114, 0.23f, 1.80f);
-                if (level == 23) return new TowerStatData(13068, 538, 0, 853, 116, 0.24f, 1.85f);
-                if (level == 24) return new TowerStatData(14375, 570, 0, 904, 118, 0.25f, 1.85f);
-                return new TowerStatData(15812, 604, 0, 958, 120, 0.26f, 1.90f);
+                if (level == 21) return new TowerStatData(18500, 1050, 0, 2400, 112, 0.28f, 1.60f);
+                if (level == 22) return new TowerStatData(20200, 1120, 0, 2570, 114, 0.29f, 1.60f);
+                if (level == 23) return new TowerStatData(21900, 1190, 0, 2740, 116, 0.30f, 1.65f);
+                if (level == 24) return new TowerStatData(23600, 1260, 0, 2910, 118, 0.31f, 1.65f);
+                return new TowerStatData(25500, 1340, 0, 3100, 120, 0.32f, 1.70f);
 
             case TowerEnemyType.CrystalGolem:
-                if (level == 21) return new TowerStatData(7600, 300, 610, 430, 116, 0.25f, 1.90f);
-                if (level == 22) return new TowerStatData(8360, 320, 645, 456, 118, 0.26f, 1.90f);
-                if (level == 23) return new TowerStatData(9196, 341, 682, 483, 120, 0.27f, 1.95f);
-                if (level == 24) return new TowerStatData(10115, 363, 721, 512, 122, 0.28f, 1.95f);
-                return new TowerStatData(11127, 387, 763, 543, 124, 0.30f, 2.00f);
+                if (level == 21) return new TowerStatData(14000, 650, 1450, 1650, 118, 0.32f, 1.70f);
+                if (level == 22) return new TowerStatData(15300, 690, 1540, 1770, 120, 0.33f, 1.70f);
+                if (level == 23) return new TowerStatData(16600, 730, 1630, 1890, 122, 0.34f, 1.75f);
+                if (level == 24) return new TowerStatData(17900, 770, 1720, 2010, 124, 0.35f, 1.75f);
+                return new TowerStatData(19500, 820, 1830, 2150, 126, 0.36f, 1.80f);
 
             case TowerEnemyType.AncientColossus:
-                return new TowerStatData(42000, 820, 580, 820, 126, 0.32f, 2.10f);
+                return new TowerStatData(170000, 1850, 2500, 3600, 126, 0.38f, 1.85f);
 
             // ==========================================
-            // CHAPTER 6
+            // CHAPTER 6 (Legendary & Mythic Tier — F26-30)
             // ==========================================
             case TowerEnemyType.EliteStoneGolem:
-                if (level == 26) return new TowerStatData(15800, 1120, 0, 1120, 138, 0.32f, 2.10f);
-                if (level == 27) return new TowerStatData(18600, 1220, 0, 1220, 141, 0.33f, 2.10f);
-                if (level == 28) return new TowerStatData(21900, 1320, 0, 1330, 144, 0.34f, 2.15f);
-                if (level == 29) return new TowerStatData(25800, 1420, 0, 1450, 147, 0.35f, 2.15f);
-                return new TowerStatData(30500, 1550, 0, 1600, 150, 0.36f, 2.20f);
+                if (level == 26) return new TowerStatData(26000, 2050, 0, 3400, 136, 0.38f, 1.85f);
+                if (level == 27) return new TowerStatData(29500, 2200, 0, 3700, 139, 0.39f, 1.85f);
+                if (level == 28) return new TowerStatData(33000, 2350, 0, 4000, 142, 0.40f, 1.90f);
+                if (level == 29) return new TowerStatData(36500, 2500, 0, 4300, 145, 0.41f, 1.90f);
+                return new TowerStatData(40000, 2680, 0, 4650, 148, 0.42f, 1.95f);
 
             case TowerEnemyType.EliteIronGolem:
-                if (level == 26) return new TowerStatData(21000, 980, 0, 1500, 136, 0.30f, 2.05f);
-                if (level == 27) return new TowerStatData(24700, 1080, 0, 1630, 139, 0.31f, 2.05f);
-                if (level == 28) return new TowerStatData(29000, 1180, 0, 1770, 142, 0.32f, 2.10f);
-                if (level == 29) return new TowerStatData(34200, 1280, 0, 1920, 145, 0.33f, 2.10f);
-                return new TowerStatData(40500, 1420, 0, 2100, 148, 0.34f, 2.15f);
+                if (level == 26) return new TowerStatData(32000, 1750, 0, 4500, 132, 0.35f, 1.80f);
+                if (level == 27) return new TowerStatData(36500, 1880, 0, 4900, 135, 0.36f, 1.80f);
+                if (level == 28) return new TowerStatData(41000, 2010, 0, 5300, 138, 0.37f, 1.85f);
+                if (level == 29) return new TowerStatData(45500, 2140, 0, 5700, 141, 0.38f, 1.85f);
+                return new TowerStatData(50000, 2280, 0, 6150, 144, 0.39f, 1.90f);
 
             case TowerEnemyType.EliteCrystalGolem:
-                if (level == 26) return new TowerStatData(14500, 600, 1150, 980, 140, 0.32f, 2.15f);
-                if (level == 27) return new TowerStatData(17100, 700, 1250, 1080, 143, 0.33f, 2.15f);
-                if (level == 28) return new TowerStatData(20100, 800, 1360, 1190, 146, 0.34f, 2.20f);
-                if (level == 29) return new TowerStatData(23600, 900, 1480, 1310, 149, 0.35f, 2.20f);
-                return new TowerStatData(28000, 1050, 1620, 1450, 152, 0.36f, 2.25f);
+                if (level == 26) return new TowerStatData(25000, 1100, 2300, 3200, 138, 0.38f, 1.90f);
+                if (level == 27) return new TowerStatData(28500, 1180, 2480, 3500, 141, 0.39f, 1.90f);
+                if (level == 28) return new TowerStatData(32000, 1260, 2660, 3800, 144, 0.40f, 1.95f);
+                if (level == 29) return new TowerStatData(35500, 1340, 2840, 4100, 147, 0.41f, 1.95f);
+                return new TowerStatData(39000, 1430, 3050, 4450, 150, 0.42f, 2.00f);
 
             case TowerEnemyType.CorruptedGoblinElite:
-                if (level == 26) return new TowerStatData(9800, 1220, 0, 850, 141, 0.30f, 2.00f);
-                if (level == 27) return new TowerStatData(11500, 1320, 0, 930, 144, 0.31f, 2.00f);
-                if (level == 28) return new TowerStatData(13500, 1420, 0, 1010, 147, 0.32f, 2.05f);
-                if (level == 29) return new TowerStatData(16000, 1520, 0, 1100, 150, 0.33f, 2.05f);
-                return new TowerStatData(19000, 1650, 0, 1220, 153, 0.34f, 2.10f);
+                if (level == 26) return new TowerStatData(22000, 2150, 0, 2800, 142, 0.38f, 1.85f);
+                if (level == 27) return new TowerStatData(25000, 2300, 0, 3050, 145, 0.39f, 1.85f);
+                if (level == 28) return new TowerStatData(28000, 2450, 0, 3300, 148, 0.40f, 1.90f);
+                if (level == 29) return new TowerStatData(31000, 2600, 0, 3550, 151, 0.41f, 1.90f);
+                return new TowerStatData(34500, 2780, 0, 3850, 154, 0.42f, 1.95f);
 
             case TowerEnemyType.PoisonSlimeElite:
-                if (level == 26) return new TowerStatData(8700, 700, 920, 800, 140, 0.32f, 2.05f);
-                if (level == 27) return new TowerStatData(10200, 780, 1020, 880, 143, 0.33f, 2.05f);
-                if (level == 28) return new TowerStatData(12000, 860, 1120, 960, 146, 0.34f, 2.10f);
-                if (level == 29) return new TowerStatData(14200, 940, 1220, 1040, 149, 0.35f, 2.10f);
-                return new TowerStatData(16800, 1040, 1350, 1160, 152, 0.36f, 2.15f);
+                if (level == 26) return new TowerStatData(21000, 1300, 1950, 2700, 140, 0.38f, 1.85f);
+                if (level == 27) return new TowerStatData(24000, 1400, 2100, 2950, 143, 0.39f, 1.85f);
+                if (level == 28) return new TowerStatData(27000, 1500, 2250, 3200, 146, 0.40f, 1.90f);
+                if (level == 29) return new TowerStatData(30000, 1600, 2400, 3450, 149, 0.41f, 1.90f);
+                return new TowerStatData(33500, 1720, 2580, 3750, 152, 0.42f, 1.95f);
 
             case TowerEnemyType.TinyBatElite:
-                if (level == 26) return new TowerStatData(7200, 900, 0, 650, 145, 0.31f, 2.05f);
-                if (level == 27) return new TowerStatData(8400, 1000, 0, 720, 148, 0.32f, 2.05f);
-                if (level == 28) return new TowerStatData(9800, 1100, 0, 800, 151, 0.33f, 2.10f);
-                if (level == 29) return new TowerStatData(11500, 1200, 0, 880, 154, 0.34f, 2.10f);
-                return new TowerStatData(13500, 1350, 0, 980, 157, 0.35f, 2.15f);
+                if (level == 26) return new TowerStatData(18000, 1750, 0, 2200, 146, 0.38f, 1.85f);
+                if (level == 27) return new TowerStatData(20500, 1880, 0, 2400, 149, 0.39f, 1.85f);
+                if (level == 28) return new TowerStatData(23000, 2010, 0, 2600, 152, 0.40f, 1.90f);
+                if (level == 29) return new TowerStatData(25500, 2140, 0, 2800, 155, 0.41f, 1.90f);
+                return new TowerStatData(28500, 2280, 0, 3050, 158, 0.42f, 1.95f);
 
             case TowerEnemyType.CelestialGuardian:
-                return new TowerStatData(95000, 1650, 1450, 1700, 153, 0.38f, 2.20f);
+                return new TowerStatData(350000, 2900, 4000, 6500, 155, 0.45f, 2.10f);
         }
 
-        return new TowerStatData(1000, 100, 100, 100, 100, 0.05f, 1.5f);
+        return new TowerStatData(1600, 200, 180, 220, 85, 0.08f, 1.30f);
     }
 
     private void CheckWinLoseAfterEnemyDeath()
@@ -720,6 +720,13 @@ public class TowerTurnSystem : TurnSystem
         {
             attacker.AddEnergy(20); // +20 Energy khi đánh đòn thường
 
+            // Cộng +1 Điểm Chiến Kỹ (SP) khi đánh thường
+            if (BattleSystemManager.Instance != null)
+            {
+                BattleSystemManager.Instance.AddBattlePoints(1);
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2f, "+1 SP", Color.cyan);
+            }
+
             int damage = attacker.GetEffectiveAttack();
             bool isCrit = attacker.TryCriticalHit();
             if (isCrit)
@@ -805,8 +812,9 @@ public class TowerTurnSystem : TurnSystem
                 switch (entry.effect.type)
                 {
                     case EffectType.Damage:
-                        float baseSkillDmg = 0.8f * attacker.GetEffectiveAttack() + 1.2f * attacker.GetEffectiveMagicAttack();
-                        float rawDamage = baseSkillDmg * skill.power * entry.value;
+                        float magicWeight = (skill.baseSkill != null && skill.baseSkill.type == SkillType.Ultimate) ? 0.9f : 0.8f;
+                        float baseSkillPower = magicWeight * attacker.GetEffectiveMagicAttack() + (1f - magicWeight) * attacker.GetEffectiveAttack();
+                        float rawDamage = baseSkillPower * entry.value + entry.flatBonus;
 
                         int finalDamage = Mathf.RoundToInt(rawDamage);
                         bool isCrit = attacker.TryCriticalHit();

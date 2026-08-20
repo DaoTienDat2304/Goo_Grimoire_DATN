@@ -771,6 +771,22 @@ public class SaveAndLoadSystem : MonoBehaviour
                 if (skillSO != null) ti.skill = new SkillInstance(skillSO);
             }
 
+            // Fallback nếu chưa có skill: lấy từ Trait gốc hoặc bốc random theo độ hiếm
+            if (ti.skill == null)
+            {
+                if (so != null && so.skill != null)
+                {
+                    ti.skill = new SkillInstance(so.skill);
+                }
+                else
+                {
+                    var fallbackSkill = dto.type == TraitType.Weapon 
+                        ? gen.GetRandomWeaponSkill(dto.rarity, false) 
+                        : gen.GetRandomSkill(dto.type, dto.rarity);
+                    if (fallbackSkill != null) ti.skill = new SkillInstance(fallbackSkill);
+                }
+            }
+
             // Khôi phục ultimate skill từ tên đã lưu hoặc tự động ghép nếu là Rare+ Weapon
             if (!string.IsNullOrEmpty(dto.ultimateSkillName))
             {

@@ -173,15 +173,15 @@ public class TraitInstance
     {
         switch (rarity)
         {
-            case Rarity.Common:    return Random.Range(1000, 2001);
-            case Rarity.Uncommon:  return Random.Range(1800, 3501);
-            case Rarity.Rare:      return Random.Range(3200, 6001);
-            case Rarity.SuperRare: return Random.Range(5500, 10001);
-            case Rarity.UltraRare: return Random.Range(9000, 16001);
-            case Rarity.Legendary: return Random.Range(14000, 25001);
-            case Rarity.Mythic:    return Random.Range(22000, 50001); // GDD Mythic HP: 22000 - 50000 (khớp StatBalance)
-            case Rarity.Secret:    return Random.Range(9000, 16001);
-            default:               return Random.Range(1000, 2001);
+            case Rarity.Common:    return Random.Range(1500, 2001);
+            case Rarity.Uncommon:  return Random.Range(2000, 2701);
+            case Rarity.Rare:      return Random.Range(2700, 3701);
+            case Rarity.SuperRare: return Random.Range(3700, 5001);
+            case Rarity.UltraRare: return Random.Range(5000, 6501);
+            case Rarity.Legendary: return Random.Range(6500, 8301);
+            case Rarity.Mythic:    return Random.Range(8300, 10001);
+            case Rarity.Secret:    return Random.Range(5000, 6501);
+            default:               return Random.Range(1500, 2001);
         }
     }
 
@@ -189,15 +189,15 @@ public class TraitInstance
     {
         switch (rarity)
         {
-            case Rarity.Common:    return Random.Range(100, 201);
-            case Rarity.Uncommon:  return Random.Range(180, 321);
-            case Rarity.Rare:      return Random.Range(320, 601);
-            case Rarity.SuperRare: return Random.Range(550, 1001);
-            case Rarity.UltraRare: return Random.Range(900, 1601);
-            case Rarity.Legendary: return Random.Range(1400, 2501);
-            case Rarity.Mythic:    return Random.Range(2200, 5001);
-            case Rarity.Secret:    return Random.Range(90, 161);
-            default:               return Random.Range(100, 201);
+            case Rarity.Common:    return Random.Range(350, 501);
+            case Rarity.Uncommon:  return Random.Range(450, 651);
+            case Rarity.Rare:      return Random.Range(600, 851);
+            case Rarity.SuperRare: return Random.Range(800, 1101);
+            case Rarity.UltraRare: return Random.Range(1000, 1401);
+            case Rarity.Legendary: return Random.Range(1300, 1801);
+            case Rarity.Mythic:    return Random.Range(1700, 2301);
+            case Rarity.Secret:    return Random.Range(1000, 1401);
+            default:               return Random.Range(350, 501);
         }
     }
 
@@ -205,15 +205,15 @@ public class TraitInstance
     {
         switch (rarity)
         {
-            case Rarity.Common:    return Random.Range(200, 401);
-            case Rarity.Uncommon:  return Random.Range(320, 641);
-            case Rarity.Rare:      return Random.Range(640, 1201);
-            case Rarity.SuperRare: return Random.Range(1100, 2001);
-            case Rarity.UltraRare: return Random.Range(1800, 3201);
-            case Rarity.Legendary: return Random.Range(2800, 5001);
-            case Rarity.Mythic:    return Random.Range(4400, 10001);
-            case Rarity.Secret:    return Random.Range(180, 321);
-            default:               return Random.Range(200, 401);
+            case Rarity.Common:    return Random.Range(450, 651);
+            case Rarity.Uncommon:  return Random.Range(600, 851);
+            case Rarity.Rare:      return Random.Range(800, 1101);
+            case Rarity.SuperRare: return Random.Range(1050, 1451);
+            case Rarity.UltraRare: return Random.Range(1350, 1851);
+            case Rarity.Legendary: return Random.Range(1700, 2401);
+            case Rarity.Mythic:    return Random.Range(2200, 3001);
+            case Rarity.Secret:    return Random.Range(1350, 1851);
+            default:               return Random.Range(450, 651);
         }
     }
 
@@ -221,15 +221,15 @@ public class TraitInstance
     {
         switch (rarity)
         {
-            case Rarity.Common:    return Random.Range(400, 801);
-            case Rarity.Uncommon:  return Random.Range(720, 1401);
-            case Rarity.Rare:      return Random.Range(1280, 2401);
-            case Rarity.SuperRare: return Random.Range(2200, 4001);
-            case Rarity.UltraRare: return Random.Range(3600, 6401);
-            case Rarity.Legendary: return Random.Range(5600, 10001);
-            case Rarity.Mythic:    return Random.Range(8800, 20001);
-            case Rarity.Secret:    return Random.Range(1440, 2561);
-            default:               return Random.Range(400, 801);
+            case Rarity.Common:    return Random.Range(500, 801);
+            case Rarity.Uncommon:  return Random.Range(700, 1001);
+            case Rarity.Rare:      return Random.Range(900, 1301);
+            case Rarity.SuperRare: return Random.Range(1200, 1701);
+            case Rarity.UltraRare: return Random.Range(1600, 2301);
+            case Rarity.Legendary: return Random.Range(2100, 3001);
+            case Rarity.Mythic:    return Random.Range(2700, 3801);
+            case Rarity.Secret:    return Random.Range(1600, 2301);
+            default:               return Random.Range(500, 801);
         }
     }
 
@@ -253,15 +253,15 @@ public class TraitInstance
     {
         switch (rarity)
         {
-            case Rarity.Common:    return 0.05f;
-            case Rarity.Uncommon:  return 0.06f;
-            case Rarity.Rare:      return 0.08f;
-            case Rarity.SuperRare: return 0.10f;
-            case Rarity.UltraRare: return 0.13f;
-            case Rarity.Legendary: return 0.16f;
-            case Rarity.Mythic:    return 0.20f;
-            case Rarity.Secret:    return Random.Range(0.25f, 0.35f);
-            default:               return 0.05f;
+            case Rarity.Common:    return Random.Range(0.15f, 0.20f);
+            case Rarity.Uncommon:  return Random.Range(0.20f, 0.28f);
+            case Rarity.Rare:      return Random.Range(0.28f, 0.36f);
+            case Rarity.SuperRare: return Random.Range(0.36f, 0.45f);
+            case Rarity.UltraRare: return Random.Range(0.45f, 0.55f);
+            case Rarity.Legendary: return Random.Range(0.55f, 0.63f);
+            case Rarity.Mythic:    return Random.Range(0.63f, 0.70f);
+            case Rarity.Secret:    return Random.Range(0.65f, 0.75f);
+            default:               return Random.Range(0.15f, 0.20f);
         }
     }
 
@@ -269,15 +269,15 @@ public class TraitInstance
     {
         switch (rarity)
         {
-            case Rarity.Common:    return 1.30f;
-            case Rarity.Uncommon:  return 1.35f;
-            case Rarity.Rare:      return 1.45f;
-            case Rarity.SuperRare: return 1.55f;
-            case Rarity.UltraRare: return 1.70f;
-            case Rarity.Legendary: return 1.90f;
-            case Rarity.Mythic:    return 2.20f;
-            case Rarity.Secret:    return 2.50f;
-            default:               return 1.30f;
+            case Rarity.Common:    return Random.Range(1.20f, 1.30f);
+            case Rarity.Uncommon:  return Random.Range(1.30f, 1.40f);
+            case Rarity.Rare:      return Random.Range(1.40f, 1.55f);
+            case Rarity.SuperRare: return Random.Range(1.55f, 1.70f);
+            case Rarity.UltraRare: return Random.Range(1.70f, 1.90f);
+            case Rarity.Legendary: return Random.Range(1.90f, 2.10f);
+            case Rarity.Mythic:    return Random.Range(2.10f, 2.30f);
+            case Rarity.Secret:    return Random.Range(2.40f, 2.60f);
+            default:               return Random.Range(1.20f, 1.30f);
         }
     }
 

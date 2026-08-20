@@ -876,6 +876,13 @@ public class TurnSystem : MonoBehaviour
         {
             attacker.AddEnergy(20); // +20 Energy khi đánh đòn thường
 
+            // Cộng +1 Điểm Chiến Kỹ (SP) khi đánh thường
+            if (BattleSystemManager.Instance != null)
+            {
+                BattleSystemManager.Instance.AddBattlePoints(1);
+                CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2f, "+1 SP", Color.cyan);
+            }
+
             // Lấy SimpleCombatAnimation của slime tấn công
             var attackerAnimController = currentSlime.GetComponent<SimpleCombatAnimation>();
             var targetAnimController = boss.GetComponent<SimpleCombatAnimation>();
@@ -945,7 +952,16 @@ public class TurnSystem : MonoBehaviour
     }
     public void UseBodySkill()
     {
-        ExecuteSkillLogic(currentSlime.GetComponent<SlimeStats>().bodySkill);
+        var stats = currentSlime != null ? currentSlime.GetComponent<SlimeStats>() : null;
+        if (stats == null) return;
+
+        if (stats.bodySkill != null && stats.bodySkill.baseSkill != null && stats.bodySkill.baseSkill.type == SkillType.Passive)
+        {
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, "Can't use Passive!", Color.yellow);
+            return;
+        }
+
+        ExecuteSkillLogic(stats.bodySkill);
     }
 
     public void UseHatSkill()
@@ -990,7 +1006,7 @@ public class TurnSystem : MonoBehaviour
 
         if (skillInstance.baseSkill.type == SkillType.Passive)
         {
-            Debug.Log("Kỹ năng nội tại không thể kích hoạt chủ động.");
+            CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, "Can't use Passive!", Color.yellow);
             return;
         }
 
@@ -1047,8 +1063,9 @@ public class TurnSystem : MonoBehaviour
                 switch (entry.effect.type)
                 {
                     case EffectType.Damage:
-                        float baseSkillDmg = 0.8f * attacker.GetEffectiveAttack() + 1.2f * attacker.GetEffectiveMagicAttack();
-                        float rawDamage = baseSkillDmg * skill.power * entry.value;
+                        float magicWeight = (skill.baseSkill != null && skill.baseSkill.type == SkillType.Ultimate) ? 0.9f : 0.8f;
+                        float baseSkillPower = magicWeight * attacker.GetEffectiveMagicAttack() + (1f - magicWeight) * attacker.GetEffectiveAttack();
+                        float rawDamage = baseSkillPower * entry.value + entry.flatBonus;
                         int finalDamage = Mathf.RoundToInt(rawDamage);
                         bool isCrit = attacker.TryCriticalHit();
                         if (isCrit)
@@ -1538,9 +1555,6 @@ public class TurnSystem : MonoBehaviour
         yield return SceneLoader.LoadSceneWithLoadingCoroutine(targetReturnScene);
     }
 
-    /// <summary>
-    /// Hiển thị panel kết quả với text tương ứng
-    /// </summary>
     protected void ShowResultPanel(bool isVictory)
     {
         if (resultPanel != null)
@@ -1565,73 +1579,89 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
-    // ── Popup damage & stats indicator ──────────────────────────────────
-    // Tạo sẵn một popup object (dùng cho pool)
+    private Font GetDefaultFont()
+    {
+        var existingText = FindFirstObjectByType<Text>();
+        if (existingText != null && existingText.font != null) return existingText.font;
+
+        return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf") 
+            ?? Resources.GetBuiltinResource<Font>("Arial.ttf")
+            ?? Resources.Load<Font>("Knewave-Regular")
+            ?? Font.CreateDynamicFontFromOSFont("Arial", 28);
+    }
+
     private GameObject CreatePopupObject()
     {
         var go = new GameObject("BattlePopupText");
-        go.AddComponent<RectTransform>().sizeDelta = new Vector2(300, 80);
+        var rt = go.AddComponent<RectTransform>();
+
+        float screenScale = Screen.height / 1080f;
+        rt.sizeDelta = new Vector2(180 * screenScale, 45 * screenScale);
+
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+
         var txt = go.AddComponent<Text>();
-        txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        txt.fontSize = 28;
+        txt.font = GetDefaultFont();
+        txt.fontSize = Mathf.Max(16, (int)(28 * screenScale));
         txt.fontStyle = FontStyle.Bold;
         txt.alignment = TextAnchor.MiddleCenter;
+
+        txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+        txt.verticalOverflow = VerticalWrapMode.Overflow;
+        txt.raycastTarget = false;
+
         var outline = go.AddComponent<Outline>();
         outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(2, -2);
+        outline.effectDistance = new Vector2(2f, -2f);
         return go;
     }
 
     public void CreateDamagePopup(Vector3 worldPosition, string text, Color color)
     {
-        if (_cachedCanvas == null)
-        {
-            _cachedCanvas = FindObjectOfType<Canvas>();
-            if (_cachedCanvas == null) return;
-        }
+        Canvas parentCanvas = FindObjectOfType<Canvas>();
+        if (parentCanvas == null) return;
 
-        // Lấy từ pool hoặc tạo mới nếu hết
-        GameObject popupGO;
-        if (_popupPool.Count > 0)
-        {
-            popupGO = _popupPool.Dequeue();
-            popupGO.SetActive(true);
-            popupGO.transform.SetParent(_cachedCanvas.transform, false);
-        }
-        else
-        {
-            popupGO = CreatePopupObject();
-            popupGO.transform.SetParent(_cachedCanvas.transform, false);
-        }
+        GameObject popupGO = new GameObject("BattlePopupText");
+        popupGO.transform.SetParent(parentCanvas.transform, false);
 
-        // Cập nhật nội dung
-        var textComponent = popupGO.GetComponent<Text>();
-        textComponent.text = text;
-        textComponent.color = color;
-
-        // Cập nhật vị trí
-        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector2.zero;
+        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector3.zero;
         Vector2 localPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            _cachedCanvas.transform as RectTransform,
+            parentCanvas.transform as RectTransform,
             screenPos,
-            _cachedCanvas.worldCamera,
+            parentCanvas.worldCamera,
             out localPos
         );
-        var rt = popupGO.GetComponent<RectTransform>();
-        rt.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f));
+
+        RectTransform rectTransform = popupGO.AddComponent<RectTransform>();
+        rectTransform.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f)); // Random offset
+        rectTransform.sizeDelta = new Vector2(300, 80);
+
+        Text textComponent = popupGO.AddComponent<Text>();
+        textComponent.text = text;
+        textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textComponent.fontSize = 28;
+        textComponent.fontStyle = FontStyle.Bold;
+        textComponent.alignment = TextAnchor.MiddleCenter;
+        textComponent.color = color;
+
+        Outline outline = popupGO.AddComponent<Outline>();
+        outline.effectColor = Color.black;
+        outline.effectDistance = new Vector2(2, -2);
 
         StartCoroutine(AnimatePopupText(popupGO, textComponent));
     }
 
     private IEnumerator AnimatePopupText(GameObject go, Text textComponent)
     {
-        float duration = 1.2f;
+        float duration = 1.0f;
         float elapsed = 0f;
-        var rt = go.GetComponent<RectTransform>(); // cache trước, tránh GetComponent mỗi frame
+        var rt = go.GetComponent<RectTransform>();
         Vector2 startPos = rt.anchoredPosition;
-        Vector2 endPos = startPos + new Vector2(0, 80);
-        Color startColor = textComponent.color;
+        Vector2 endPos = startPos + new Vector2(0, 80f);
+        Color startColor = textComponent != null ? textComponent.color : Color.white;
 
         while (elapsed < duration)
         {
@@ -1640,13 +1670,15 @@ public class TurnSystem : MonoBehaviour
             if (go == null) yield break;
 
             rt.anchoredPosition = Vector2.Lerp(startPos, endPos, t);
-            textComponent.color = new Color(startColor.r, startColor.g, startColor.b, 1f - t);
+            if (textComponent != null)
+            {
+                textComponent.color = new Color(startColor.r, startColor.g, startColor.b, 1f - t);
+            }
             yield return null;
         }
 
         if (go != null)
         {
-            // Trả về pool thay vì Destroy
             go.SetActive(false);
             _popupPool.Enqueue(go);
         }

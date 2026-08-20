@@ -14,6 +14,11 @@ public class BattleSystemManager : MonoBehaviour
             if (_instance == null)
             {
                 _instance = FindFirstObjectByType<BattleSystemManager>();
+                if (_instance == null && Application.isPlaying)
+                {
+                    GameObject go = new GameObject("BattleSystemManager");
+                    _instance = go.AddComponent<BattleSystemManager>();
+                }
             }
             return _instance;
         }

@@ -136,6 +136,15 @@ public class SkillUI : MonoBehaviour
     {
         if (slime == null) return;
 
+        if (_cachedBattleStats == null || _cachedBattleStats.gameObject != slime.gameObject)
+        {
+            _cachedBattleStats = slime.GetComponent<SlimeBattleStats>();
+        }
+        if (_bodyBtn == null || _armorBtn == null || _weaponBtn == null)
+        {
+            CacheComponents();
+        }
+
         int newEnergy = _cachedBattleStats != null ? _cachedBattleStats.CurrentEnergy : 0;
         int newBP = BattleSystemManager.Instance != null ? BattleSystemManager.Instance.TeamBattlePoints : 0;
 
@@ -228,9 +237,9 @@ public class SkillUI : MonoBehaviour
         switch (skill.baseSkill.type)
         {
             case SkillType.Passive:
-                isInteractable = false;
-                skillInfo += "\n(Nội tại)";
-                textColor = new Color(0.2f, 0.8f, 1f);
+                // Kỹ năng nội tại (Body Skill): hiển thị sáng rõ bình thường, bấm vào sẽ hiện popup thông báo
+                isInteractable = true;
+                textColor = Color.white;
                 skillImage.color = Color.white;
                 break;
 
@@ -243,21 +252,21 @@ public class SkillUI : MonoBehaviour
                 break;
 
             case SkillType.Active:
-                if (BattleSystemManager.Instance != null && battleStats != null)
-                    isInteractable = BattleSystemManager.Instance.TeamBattlePoints >= skill.baseSkill.battlePointCost;
+                int currentBP = BattleSystemManager.Instance != null ? BattleSystemManager.Instance.TeamBattlePoints : 0;
+                isInteractable = (currentBP >= skill.baseSkill.battlePointCost);
                 if (skill.baseSkill.battlePointCost > 0)
                     skillInfo += $"\n(-{skill.baseSkill.battlePointCost} ĐCK)";
                 textColor = isInteractable ? Color.white : Color.red;
-                skillImage.color = isInteractable ? Color.white : new Color(0.4f, 0.4f, 0.4f, 1.0f);
+                skillImage.color = isInteractable ? Color.white : new Color(0.35f, 0.35f, 0.35f, 0.7f);
                 break;
 
             case SkillType.Ultimate:
-                if (battleStats != null)
-                    isInteractable = battleStats.CurrentEnergy >= skill.baseSkill.energyCost;
+                int currentEnergy = battleStats != null ? battleStats.CurrentEnergy : 0;
+                isInteractable = (currentEnergy >= skill.baseSkill.energyCost);
                 if (skill.baseSkill.energyCost > 0)
                     skillInfo += $"\n(-{skill.baseSkill.energyCost} NL)";
                 textColor = isInteractable ? Color.yellow : Color.red;
-                skillImage.color = isInteractable ? Color.white : new Color(0.4f, 0.4f, 0.4f, 1.0f);
+                skillImage.color = isInteractable ? Color.white : new Color(0.35f, 0.35f, 0.35f, 0.7f);
                 break;
 
             default:

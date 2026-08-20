@@ -31,12 +31,62 @@ public class Slime
     public string eggStatQuality;
     public List<SkillInstance> Skills { get; private set; } = new List<SkillInstance>();
 
-    private void AssignSkills()
+    public void AssignSkills()
     {
         Skills.Clear();
         if (body?.skill != null) Skills.Add(body.skill);
         if (armor?.skill != null) Skills.Add(armor.skill);
         if (weapon?.skill != null) Skills.Add(weapon.skill);
+    }
+
+    public void EnsureSkillsExist()
+    {
+        if (SlimeGen.Instance == null) return;
+
+        if (body != null && (body.skill == null || body.skill.baseSkill == null))
+        {
+            if (body.baseTrait != null && body.baseTrait.skill != null)
+                body.skill = new SkillInstance(body.baseTrait.skill);
+            else
+            {
+                var skillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Body, body.Rarity);
+                if (skillSO != null) body.skill = new SkillInstance(skillSO);
+            }
+        }
+
+        if (armor != null && (armor.skill == null || armor.skill.baseSkill == null))
+        {
+            if (armor.baseTrait != null && armor.baseTrait.skill != null)
+                armor.skill = new SkillInstance(armor.baseTrait.skill);
+            else
+            {
+                var skillSO = SlimeGen.Instance.GetRandomSkill(TraitType.Armor, armor.Rarity);
+                if (skillSO != null) armor.skill = new SkillInstance(skillSO);
+            }
+        }
+
+        if (weapon != null && (weapon.skill == null || weapon.skill.baseSkill == null))
+        {
+            if (weapon.baseTrait != null && weapon.baseTrait.skill != null)
+                weapon.skill = new SkillInstance(weapon.baseTrait.skill);
+            else
+            {
+                var skillSO = SlimeGen.Instance.GetRandomWeaponSkill(weapon.Rarity, false);
+                if (skillSO != null) weapon.skill = new SkillInstance(skillSO);
+            }
+        }
+
+        // Tự động kiểm tra và ghép Ultimate cho Weapon Rare+ nếu thiếu
+        if (weapon != null && weapon.ultimateSkill == null && weapon.Rarity != Rarity.Common && weapon.Rarity != Rarity.Uncommon)
+        {
+            if (weapon.skill?.baseSkill != null)
+            {
+                var ultSO = SlimeGen.Instance.GetMatchingUltimateWeaponSkill(weapon.skill.baseSkill);
+                if (ultSO != null) weapon.ultimateSkill = new SkillInstance(ultSO);
+            }
+        }
+
+        AssignSkills();
     }
 
     // Constructor mới
@@ -221,7 +271,7 @@ public class Slime
             totalSpeed = body.speed;
             totalCritRate = body.critRate;
             totalCritDMG = body.critDMG;
-            AssignSkills();
+            EnsureSkillsExist();
             return;
         }
 
@@ -235,7 +285,7 @@ public class Slime
         totalCritRate = (armor != null ? armor.critRate : 0.05f);
         totalCritDMG = (armor != null ? armor.critDMG : 1.30f);
 
-        AssignSkills();
+        EnsureSkillsExist();
     }
 
     public void RollRandomSkillsMatchingRarity()

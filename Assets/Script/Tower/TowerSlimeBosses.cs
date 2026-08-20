@@ -120,11 +120,11 @@ public class TowerSlimeBosses : ScriptableObject
             }
             else
             {
-                newFloor.baseHP = template != null ? template.baseHP + 20 : 80 + (nextNum * 15);
-                newFloor.baseAttack = template != null ? template.baseAttack + 5 : 20 + (nextNum * 5);
-                newFloor.baseDefense = template != null ? template.baseDefense + 3 : 10 + (nextNum * 3);
-                newFloor.baseSpeed = template != null ? template.baseSpeed + 1 : 12 + nextNum;
-                newFloor.rewardCoins = 50 + (nextNum * 10);
+                newFloor.baseHP = template != null ? template.baseHP + 800 : 1600 + (nextNum * 600);
+                newFloor.baseAttack = template != null ? template.baseAttack + 80 : 200 + (nextNum * 50);
+                newFloor.baseDefense = template != null ? template.baseDefense + 90 : 220 + (nextNum * 60);
+                newFloor.baseSpeed = template != null ? template.baseSpeed + 1 : 85 + Mathf.Min(60, nextNum * 2);
+                newFloor.rewardCoins = 100 + (nextNum * 50);
                 newFloor.rewardGems = (nextNum % 5 == 0) ? 5 : 0;
             }
 

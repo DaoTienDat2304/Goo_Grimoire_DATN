@@ -107,67 +107,54 @@ public class FormationManager : MonoBehaviour
         }
         
         
-        // Clear all slots first
-        for (int j = 0; j < teamMembers.Count; j++)
+        int activeSlimesCount = teamSlimes.team != null ? teamSlimes.team.Count : 0;
+
+        for (int idx = 0; idx < teamMembers.Count; idx++)
         {
-            if (teamMembers[j] != null)
+            if (teamMembers[idx] == null) continue;
+
+            // Luôn giữ ô Member hiển thị (không ẩn ô)
+            teamMembers[idx].gameObject.SetActive(true);
+
+            var bodyRenderer = teamMembers[idx].body?.GetComponent<Image>();
+            var armorRenderer = teamMembers[idx].armor?.GetComponent<Image>();
+            var weaponRenderer = teamMembers[idx].weapon?.GetComponent<Image>();
+
+            if (idx < activeSlimesCount && teamSlimes.team[idx] != null)
             {
-                var bodyRenderer = teamMembers[j].body?.GetComponent<Image>();
-                var armorRenderer = teamMembers[j].armor?.GetComponent<Image>();
-                var weaponRenderer = teamMembers[j].weapon?.GetComponent<Image>();
-                
-                if (bodyRenderer != null) bodyRenderer.sprite = null;
-                if (armorRenderer != null) armorRenderer.sprite = null;
-                if (weaponRenderer != null) weaponRenderer.sprite = null;
-            }
-        }
-        
-        // Display team slimes
-        int i = 0;
-        foreach (Slime slime in teamSlimes.team)
-        {
-            if (i >= teamMembers.Count)
-            {
-                break;
-            }
-            
-            if (teamMembers[i] == null)
-            {
-                i++;
-                continue;
-            }
-            
-            if (slime != null)
-            {
-                teamMembers[i].id = slime.id;
-                var bodyRenderer = teamMembers[i].body?.GetComponent<Image>();
-                var armorRenderer = teamMembers[i].armor?.GetComponent<Image>();
-                var weaponRenderer = teamMembers[i].weapon?.GetComponent<Image>();
-                
+                // Slot hợp lệ có slime -> Gán id và sprite
+                Slime slime = teamSlimes.team[idx];
+                teamMembers[idx].id = slime.id;
+
                 if (bodyRenderer != null)
                 {
-                    bodyRenderer.sprite = slime.body?.sprite ?? CreateDefaultSlimeSprite();
+                    Sprite s = slime.body?.sprite;
+                    bodyRenderer.sprite = s;
+                    bodyRenderer.enabled = (s != null);
                 }
-                
+
                 if (armorRenderer != null)
                 {
-                    armorRenderer.sprite = slime.armor?.sprite ?? CreateDefaultSlimeSprite();
+                    Sprite s = slime.armor?.sprite;
+                    armorRenderer.sprite = s;
+                    armorRenderer.enabled = (s != null);
                 }
-                
+
                 if (weaponRenderer != null)
                 {
-                    weaponRenderer.sprite = slime.weapon?.sprite ?? CreateDefaultSlimeSprite();
+                    Sprite s = slime.weapon?.sprite;
+                    weaponRenderer.sprite = s;
+                    weaponRenderer.enabled = (s != null);
                 }
             }
             else
             {
-                Debug.LogWarning($"Slime at index {i} is null!");
+                // Không có slime cho slot này (ví dụ chỉ chọn 1-2 slime) -> Xóa sprite và tắt renderer để không bị hiện khối trắng
+                if (bodyRenderer != null) { bodyRenderer.sprite = null; bodyRenderer.enabled = false; }
+                if (armorRenderer != null) { armorRenderer.sprite = null; armorRenderer.enabled = false; }
+                if (weaponRenderer != null) { weaponRenderer.sprite = null; weaponRenderer.enabled = false; }
             }
-            
-            i++;
         }
-        
-        Debug.Log($"Team display refresh completed. Displayed {i} slimes.");
     }
 
     // Update() đã được xóa — không có logic nào cần chạy mỗi frame.

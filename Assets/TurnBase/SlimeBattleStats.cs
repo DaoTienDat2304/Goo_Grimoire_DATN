@@ -226,6 +226,8 @@ public class SlimeBattleStats : MonoBehaviour
         currentEnergy = Mathf.Max(0, currentEnergy - amount);
     }
 
+    public void SpendEnergy(int amount) => UseEnergy(amount);
+
     // Dynamic stats computation taking conversion into account.
     public float GetEffectiveCritRate()
     {

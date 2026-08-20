@@ -841,6 +841,7 @@ public class TurnSystem : MonoBehaviour
         {
             attacker.AddEnergy(20);
 
+
             // Cộng +1 Điểm Chiến Kỹ (SP) khi đánh thường
             if (BattleSystemManager.Instance != null)
             {
@@ -968,6 +969,7 @@ public class TurnSystem : MonoBehaviour
 
         if (skillInstance.baseSkill.type == SkillType.Passive)
         {
+
             CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, "Can't use Passive!", Color.yellow);
             return;
         }
@@ -998,13 +1000,20 @@ public class TurnSystem : MonoBehaviour
         if (attacker == null || skill == null)
             yield break;
 
+        if (target == null || (currentSlime == boss && target == boss))
+        {
+            target = formationManager.GetRandomRowLastAlive() ?? formationManager.GetAllAliveAllies().FirstOrDefault();
+        }
+
         if (skill.baseSkill != null && !string.IsNullOrEmpty(skill.baseSkill.skillName))
         {
             Color popupColor = skill.baseSkill.type == SkillType.Ultimate ? Color.yellow : Color.cyan;
             CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, skill.baseSkill.skillName, popupColor);
         }
 
-        if (attackerAnim != null)
+
+        // Animation tấn công của caster — play 1 lần trước toàn bộ effects
+        if (attackerAnim != null && target != null)
             yield return StartCoroutine(attackerAnim.PlayAttackAnimation(target.transform));
 
         foreach (var entry in skill.baseSkill.effects)
@@ -1031,7 +1040,7 @@ public class TurnSystem : MonoBehaviour
                             finalDamage = Mathf.RoundToInt(finalDamage * critMult);
                             Debug.Log("Critical Hit!");
                         }
-                        targetStats.TakeDamage(finalDamage);
+                        targetStats.TakeDamage(finalDamage, currentSlime, isCrit, entry.effect.aoeShape != AoEShape.Single);
                         if (isCrit)
                         {
                             CreateDamagePopup(targetGo.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
@@ -1117,56 +1126,94 @@ public class TurnSystem : MonoBehaviour
         }
         curSlimeBorder.color = Color.red;
 
-        var target = formationManager.GetRandomRowLastAlive();
-        currentSlime.GetComponent<SlimeStats>().turnHalo.SetActive(true);
+        var target = formationManager.GetRandomRowLastAlive() ?? formationManager.GetAllAliveAllies().FirstOrDefault();
+        if (stats != null && stats.turnHalo != null)
+            stats.turnHalo.SetActive(true);
+
         if (target != null)
         {
             var bossStats = boss.GetComponent<SlimeBattleStats>();
-            var targetStats = target.GetComponent<SlimeBattleStats>();
+            if (bossStats == null) bossStats = boss.AddComponent<SlimeBattleStats>();
 
-            var bossAnimController = boss.GetComponent<SimpleCombatAnimation>();
-            var targetAnimController = target.GetComponent<SimpleCombatAnimation>();
 
-            if (bossAnimController != null && bossAnimController.gameObject.activeInHierarchy)
+            var aiState = currentSlime.GetComponent<EnemyAIState>();
+            if (aiState == null) aiState = currentSlime.AddComponent<EnemyAIState>();
+            aiState.currentTurnCycle++;
+
+            SkillInstance skillToUse = null;
+
+            // 1. Tuyệt Kỹ Ultimate: Khi Boss đầy 100 NL và có Ultimate (Bậc Rare trở lên)
+            if (bossStats.CurrentEnergy >= 100 && stats != null && stats.weaponUltimateSkill != null && stats.weaponUltimateSkill.baseSkill != null)
             {
-                yield return StartCoroutine(bossAnimController.PlayAttackAnimation(target.transform));
+                skillToUse = stats.weaponUltimateSkill;
+                bossStats.UseEnergy(100);
+            }
+            // 2. Kỹ Năng Giáp (Thủ / Hồi máu / Khiên): Khi Máu Boss < 60% và đến lượt chẵn
+            else if (bossStats.CurrentHP < (bossStats.MaxHP * 0.6f) && stats != null && stats.armorSkill != null && stats.armorSkill.baseSkill != null && (aiState.currentTurnCycle % 2 == 0))
+            {
+                skillToUse = stats.armorSkill;
+            }
+            // 3. Chiến Kỹ Vũ Khí (Công ma pháp / Choáng / Độc): Mỗi lượt chẵn (2, 4, 6...)
+            else if (stats != null && stats.weaponSkill != null && stats.weaponSkill.baseSkill != null && (aiState.currentTurnCycle % 2 == 0))
+            {
+                skillToUse = stats.weaponSkill;
             }
 
-            // Calculate damage using GDD
-            int damage = bossStats != null ? bossStats.GetEffectiveAttack() : boss.GetComponent<SlimeStats>().Attack;
-            bool isCrit = bossStats != null && bossStats.TryCriticalHit();
-            if (isCrit)
+            if (skillToUse != null)
             {
-                float critMult = bossStats != null ? bossStats.GetFinalCritDMG() : 1.5f;
-                damage = Mathf.RoundToInt(damage * critMult);
-                Debug.Log("Boss Critical Hit!");
-            }
-
-            // Apply damage
-            if (targetStats != null)
-            {
-                targetStats.TakeDamage(damage);
-                if (isCrit)
-                {
-                    CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
-                }
+                yield return StartCoroutine(DoSkill(skillToUse, target));
+                yield break;
             }
             else
             {
-                target.GetComponent<SlimeStats>().HP -= damage;
-            }
+                // Đánh thường vật lý
+                var targetStats = target.GetComponent<SlimeBattleStats>();
+                var bossAnimController = boss.GetComponent<SimpleCombatAnimation>();
+                var targetAnimController = target.GetComponent<SimpleCombatAnimation>();
 
-            Debug.Log($"{boss.name} attacks {target.name} for {damage} damage!");
+                if (bossAnimController != null && bossAnimController.gameObject.activeInHierarchy)
+                {
+                    yield return StartCoroutine(bossAnimController.PlayAttackAnimation(target.transform));
+                }
 
-            if (targetAnimController != null)
-            {
-                yield return StartCoroutine(targetAnimController.PlayHitAnimation());
-            }
 
-            int currentHP = targetStats != null ? targetStats.CurrentHP : target.GetComponent<SlimeStats>().HP;
-            if (currentHP <= 0)
-            {
-                Debug.Log($"{target.name} died!");
+                int damage = bossStats.GetEffectiveAttack();
+                bool isCrit = bossStats.TryCriticalHit();
+                if (isCrit)
+                {
+                    float critMult = bossStats.GetFinalCritDMG();
+                    damage = Mathf.RoundToInt(damage * critMult);
+                    Debug.Log("Boss Critical Hit!");
+                }
+
+                if (targetStats != null)
+                {
+                    targetStats.TakeDamage(damage, currentSlime, isCrit);
+                    if (isCrit)
+                    {
+                        CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
+                    }
+                }
+                else
+                {
+                    target.GetComponent<SlimeStats>().HP -= damage;
+                }
+
+                // Boss đánh thường hồi +25 Năng Lượng
+                bossStats.AddEnergy(25);
+
+                Debug.Log($"{boss.name} attacks {target.name} for {damage} damage! Energy: {bossStats.CurrentEnergy}/100");
+
+                if (targetAnimController != null)
+                {
+                    yield return StartCoroutine(targetAnimController.PlayHitAnimation());
+                }
+
+                int currentHP = targetStats != null ? targetStats.CurrentHP : target.GetComponent<SlimeStats>().HP;
+                if (currentHP <= 0)
+                {
+                    Debug.Log($"{target.name} died!");
+                }
             }
         }
 
@@ -1330,6 +1377,12 @@ public class TurnSystem : MonoBehaviour
             int completedIndex = PlayerPrefs.GetInt("ActiveFarm_Index", -1);
             int pCoins = PlayerPrefs.GetInt("ActiveFarm_Coins", 0);
             int pGems = PlayerPrefs.GetInt("ActiveFarm_Gems", 0);
+            string diffName = PlayerPrefs.GetString("ActiveFarm_Name", "Farm Boss");
+
+            if (resultText != null)
+            {
+                resultText.text = $"VICTORY!\n+{pCoins} Gold  +{pGems} Gems";
+            }
 
             if (farmDatabase != null)
             {
@@ -1340,6 +1393,10 @@ public class TurnSystem : MonoBehaviour
             PlayerPrefs.SetInt("PendingFarm_Index", completedIndex);
             PlayerPrefs.SetInt("PendingFarm_Coins", pCoins);
             PlayerPrefs.SetInt("PendingFarm_Gems", pGems);
+            PlayerPrefs.SetString("PendingFarm_Name", diffName);
+            PlayerPrefs.SetInt("PendingFarm_ShowReward_Coins", pCoins);
+            PlayerPrefs.SetInt("PendingFarm_ShowReward_Gems", pGems);
+            PlayerPrefs.SetString("PendingFarm_ShowReward_Name", diffName);
             PlayerPrefs.Save();
 
             PlayerStatsManager.Instance?.AddFarmWin();
@@ -1499,6 +1556,9 @@ public class TurnSystem : MonoBehaviour
         yield return SceneLoader.LoadSceneWithLoadingCoroutine(targetReturnScene);
     }
 
+
+    /// <summary>
+    /// </summary>
     protected void ShowResultPanel(bool isVictory)
     {
         if (resultPanel != null)
@@ -1522,6 +1582,7 @@ public class TurnSystem : MonoBehaviour
             Debug.LogWarning("Result Panel is not assigned in TurnSystem!");
         }
     }
+
 
     private Font GetDefaultFont()
     {
@@ -1564,13 +1625,39 @@ public class TurnSystem : MonoBehaviour
 
     public void CreateDamagePopup(Vector3 worldPosition, string text, Color color)
     {
-        Canvas parentCanvas = FindObjectOfType<Canvas>();
+        Canvas parentCanvas = _cachedCanvas != null ? _cachedCanvas : FindObjectOfType<Canvas>();
         if (parentCanvas == null) return;
+        _cachedCanvas = parentCanvas;
 
-        GameObject popupGO = new GameObject("BattlePopupText");
-        popupGO.transform.SetParent(parentCanvas.transform, false);
+        GameObject popupGO;
+        if (_popupPool.Count > 0)
+        {
+            popupGO = _popupPool.Dequeue();
+            if (popupGO != null)
+            {
+                popupGO.SetActive(true);
+                popupGO.transform.SetParent(parentCanvas.transform, false);
+            }
+            else
+            {
+                popupGO = CreatePopupObject();
+                popupGO.transform.SetParent(parentCanvas.transform, false);
+            }
+        }
+        else
+        {
+            popupGO = CreatePopupObject();
+            popupGO.transform.SetParent(parentCanvas.transform, false);
+        }
 
-        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector3.zero;
+        var textComponent = popupGO.GetComponent<Text>();
+        if (textComponent != null)
+        {
+            textComponent.text = text;
+            textComponent.color = color;
+        }
+
+        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector2.zero;
         Vector2 localPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             parentCanvas.transform as RectTransform,
@@ -1579,21 +1666,11 @@ public class TurnSystem : MonoBehaviour
             out localPos
         );
 
-        RectTransform rectTransform = popupGO.AddComponent<RectTransform>();
-        rectTransform.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f)); // Random offset
-        rectTransform.sizeDelta = new Vector2(300, 80);
-
-        Text textComponent = popupGO.AddComponent<Text>();
-        textComponent.text = text;
-        textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textComponent.fontSize = 28;
-        textComponent.fontStyle = FontStyle.Bold;
-        textComponent.alignment = TextAnchor.MiddleCenter;
-        textComponent.color = color;
-
-        Outline outline = popupGO.AddComponent<Outline>();
-        outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(2, -2);
+        var rectTransform = popupGO.GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            rectTransform.anchoredPosition = localPos + new Vector2(UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-10f, 10f));
+        }
 
         StartCoroutine(AnimatePopupText(popupGO, textComponent));
     }

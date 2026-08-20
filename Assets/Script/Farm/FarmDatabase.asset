@@ -15,11 +15,11 @@ MonoBehaviour:
   difficulties:
   - difficultyName: "D\u1EC5"
     description: "Ng\u01B0\u1EDDi m\u1EDBi ch\u01A1i"
-    bossHP: 1500
-    bossAttack: 120
-    bossMagicAttack: 220
-    bossDefense: 300
-    bossSpeed: 85
+    bossHP: 15000
+    bossAttack: 400
+    bossMagicAttack: 520
+    bossDefense: 1000
+    bossSpeed: 95
     bossCritRate: 0.05
     bossCritDMG: 1.3
     bossEvade: 0
@@ -29,39 +29,39 @@ MonoBehaviour:
     completed: 1
   - difficultyName: "V\u1EEBa"
     description: "L\xE0m quen"
-    bossHP: 8500
-    bossAttack: 280
-    bossMagicAttack: 480
-    bossDefense: 500
-    bossSpeed: 100
+    bossHP: 32000
+    bossAttack: 620
+    bossMagicAttack: 800
+    bossDefense: 1800
+    bossSpeed: 110
     bossCritRate: 0.09
     bossCritDMG: 1.5
     bossEvade: 0
     rewardCoins: 1200
     rewardGems: 5
     unlocked: 1
-    completed: 0
+    completed: 1
   - difficultyName: "Kh\xF3"
     description: "Hi\u1EC3u"
-    bossHP: 20000
-    bossAttack: 600
-    bossMagicAttack: 1100
-    bossDefense: 800
-    bossSpeed: 115
+    bossHP: 70000
+    bossAttack: 900
+    bossMagicAttack: 1200
+    bossDefense: 3500
+    bossSpeed: 125
     bossCritRate: 0.1
     bossCritDMG: 1.7
     bossEvade: 0
     rewardCoins: 2500
     rewardGems: 15
-    unlocked: 0
+    unlocked: 1
     completed: 0
   - difficultyName: "Nightmare"
     description: "Th\xE0nh th\u1EA1o"
-    bossHP: 45000
-    bossAttack: 1200
-    bossMagicAttack: 2200
-    bossDefense: 1200
-    bossSpeed: 130
+    bossHP: 150000
+    bossAttack: 1450
+    bossMagicAttack: 2000
+    bossDefense: 6800
+    bossSpeed: 145
     bossCritRate: 0.12
     bossCritDMG: 1.9
     bossEvade: 0
@@ -71,11 +71,11 @@ MonoBehaviour:
     completed: 0
   - difficultyName: "Hell"
     description: "Am hi\u1EC3u"
-    bossHP: 100000
-    bossAttack: 2500
-    bossMagicAttack: 4500
-    bossDefense: 2000
-    bossSpeed: 155
+    bossHP: 350000
+    bossAttack: 2400
+    bossMagicAttack: 3400
+    bossDefense: 13500
+    bossSpeed: 165
     bossCritRate: 0.15
     bossCritDMG: 2.1
     bossEvade: 0

@@ -37,6 +37,7 @@ public class Slime
         if (weapon?.skill != null) Skills.Add(weapon.skill);
     }
 
+
     public void EnsureSkillsExist()
     {
         if (SlimeGen.Instance == null) return;

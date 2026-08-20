@@ -165,6 +165,7 @@ public class TraitInstance
     {
         switch (rarity)
         {
+
             case Rarity.Common:    return Random.Range(1500, 2001);
             case Rarity.Uncommon:  return Random.Range(2000, 2701);
             case Rarity.Rare:      return Random.Range(2700, 3701);

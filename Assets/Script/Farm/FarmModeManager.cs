@@ -19,8 +19,6 @@ public class FarmDifficulty
     public int bossSpeed = 90;
     public float bossCritRate = 0.05f;
     public float bossCritDMG = 1.30f;
-    [Tooltip("Unused. Kept for old saves.")]
-    public int bossEvade = 0;
 
     [Header("Reward")]
     public int rewardCoins = 500;
@@ -60,6 +58,13 @@ public class FarmModeManager : MonoBehaviour
     public int cachedRewardCoins = 0;
     public int cachedRewardGems = 0;
 
+
+    [Header("Reward Popup (tuỳ chọn)")]
+    public GameObject rewardPopup;              // Panel hiện khi claim phần thưởng
+    public UnityEngine.UI.Text rewardPopupText; // Text hiển thị nội dung phần thưởng
+    public UnityEngine.UI.Button rewardPopupCloseButton; // Nút đóng popup
+
+    /// <summary>Tên độ khó đang được chọn — dùng cho analytics.</summary>
     public string SelectedDifficultyName => selectedDifficulty?.difficultyName ?? "none";
 
     void Awake()
@@ -79,6 +84,60 @@ public class FarmModeManager : MonoBehaviour
         if (difficulties.Count > 0)
         {
             difficulties[0].unlocked = true;
+        }
+    }
+
+    void Start()
+    {
+        if (rewardPopupCloseButton != null)
+            rewardPopupCloseButton.onClick.AddListener(HideRewardPopup);
+        if (rewardPopup != null)
+            rewardPopup.SetActive(false);
+
+        LoadUnlockStatus();
+        StartCoroutine(CheckPendingRewardPopup());
+    }
+
+    private System.Collections.IEnumerator CheckPendingRewardPopup()
+    {
+        yield return new WaitForSeconds(0.4f);
+
+        if (PlayerPrefs.HasKey("PendingFarm_ShowReward_Coins"))
+        {
+            int coins = PlayerPrefs.GetInt("PendingFarm_ShowReward_Coins", 0);
+            int gems = PlayerPrefs.GetInt("PendingFarm_ShowReward_Gems", 0);
+            string diffName = PlayerPrefs.GetString("PendingFarm_ShowReward_Name", "Farm Mode");
+
+            PlayerPrefs.DeleteKey("PendingFarm_ShowReward_Coins");
+            PlayerPrefs.DeleteKey("PendingFarm_ShowReward_Gems");
+            PlayerPrefs.DeleteKey("PendingFarm_ShowReward_Name");
+            PlayerPrefs.Save();
+
+            string msg = $"FARM MODE — VICTORY!\n\nĐộ khó: {diffName}\n+{coins} Gold\n+{gems} Gem";
+            ShowRewardPopup(msg);
+        }
+    }
+
+    public void ShowRewardPopup(string message)
+    {
+        if (rewardPopupText != null) rewardPopupText.text = message;
+        if (rewardPopup != null) rewardPopup.SetActive(true);
+
+        var selDiff = FindFirstObjectByType<SelectDifficulties>();
+        if (selDiff != null && selDiff.rewardPopup != null)
+        {
+            if (selDiff.rewardPopupText != null) selDiff.rewardPopupText.text = message;
+            selDiff.rewardPopup.SetActive(true);
+        }
+    }
+
+    public void HideRewardPopup()
+    {
+        if (rewardPopup != null) rewardPopup.SetActive(false);
+        var selDiff = FindFirstObjectByType<SelectDifficulties>();
+        if (selDiff != null && selDiff.rewardPopup != null)
+        {
+            selDiff.rewardPopup.SetActive(false);
         }
     }
 
@@ -116,13 +175,6 @@ public class FarmModeManager : MonoBehaviour
         target.rewardGems      = row.gems;
     }
     
-    void Start()
-    {
-        LoadUnlockStatus();
-    }
-    
-    /// <summary>
-    /// </summary>
     private void InitializeDefaultDifficulties()
     {
         FarmDifficulty Make(string name, string desc,
@@ -222,6 +274,31 @@ public class FarmModeManager : MonoBehaviour
         StartCoroutine(SceneLoader.LoadSceneWithLoadingCoroutine(battleSceneName));
     }
     
+    private Rarity GetRarityForDifficulty(FarmDifficulty difficulty)
+    {
+        if (difficulty == null) return Rarity.Common;
+        string name = (difficulty.difficultyName ?? "").ToLower();
+        if (name.Contains("dễ") || name.Contains("easy")) return Rarity.Common;
+        if (name.Contains("trung bình") || name.Contains("medium")) return Rarity.Uncommon;
+        if (name.Contains("khó") || name.Contains("hard")) return Rarity.Rare;
+        if (name.Contains("cực khó") || name.Contains("extreme")) return Rarity.SuperRare;
+        if (name.Contains("địa ngục") || name.Contains("hell")) return Rarity.Mythic;
+        return Rarity.Common;
+    }
+
+    private TraitSO RollRandomTraitByRarity(TraitType type, Rarity targetRarity)
+    {
+        if (SlimeGen.Instance == null || SlimeGen.Instance.allTraits == null) return null;
+        var pool = SlimeGen.Instance.allTraits
+            .Where(t => t != null && t.type == type && t.rarity == targetRarity && t.dropRate > 0f)
+            .ToList();
+        if (pool.Count > 0)
+        {
+            return pool[Random.Range(0, pool.Count)];
+        }
+        return RollRandomTraitExcludingSecret(type);
+    }
+
     private Slime CreateFarmBoss(FarmDifficulty difficulty)
     {
         if (SlimeGen.Instance == null)
@@ -229,10 +306,11 @@ public class FarmModeManager : MonoBehaviour
             Debug.LogError("SlimeGen.Instance is null!");
             return null;
         }
-        
-        TraitSO bodyTrait = RollRandomTraitExcludingSecret(TraitType.Body);
-        TraitSO armorTrait = RollRandomTraitExcludingSecret(TraitType.Armor);
-        TraitSO weaponTrait = RollRandomTraitExcludingSecret(TraitType.Weapon);
+
+        Rarity targetRarity = GetRarityForDifficulty(difficulty);
+        TraitSO bodyTrait = RollRandomTraitByRarity(TraitType.Body, targetRarity);
+        TraitSO armorTrait = RollRandomTraitByRarity(TraitType.Armor, targetRarity);
+        TraitSO weaponTrait = RollRandomTraitByRarity(TraitType.Weapon, targetRarity);
         
         if (bodyTrait == null || armorTrait == null || weaponTrait == null)
         {
@@ -245,6 +323,16 @@ public class FarmModeManager : MonoBehaviour
         bossSlime.body = bodyTrait.GenerateInstance();
         bossSlime.armor = armorTrait.GenerateInstance();
         bossSlime.weapon = weaponTrait.GenerateInstance();
+
+        // Kích hoạt Ultimate Skill cho Boss từ bậc Rare trở lên
+        if (targetRarity != Rarity.Common && targetRarity != Rarity.Uncommon && weaponTrait.skill != null)
+        {
+            var ultimateSO = SlimeGen.Instance.GetMatchingUltimateWeaponSkill(weaponTrait.skill);
+            if (ultimateSO != null)
+            {
+                bossSlime.weapon.ultimateSkill = new SkillInstance(ultimateSO);
+            }
+        }
         
         bossSlime.totalHP = difficulty.bossHP;
         bossSlime.totalAttack = difficulty.bossAttack;

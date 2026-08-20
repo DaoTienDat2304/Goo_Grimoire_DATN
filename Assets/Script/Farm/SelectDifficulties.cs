@@ -9,6 +9,19 @@ public class SelectDifficulties : MonoBehaviour
     public Button hardButton;
     public Button extremeButton;
     public Button hellButton;
+
+    [Header("Reward Popup (tuỳ chọn)")]
+    public GameObject rewardPopup;              // Panel hiện khi claim phần thưởng
+    public Text rewardPopupText;                // Text hiển thị nội dung phần thưởng
+    public Button rewardPopupCloseButton;       // Nút đóng popup
+
+    void Awake()
+    {
+        if (rewardPopupCloseButton != null)
+            rewardPopupCloseButton.onClick.AddListener(HideRewardPopup);
+        if (rewardPopup != null)
+            rewardPopup.SetActive(false);
+    }
     
     void Start()
     {
@@ -19,6 +32,17 @@ public class SelectDifficulties : MonoBehaviour
     void OnEnable()
     {
         UpdateButtonStates();
+    }
+
+    public void ShowRewardPopup(string message)
+    {
+        if (rewardPopupText != null) rewardPopupText.text = message;
+        if (rewardPopup != null) rewardPopup.SetActive(true);
+    }
+
+    public void HideRewardPopup()
+    {
+        if (rewardPopup != null) rewardPopup.SetActive(false);
     }
     
     /// <summary>

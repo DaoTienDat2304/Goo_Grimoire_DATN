@@ -729,6 +729,7 @@ public class SaveAndLoadSystem : MonoBehaviour
                 if (skillSO != null) ti.skill = new SkillInstance(skillSO);
             }
 
+
             // Fallback nếu chưa có skill: lấy từ Trait gốc hoặc bốc random theo độ hiếm
             if (ti.skill == null)
             {

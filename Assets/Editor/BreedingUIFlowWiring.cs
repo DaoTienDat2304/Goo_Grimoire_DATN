@@ -85,6 +85,7 @@ public static class BreedingUIFlowWiring
         Transform name = Find(clone.transform, "Name");
         ConfigureCompositeSlime(slot, slime);
         slot.slimeNameText = name != null ? name.GetComponent<TMP_Text>() : null;
+        ConfigureNameText(slot.slimeNameText);
         slot.backgroundImage = clone.GetComponent<Image>();
         slot.nameText = null;
         slot.breedingStatusText = null;
@@ -107,9 +108,18 @@ public static class BreedingUIFlowWiring
         Transform slime = Find(root.transform, "Slime");
         ConfigureCompositeSlime(slot, slime);
         slot.slimeNameText = Component<TMP_Text>(root.transform, "Name");
+        ConfigureNameText(slot.slimeNameText);
         PrefabUtility.SaveAsPrefabAsset(root, CollectionPrefabPath);
         PrefabUtility.UnloadPrefabContents(root);
         return AssetDatabase.LoadAssetAtPath<GameObject>(CollectionPrefabPath);
+    }
+
+    private static void ConfigureNameText(TMP_Text text)
+    {
+        if (text == null) return;
+        text.enableAutoSizing = false;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.overflowMode = TextOverflowModes.Truncate;
     }
 
     private static void ConfigureCompositeSlime(SlimeSlotUI slot, Transform slime)

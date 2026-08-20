@@ -193,6 +193,12 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
                 slimeNameText = nameTransform.GetComponent<TMP_Text>();
         }
 
+        if (slimeNameText != null)
+        {
+            slimeNameText.enableAutoSizing = false;
+            slimeNameText.textWrappingMode = TextWrappingModes.NoWrap;
+            slimeNameText.overflowMode = TextOverflowModes.Truncate;
+        }
 
         if (slimeBody == null)
             slimeBody = FindChild("slimeBody")?.gameObject;

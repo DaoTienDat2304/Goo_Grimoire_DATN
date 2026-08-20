@@ -1176,11 +1176,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-<<<<<<< HEAD
   m_Text: At least 1 slime is required in the team.
-=======
-  m_Text: "Need 1 slime in team"
->>>>>>> Player
 --- !u!222 &66973041
 CanvasRenderer:
   m_ObjectHideFlags: 0

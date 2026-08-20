@@ -348348,7 +348348,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 687588342}
   m_CullTransparentMesh: 1
-<<<<<<< HEAD
 --- !u!1 &701521077
 GameObject:
   m_ObjectHideFlags: 0
@@ -348602,8 +348601,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5952848004203745341, guid: 1490450de126305498ee8f3d942f5b5e, type: 3}
   m_PrefabInstance: {fileID: 720378494}
   m_PrefabAsset: {fileID: 0}
-=======
->>>>>>> Player
 --- !u!1 &732267418
 GameObject:
   m_ObjectHideFlags: 0
@@ -349165,7 +349162,6 @@ TilemapCollider2D:
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
   m_UseDelaunayMesh: 0
-<<<<<<< HEAD
 --- !u!1 &825659527
 GameObject:
   m_ObjectHideFlags: 0
@@ -349250,8 +349246,6 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
-=======
->>>>>>> Player
 --- !u!1 &978208678
 GameObject:
   m_ObjectHideFlags: 0

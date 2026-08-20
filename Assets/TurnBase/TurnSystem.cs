@@ -841,7 +841,6 @@ public class TurnSystem : MonoBehaviour
         {
             attacker.AddEnergy(20);
 
-<<<<<<< HEAD
             // Cộng +1 Điểm Chiến Kỹ (SP) khi đánh thường
             if (BattleSystemManager.Instance != null)
             {
@@ -850,8 +849,6 @@ public class TurnSystem : MonoBehaviour
             }
 
             // Lấy SimpleCombatAnimation của slime tấn công
-=======
->>>>>>> Player
             var attackerAnimController = currentSlime.GetComponent<SimpleCombatAnimation>();
             var targetAnimController = boss.GetComponent<SimpleCombatAnimation>();
 
@@ -971,11 +968,7 @@ public class TurnSystem : MonoBehaviour
 
         if (skillInstance.baseSkill.type == SkillType.Passive)
         {
-<<<<<<< HEAD
             CreateDamagePopup(currentSlime.transform.position + Vector3.up * 2.2f, "Can't use Passive!", Color.yellow);
-=======
-            Debug.Log("Passive skill.");
->>>>>>> Player
             return;
         }
 
@@ -1506,11 +1499,6 @@ public class TurnSystem : MonoBehaviour
         yield return SceneLoader.LoadSceneWithLoadingCoroutine(targetReturnScene);
     }
 
-<<<<<<< HEAD
-=======
-    /// <summary>
-    /// </summary>
->>>>>>> Player
     protected void ShowResultPanel(bool isVictory)
     {
         if (resultPanel != null)
@@ -1535,7 +1523,6 @@ public class TurnSystem : MonoBehaviour
         }
     }
 
-<<<<<<< HEAD
     private Font GetDefaultFont()
     {
         var existingText = FindFirstObjectByType<Text>();
@@ -1547,9 +1534,6 @@ public class TurnSystem : MonoBehaviour
             ?? Font.CreateDynamicFontFromOSFont("Arial", 28);
     }
 
-=======
-    // ── Popup damage & stats indicator ──────────────────────────────────
->>>>>>> Player
     private GameObject CreatePopupObject()
     {
         var go = new GameObject("BattlePopupText");
@@ -1583,31 +1567,10 @@ public class TurnSystem : MonoBehaviour
         Canvas parentCanvas = FindObjectOfType<Canvas>();
         if (parentCanvas == null) return;
 
-<<<<<<< HEAD
         GameObject popupGO = new GameObject("BattlePopupText");
         popupGO.transform.SetParent(parentCanvas.transform, false);
 
         Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector3.zero;
-=======
-        GameObject popupGO;
-        if (_popupPool.Count > 0)
-        {
-            popupGO = _popupPool.Dequeue();
-            popupGO.SetActive(true);
-            popupGO.transform.SetParent(_cachedCanvas.transform, false);
-        }
-        else
-        {
-            popupGO = CreatePopupObject();
-            popupGO.transform.SetParent(_cachedCanvas.transform, false);
-        }
-
-        var textComponent = popupGO.GetComponent<Text>();
-        textComponent.text = text;
-        textComponent.color = color;
-
-        Vector2 screenPos = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector2.zero;
->>>>>>> Player
         Vector2 localPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             parentCanvas.transform as RectTransform,

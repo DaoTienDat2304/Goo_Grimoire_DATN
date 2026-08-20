@@ -729,7 +729,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                 if (skillSO != null) ti.skill = new SkillInstance(skillSO);
             }
 
-<<<<<<< HEAD
             // Fallback nếu chưa có skill: lấy từ Trait gốc hoặc bốc random theo độ hiếm
             if (ti.skill == null)
             {
@@ -747,8 +746,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
 
             // Khôi phục ultimate skill từ tên đã lưu hoặc tự động ghép nếu là Rare+ Weapon
-=======
->>>>>>> Player
             if (!string.IsNullOrEmpty(dto.ultimateSkillName))
             {
                 var ultSO = gen.allSkillsDatabase?.FirstOrDefault(s => s != null && s.name == dto.ultimateSkillName);

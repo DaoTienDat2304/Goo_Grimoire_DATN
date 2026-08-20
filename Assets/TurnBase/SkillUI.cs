@@ -225,15 +225,9 @@ public class SkillUI : MonoBehaviour
         switch (skill.baseSkill.type)
         {
             case SkillType.Passive:
-<<<<<<< HEAD
                 // Kỹ năng nội tại (Body Skill): hiển thị sáng rõ bình thường, bấm vào sẽ hiện popup thông báo
                 isInteractable = true;
                 textColor = Color.white;
-=======
-                isInteractable = false;
-                skillInfo += "\n(Passive)";
-                textColor = new Color(0.2f, 0.8f, 1f);
->>>>>>> Player
                 skillImage.color = Color.white;
                 break;
 

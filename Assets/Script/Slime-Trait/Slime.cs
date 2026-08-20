@@ -37,7 +37,6 @@ public class Slime
         if (weapon?.skill != null) Skills.Add(weapon.skill);
     }
 
-<<<<<<< HEAD
     public void EnsureSkillsExist()
     {
         if (SlimeGen.Instance == null) return;
@@ -89,8 +88,6 @@ public class Slime
     }
 
     // Constructor mới
-=======
->>>>>>> Player
     public Slime()
     {
         generation = 0;

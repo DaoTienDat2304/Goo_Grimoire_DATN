@@ -165,7 +165,6 @@ public class TraitInstance
     {
         switch (rarity)
         {
-<<<<<<< HEAD
             case Rarity.Common:    return Random.Range(1500, 2001);
             case Rarity.Uncommon:  return Random.Range(2000, 2701);
             case Rarity.Rare:      return Random.Range(2700, 3701);
@@ -175,17 +174,6 @@ public class TraitInstance
             case Rarity.Mythic:    return Random.Range(8300, 10001);
             case Rarity.Secret:    return Random.Range(5000, 6501);
             default:               return Random.Range(1500, 2001);
-=======
-            case Rarity.Common:    return Random.Range(1000, 2001);
-            case Rarity.Uncommon:  return Random.Range(1800, 3501);
-            case Rarity.Rare:      return Random.Range(3200, 6001);
-            case Rarity.SuperRare: return Random.Range(5500, 10001);
-            case Rarity.UltraRare: return Random.Range(9000, 16001);
-            case Rarity.Legendary: return Random.Range(14000, 25001);
-            case Rarity.Mythic:    return Random.Range(22000, 50001);
-            case Rarity.Secret:    return Random.Range(9000, 16001);
-            default:               return Random.Range(1000, 2001);
->>>>>>> Player
         }
     }
 

@@ -29,12 +29,95 @@ public class Slime
     public string eggStatQuality;
     public List<SkillInstance> Skills { get; private set; } = new List<SkillInstance>();
 
+    private static readonly string[] RarityNamePrefixes =
+    {
+        "Soft",
+        "Bright",
+        "Rare",
+        "Royal",
+        "Mystic",
+        "Legend",
+        "Mythic",
+        "Secret"
+    };
+
     public void AssignSkills()
     {
         Skills.Clear();
         if (body?.skill != null) Skills.Add(body.skill);
         if (armor?.skill != null) Skills.Add(armor.skill);
         if (weapon?.skill != null) Skills.Add(weapon.skill);
+    }
+
+    public void AssignCompactName()
+    {
+        slimeName = CreateCompactName(this);
+    }
+
+    public static string CreateCompactName(Slime slime)
+    {
+        if (slime == null) return "Tiny Slime";
+
+        string prefix = RarityPrefix(slime.GetHighestRarity());
+        string bodyName = CleanTraitName(slime.body?.baseTrait != null ? slime.body.baseTrait.traitName : slime.body?.traitname);
+        string armorName = CleanTraitName(slime.armor?.baseTrait != null ? slime.armor.baseTrait.traitName : slime.armor?.traitname);
+        string weaponName = CleanTraitName(slime.weapon?.baseTrait != null ? slime.weapon.baseTrait.traitName : slime.weapon?.traitname);
+
+        string name = $"{prefix} {FirstWord(bodyName)}";
+        if (!string.IsNullOrEmpty(armorName) && !IsEmptyName(armorName))
+            name += $" {FirstWord(armorName)}";
+        if (!string.IsNullOrEmpty(weaponName) && !IsEmptyName(weaponName))
+            name += $" {FirstWord(weaponName)}";
+
+        return LimitWords(string.IsNullOrWhiteSpace(name) ? "Tiny Slime" : name, 5);
+    }
+
+    public static string CompactExistingName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "Tiny Slime";
+        string cleaned = name.Replace("_", " ").Replace("-", " ").Trim();
+        return LimitWords(cleaned, 5);
+    }
+
+    private static string RarityPrefix(Rarity rarity)
+    {
+        int index = Mathf.Clamp((int)rarity, 0, RarityNamePrefixes.Length - 1);
+        return RarityNamePrefixes[index];
+    }
+
+    private static string CleanTraitName(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "Slime";
+
+        string cleaned = value.Replace("_", " ").Replace("-", " ").Trim();
+        cleaned = cleaned.Replace("Slime", "").Replace("slime", "").Trim();
+        return string.IsNullOrWhiteSpace(cleaned) ? "Slime" : cleaned;
+    }
+
+    private static string FirstWord(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        string[] parts = value.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length > 0 ? parts[0] : "";
+    }
+
+    private static bool IsEmptyName(string value)
+    {
+        return string.Equals(value, "Empty", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "EmptyHand", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "DefaultArmor", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "DefaultWeapon", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string LimitWords(string value, int maxWords)
+    {
+        string[] parts = value.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length <= maxWords) return string.Join(" ", parts);
+
+        string[] limited = new string[maxWords];
+        for (int i = 0; i < maxWords; i++)
+            limited[i] = parts[i];
+        return string.Join(" ", limited);
     }
 
 

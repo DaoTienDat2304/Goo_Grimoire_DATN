@@ -511,6 +511,7 @@ public class SaveAndLoadSystem : MonoBehaviour
                 foreach (var s in all)
                 {
                     if (s == null) continue;
+                    s.AssignCompactName();
                     var dto = new SlimeDTO
                     {
                         slimeName = s.slimeName,
@@ -584,6 +585,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             s.weapon = FromTraitDTO(dto.weapon);
 
             s.CalculateStats();
+            s.AssignCompactName();
             s.id = dto.id;
             list.Add(s);
         }

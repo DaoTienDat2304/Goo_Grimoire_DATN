@@ -73,6 +73,7 @@ public static class DevAccountInitializer
                 weapon    = weaponSO.GenerateInstance()
             };
             s.CalculateStats();
+            s.AssignCompactName();
             result.Add(s);
         }
         return result;

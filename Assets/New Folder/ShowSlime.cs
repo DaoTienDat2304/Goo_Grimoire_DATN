@@ -195,7 +195,7 @@ public class ShowSlime : MonoBehaviour
     {
         if(string.IsNullOrEmpty(named.text) == false)
         {
-            slime_name = named.text;
+            slime_name = Slime.CompactExistingName(named.text);
             slime.slimeName = slime_name;
             UpdateUI();
             named.text = null;

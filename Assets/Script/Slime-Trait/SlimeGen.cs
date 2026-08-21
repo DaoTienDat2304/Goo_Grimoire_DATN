@@ -104,6 +104,7 @@ public class SlimeGen : MonoBehaviour
         s.weapon = weaponSo.GenerateInstance();
         s.CalculateStats();
         s.RollRandomSkillsMatchingRarity();
+        s.AssignCompactName();
         return s;
     }
 
@@ -114,6 +115,7 @@ public class SlimeGen : MonoBehaviour
         s.slimeName = name;
         s.body = bodySo.GenerateInstance();
         s.CalculateStats();
+        s.AssignCompactName();
         return s;
     }
     public TraitSO RollTraitOfRarity(TraitType type, Rarity rarity)
@@ -147,6 +149,7 @@ public class SlimeGen : MonoBehaviour
         s.weapon.Rarity = rarity;
         s.CalculateStats();
         s.RollRandomSkillsMatchingRarity();
+        s.AssignCompactName();
         return s;
     }
 

@@ -118,6 +118,7 @@ public class BreedingManager : MonoBehaviour
             slime.weapon = slimeTraits.wildSlimeTraits[2].GenerateInstance();
             slime.CalculateStats();
             slime.RollRandomSkillsMatchingRarity();
+            slime.AssignCompactName();
             allSlimes.Add(slime);
         }
         wildSlimes.tamedSlimes.Clear();
@@ -196,6 +197,7 @@ public class BreedingManager : MonoBehaviour
 
         s.CalculateStats();
         s.RollRandomSkillsMatchingRarity();
+        s.AssignCompactName();
         return s;
     }
 
@@ -250,6 +252,7 @@ public class BreedingManager : MonoBehaviour
 
         s.CalculateStats();
         s.RollRandomSkillsMatchingRarity();
+        s.AssignCompactName();
         return s;
     }
 
@@ -389,7 +392,7 @@ public class BreedingManager : MonoBehaviour
             return;
         }
 
-        offspring.slimeName = $"Slime_{allSlimes.Count + 1}";
+        offspring.AssignCompactName();
         allSlimes.Add(offspring);
 
         var worldManager = FindAnyObjectByType<SlimeWorldManager>();

@@ -73,6 +73,7 @@ public class WildSlimeTraits : MonoBehaviour
         s.armor = armorSo.GenerateInstance();
         s.weapon = weaponSo.GenerateInstance();
         s.CalculateStats();
+        s.AssignCompactName();
         return s;
     }
     
@@ -110,6 +111,7 @@ public class WildSlimeTraits : MonoBehaviour
         s.armor = armorSo.GenerateInstance();
         s.weapon = weaponSo.GenerateInstance();
         AdventureStatRoll.Apply(s);
+        s.AssignCompactName();
         return s;
     }
     public Sprite CreateDefaultSlimeSprite()

@@ -132,7 +132,15 @@ public class SaveAndLoadSystem : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         if (wildSlimes != null && wildSlimes.tamedSlimes != null && wildSlimes.tamedSlimes.Count > 0)
         {
-            breedingManager.GenTamedSlime();
+            BreedingManager manager = breedingManager != null ? breedingManager : BreedingManager.Instance;
+            if (manager != null)
+            {
+                manager.GenTamedSlime();
+            }
+            else
+            {
+                Debug.LogWarning("[Save] Tamed slimes found, but BreedingManager is missing. Conversion postponed.");
+            }
             Save();
         }
         if (SlimeWorldManager != null) SlimeWorldManager.RefreshWorldSlimes();
@@ -205,6 +213,7 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         try { DeserializeUnlockedTraits(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeUnlockedTraits: {e}"); }
         try { DeserializeSlimes(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeSlimes: {e}"); }
+        try { DeserializeTamedSlimes(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeTamedSlimes: {e}"); }
         try { DeserializeBreedingSession(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeBreedingSession: {e}"); }
         try { DeserializeTeam(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeTeam: {e}"); }
         try { DeserializeBuildings(data); } catch (Exception e) { Debug.LogError($"[Save] Error in DeserializeBuildings: {e}"); }

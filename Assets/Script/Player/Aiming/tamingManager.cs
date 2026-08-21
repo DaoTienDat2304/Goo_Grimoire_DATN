@@ -106,7 +106,10 @@ public class tamingManager : MonoBehaviour
             {
                 Destroy(note.gameObject);
             }
+            if (wildSlimes.tamedSlimes == null)
+                wildSlimes.tamedSlimes = new List<WildSlimes.WildSlimeTraits>();
             wildSlimes.tamedSlimes.Add(curSlime);
+            SaveAndLoadSystem.Instance?.Save();
             PlayerStatsManager.Instance?.RecordCapture(curSlime.wildSlimeTraits);
             for (int i = slimeSpawner.activeSlimes.Count - 1; i >= 0; i--)
             {

@@ -5,6 +5,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SlimeInventory : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class SlimeInventory : MonoBehaviour
     public GameObject breedingPanel;
     public GameObject slimeCollectionPanel;
     public GameObject breedingProgressPanel;
+    [Tooltip("(Optional) Anh nen che den ben trong Fusion panel.")]
+    public GameObject fusionBackdrop;
     public Button button;
     public GameObject showslot;
 
@@ -24,6 +27,7 @@ public class SlimeInventory : MonoBehaviour
 
     [Header("Slime Counter UI")]
     public Text slimeCounterText;
+    public TMP_Text slimeCounterTmpText;
     public GameObject messagePanel;
     public Text messageText;
 
@@ -36,6 +40,16 @@ public class SlimeInventory : MonoBehaviour
     public Slider Slider;
     [Tooltip("(Optional) Text hien thi so diem sacrifice current, e.g. 45/100.")]
     public Text sacrificeText;
+    public TMP_Text sacrificeTmpText;
+    [Tooltip("(Optional) Parent cua cac o slime duoc chon de hien thi ben phai.")]
+    public Transform selectedSacrificeGrid;
+    [Tooltip("(Optional) Cac o preview slime ben phai. Neu de trong, script se tu lay con cua SelectedSacrificeGrid.")]
+    public Image[] selectedSacrificeBodies;
+    public TMP_Text selectedSacrificeCounterText;
+    [Tooltip("(Optional) Content cua ScrollView hien thi slime duoc chon ben phai.")]
+    public RectTransform selectedSacrificeContent;
+    [Tooltip("(Optional) Template item trong ScrollView, se duoc clone theo so slime duoc chon.")]
+    public GameObject selectedSacrificeItemTemplate;
 
     /// <summary>
     /// Common 1 · Uncommon 3 · Rare 5 · SuperRare 15 · UltraRare 30 · Legendary 50 · Mythic 100 · Secret 1.
@@ -59,6 +73,7 @@ public class SlimeInventory : MonoBehaviour
     private void Awake()
     {
         EnsureRuntimeFallbacks();
+        EnsureFusionBackdrop();
     }
 
     private void Start()
@@ -69,7 +84,14 @@ public class SlimeInventory : MonoBehaviour
 
     private void OnEnable()
     {
+        EnsureFusionBackdrop();
+        SetFusionBackdropVisible(true);
         RefreshAllUI();
+    }
+
+    private void OnDisable()
+    {
+        SetFusionBackdropVisible(false);
     }
 
     IEnumerator Countdown()
@@ -109,10 +131,18 @@ public class SlimeInventory : MonoBehaviour
             float target = Mathf.Min(sacrifice + PreviewPoints(), maxsacrifice);
             Slider.value = Mathf.MoveTowards(Slider.value, target, 120f * Time.deltaTime);
 
-            var disp = GetNumberDisplay();
-            if (disp != null)
-                disp.text = $"{Mathf.Clamp(Mathf.RoundToInt(Slider.value), 0, maxsacrifice)}/{maxsacrifice}";
+            string value = $"{Mathf.Clamp(Mathf.RoundToInt(Slider.value), 0, maxsacrifice)}/{maxsacrifice}";
+            var tmpDisp = GetTmpNumberDisplay();
+            if (tmpDisp != null)
+                tmpDisp.text = value;
+            else
+            {
+                var disp = GetNumberDisplay();
+                if (disp != null) disp.text = value;
+            }
         }
+
+        UpdateSelectedSacrificePreview();
     }
 
     private int PreviewPoints()
@@ -130,6 +160,10 @@ public class SlimeInventory : MonoBehaviour
     }
 
     private Text cachedNumber;
+    private TMP_Text cachedTmpNumber;
+    private readonly List<Slime> previewSlimes = new List<Slime>();
+    private readonly List<GameObject> selectedPreviewItems = new List<GameObject>();
+    private readonly List<Slime> renderedPreviewSlimes = new List<Slime>();
 
     private Text GetNumberDisplay()
     {
@@ -161,6 +195,207 @@ public class SlimeInventory : MonoBehaviour
         return txt;
     }
 
+    private TMP_Text GetTmpNumberDisplay()
+    {
+        if (sacrificeTmpText != null) return sacrificeTmpText;
+        if (cachedTmpNumber != null) return cachedTmpNumber;
+        if (Slider == null) return null;
+
+        var existing = FindChildRecursive(Slider.transform, "SacrificeNumber")?.GetComponent<TMP_Text>();
+        if (existing != null)
+        {
+            cachedTmpNumber = existing;
+            return cachedTmpNumber;
+        }
+
+        var go = new GameObject("SacrificeNumber", typeof(RectTransform), typeof(TextMeshProUGUI));
+        var rt = go.GetComponent<RectTransform>();
+        rt.SetParent(Slider.transform, false);
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(90f, 28f);
+        rt.anchoredPosition = Vector2.zero;
+        rt.localScale = Vector3.one;
+
+        var txt = go.GetComponent<TMP_Text>();
+        txt.alignment = TextAlignmentOptions.Center;
+        txt.color = Color.white;
+        txt.fontStyle = FontStyles.Bold;
+        txt.raycastTarget = false;
+        txt.enableAutoSizing = true;
+        txt.fontSizeMin = 6;
+        txt.fontSizeMax = 16;
+
+        go.transform.SetAsLastSibling();
+        cachedTmpNumber = txt;
+        return txt;
+    }
+
+    private void UpdateSelectedSacrificePreview()
+    {
+        EnsureSelectedSacrificePreviewRefs();
+
+        previewSlimes.Clear();
+        if (collectionSlots != null)
+        {
+            foreach (var go in collectionSlots)
+            {
+                if (go == null) continue;
+                var slot = go.GetComponent<InventorySlot>();
+                if (slot != null && slot.onselect)
+                    previewSlimes.Add(slot.GetSlime());
+            }
+        }
+
+        if (selectedSacrificeContent != null && selectedSacrificeItemTemplate != null)
+        {
+            RebuildSelectedSacrificeScrollItems();
+        }
+        else if (selectedSacrificeBodies != null && selectedSacrificeBodies.Length > 0)
+        {
+            for (int i = 0; i < selectedSacrificeBodies.Length; i++)
+            {
+                var body = selectedSacrificeBodies[i];
+                if (body == null) continue;
+
+                var slime = i < previewSlimes.Count ? previewSlimes[i] : null;
+                body.gameObject.SetActive(slime != null);
+                if (slime != null)
+                    body.sprite = GetSlimePreviewSprite(slime);
+            }
+        }
+
+        if (selectedSacrificeCounterText != null)
+            selectedSacrificeCounterText.text = $"SELECTED ({previewSlimes.Count})";
+    }
+
+    private void RebuildSelectedSacrificeScrollItems()
+    {
+        if (SamePreviewSlimes()) return;
+
+        foreach (var item in selectedPreviewItems)
+            if (item != null) Destroy(item);
+        selectedPreviewItems.Clear();
+        renderedPreviewSlimes.Clear();
+
+        selectedSacrificeItemTemplate.SetActive(false);
+
+        foreach (var slime in previewSlimes)
+        {
+            var item = Instantiate(selectedSacrificeItemTemplate, selectedSacrificeContent);
+            item.name = "SelectedSlimeItem";
+            item.SetActive(true);
+
+            var body = FindChildRecursive(item.transform, "PreviewBody")?.GetComponent<Image>();
+            if (body != null)
+            {
+                body.gameObject.SetActive(true);
+            }
+
+            SetSlimePreviewLayers(item.transform, slime);
+
+            var remove = FindChildRecursive(item.transform, "RemoveButton")?.GetComponent<Button>();
+            if (remove != null)
+            {
+                var selectedSlime = slime;
+                remove.onClick.RemoveAllListeners();
+                remove.onClick.AddListener(() => DeselectSacrificeSlime(selectedSlime));
+            }
+
+            selectedPreviewItems.Add(item);
+            renderedPreviewSlimes.Add(slime);
+        }
+    }
+
+    private bool SamePreviewSlimes()
+    {
+        if (previewSlimes.Count != renderedPreviewSlimes.Count) return false;
+        for (int i = 0; i < previewSlimes.Count; i++)
+            if (!ReferenceEquals(previewSlimes[i], renderedPreviewSlimes[i])) return false;
+        return true;
+    }
+
+    private Sprite GetSlimePreviewSprite(Slime slime)
+    {
+        return (slime != null && slime.body != null ? slime.body.sprite : null) ?? FindAnyObjectByType<SlimeWorldManager>()?.CreateDefaultSlimeSprite();
+    }
+
+    private void SetSlimePreviewLayers(Transform item, Slime slime)
+    {
+        if (item == null || slime == null) return;
+
+        var body = FindChildRecursive(item, "PreviewBody")?.GetComponent<Image>();
+        var armor = FindChildRecursive(item, "PreviewArmor")?.GetComponent<Image>();
+        var weapon = FindChildRecursive(item, "PreviewWeapon")?.GetComponent<Image>();
+        Sprite fallback = FindAnyObjectByType<SlimeWorldManager>()?.CreateDefaultSlimeSprite();
+
+        if (body != null)
+        {
+            body.gameObject.SetActive(true);
+            body.sprite = (slime.body != null ? slime.body.sprite : null) ?? fallback;
+        }
+
+        if (armor != null)
+        {
+            armor.gameObject.SetActive(slime.armor != null && slime.armor.sprite != null);
+            armor.sprite = slime.armor != null ? slime.armor.sprite : null;
+        }
+
+        if (weapon != null)
+        {
+            weapon.gameObject.SetActive(slime.weapon != null && slime.weapon.sprite != null);
+            weapon.sprite = slime.weapon != null ? slime.weapon.sprite : null;
+        }
+    }
+
+    private void EnsureSelectedSacrificePreviewRefs()
+    {
+        if (selectedSacrificeGrid == null)
+        {
+            var found = FindChildRecursive(transform, "SelectedSacrificeGrid");
+            if (found != null) selectedSacrificeGrid = found;
+        }
+
+        if (selectedSacrificeContent == null)
+            selectedSacrificeContent = FindChildRecursive(transform, "SelectedSacrificeContent")?.GetComponent<RectTransform>();
+
+        if (selectedSacrificeItemTemplate == null)
+        {
+            var template = FindChildRecursive(transform, "SelectedSlimeItemTemplate");
+            if (template != null) selectedSacrificeItemTemplate = template.gameObject;
+        }
+
+        if (selectedSacrificeContent == null && (selectedSacrificeBodies == null || selectedSacrificeBodies.Length == 0) && selectedSacrificeGrid != null)
+        {
+            var bodies = new List<Image>();
+            for (int i = 0; i < selectedSacrificeGrid.childCount; i++)
+            {
+                var slot = selectedSacrificeGrid.GetChild(i);
+                var body = FindChildRecursive(slot, "PreviewBody")?.GetComponent<Image>();
+                if (body != null) bodies.Add(body);
+            }
+            selectedSacrificeBodies = bodies.ToArray();
+        }
+
+        if (selectedSacrificeCounterText == null)
+            selectedSacrificeCounterText = FindChildRecursive(transform, "SelectedSacrificeCounterText")?.GetComponent<TMP_Text>();
+    }
+
+    public void DeselectSacrificeSlime(Slime slime)
+    {
+        if (slime == null || collectionSlots == null) return;
+        foreach (GameObject inventorySlot in collectionSlots)
+        {
+            if (inventorySlot == null) continue;
+            InventorySlot slot = inventorySlot.GetComponent<InventorySlot>();
+            if (slot != null && ReferenceEquals(slot.GetSlime(), slime))
+            {
+                slot.SetBreedingSelected(false);
+                break;
+            }
+        }
+    }
+
     private Font FindAnyFont()
     {
         foreach (var t in GetComponentsInChildren<Text>(true))
@@ -189,16 +424,51 @@ public class SlimeInventory : MonoBehaviour
     }
     public void ondelete()
     {
+        var selectedSlimes = new List<Slime>();
         foreach (GameObject inventorySlot in collectionSlots)
         {
             if (inventorySlot == null) continue;
             InventorySlot i = inventorySlot.GetComponent<InventorySlot>();
-            if (i != null) i.removedslime();
+            if (i != null && i.onselect && i.GetSlime() != null)
+                selectedSlimes.Add(i.GetSlime());
         }
+
+        if (selectedSlimes.Count == 0) return;
+
+        foreach (var slime in selectedSlimes)
+            SacrificeSlime(slime);
+
         RefreshCollectionGrid();
         CheckAndRefreshIfNeeded();
+        UpdateSelectedSacrificePreview();
 
+        SaveAndLoadSystem.Instance?.MarkSlimeCollectionChanged();
         SaveAndLoadSystem.Instance?.Save();
+    }
+
+    private void SacrificeSlime(Slime slime)
+    {
+        if (slime == null) return;
+
+        var breedingManager = BreedingManager.Instance != null ? BreedingManager.Instance : FindAnyObjectByType<BreedingManager>();
+        if (breedingManager == null) return;
+
+        sacrifice += SacrificePoints(SelectiveBreeding.GetSlimeRarity(slime));
+        RemoveSacrificedSlimeFromTeams(slime);
+        breedingManager.removeslime(slime);
+    }
+
+    private void RemoveSacrificedSlimeFromTeams(Slime slime)
+    {
+        if (slime == null) return;
+
+        Team[] teams = Resources.FindObjectsOfTypeAll<Team>();
+        foreach (var team in teams)
+        {
+            if (team == null || team.team == null) continue;
+            if (team.team.Remove(slime))
+                slime.isPicked = false;
+        }
     }
 
     private int lastKnownSlimeCount = 0;
@@ -262,6 +532,29 @@ public class SlimeInventory : MonoBehaviour
      
 
         // Default visible panels
+    }
+
+    private void EnsureFusionBackdrop()
+    {
+        if (fusionBackdrop == null)
+        {
+            var found = FindChildRecursive(transform, "Fushion");
+            if (found != null) fusionBackdrop = found.gameObject;
+        }
+
+        if (fusionBackdrop == null) return;
+
+        fusionBackdrop.transform.SetAsFirstSibling();
+
+        foreach (var graphic in fusionBackdrop.GetComponentsInChildren<Graphic>(true))
+            graphic.raycastTarget = false;
+    }
+
+    private void SetFusionBackdropVisible(bool visible)
+    {
+        if (fusionBackdrop == null) return;
+        if (fusionBackdrop.activeSelf != visible)
+            fusionBackdrop.SetActive(visible);
     }
 
     private GameObject CreatePanel(Transform parent, string name)
@@ -337,11 +630,33 @@ public class SlimeInventory : MonoBehaviour
 
     private void UpdateSlimeCounter()
     {
-        if (slimeCounterText != null && BreedingManager.Instance != null)
+        if (BreedingManager.Instance == null) return;
+
+        if (slimeCounterText == null)
+            slimeCounterText = FindChildRecursive(transform, "Soluong")?.GetComponent<Text>();
+        if (slimeCounterTmpText == null)
+            slimeCounterTmpText = FindChildRecursive(transform, "Soluong")?.GetComponent<TMP_Text>();
+
+        int current = BreedingManager.Instance.GetCurrentSlimeCount();
+        int max = BreedingManager.Instance.GetMaxSlimeCount();
+        string value = $"{current}/{max}";
+
+        if (slimeCounterText != null)
+            slimeCounterText.text = value;
+        if (slimeCounterTmpText != null)
+            slimeCounterTmpText.text = value;
+    }
+
+    private void LateUpdate()
+    {
+        if (BreedingManager.Instance != null)
         {
-            int current = BreedingManager.Instance.GetCurrentSlimeCount();
-            int max = BreedingManager.Instance.GetMaxSlimeCount();
-            slimeCounterText.text = $"{current}/{max}";
+            int currentCount = BreedingManager.Instance.GetCurrentSlimeCount();
+            if (currentCount != lastKnownSlimeCount)
+            {
+                lastKnownSlimeCount = currentCount;
+                UpdateSlimeCounter();
+            }
         }
     }
 

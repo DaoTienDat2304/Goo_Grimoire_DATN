@@ -256,7 +256,10 @@ public class BreedingManager : MonoBehaviour
     public void removeslime(Slime slime)
     {
         if (slime == null) return;
-        allSlimes.Remove(slime);
+        if (!allSlimes.Remove(slime)) return;
+
+        SaveAndLoadSystem.Instance?.MarkSlimeCollectionChanged();
+
         if (SlimeWorldManager.Instance != null)
         {
             SlimeWorldManager.Instance.RefreshWorldSlimes();

@@ -81,10 +81,12 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
     {
         if(onselect == true)
         {
-            BreedingManager breedingManager = GameObject.Find("BreedingManager").GetComponent<BreedingManager>();
-            breedingManager.removeslime(slime);
+            BreedingManager breedingManager = BreedingManager.Instance != null ? BreedingManager.Instance : FindAnyObjectByType<BreedingManager>();
+            if (breedingManager == null || slime == null) return;
+
             int points = SlimeInventory.SacrificePoints(SelectiveBreeding.GetSlimeRarity(slime));
-            GetComponentInParent<SlimeInventory>().sacrifice += points;
+            var inventory = GetComponentInParent<SlimeInventory>();
+            if (inventory != null) inventory.sacrifice += points;
             
             if (slime != null && slime.isPicked)
             {
@@ -115,6 +117,9 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
                     Debug.Log($"Da remove slime {slime.slimeName} from team after sacrifice");
                 }
             }
+
+            breedingManager.removeslime(slime);
+            SaveAndLoadSystem.Instance?.MarkSlimeCollectionChanged();
         }
     }
 

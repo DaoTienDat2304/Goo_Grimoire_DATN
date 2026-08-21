@@ -18,6 +18,7 @@ public class SaveAndLoadSystem : MonoBehaviour
     [SerializeField] private FarmDatabaseSO farmDatabase;
 
     private GameSaveData _cachedSaveData;
+    private bool allowNextSlimeDecreaseSave;
 
 
     void Awake()
@@ -195,6 +196,11 @@ public class SaveAndLoadSystem : MonoBehaviour
                 AuthManager.Instance.CurrentUserId, json);
             Debug.Log($"[Save] Saving cloud. savedAt={data.lastSavedAt}");
         }
+    }
+
+    public void MarkSlimeCollectionChanged()
+    {
+        allowNextSlimeDecreaseSave = true;
     }
 
     public void Load(string json)
@@ -499,7 +505,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             var all = bm.GetAllSlimes();
             int cachedCount = (_cachedSaveData != null && _cachedSaveData.slimes != null) ? _cachedSaveData.slimes.Count : 0;
             
-            if (all != null && all.Count >= cachedCount && all.Count > 0)
+            if (all != null && (allowNextSlimeDecreaseSave || (all.Count >= cachedCount && all.Count > 0)))
             {
                 data.slimes.Clear();
                 foreach (var s in all)
@@ -531,6 +537,7 @@ public class SaveAndLoadSystem : MonoBehaviour
                     };
                     data.slimes.Add(dto);
                 }
+                allowNextSlimeDecreaseSave = false;
                 return;
             }
         }

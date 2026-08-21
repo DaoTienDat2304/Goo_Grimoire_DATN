@@ -96,8 +96,21 @@ public class BreedingManager : MonoBehaviour
     }
     public void GenTamedSlime()
     {
+        if (wildSlimes == null || wildSlimes.tamedSlimes == null) return;
+
         foreach (var slimeTraits in wildSlimes.tamedSlimes)
         {
+            if (slimeTraits == null
+                || slimeTraits.wildSlimeTraits == null
+                || slimeTraits.wildSlimeTraits.Length < 3
+                || slimeTraits.wildSlimeTraits[0] == null
+                || slimeTraits.wildSlimeTraits[1] == null
+                || slimeTraits.wildSlimeTraits[2] == null)
+            {
+                Debug.LogWarning("[Breeding] Skipped invalid tamed slime while converting to owned slime.");
+                continue;
+            }
+
             Slime slime = new Slime();
             slime.slimeName = slimeTraits.wildSlimeTraits[0].traitName + " " + slimeTraits.wildSlimeTraits[1].traitName + " " + slimeTraits.wildSlimeTraits[2].traitName;
             slime.body = slimeTraits.wildSlimeTraits[0].GenerateInstance();

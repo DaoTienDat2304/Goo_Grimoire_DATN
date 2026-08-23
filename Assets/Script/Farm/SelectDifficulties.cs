@@ -72,13 +72,13 @@ public class SelectDifficulties : MonoBehaviour
             canvasGroup = button.gameObject.AddComponent<CanvasGroup>();
         }
         
-        canvasGroup.alpha = isUnlocked ? 1.0f : 0.6f;
-        button.interactable = isUnlocked;
+        canvasGroup.alpha = isUnlocked ? 1.0f : 0.5f;
+        button.interactable = true; // Cho phép bấm để hiện thông báo yêu cầu tầng tháp nếu bị khóa
     }
 
     public void SelectEasy()
     {
-        if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(0))
+        if (farmModeManager != null)
         {
             farmModeManager.SelectDifficulty(0);
         }
@@ -86,7 +86,7 @@ public class SelectDifficulties : MonoBehaviour
 
     public void SelectMedium()
     {
-        if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(1))
+        if (farmModeManager != null)
         {
             farmModeManager.SelectDifficulty(1);
         }
@@ -94,7 +94,7 @@ public class SelectDifficulties : MonoBehaviour
 
     public void SelectHard()
     {
-        if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(2))
+        if (farmModeManager != null)
         {
             farmModeManager.SelectDifficulty(2);
         }
@@ -102,7 +102,7 @@ public class SelectDifficulties : MonoBehaviour
 
     public void SelectExtreme()
     {
-        if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(3))
+        if (farmModeManager != null)
         {
             farmModeManager.SelectDifficulty(3);
         }
@@ -110,7 +110,7 @@ public class SelectDifficulties : MonoBehaviour
 
     public void SelectHell()
     {
-        if (farmModeManager != null && farmModeManager.IsDifficultyUnlocked(4))
+        if (farmModeManager != null)
         {
             farmModeManager.SelectDifficulty(4);
         }

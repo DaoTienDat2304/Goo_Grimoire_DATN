@@ -48,6 +48,7 @@ public class SlimeWorldManager : MonoBehaviour
 
     public bool isWorldViewActive = false;
     private Camera mainCamera;
+    private bool refreshingWorldSlimes;
 
     // Cached movement area colliders
     private CircleCollider2D areaCircleCollider;
@@ -70,10 +71,6 @@ public class SlimeWorldManager : MonoBehaviour
         InitializeWorld();
         SetupUI();
 
-        if (showSlimesInWorld)
-        {
-            StartWorldView();
-        }
         RefreshWorldSlimes();
     }
 
@@ -189,7 +186,7 @@ public class SlimeWorldManager : MonoBehaviour
             traitCollection.gameObject.SetActive(true);
         }
 
-        CreateWorldSlimes();
+        RefreshWorldSlimes();
     }
 
     public void StartinventoryView()
@@ -236,6 +233,9 @@ public class SlimeWorldManager : MonoBehaviour
 
     public void CreateWorldSlimes()
     {
+        if (!refreshingWorldSlimes)
+            ClearWorldSlimes();
+
         if (BreedingManager.Instance == null)
         {
 
@@ -445,8 +445,7 @@ public class SlimeWorldManager : MonoBehaviour
             {
                 if (worldSlimes[i] != null)
                 {
-                    worldSlimes[i].SetActive(false);
-                    Destroy(worldSlimes[i]);
+                    DestroyRuntimeWorldSlime(worldSlimes[i]);
                     worldSlimes[i] = null;
                 }
                 if (slimeData != null && i < slimeData.Length) slimeData[i] = null;
@@ -460,8 +459,7 @@ public class SlimeWorldManager : MonoBehaviour
                 var child = slimesContainer.GetChild(i);
                 if (child != null)
                 {
-                    child.gameObject.SetActive(false);
-                    Destroy(child.gameObject);
+                    DestroyRuntimeWorldSlime(child.gameObject);
                 }
             }
         }
@@ -471,10 +469,18 @@ public class SlimeWorldManager : MonoBehaviour
         {
             if (s != null && s.gameObject.name.StartsWith("WorldSlime"))
             {
-                s.gameObject.SetActive(false);
-                Destroy(s.gameObject);
+                DestroyRuntimeWorldSlime(s.gameObject);
             }
         }
+    }
+
+    private void DestroyRuntimeWorldSlime(GameObject slimeObject)
+    {
+        if (slimeObject == null)
+            return;
+
+        slimeObject.SetActive(false);
+        DestroyImmediate(slimeObject);
     }
 
     private void Update()
@@ -579,15 +585,26 @@ public class SlimeWorldManager : MonoBehaviour
 
     public void RefreshWorldSlimes()
     {
-        if (showSlimesInWorld)
-        {
-            isWorldViewActive = true;
-        }
+        if (refreshingWorldSlimes)
+            return;
 
-        if (isWorldViewActive)
+        refreshingWorldSlimes = true;
+        try
         {
-            ClearWorldSlimes();
-            CreateWorldSlimes();
+            if (showSlimesInWorld)
+            {
+                isWorldViewActive = true;
+            }
+
+            if (isWorldViewActive)
+            {
+                ClearWorldSlimes();
+                CreateWorldSlimes();
+            }
+        }
+        finally
+        {
+            refreshingWorldSlimes = false;
         }
     }
 

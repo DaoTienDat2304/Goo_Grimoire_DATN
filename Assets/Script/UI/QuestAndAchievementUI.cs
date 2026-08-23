@@ -112,6 +112,12 @@ public class QuestAndAchievementUI : MonoBehaviour
         RefreshCurrentTab();
     }
 
+    public void OpenAchievements()
+    {
+        Open();
+        SwitchTab(TabType.Achievements);
+    }
+
     public void Close()
     {
         if (canvasGroup != null)

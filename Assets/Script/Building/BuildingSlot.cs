@@ -14,6 +14,7 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
     public SaveAndLoadSystem saveAndLoadSystem;
     public GameObject TowerPanel;
     public GameObject shop;
+    public GameObject FusionPanel;
 
     private void Awake()
     {
@@ -71,15 +72,8 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
 
         if (slotID == 3)
         {
-            if (slimeWorldManager != null)
-            {
-                slimeWorldManager.StartinventoryView();
-                slimeWorldManager.ClearWorldSlimes();
-            }
-            else
-            {
-                Debug.LogWarning($"{nameof(BuildingSlot)} on {name} cannot open inventory view because SlimeWorldManager is missing.", this);
-            }
+            ClearWorldSlimesIfAvailable();
+            SetPanelActive(FusionPanel, "Fusion");
             return;
         }
 
@@ -175,7 +169,15 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
             TowerPanel = FindSceneObjectByName("TowerPanel");
 
         if (shop == null)
-            shop = FindSceneObjectByName("shop") ?? FindSceneObjectByName("Shop");
+            shop = FindSceneObjectByName("shop") ?? FindSceneObjectByName("Shop") ?? FindSceneObjectByName("ShopUI");
+
+        if (FusionPanel == null)
+        {
+            var fusionInventory = FindAnyObjectByType<SlimeInventory>(FindObjectsInactive.Include);
+            FusionPanel = fusionInventory != null
+                ? GetFusionPanelRoot(fusionInventory.transform)
+                : FindSceneObjectByName("Fusion");
+        }
     }
 
     public void RefreshBuildingCollider()
@@ -288,6 +290,20 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
             panel.SetActive(true);
         else
             Debug.LogWarning($"{nameof(BuildingSlot)} on {name} cannot open {panelName} because the reference is missing.", this);
+    }
+
+    private static GameObject GetFusionPanelRoot(Transform fusionContent)
+    {
+        Transform current = fusionContent;
+        while (current != null)
+        {
+            if (current.name == "Fusion" && current.parent != null && current.parent.name == "Fusion")
+                return current.parent.gameObject;
+
+            current = current.parent;
+        }
+
+        return fusionContent.gameObject;
     }
 
     private static GameObject FindSceneObjectByName(string objectName)

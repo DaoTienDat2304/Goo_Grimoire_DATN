@@ -3,6 +3,10 @@ using UnityEngine;
 
 public class ThrowingCatcher : MonoBehaviour
 {
+    [SerializeField] private float lifetime = 1.2f;
+    [SerializeField] private float minStraightSpeed = 6f;
+    [SerializeField] private float maxStraightSpeed = 24f;
+    [SerializeField] private float dragDistanceToSpeed = 1.8f;
     private Rigidbody2D rb;
     private CapsuleCollider2D col;
     public GameObject tamingPanel;
@@ -11,6 +15,7 @@ public class ThrowingCatcher : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.gravityScale = 0f;
         col = GetComponent<CapsuleCollider2D>();
         col.enabled = false;
         playerMovement = GameObject.FindAnyObjectByType<PlayerMovement>();
@@ -23,15 +28,26 @@ public class ThrowingCatcher : MonoBehaviour
     public void throwCatcher(Vector2 direction, float force)
     {
         col.isTrigger = true;
-        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.gravityScale = 0f;
         col.enabled = true;
-        rb.AddForce(direction * force, ForceMode2D.Impulse);
-        StartCoroutine(DestroyCatcher());
+        StartCoroutine(StraightFlight(direction, force));
     }
 
-    IEnumerator DestroyCatcher()
+    IEnumerator StraightFlight(Vector2 direction, float force)
     {
-        yield return new WaitForSeconds(0.55f);
+        Vector2 moveDirection = direction.sqrMagnitude > 0.001f ? direction.normalized : Vector2.right;
+        float speed = Mathf.Clamp(direction.magnitude * dragDistanceToSpeed + force, minStraightSpeed, maxStraightSpeed);
+        float timeLeft = lifetime;
+
+        while (timeLeft > 0f)
+        {
+            Vector3 delta = (Vector3)(moveDirection * speed * Time.deltaTime);
+            transform.position += delta;
+            timeLeft -= Time.deltaTime;
+            yield return null;
+        }
+
         Destroy(gameObject);
     }
     private void OnTriggerEnter2D(Collider2D collision)

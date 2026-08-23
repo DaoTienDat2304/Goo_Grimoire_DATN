@@ -3,11 +3,21 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class MobileThrowButtonUI : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+public class MobileThrowButtonUI : MonoBehaviour, IPointerDownHandler, IInitializePotentialDragHandler, IDragHandler, IPointerUpHandler
 {
     private const float RightControlStartRatio = 0.55f;
     private const float LowerControlHeightRatio = 0.72f;
-    private static readonly string[] DefaultActiveSceneNames = { "adventureSence", "Map2", "Frozen_Map", "NonameMap" };
+    private static readonly string[] DefaultActiveSceneNames =
+    {
+        "adventureSence",
+        "travelSence",
+        "Map1_IceMap",
+        "Map2_Fantasymap",
+        "Map3_DungeonMap",
+        "Map2",
+        "Frozen_Map",
+        "NonameMap"
+    };
 
     [Header("Scenes")]
     [SerializeField] private string[] activeSceneNames = DefaultActiveSceneNames;
@@ -93,7 +103,7 @@ public class MobileThrowButtonUI : MonoBehaviour, IPointerDownHandler, IDragHand
         bool activeScene = IsActiveScene(SceneManager.GetActiveScene().name);
         bool hasAiming = !requireAiming || FindAnyObjectByType<Aiming>() != null;
 #if UNITY_EDITOR
-        gameObject.SetActive(showInEditor && activeScene && hasAiming);
+        gameObject.SetActive(Application.isPlaying && showInEditor && activeScene && hasAiming);
 #else
         gameObject.SetActive(Application.isMobilePlatform && activeScene && hasAiming);
 #endif
@@ -189,6 +199,11 @@ public class MobileThrowButtonUI : MonoBehaviour, IPointerDownHandler, IDragHand
         if (moveCenterToFirstTouch)
             MoveButtonToFinger(eventData);
         SetDrag(Vector2.zero, true, true, false);
+    }
+
+    public void OnInitializePotentialDrag(PointerEventData eventData)
+    {
+        eventData.useDragThreshold = false;
     }
 
     public void OnDrag(PointerEventData eventData)

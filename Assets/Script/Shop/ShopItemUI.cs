@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
 /// </summary>
@@ -7,10 +8,10 @@ public class ShopItemUI : MonoBehaviour
 {
     [Header("UI References")]
     public Image iconImage;
-    public Text nameText;
-    public Text priceText;
-    public Text descriptionText;
-    public Text amountText;
+    public TMP_Text nameTmpText;
+    public TMP_Text priceTmpText;
+    public TMP_Text descriptionTmpText;
+    public TMP_Text amountTmpText;
     public Button buyButton;
 
     public ShopItemsSpawner shopItemsSpawner;
@@ -20,26 +21,20 @@ public class ShopItemUI : MonoBehaviour
     /// </summary>
     public void Setup(ShopItems.ShopItemData itemData)
     {
+        AutoWire();
         data = itemData;
 
         if (data == null) return;
 
-        if (iconImage != null)
-            iconImage.sprite = data.icon;
+        SetText(nameTmpText, data.itemName);
 
-        if (nameText != null)
-            nameText.text = data.itemName;
+        string priceLabel = !string.IsNullOrWhiteSpace(data.priceLabelOverride)
+            ? data.priceLabelOverride
+            : $"{data.price} {data.currencyType}";
+        SetText(priceTmpText, priceLabel);
 
-        if (priceText != null)
-        {
-            string currencyShort = data.currencyType.ToString(); // Coins / Gems...
-            priceText.text = $"{data.price} {currencyShort}";
-        }
-
-        if (descriptionText != null)
-            descriptionText.text = data.description;
-        if (amountText != null) 
-            amountText.text = data.resourceAmount.ToString();
+        SetText(descriptionTmpText, data.description);
+        SetText(amountTmpText, data.resourceAmount.ToString());
         if (buyButton != null)
         {
             buyButton.onClick.RemoveAllListeners();
@@ -49,21 +44,61 @@ public class ShopItemUI : MonoBehaviour
 
     private void OnBuyButtonClicked()
     {
+        if (data == null)
+        {
+            Debug.LogWarning($"{nameof(ShopItemUI)} on {name} has no shop item data.", this);
+            return;
+        }
+
         if (shopItemsSpawner == null)
         {
             Debug.LogWarning($"{nameof(ShopItemUI)} on {name} cannot open confirm popup because ShopItemsSpawner is missing.", this);
             return;
         }
 
-        if (shopItemsSpawner.confirmPopUp != null)
-            shopItemsSpawner.confirmPopUp.SetActive(true);
-        else
-            Debug.LogWarning($"{nameof(ShopItemUI)} on {name} cannot open confirm popup because confirmPopUp is missing.", this);
+        shopItemsSpawner.SelectItem(data);
+    }
 
-        shopItemsSpawner.price = data.price;
-        shopItemsSpawner.currencyType = data.currencyType;
-        shopItemsSpawner.resourceGranted = data.resourceGranted;
-        shopItemsSpawner.resourceAmount = data.resourceAmount;
+    private void AutoWire()
+    {
+        if (buyButton == null)
+            buyButton = FindChild("BuyButton")?.GetComponent<Button>();
+
+        WireText("NameText", ref nameTmpText);
+        if (nameTmpText == null) WireText("Name", ref nameTmpText);
+        WireText("Price", ref priceTmpText);
+        WireText("Description", ref descriptionTmpText);
+        WireText("Amount", ref amountTmpText);
+    }
+
+    private void WireText(string childName, ref TMP_Text tmp)
+    {
+        var child = FindChild(childName);
+        if (child == null) return;
+        if (tmp == null) tmp = child.GetComponent<TMP_Text>();
+    }
+
+    private void SetText(TMP_Text tmp, string value)
+    {
+        if (tmp != null) tmp.text = value;
+    }
+
+    private Transform FindChild(string childName)
+    {
+        return FindChildRecursive(transform, childName);
+    }
+
+    private Transform FindChildRecursive(Transform parent, string childName)
+    {
+        if (parent == null) return null;
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var child = parent.GetChild(i);
+            if (child.name == childName) return child;
+            var found = FindChildRecursive(child, childName);
+            if (found != null) return found;
+        }
+        return null;
     }
 }
 

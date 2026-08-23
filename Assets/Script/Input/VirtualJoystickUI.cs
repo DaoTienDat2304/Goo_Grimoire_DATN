@@ -7,10 +7,20 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IInitialize
 {
     private const string EditorPrefabPath = "Assets/UI/prefab/MobileControlsCanvas.prefab";
     private const string ResourcesPrefabPath = "UI/MobileControlsCanvas";
-    private const int MobileControlsSortingOrder = -10;
+    private const int MobileControlsSortingOrder = 5000;
     private const float LeftControlWidthRatio = 0.45f;
     private const float LowerControlHeightRatio = 0.72f;
-    private static readonly string[] DefaultActiveSceneNames = { "adventureSence", "Map2", "Frozen_Map", "NonameMap" };
+    private static readonly string[] DefaultActiveSceneNames =
+    {
+        "adventureSence",
+        "travelSence",
+        "Map1_IceMap",
+        "Map2_Fantasymap",
+        "Map3_DungeonMap",
+        "Map2",
+        "Frozen_Map",
+        "NonameMap"
+    };
 
     [Header("Scenes")]
     [SerializeField] private string[] activeSceneNames = DefaultActiveSceneNames;
@@ -193,7 +203,7 @@ public class VirtualJoystickUI : MonoBehaviour, IPointerDownHandler, IInitialize
         bool activeScene = IsActiveScene(SceneManager.GetActiveScene().name);
         bool hasMovement = !requirePlayerMovement || FindAnyObjectByType<PlayerMovement>() != null;
 #if UNITY_EDITOR
-        gameObject.SetActive(showInEditor && activeScene && hasMovement);
+        gameObject.SetActive(Application.isPlaying && showInEditor && activeScene && hasMovement);
 #else
         gameObject.SetActive(Application.isMobilePlatform && activeScene && hasMovement);
 #endif

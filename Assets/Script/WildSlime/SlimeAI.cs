@@ -141,30 +141,19 @@ public class SlimeAI : MonoBehaviour
     private Vector2 cachedSeparation;
     private readonly Collider2D[] separationHits = new Collider2D[12];
 
+    void Awake()
+    {
+        EnsureRuntimeReferences();
+    }
+
+    void OnEnable()
+    {
+        EnsureRuntimeReferences();
+    }
+
     void Start()
     {
-        if (rb == null) rb = GetComponent<Rigidbody2D>();
-        if (player == null) player = GameObject.FindGameObjectWithTag("Player")?.transform;
-        if (playerMovement == null) playerMovement = player?.GetComponent<PlayerMovement>();
-
-        if (rb != null)
-        {
-            rb.gravityScale = 0;
-            rb.freezeRotation = true;
-            // Dynamic body giu va cham vat ly voi cong trinh. Va cham slime-slime
-            // Player is ignored below to avoid contact spam.
-            rb.bodyType = RigidbodyType2D.Dynamic;
-            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
-        }
-
-        Collider2D slimeCollider = GetComponent<Collider2D>();
-        if (slimeCollider != null)
-        {
-            slimeCollider.isTrigger = false;
-            IgnoreOtherSlimeCollisions(slimeCollider);
-        }
-
+        EnsureRuntimeReferences();
         if (obstacleLayerMask.value == 0)
             obstacleLayerMask = LayerMask.GetMask("obstacle");
 
@@ -190,6 +179,43 @@ public class SlimeAI : MonoBehaviour
         ConfigureTerritory(center, radius, false, Vector2.one * radius * 2f);
     }
 
+    public void SetPlayerReference(Transform playerTransform)
+    {
+        player = playerTransform;
+        playerMovement = player != null ? player.GetComponent<PlayerMovement>() : null;
+        if (player != null)
+            lastPlayerPosition = player.position;
+    }
+
+    private void EnsureRuntimeReferences()
+    {
+        if (rb == null)
+            rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+            rb = gameObject.AddComponent<Rigidbody2D>();
+
+        rb.gravityScale = 0f;
+        rb.freezeRotation = true;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+        if (!rb.simulated)
+            rb.simulated = true;
+
+        Collider2D slimeCollider = GetComponent<Collider2D>();
+        if (slimeCollider == null)
+            slimeCollider = gameObject.AddComponent<CircleCollider2D>();
+        slimeCollider.isTrigger = false;
+        IgnoreOtherSlimeCollisions(slimeCollider);
+
+        if (player == null)
+            player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        if (player == null)
+            player = FindAnyObjectByType<PlayerMovement>(FindObjectsInactive.Include)?.transform;
+        if (playerMovement == null && player != null)
+            playerMovement = player.GetComponent<PlayerMovement>();
+    }
+
     public void ConfigureTerritory(Vector3 center, float radius, bool isRectangle, Vector2 size)
     {
         spawnZoneCenter = center;
@@ -201,6 +227,8 @@ public class SlimeAI : MonoBehaviour
 
     void Update()
     {
+        if (player == null)
+            EnsureRuntimeReferences();
         if (player == null) return;
 
         Vector3 currentPlayerPos = player.position;
@@ -340,6 +368,12 @@ public class SlimeAI : MonoBehaviour
     {
         if (collision.collider == null || collision.collider.GetComponent<SlimeAI>() != null) return;
 
+        if (IsPlayerCollider(collision.collider))
+        {
+            ScareFromPlayerContact();
+            return;
+        }
+
         Vector2 normal = collision.contactCount > 0 ? collision.GetContact(0).normal : Vector2.zero;
         if (normal.sqrMagnitude <= 0.001f) return;
         Vector2 tangent = Vector2.Perpendicular(normal).normalized;
@@ -349,6 +383,24 @@ public class SlimeAI : MonoBehaviour
         cachedMovementDirection = Vector3.zero;
         nextMovementDecisionTime = 0f;
         stuckTimer = 0f;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider != null && IsPlayerCollider(collision.collider))
+            ScareFromPlayerContact();
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (IsPlayerCollider(other))
+            ScareFromPlayerContact();
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (IsPlayerCollider(other))
+            ScareFromPlayerContact();
     }
 
     Vector2 ApplyImmediateObstacleSlide(Vector2 velocity)
@@ -671,10 +723,28 @@ public class SlimeAI : MonoBehaviour
     {
         if (collider == null) return false;
 
-        if (collider.CompareTag("Player") || collider.CompareTag("Slime"))
+        if (IsPlayerCollider(collider) || collider.CompareTag("Slime"))
             return false;
 
         return (obstacleLayerMask.value & (1 << collider.gameObject.layer)) != 0;
+    }
+
+    bool IsPlayerCollider(Collider2D collider)
+    {
+        return collider != null
+            && (collider.CompareTag("Player")
+                || collider.GetComponent<PlayerMovement>() != null
+                || collider.GetComponentInParent<PlayerMovement>() != null);
+    }
+
+    void ScareFromPlayerContact()
+    {
+        EnsureRuntimeReferences();
+        RefreshFear(fearGainOnPanic);
+        if (!isPanicking)
+            StartPanicEscape();
+        else
+            ContinuePanicEscape();
     }
 
     Vector3 FindBestAvoidanceDirection(Vector3 originalDirection)
@@ -684,8 +754,12 @@ public class SlimeAI : MonoBehaviour
 
     float GetCurrentDetectionRange()
     {
-        float range = (!usePlayerStateDetection || playerMovement == null) ? detectionRange : playerMovement.CurrentDetectionRange;
-        return Mathf.Min(range + fearLevel * fearDetectionBonus, maxDetectionRange);
+        float range = detectionRange;
+        if (usePlayerStateDetection && playerMovement != null)
+            range = Mathf.Max(range, playerMovement.CurrentDetectionRange);
+
+        float cappedMax = Mathf.Max(maxDetectionRange, range);
+        return Mathf.Min(range + fearLevel * fearDetectionBonus, cappedMax);
     }
 
     // === PANIC ESCAPE ===

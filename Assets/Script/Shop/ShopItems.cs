@@ -19,10 +19,14 @@ public class ShopItems : ScriptableObject
         [Header("Price")]
         public int price;
         public CurrencyType currencyType;
+        public string priceLabelOverride;
+        public bool isGemPack;
 
         [Header("Item")]
         public ResourceType resourceGranted;
         public int resourceAmount;
+        public bool grantCurrency;
+        public CurrencyType currencyGranted;
     }
 
     [Header("Shop items")]

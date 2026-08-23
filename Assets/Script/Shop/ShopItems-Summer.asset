@@ -13,19 +13,87 @@ MonoBehaviour:
   m_Name: ShopItems-Summer
   m_EditorClassIdentifier: 
   items:
-  - itemId: 1
-    itemName: Mashmallow
-    description: Use to tame slime
-    icon: {fileID: -5107242789598853282, guid: 2049397d9632b104d85edd863ff424e7, type: 3}
-    price: 8
+  - itemId: marshmallow_10_coins
+    itemName: Marshmallow
+    description: Restores 30 HP
+    icon: {fileID: 7576615671995770541, guid: ac5f36e52f3ff554688cf984a36f43af, type: 3}
+    price: 6000
     currencyType: 0
+    priceLabelOverride: 
+    isGemPack: 0
+    resourceGranted: 0
+    resourceAmount: 10
+    grantCurrency: 0
+    currencyGranted: 0
+  - itemId: marshmallow_1_gems
+    itemName: Marshmallow
+    description: Restores 30 HP
+    icon: {fileID: -5989867452939109168, guid: 132fdacd65c8ecc4ebd583d94bf7cec5, type: 3}
+    price: 5
+    currencyType: 1
+    priceLabelOverride: 
+    isGemPack: 0
     resourceGranted: 0
     resourceAmount: 1
-  - itemId: 2
-    itemName: Mashmallow
-    description: Use to tame slime
-    icon: {fileID: -5107242789598853282, guid: 2049397d9632b104d85edd863ff424e7, type: 3}
-    price: 1
+    grantCurrency: 0
+    currencyGranted: 0
+  - itemId: gold_pack_500
+    itemName: Gold
+    description: Currency Pack
+    icon: {fileID: 402214125035076648, guid: 521e7521687a6264b8a47d654e1063ea, type: 3}
+    price: 5
     currencyType: 1
+    priceLabelOverride: 
+    isGemPack: 0
     resourceGranted: 0
-    resourceAmount: 2
+    resourceAmount: 500
+    grantCurrency: 1
+    currencyGranted: 0
+  - itemId: gems_5
+    itemName: 5 Gems
+    description: Gem Pack
+    icon: {fileID: -4980991759364822697, guid: 3db271fd3a4647545884e1f814aa1cd0, type: 3}
+    price: 0
+    currencyType: 0
+    priceLabelOverride: $4.99
+    isGemPack: 1
+    resourceGranted: 0
+    resourceAmount: 5
+    grantCurrency: 1
+    currencyGranted: 1
+  - itemId: gems_12
+    itemName: 12 Gems
+    description: Gem Pack
+    icon: {fileID: 8538674058227704939, guid: 2de86b38239e6dc4caf572ae2ae8a74a, type: 3}
+    price: 0
+    currencyType: 0
+    priceLabelOverride: $9.99
+    isGemPack: 1
+    resourceGranted: 0
+    resourceAmount: 12
+    grantCurrency: 1
+    currencyGranted: 1
+  - itemId: gems_30
+    itemName: 30 Gems
+    description: Gem Pack
+    icon: {fileID: 4667428265594234777, guid: 4c35f0c9098bcd74fa28811db42689aa, type: 3}
+    price: 0
+    currencyType: 0
+    priceLabelOverride: $19.99
+    isGemPack: 1
+    resourceGranted: 0
+    resourceAmount: 30
+    grantCurrency: 1
+    currencyGranted: 1
+  - itemId: gems_80
+    itemName: 80 Gems
+    description: Gem Pack
+    icon: {fileID: 6676582193946861007, guid: bd47d68c6e75db24d8ea8299e077f6e1, type: 3}
+    price: 0
+    currencyType: 0
+    priceLabelOverride: $49.99
+    isGemPack: 1
+    resourceGranted: 0
+    resourceAmount: 80
+    grantCurrency: 1
+    currencyGranted: 1

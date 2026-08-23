@@ -168,6 +168,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activeSceneNames:
   - adventureSence
+  - travelSence
+  - Map1_IceMap
+  - Map2_Fantasymap
+  - Map3_DungeonMap
   - Map2
   - Frozen_Map
   requireAiming: 0
@@ -502,6 +506,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activeSceneNames:
   - adventureSence
+  - travelSence
+  - Map1_IceMap
+  - Map2_Fantasymap
+  - Map3_DungeonMap
   - Map2
   - Frozen_Map
   requirePlayerMovement: 0
@@ -584,7 +592,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: -10
+  m_SortingOrder: 5000
   m_TargetDisplay: 0
 --- !u!114 &7529149802310278446
 MonoBehaviour:

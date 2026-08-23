@@ -15,7 +15,11 @@ public static class MobileInput
 {
     private const float DefaultJoystickRadius = 120f;
     private const float SwipeThreshold = 45f;
+    private const float RightAimStartRatio = 0.55f;
+    private const float LowerAimHeightRatio = 0.72f;
     private static MobileDirection queuedDirection = MobileDirection.None;
+    private static bool fallbackAimActive;
+    private static Vector2 fallbackAimStartPosition;
 
     public static Vector2 VirtualJoystickVector { get; set; }
     public static bool IsVirtualJoystickActive { get; set; }
@@ -83,6 +87,12 @@ public static class MobileInput
         pressed = false;
         held = false;
         released = false;
+
+        if (TryGetFallbackAimPointer(out screenPosition, out pressed, out held, out released))
+        {
+            LastAimPointerFromVirtualButton = true;
+            return true;
+        }
 
         if (Mouse.current == null)
             return false;
@@ -181,6 +191,79 @@ public static class MobileInput
         VirtualAimReleased = false;
         VirtualAimDragVector = Vector2.zero;
         LastAimPointerFromVirtualButton = false;
+        fallbackAimActive = false;
+        fallbackAimStartPosition = Vector2.zero;
+    }
+
+    private static bool TryGetFallbackAimPointer(out Vector2 screenPosition, out bool pressed, out bool held, out bool released)
+    {
+        screenPosition = Vector2.zero;
+        pressed = false;
+        held = false;
+        released = false;
+
+        if (Touchscreen.current != null)
+        {
+            foreach (var touch in Touchscreen.current.touches)
+            {
+                Vector2 position = touch.position.ReadValue();
+                Vector2 start = touch.startPosition.ReadValue();
+
+                if (touch.press.wasPressedThisFrame && IsInsideRightAimZone(position))
+                {
+                    fallbackAimActive = true;
+                    fallbackAimStartPosition = start;
+                    Debug.Log("MobileInput fallback aim pressed.");
+                }
+
+                if (!fallbackAimActive)
+                    continue;
+
+                pressed = touch.press.wasPressedThisFrame;
+                held = touch.press.isPressed;
+                released = touch.press.wasReleasedThisFrame;
+                screenPosition = position;
+                VirtualAimPointerPosition = position;
+                VirtualAimDragVector = position - fallbackAimStartPosition;
+
+                if (released)
+                    fallbackAimActive = false;
+
+                return pressed || held || released;
+            }
+        }
+
+        if (Mouse.current == null)
+            return false;
+
+        Vector2 mousePosition = Mouse.current.position.ReadValue();
+        if (Mouse.current.leftButton.wasPressedThisFrame && IsInsideRightAimZone(mousePosition))
+        {
+            fallbackAimActive = true;
+            fallbackAimStartPosition = mousePosition;
+            Debug.Log("MobileInput fallback aim pressed.");
+        }
+
+        if (!fallbackAimActive)
+            return false;
+
+        pressed = Mouse.current.leftButton.wasPressedThisFrame;
+        held = Mouse.current.leftButton.isPressed;
+        released = Mouse.current.leftButton.wasReleasedThisFrame;
+        screenPosition = mousePosition;
+        VirtualAimPointerPosition = mousePosition;
+        VirtualAimDragVector = mousePosition - fallbackAimStartPosition;
+
+        if (released)
+            fallbackAimActive = false;
+
+        return pressed || held || released;
+    }
+
+    private static bool IsInsideRightAimZone(Vector2 screenPosition)
+    {
+        return screenPosition.x >= Screen.width * RightAimStartRatio
+            && screenPosition.y <= Screen.height * LowerAimHeightRatio;
     }
 
     private static bool SetDirection(MobileDirection value, out MobileDirection direction)

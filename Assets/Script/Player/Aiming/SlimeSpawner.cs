@@ -278,6 +278,8 @@ public class SlimeSpawner : MonoBehaviour
         SlimeAI slimeAI = newSlime.GetComponent<SlimeAI>();
         if (slimeAI != null)
         {
+            slimeAI.SetPlayerReference(player);
+
             if (passZoneToSlimeAI)
             {
                 slimeAI.ConfigureTerritory(
@@ -468,7 +470,7 @@ public class SlimeSpawner : MonoBehaviour
             bool shouldRender = cam == null
                 || IsInsideCameraViewport(slime.transform.position, cam, visualViewportPadding);
             int closerSlimes = CountCloserVisibleSlimes(slime, focusPosition, cam);
-            bool shouldSimulate = shouldRender && closerSlimes < maxActiveSlimeAI;
+            bool shouldSimulate = true;
             bool shouldAnimate = shouldRender && closerSlimes < maxAnimatedSlimes;
             int instanceId = slime.GetInstanceID();
             bool isSimulating = slimeSimulationStates.TryGetValue(instanceId, out bool state) && state;
@@ -541,14 +543,12 @@ public class SlimeSpawner : MonoBehaviour
         slimeSimulationStates[instanceId] = shouldSimulate;
 
         SlimeAI slimeAI = slime.GetComponent<SlimeAI>();
-        if (slimeAI != null && slimeAI.enabled != shouldSimulate)
-            slimeAI.enabled = shouldSimulate;
+        if (slimeAI != null && !slimeAI.enabled)
+            slimeAI.enabled = true;
 
         Rigidbody2D slimeRb = slime.GetComponent<Rigidbody2D>();
         if (slimeRb != null)
         {
-            if (!shouldSimulate)
-                slimeRb.linearVelocity = Vector2.zero;
             if (!slimeRb.simulated)
                 slimeRb.simulated = true;
         }

@@ -4,6 +4,9 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class BreedingUIManager : MonoBehaviour
 {
@@ -33,10 +36,10 @@ public class BreedingUIManager : MonoBehaviour
 
     [Header("Progress UI")]
     public Slider breedingProgressBar;
-    public Text breedingStatusText;
-    public Text selectedSlimesText;
+    public TMP_Text breedingStatusText;
+    public TMP_Text selectedSlimesText;
     [Tooltip("Selected pair summary: rarity, cost, and time.")]
-    public Text breedingPreviewText;
+    public TMP_Text breedingPreviewText;
 
     [Header("Runtime Safety")]
     [Tooltip("Enable only when the scene has no assigned UI. Disable in firstsave.")]
@@ -46,7 +49,7 @@ public class BreedingUIManager : MonoBehaviour
     [Tooltip("Coin icon")]
     public Image costCoinIcon;
     [Tooltip("Gold cost text")]
-    public Text breedingCostText;
+    public TMP_Text breedingCostText;
 
     [Header("Gem Speedup UI")]
     [Tooltip("Finish button")]
@@ -54,7 +57,7 @@ public class BreedingUIManager : MonoBehaviour
     [Tooltip("Gem icon")]
     public Image gemIcon;
     [Tooltip("Gem cost text")]
-    public Text gemCostText;
+    public TMP_Text gemCostText;
 
     [Header("Collection UI")]
     public Transform collectionGridParent;
@@ -67,7 +70,7 @@ public class BreedingUIManager : MonoBehaviour
     [Min(1)] public int collectionPageSize = 9;
 
     [Header("Slime Counter UI")]
-    public Text slimeCounterText;
+    public TMP_Text slimeCounterText;
 
     private List<GameObject> slimeSlots = new List<GameObject>();
     private List<GameObject> collectionSlots = new List<GameObject>();
@@ -78,9 +81,12 @@ public class BreedingUIManager : MonoBehaviour
     private bool currentlyBreeding = false;
     private int currentCollectionPage;
     public bool panelBreedingActive;
+    private static TMP_FontAsset fontOne;
+
     private void Awake()
     {
         AutoWireIfNeeded();
+        ApplyFontOneToAssignedTexts();
         if (createMissingUIAtRuntime)
             EnsureRuntimeFallbacks();
     }
@@ -207,12 +213,28 @@ public class BreedingUIManager : MonoBehaviour
         if (breedingStatusText == null)
         {
             var t = FindChildRecursive(root, "BreedingStatusText");
-            if (t != null) breedingStatusText = t.GetComponent<Text>();
+            if (t != null) breedingStatusText = t.GetComponent<TMP_Text>();
         }
         if (selectedSlimesText == null)
         {
             var t = FindChildRecursive(root, "SelectedSlimesText");
-            if (t != null) selectedSlimesText = t.GetComponent<Text>();
+            if (t != null) selectedSlimesText = t.GetComponent<TMP_Text>();
+        }
+        if (breedingPreviewText == null)
+        {
+            var t = FindChildRecursive(root, "BreedingPreviewText");
+            if (t != null) breedingPreviewText = t.GetComponent<TMP_Text>();
+        }
+        if (breedingCostText == null)
+        {
+            var t = FindChildRecursive(root, "BreedingCostText");
+            if (t == null) t = FindChildRecursive(root, "CostText");
+            if (t != null) breedingCostText = t.GetComponent<TMP_Text>();
+        }
+        if (gemCostText == null)
+        {
+            var t = FindChildRecursive(root, "GemCostText");
+            if (t != null) gemCostText = t.GetComponent<TMP_Text>();
         }
 
         if (collectionGridParent == null)
@@ -241,8 +263,10 @@ public class BreedingUIManager : MonoBehaviour
         if (slimeCounterText == null)
         {
             var t = FindChildRecursive(root, "SlimeCounterText");
-            if (t != null) slimeCounterText = t.GetComponent<Text>();
+            if (t == null) t = FindChildRecursive(root, "Soluong");
+            if (t != null) slimeCounterText = t.GetComponent<TMP_Text>();
         }
+        ApplyFontOneToAssignedTexts();
     }
 
     private Transform FindChildRecursive(Transform parent, string name)
@@ -428,33 +452,33 @@ public class BreedingUIManager : MonoBehaviour
         var imageGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
         imageGO.transform.SetParent(root.transform, false);
 
-        var nameGO = new GameObject("Name", typeof(RectTransform), typeof(Text));
+        var nameGO = new GameObject("Name", typeof(RectTransform), typeof(TextMeshProUGUI));
         nameGO.transform.SetParent(root.transform, false);
-        var nameText = nameGO.GetComponent<Text>();
-        nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var nameText = nameGO.GetComponent<TMP_Text>();
+        ApplyFontOne(nameText);
         nameText.fontSize = 14;
-        nameText.alignment = TextAnchor.UpperLeft;
+        nameText.alignment = TextAlignmentOptions.TopLeft;
 
-        var statsGO = new GameObject("Stats", typeof(RectTransform), typeof(Text));
+        var statsGO = new GameObject("Stats", typeof(RectTransform), typeof(TextMeshProUGUI));
         statsGO.transform.SetParent(root.transform, false);
-        var statsText = statsGO.GetComponent<Text>();
-        statsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var statsText = statsGO.GetComponent<TMP_Text>();
+        ApplyFontOne(statsText);
         statsText.fontSize = 12;
-        statsText.alignment = TextAnchor.UpperLeft;
+        statsText.alignment = TextAlignmentOptions.TopLeft;
 
-        var genGO = new GameObject("Gen", typeof(RectTransform), typeof(Text));
+        var genGO = new GameObject("Gen", typeof(RectTransform), typeof(TextMeshProUGUI));
         genGO.transform.SetParent(root.transform, false);
-        var genText = genGO.GetComponent<Text>();
-        genText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var genText = genGO.GetComponent<TMP_Text>();
+        ApplyFontOne(genText);
         genText.fontSize = 12;
-        genText.alignment = TextAnchor.LowerLeft;
+        genText.alignment = TextAlignmentOptions.BottomLeft;
 
-        var statusGO = new GameObject("Status", typeof(RectTransform), typeof(Text));
+        var statusGO = new GameObject("Status", typeof(RectTransform), typeof(TextMeshProUGUI));
         statusGO.transform.SetParent(root.transform, false);
-        var statusText = statusGO.GetComponent<Text>();
-        statusText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var statusText = statusGO.GetComponent<TMP_Text>();
+        ApplyFontOne(statusText);
         statusText.fontSize = 12;
-        statusText.alignment = TextAnchor.LowerRight;
+        statusText.alignment = TextAlignmentOptions.BottomRight;
 
         var borderGO = new GameObject("SelectionBorder", typeof(RectTransform), typeof(Image));
         borderGO.transform.SetParent(root.transform, false);
@@ -501,7 +525,7 @@ public class BreedingUIManager : MonoBehaviour
         var img = btnGO.GetComponent<Image>();
         img.color = new Color(0.2f, 0.5f, 1f, 0.9f);
         var txt = CreateText(btnGO.transform, name + "Text", label);
-        txt.alignment = TextAnchor.MiddleCenter;
+        txt.alignment = TextAlignmentOptions.Center;
         var rt = btnGO.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(140, 36);
         return btnGO.GetComponent<Button>();
@@ -516,12 +540,12 @@ public class BreedingUIManager : MonoBehaviour
         return sGO.GetComponent<Slider>();
     }
 
-    private Text CreateText(Transform parent, string name, string content)
+    private TMP_Text CreateText(Transform parent, string name, string content)
     {
-        var tGO = new GameObject(name, typeof(RectTransform), typeof(Text));
+        var tGO = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
         tGO.transform.SetParent(parent, false);
-        var t = tGO.GetComponent<Text>();
-        t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var t = tGO.GetComponent<TMP_Text>();
+        ApplyFontOne(t);
         t.text = content;
         t.fontSize = 14;
         t.color = Color.white;
@@ -529,6 +553,34 @@ public class BreedingUIManager : MonoBehaviour
         var rt = tGO.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(300, 24);
         return t;
+    }
+
+    private static TMP_FontAsset GetFontOne()
+    {
+        if (fontOne != null) return fontOne;
+#if UNITY_EDITOR
+        fontOne = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Fonts/1.asset");
+#endif
+        return fontOne != null ? fontOne : TMP_Settings.defaultFontAsset;
+    }
+
+    private static void ApplyFontOne(TMP_Text text)
+    {
+        if (text == null) return;
+        TMP_FontAsset font = GetFontOne();
+        if (font != null) text.font = font;
+    }
+
+    private void ApplyFontOneToAssignedTexts()
+    {
+        ApplyFontOne(mutationPercentText);
+        ApplyFontOne(energyCostText);
+        ApplyFontOne(breedingStatusText);
+        ApplyFontOne(selectedSlimesText);
+        ApplyFontOne(breedingPreviewText);
+        ApplyFontOne(breedingCostText);
+        ApplyFontOne(gemCostText);
+        ApplyFontOne(slimeCounterText);
     }
 
     public void RefreshAllUI()

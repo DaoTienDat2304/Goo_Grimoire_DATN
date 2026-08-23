@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using TMPro;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
 {
@@ -11,8 +14,8 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
     public GameObject SlimeArmor;
     public GameObject SlimeWeapon;
     public Sprite sprite;
-    public Text nameText;
-    public Text breedingStatusText;
+    public TMP_Text nameText;
+    public TMP_Text breedingStatusText;
     public Image backgroundImage;
     public Image selectionBorder;
     public Button teamButton;
@@ -28,6 +31,7 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
 
     private Slime slime;
     private bool isSelected = false;
+    private static TMP_FontAsset fontOne;
 
     public event Action<Slime> OnSlimeSelected;
     public SlimeWorldManager worldManager;
@@ -193,6 +197,15 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
                 slimeNameText = nameTransform.GetComponent<TMP_Text>();
         }
 
+        if (nameText == null)
+            nameText = transform.Find("Name")?.GetComponent<TMP_Text>();
+
+        if (breedingStatusText == null)
+            breedingStatusText = transform.Find("Status")?.GetComponent<TMP_Text>();
+
+        ApplyFontOne(nameText);
+        ApplyFontOne(breedingStatusText);
+        ApplyFontOne(slimeNameText);
         if (slimeNameText != null)
         {
             slimeNameText.enableAutoSizing = false;
@@ -215,6 +228,22 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
         foreach (Transform child in children)
             if (child.name == childName) return child;
         return null;
+    }
+
+    private static TMP_FontAsset GetFontOne()
+    {
+        if (fontOne != null) return fontOne;
+#if UNITY_EDITOR
+        fontOne = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Fonts/1.asset");
+#endif
+        return fontOne != null ? fontOne : TMP_Settings.defaultFontAsset;
+    }
+
+    private static void ApplyFontOne(TMP_Text text)
+    {
+        if (text == null) return;
+        TMP_FontAsset font = GetFontOne();
+        if (font != null) text.font = font;
     }
 
     public void OnPointerClick(PointerEventData eventData)

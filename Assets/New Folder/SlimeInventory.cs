@@ -30,6 +30,12 @@ public class SlimeInventory : MonoBehaviour
     public TMP_Text slimeCounterTmpText;
     public GameObject messagePanel;
     public Text messageText;
+    [Header("Fusion Filters")]
+    [Tooltip("(Optional) Button Rarity ben trai Fusion. Neu de trong script se tu tim object ten Rarity.")]
+    public Button rarityFilterButton;
+    [Tooltip("(Optional) Text tren button Rarity.")]
+    public TMP_Text rarityFilterLabel;
+    public Text rarityFilterLegacyLabel;
 
     private List<GameObject> slimeSlots = new List<GameObject>();
     private List<GameObject> collectionSlots = new List<GameObject>();
@@ -148,13 +154,10 @@ public class SlimeInventory : MonoBehaviour
     private int PreviewPoints()
     {
         int sum = 0;
-        if (collectionSlots == null) return 0;
-        foreach (var go in collectionSlots)
+        foreach (var slime in selectedSacrificeSlimes)
         {
-            if (go == null) continue;
-            var s = go.GetComponent<InventorySlot>();
-            if (s != null && s.onselect)
-                sum += SacrificePoints(SelectiveBreeding.GetSlimeRarity(s.GetSlime()));
+            if (slime == null) continue;
+            sum += SacrificePoints(SelectiveBreeding.GetSlimeRarity(slime));
         }
         return sum;
     }
@@ -164,6 +167,9 @@ public class SlimeInventory : MonoBehaviour
     private readonly List<Slime> previewSlimes = new List<Slime>();
     private readonly List<GameObject> selectedPreviewItems = new List<GameObject>();
     private readonly List<Slime> renderedPreviewSlimes = new List<Slime>();
+    private readonly HashSet<Slime> selectedSacrificeSlimes = new HashSet<Slime>();
+    private int rarityFilterIndex = -1;
+    private Rarity? ActiveRarityFilter => rarityFilterIndex >= 0 ? (Rarity?)((Rarity)rarityFilterIndex) : null;
 
     private Text GetNumberDisplay()
     {
@@ -236,16 +242,9 @@ public class SlimeInventory : MonoBehaviour
         EnsureSelectedSacrificePreviewRefs();
 
         previewSlimes.Clear();
-        if (collectionSlots != null)
-        {
-            foreach (var go in collectionSlots)
-            {
-                if (go == null) continue;
-                var slot = go.GetComponent<InventorySlot>();
-                if (slot != null && slot.onselect)
-                    previewSlimes.Add(slot.GetSlime());
-            }
-        }
+        foreach (var slime in selectedSacrificeSlimes)
+            if (slime != null)
+                previewSlimes.Add(slime);
 
         if (selectedSacrificeContent != null && selectedSacrificeItemTemplate != null)
         {
@@ -383,7 +382,9 @@ public class SlimeInventory : MonoBehaviour
 
     public void DeselectSacrificeSlime(Slime slime)
     {
-        if (slime == null || collectionSlots == null) return;
+        if (slime == null) return;
+        selectedSacrificeSlimes.Remove(slime);
+        if (collectionSlots == null) return;
         foreach (GameObject inventorySlot in collectionSlots)
         {
             if (inventorySlot == null) continue;
@@ -414,6 +415,7 @@ public class SlimeInventory : MonoBehaviour
 
     public void ondeseclect()
     {
+        selectedSacrificeSlimes.Clear();
         foreach (GameObject inventorySlot in collectionSlots)
         {
             if (inventorySlot == null) continue;
@@ -424,16 +426,11 @@ public class SlimeInventory : MonoBehaviour
     }
     public void ondelete()
     {
-        var selectedSlimes = new List<Slime>();
-        foreach (GameObject inventorySlot in collectionSlots)
-        {
-            if (inventorySlot == null) continue;
-            InventorySlot i = inventorySlot.GetComponent<InventorySlot>();
-            if (i != null && i.onselect && i.GetSlime() != null)
-                selectedSlimes.Add(i.GetSlime());
-        }
+        var selectedSlimes = selectedSacrificeSlimes.Where(slime => slime != null).ToList();
 
         if (selectedSlimes.Count == 0) return;
+
+        selectedSacrificeSlimes.Clear();
 
         foreach (var slime in selectedSlimes)
             SacrificeSlime(slime);
@@ -532,6 +529,55 @@ public class SlimeInventory : MonoBehaviour
      
 
         // Default visible panels
+        EnsureRarityFilterButton();
+    }
+
+    private void EnsureRarityFilterButton()
+    {
+        if (rarityFilterButton == null)
+            rarityFilterButton = FindChildRecursive(transform, "Rarity")?.GetComponent<Button>();
+        if (rarityFilterButton == null)
+            rarityFilterButton = FindChildRecursive(transform.root, "Rarity")?.GetComponent<Button>();
+
+        if (rarityFilterButton != null)
+        {
+            rarityFilterButton.onClick.RemoveListener(OnRarityFilterClicked);
+            rarityFilterButton.onClick.AddListener(OnRarityFilterClicked);
+            if (rarityFilterLabel == null)
+                rarityFilterLabel = rarityFilterButton.GetComponentInChildren<TMP_Text>(true);
+            if (rarityFilterLegacyLabel == null)
+                rarityFilterLegacyLabel = rarityFilterButton.GetComponentInChildren<Text>(true);
+        }
+
+        UpdateRarityFilterLabel();
+    }
+
+    public void OnRarityFilterClicked()
+    {
+        int rarityCount = System.Enum.GetValues(typeof(Rarity)).Length;
+        rarityFilterIndex++;
+        if (rarityFilterIndex >= rarityCount)
+            rarityFilterIndex = -1;
+
+        UpdateRarityFilterLabel();
+        RefreshCollectionGrid();
+        UpdateSelectedSacrificePreview();
+    }
+
+    private void UpdateRarityFilterLabel()
+    {
+        if (rarityFilterLabel == null && rarityFilterButton != null)
+            rarityFilterLabel = rarityFilterButton.GetComponentInChildren<TMP_Text>(true);
+        if (rarityFilterLegacyLabel == null && rarityFilterButton != null)
+            rarityFilterLegacyLabel = rarityFilterButton.GetComponentInChildren<Text>(true);
+
+        string label = ActiveRarityFilter.HasValue
+            ? ActiveRarityFilter.Value.ToVietnamese()
+            : "Rarity";
+        if (rarityFilterLabel != null)
+            rarityFilterLabel.text = label;
+        if (rarityFilterLegacyLabel != null)
+            rarityFilterLegacyLabel.text = label;
     }
 
     private void EnsureFusionBackdrop()
@@ -572,6 +618,7 @@ public class SlimeInventory : MonoBehaviour
     }
     public void RefreshAllUI()
     {
+        EnsureRarityFilterButton();
         RefreshSlimeGrid();
         RefreshCollectionGrid();
         UpdateSlimeCounter();
@@ -596,6 +643,15 @@ public class SlimeInventory : MonoBehaviour
 
     private void RefreshCollectionGrid()
     {
+        var selectedBeforeRefresh = new HashSet<Slime>(selectedSacrificeSlimes);
+        foreach (var oldSlot in collectionSlots)
+        {
+            if (oldSlot == null) continue;
+            var oldInventorySlot = oldSlot.GetComponent<InventorySlot>();
+            if (oldInventorySlot != null && oldInventorySlot.onselect && oldInventorySlot.GetSlime() != null)
+                selectedBeforeRefresh.Add(oldInventorySlot.GetSlime());
+        }
+
         // Clear existing slots
         foreach (var slot in collectionSlots)
         {
@@ -603,22 +659,51 @@ public class SlimeInventory : MonoBehaviour
         }
         collectionSlots.Clear();
 
-        // Get all slimes
-        var allSlimes = BreedingManager.Instance.GetAllSlimes();
+        if (BreedingManager.Instance == null)
+            return;
+
+        selectedSacrificeSlimes.Clear();
+        foreach (var slime in selectedBeforeRefresh)
+        {
+            if (slime != null && BreedingManager.Instance.GetAllSlimes().Contains(slime))
+                selectedSacrificeSlimes.Add(slime);
+        }
+
+        var activeRarity = ActiveRarityFilter;
+        var allSlimes = BreedingManager.Instance.GetAllSlimes()
+            .Where(slime => slime != null && (!activeRarity.HasValue || SelectiveBreeding.GetSlimeRarity(slime) == activeRarity.Value))
+            .OrderByDescending(SelectiveBreeding.GetSlimeRarity)
+            .ThenBy(slime => slime.slimeName)
+            .ToList();
 
         // Create new slots
         foreach (var slime in allSlimes)
         {
             GameObject slot = Instantiate(collectionSlotPrefab, collectionGridParent);
             var slotScript = slot.GetComponent<InventorySlot>();
-            slotScript.canselect = true;
-            slotScript.sprite = slotsprite;
             collectionSlots.Add(slot);
             if (slotScript != null)
             {
+                slotScript.canselect = true;
+                slotScript.sprite = slotsprite;
                 slotScript.SetupSlime(slime);
+                slotScript.OnSacrificeSelectionChanged -= OnSlotSacrificeSelectionChanged;
+                slotScript.OnSacrificeSelectionChanged += OnSlotSacrificeSelectionChanged;
+                slotScript.SetBreedingSelected(selectedSacrificeSlimes.Contains(slime));
             }
         }
+    }
+
+    private void OnSlotSacrificeSelectionChanged(Slime slime, bool selected)
+    {
+        if (slime == null) return;
+
+        if (selected)
+            selectedSacrificeSlimes.Add(slime);
+        else
+            selectedSacrificeSlimes.Remove(slime);
+
+        UpdateSelectedSacrificePreview();
     }
 
     public void ShowCollectionPanel()

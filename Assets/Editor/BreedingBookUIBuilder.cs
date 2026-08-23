@@ -2,6 +2,7 @@
 using System;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -75,12 +76,12 @@ public static class BreedingBookUIBuilder
         GameObject right = Node("RightPage_SlimeCollection", content.transform, new Vector2(294f, 0f), new Vector2(540f, 650f));
 
         BuildLeftPage(left.transform, out GameObject breedingPanel, out Transform parentGrid,
-            out Button breedButton, out Button cancelButton, out Image coinIcon, out Text costText,
-            out Text previewText, out GameObject progressPanel, out Slider progressBar,
-            out Text statusText, out Button gemButton, out Image gemIcon, out Text gemText);
+            out Button breedButton, out Button cancelButton, out Image coinIcon, out TMP_Text costText,
+            out TMP_Text previewText, out GameObject progressPanel, out Slider progressBar,
+            out TMP_Text statusText, out Button gemButton, out Image gemIcon, out TMP_Text gemText);
 
         BuildRightPage(right.transform, out GameObject collectionPanel, out Transform collectionGrid,
-            out Text counterText);
+            out TMP_Text counterText);
 
         manager.breedingUIRoot = host.gameObject;
         manager.closeButton = closeButton;
@@ -129,9 +130,9 @@ public static class BreedingBookUIBuilder
     }
 
     private static void BuildLeftPage(Transform parent, out GameObject panel, out Transform parentGrid,
-        out Button breed, out Button cancel, out Image coin, out Text cost, out Text preview,
-        out GameObject progressPanel, out Slider progress, out Text status, out Button gemButton,
-        out Image gemIcon, out Text gemText)
+        out Button breed, out Button cancel, out Image coin, out TMP_Text cost, out TMP_Text preview,
+        out GameObject progressPanel, out Slider progress, out TMP_Text status, out Button gemButton,
+        out Image gemIcon, out TMP_Text gemText)
     {
         panel = StretchNode("BreedingPanel", parent).gameObject;
         panel.AddComponent<Image>().color = Clear;
@@ -183,7 +184,7 @@ public static class BreedingBookUIBuilder
         gemText = Label("GemCostText", gemButton.transform, "0", 18, FontStyle.Bold, new Vector2(92f, 0f), new Vector2(45f, 28f), TextAnchor.MiddleCenter, Color.white);
     }
 
-    private static void BuildRightPage(Transform parent, out GameObject panel, out Transform grid, out Text counter)
+    private static void BuildRightPage(Transform parent, out GameObject panel, out Transform grid, out TMP_Text counter)
     {
         panel = StretchNode("CollectionPanel", parent).gameObject;
         panel.AddComponent<Image>().color = Clear;
@@ -234,9 +235,9 @@ public static class BreedingBookUIBuilder
         GameObject body = SpriteLayer("Body", root.transform, new Vector2(0f, bodyY), slimeSize);
         GameObject armor = SpriteLayer("Armor", body.transform, Vector2.zero, slimeSize);
         GameObject weapon = SpriteLayer("Weapon", body.transform, Vector2.zero, slimeSize);
-        Text name = Label("NameText", root.transform, "Empty", parentSlot ? 14 : 11, FontStyle.Normal,
+        TMP_Text name = Label("NameText", root.transform, "Empty", parentSlot ? 14 : 11, FontStyle.Normal,
             new Vector2(0f, parentSlot ? -63f : -38f), new Vector2(parentSlot ? 130f : 88f, 22f), TextAnchor.MiddleCenter, Ink);
-        Text state = Label("StatusText", root.transform, string.Empty, 10, FontStyle.Normal,
+        TMP_Text state = Label("StatusText", root.transform, string.Empty, 10, FontStyle.Normal,
             new Vector2(0f, parentSlot ? 66f : 57f), new Vector2(88f, 17f), TextAnchor.MiddleCenter, MutedInk);
         Image border = ImageNode("SelectionBorder", root.transform, Sprite(parentSlot ? "KhungSlime.png" : "Khung slime.png"), Vector2.zero, slotSize + new Vector2(8f, 8f));
         border.color = Gold;
@@ -347,22 +348,44 @@ public static class BreedingBookUIBuilder
         return slider;
     }
 
-    private static Text Label(string name, Transform parent, string value, int fontSize, FontStyle style,
+    private static TMP_Text Label(string name, Transform parent, string value, int fontSize, FontStyle style,
         Vector2 pos, Vector2 size, TextAnchor alignment, Color color)
     {
         GameObject go = Node(name, parent, pos, size);
-        Text text = go.AddComponent<Text>();
-        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        TMP_Text text = go.AddComponent<TextMeshProUGUI>();
+        text.font = FontOne();
         text.text = value;
         text.fontSize = fontSize;
-        text.fontStyle = style;
-        text.alignment = alignment;
+        text.fontStyle = style == FontStyle.Bold ? FontStyles.Bold : FontStyles.Normal;
+        text.alignment = ToTmpAlignment(alignment);
         text.color = color;
-        text.resizeTextForBestFit = true;
-        text.resizeTextMinSize = 10;
-        text.resizeTextMaxSize = fontSize;
+        text.enableAutoSizing = true;
+        text.fontSizeMin = 10;
+        text.fontSizeMax = fontSize;
         text.raycastTarget = false;
         return text;
+    }
+
+    private static TMP_FontAsset FontOne()
+    {
+        return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Fonts/1.asset")
+            ?? TMP_Settings.defaultFontAsset;
+    }
+
+    private static TextAlignmentOptions ToTmpAlignment(TextAnchor alignment)
+    {
+        switch (alignment)
+        {
+            case TextAnchor.UpperLeft: return TextAlignmentOptions.TopLeft;
+            case TextAnchor.UpperCenter: return TextAlignmentOptions.Top;
+            case TextAnchor.UpperRight: return TextAlignmentOptions.TopRight;
+            case TextAnchor.MiddleLeft: return TextAlignmentOptions.Left;
+            case TextAnchor.MiddleRight: return TextAlignmentOptions.Right;
+            case TextAnchor.LowerLeft: return TextAlignmentOptions.BottomLeft;
+            case TextAnchor.LowerCenter: return TextAlignmentOptions.Bottom;
+            case TextAnchor.LowerRight: return TextAlignmentOptions.BottomRight;
+            default: return TextAlignmentOptions.Center;
+        }
     }
 
     private static Image ImageNode(string name, Transform parent, Sprite sprite, Vector2 pos, Vector2 size)

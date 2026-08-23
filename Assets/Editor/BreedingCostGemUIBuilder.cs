@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -47,7 +48,7 @@ public static class BreedingCostGemUIBuilder
         hl.childControlWidth = false; hl.childControlHeight = false;
         hl.childForceExpandWidth = false; hl.childForceExpandHeight = false;
         Image coinIcon = Icon("CoinIcon", group.transform, coinSprite, new Vector2(52f, 52f), GoldPlaceholder);
-        Text costText = Label("BreedCostText", group.transform, "0", 32, Ink, new Vector2(150f, 56f), TextAnchor.MiddleLeft);
+        TMP_Text costText = Label("BreedCostText", group.transform, "0", 32, Ink, new Vector2(150f, 56f), TextAnchor.MiddleLeft);
 
         GameObject btnGO = Node("FinishWithGemsButton", gemParent, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(250f, 66f));
         btnGO.AddComponent<LayoutElement>().ignoreLayout = true;
@@ -65,7 +66,7 @@ public static class BreedingCostGemUIBuilder
         chl.childControlWidth = false; chl.childControlHeight = false;
         chl.childForceExpandWidth = false; chl.childForceExpandHeight = false;
         Image gemIcon = Icon("GemIcon", content.transform, gemSprite, new Vector2(40f, 40f), GemPlaceholder);
-        Text gemText = Label("GemText", content.transform, "0", 26, Color.white, new Vector2(80f, 46f), TextAnchor.MiddleCenter);
+        TMP_Text gemText = Label("GemText", content.transform, "0", 26, Color.white, new Vector2(80f, 46f), TextAnchor.MiddleCenter);
 
         manager.costCoinIcon = coinIcon;
         manager.breedingCostText = costText;
@@ -113,19 +114,36 @@ public static class BreedingCostGemUIBuilder
         return img;
     }
 
-    private static Text Label(string name, Transform parent, string value, int size, Color color, Vector2 box, TextAnchor align)
+    private static TMP_Text Label(string name, Transform parent, string value, int size, Color color, Vector2 box, TextAnchor align)
     {
-        var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+        var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
         go.layer = 5;
         go.transform.SetParent(parent, false);
-        var t = go.GetComponent<Text>();
-        t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        t.text = value; t.fontSize = size; t.color = color; t.alignment = align;
-        t.horizontalOverflow = HorizontalWrapMode.Overflow;
-        t.verticalOverflow = VerticalWrapMode.Overflow;
+        var t = go.GetComponent<TMP_Text>();
+        t.font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Fonts/1.asset")
+            ?? TMP_Settings.defaultFontAsset;
+        t.text = value; t.fontSize = size; t.color = color; t.alignment = ToTmpAlignment(align);
+        t.textWrappingMode = TextWrappingModes.NoWrap;
+        t.overflowMode = TextOverflowModes.Overflow;
         t.raycastTarget = false;
         go.GetComponent<RectTransform>().sizeDelta = box;
         return t;
+    }
+
+    private static TextAlignmentOptions ToTmpAlignment(TextAnchor alignment)
+    {
+        switch (alignment)
+        {
+            case TextAnchor.UpperLeft: return TextAlignmentOptions.TopLeft;
+            case TextAnchor.UpperCenter: return TextAlignmentOptions.Top;
+            case TextAnchor.UpperRight: return TextAlignmentOptions.TopRight;
+            case TextAnchor.MiddleLeft: return TextAlignmentOptions.Left;
+            case TextAnchor.MiddleRight: return TextAlignmentOptions.Right;
+            case TextAnchor.LowerLeft: return TextAlignmentOptions.BottomLeft;
+            case TextAnchor.LowerCenter: return TextAlignmentOptions.Bottom;
+            case TextAnchor.LowerRight: return TextAlignmentOptions.BottomRight;
+            default: return TextAlignmentOptions.Center;
+        }
     }
 }
 #endif

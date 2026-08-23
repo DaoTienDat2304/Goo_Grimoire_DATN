@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 [System.Serializable]
 public class FarmDifficulty
@@ -63,7 +64,7 @@ public class FarmModeManager : MonoBehaviour
 
     [Header("Reward Popup (tuỳ chọn)")]
     public GameObject rewardPopup;              // Panel hiện khi claim phần thưởng
-    public UnityEngine.UI.Text rewardPopupText; // Text hiển thị nội dung phần thưởng
+    public TMP_Text rewardPopupText; // Text hiển thị nội dung phần thưởng
     public UnityEngine.UI.Button rewardPopupCloseButton; // Nút đóng popup
 
     /// <summary>Tên độ khó đang được chọn — dùng cho analytics.</summary>
@@ -479,8 +480,16 @@ public class FarmModeManager : MonoBehaviour
 
         if (!string.IsNullOrEmpty(customMessage))
         {
-            var txt = warningText.GetComponentInChildren<UnityEngine.UI.Text>(true);
-            if (txt != null) txt.text = customMessage;
+            var tmp = warningText.GetComponentInChildren<TMP_Text>(true);
+            if (tmp != null)
+            {
+                tmp.text = customMessage;
+            }
+            else
+            {
+                var txt = warningText.GetComponentInChildren<UnityEngine.UI.Text>(true);
+                if (txt != null) txt.text = customMessage;
+            }
         }
 
         StopCoroutine(nameof(HideWarningAfterDelay));

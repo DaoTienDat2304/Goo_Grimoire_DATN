@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using System.Text;
 
 /// <summary>
@@ -12,25 +13,25 @@ public class CollectionDetailPanel : MonoBehaviour
     public Image avatarWeapon;
     public Image avatarFrame;
 
-    [Header("Basic Info")]
-    public Text titleText;
-    public Text subtitleText;
+    [Header("Basic Info (TextMeshPro)")]
+    public TMP_Text titleText;
+    public TMP_Text subtitleText;
 
-    [Header("Stats Display")]
+    [Header("Stats Display (TextMeshPro)")]
     public GameObject statsGroup;
-    public Text hpText;
-    public Text atkText;
-    public Text matkText;
-    public Text defText;
-    public Text spdText;
-    public Text critRateText;
+    public TMP_Text hpText;
+    public TMP_Text atkText;
+    public TMP_Text matkText;
+    public TMP_Text defText;
+    public TMP_Text spdText;
+    public TMP_Text critRateText;
 
     [Header("Equipment Slots")]
     public Image[] equipSlots = new Image[6];
 
-    [Header("Description")]
+    [Header("Description (TextMeshPro)")]
     public GameObject descriptionGroup;
-    public Text descriptionText;
+    public TMP_Text descriptionText;
 
     private const int MAX_DISPLAY_HP = 60000;
     private const int MAX_DISPLAY_STAT = 5000;
@@ -114,7 +115,7 @@ public class CollectionDetailPanel : MonoBehaviour
             if (trait.ultimateSkill != null) sb.AppendLine("Ultimate: " + trait.ultimateSkill.skillName);
             if (descriptionText != null)
             {
-                descriptionText.resizeTextForBestFit = true;
+                descriptionText.enableAutoSizing = true;
                 descriptionText.text = sb.ToString().Trim();
             }
         }
@@ -144,7 +145,7 @@ public class CollectionDetailPanel : MonoBehaviour
             if (skill.battlePointGain > 0) sb.AppendLine($"Gain: +{skill.battlePointGain} Skill Point(s)");
             if (descriptionText != null)
             {
-                descriptionText.resizeTextForBestFit = true;
+                descriptionText.enableAutoSizing = true;
                 descriptionText.text = sb.ToString().Trim();
             }
         }
@@ -165,12 +166,12 @@ public class CollectionDetailPanel : MonoBehaviour
         SetAvatarLayers(null, null, null);
         if (titleText != null)
         {
-            titleText.resizeTextForBestFit = true;
+            titleText.enableAutoSizing = true;
             titleText.text = "Select an item to view details";
         }
         if (subtitleText != null)
         {
-            subtitleText.resizeTextForBestFit = true;
+            subtitleText.enableAutoSizing = true;
             subtitleText.text = "";
         }
         ShowStats(false);
@@ -217,17 +218,17 @@ public class CollectionDetailPanel : MonoBehaviour
     {
         if (titleText != null)
         {
-            titleText.resizeTextForBestFit = true;
-            titleText.resizeTextMinSize = 10;
-            titleText.resizeTextMaxSize = 20;
-            titleText.alignment = TextAnchor.MiddleCenter;
+            titleText.enableAutoSizing = true;
+            titleText.fontSizeMin = 10;
+            titleText.fontSizeMax = 20;
+            titleText.alignment = TextAlignmentOptions.Center;
         }
         if (subtitleText != null)
         {
-            subtitleText.resizeTextForBestFit = true;
-            subtitleText.resizeTextMinSize = 9;
-            subtitleText.resizeTextMaxSize = 16;
-            subtitleText.alignment = TextAnchor.MiddleCenter;
+            subtitleText.enableAutoSizing = true;
+            subtitleText.fontSizeMin = 9;
+            subtitleText.fontSizeMax = 16;
+            subtitleText.alignment = TextAlignmentOptions.Center;
         }
     }
 
@@ -235,12 +236,12 @@ public class CollectionDetailPanel : MonoBehaviour
     {
         if (titleText != null)
         {
-            titleText.resizeTextForBestFit = true;
+            titleText.enableAutoSizing = true;
             titleText.text = title;
         }
         if (subtitleText != null)
         {
-            subtitleText.resizeTextForBestFit = true;
+            subtitleText.enableAutoSizing = true;
             subtitleText.text = subtitle;
             subtitleText.color = CollectionGridItem.GetRarityColor(rarity);
         }
@@ -253,12 +254,12 @@ public class CollectionDetailPanel : MonoBehaviour
 
     private void SetStats(int hp, int atk, int matk, int def, int spd, float crit)
     {
-        if (hpText != null)       { hpText.resizeTextForBestFit = true; hpText.text = hp.ToString("N0"); }
-        if (atkText != null)      { atkText.resizeTextForBestFit = true; atkText.text = atk.ToString("N0"); }
-        if (matkText != null)     { matkText.resizeTextForBestFit = true; matkText.text = matk.ToString("N0"); }
-        if (defText != null)      { defText.resizeTextForBestFit = true; defText.text = def.ToString("N0"); }
-        if (spdText != null)      { spdText.resizeTextForBestFit = true; spdText.text = spd.ToString(); }
-        if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = (crit * 100f).ToString("F0") + "%"; }
+        if (hpText != null)       { hpText.enableAutoSizing = true; hpText.text = hp.ToString("N0"); }
+        if (atkText != null)      { atkText.enableAutoSizing = true; atkText.text = atk.ToString("N0"); }
+        if (matkText != null)     { matkText.enableAutoSizing = true; matkText.text = matk.ToString("N0"); }
+        if (defText != null)      { defText.enableAutoSizing = true; defText.text = def.ToString("N0"); }
+        if (spdText != null)      { spdText.enableAutoSizing = true; spdText.text = spd.ToString(); }
+        if (critRateText != null) { critRateText.enableAutoSizing = true; critRateText.text = (crit * 100f).ToString("F0") + "%"; }
     }
 
     private void SetTraitStats(TraitSO trait)
@@ -268,34 +269,34 @@ public class CollectionDetailPanel : MonoBehaviour
 
         if (trait.type == TraitType.Body)
         {
-            if (hpText != null)       { hpText.resizeTextForBestFit = true; hpText.text = $"{b.hpMin} ~ {b.hpMax}"; }
-            if (defText != null)      { defText.resizeTextForBestFit = true; defText.text = $"{b.defMin} ~ {b.defMax}"; }
-            if (spdText != null)      { spdText.resizeTextForBestFit = true; spdText.text = $"{b.spdMin} ~ {b.spdMax}"; }
-            if (atkText != null)      { atkText.resizeTextForBestFit = true; atkText.text = "-"; }
-            if (matkText != null)     { matkText.resizeTextForBestFit = true; matkText.text = "-"; }
-            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = "-"; }
+            if (hpText != null)       { hpText.enableAutoSizing = true; hpText.text = $"{b.hpMin} ~ {b.hpMax}"; }
+            if (defText != null)      { defText.enableAutoSizing = true; defText.text = $"{b.defMin} ~ {b.defMax}"; }
+            if (spdText != null)      { spdText.enableAutoSizing = true; spdText.text = $"{b.spdMin} ~ {b.spdMax}"; }
+            if (atkText != null)      { atkText.enableAutoSizing = true; atkText.text = "-"; }
+            if (matkText != null)     { matkText.enableAutoSizing = true; matkText.text = "-"; }
+            if (critRateText != null) { critRateText.enableAutoSizing = true; critRateText.text = "-"; }
         }
         else if (trait.type == TraitType.Weapon)
         {
-            if (hpText != null)       { hpText.resizeTextForBestFit = true; hpText.text = "-"; }
-            if (defText != null)      { defText.resizeTextForBestFit = true; defText.text = "-"; }
-            if (spdText != null)      { spdText.resizeTextForBestFit = true; spdText.text = "-"; }
+            if (hpText != null)       { hpText.enableAutoSizing = true; hpText.text = "-"; }
+            if (defText != null)      { defText.enableAutoSizing = true; defText.text = "-"; }
+            if (spdText != null)      { spdText.enableAutoSizing = true; spdText.text = "-"; }
             int atkMin = trait.attackRange.x > 0 ? trait.attackRange.x : b.atkMin;
             int atkMax = trait.attackRange.y > 0 ? trait.attackRange.y : b.atkMax;
             int matkMin = trait.magicAttackRange.x > 0 ? trait.magicAttackRange.x : b.magMin;
             int matkMax = trait.magicAttackRange.y > 0 ? trait.magicAttackRange.y : b.magMax;
-            if (atkText != null)      { atkText.resizeTextForBestFit = true; atkText.text = $"{atkMin} ~ {atkMax}"; }
-            if (matkText != null)     { matkText.resizeTextForBestFit = true; matkText.text = $"{matkMin} ~ {matkMax}"; }
-            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = "-"; }
+            if (atkText != null)      { atkText.enableAutoSizing = true; atkText.text = $"{atkMin} ~ {atkMax}"; }
+            if (matkText != null)     { matkText.enableAutoSizing = true; matkText.text = $"{matkMin} ~ {matkMax}"; }
+            if (critRateText != null) { critRateText.enableAutoSizing = true; critRateText.text = "-"; }
         }
         else if (trait.type == TraitType.Armor)
         {
-            if (hpText != null)       { hpText.resizeTextForBestFit = true; hpText.text = "-"; }
-            if (defText != null)      { defText.resizeTextForBestFit = true; defText.text = "-"; }
-            if (spdText != null)      { spdText.resizeTextForBestFit = true; spdText.text = "-"; }
-            if (atkText != null)      { atkText.resizeTextForBestFit = true; atkText.text = "-"; }
-            if (matkText != null)     { matkText.resizeTextForBestFit = true; matkText.text = "-"; }
-            if (critRateText != null) { critRateText.resizeTextForBestFit = true; critRateText.text = $"{b.critRate * 100f:F0}%"; }
+            if (hpText != null)       { hpText.enableAutoSizing = true; hpText.text = "-"; }
+            if (defText != null)      { defText.enableAutoSizing = true; defText.text = "-"; }
+            if (spdText != null)      { spdText.enableAutoSizing = true; spdText.text = "-"; }
+            if (atkText != null)      { atkText.enableAutoSizing = true; atkText.text = "-"; }
+            if (matkText != null)     { matkText.enableAutoSizing = true; matkText.text = "-"; }
+            if (critRateText != null) { critRateText.enableAutoSizing = true; critRateText.text = $"{b.critRate * 100f:F0}%"; }
         }
     }
 

@@ -1,7 +1,7 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-
+using TMPro;
 
 [RequireComponent(typeof(Button))]
 public class TowerFloorItem : MonoBehaviour
@@ -18,8 +18,8 @@ public class TowerFloorItem : MonoBehaviour
     public Image star2;
     public Image star3;
 
-    [Header("So Floor Ben Trong Button")]
-    public Text floorNumberText;
+    [Header("So Floor Ben Trong Button (TextMeshPro)")]
+    public TMP_Text floorNumberText;
 
     [Header("Locked/Unlocked Colors")]
     public Color uncompletedColor = new Color(0.45f, 0.45f, 0.45f, 1f);

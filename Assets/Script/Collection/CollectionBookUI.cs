@@ -60,6 +60,13 @@ public class CollectionBookUI : MonoBehaviour
     private void LocalizeButton(Button btn, string text)
     {
         if (btn == null) return;
+        var tmp = btn.GetComponentInChildren<TMPro.TMP_Text>();
+        if (tmp != null)
+        {
+            tmp.enableAutoSizing = true;
+            tmp.text = text;
+            return;
+        }
         var txt = btn.GetComponentInChildren<Text>();
         if (txt != null)
         {

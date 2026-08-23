@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SelectDifficulties : MonoBehaviour
 {
@@ -10,9 +11,9 @@ public class SelectDifficulties : MonoBehaviour
     public Button extremeButton;
     public Button hellButton;
 
-    [Header("Reward Popup (tuỳ chọn)")]
+    [Header("Reward Popup (TextMeshPro)")]
     public GameObject rewardPopup;              // Panel hiện khi claim phần thưởng
-    public Text rewardPopupText;                // Text hiển thị nội dung phần thưởng
+    public TMP_Text rewardPopupText;            // Text hiển thị nội dung phần thưởng
     public Button rewardPopupCloseButton;       // Nút đóng popup
 
     void Awake()

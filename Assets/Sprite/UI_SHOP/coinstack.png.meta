@@ -597,7 +597,26 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      coinstack_0: 7699049191537142496
+      coinstack_1: -643025354631754377
+      coinstack_10: 478363706044216179
+      coinstack_11: 5969986234180117063
+      coinstack_12: -2702239970527648737
+      coinstack_13: -7563301683188990548
+      coinstack_14: -833424069654294873
+      coinstack_15: 2376739845467998304
+      coinstack_16: -527931987772782046
+      coinstack_17: 1088967699647552385
+      coinstack_18: -389447209353441318
+      coinstack_2: 4476344495070790183
+      coinstack_3: 3193849510070004735
+      coinstack_4: -591088068251831139
+      coinstack_5: 694816774739285511
+      coinstack_6: 3300883726395969732
+      coinstack_7: 976779305590130102
+      coinstack_8: 4085412151663247444
+      coinstack_9: 9075919694711576269
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

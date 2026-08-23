@@ -25,6 +25,7 @@ MonoBehaviour:
     bossEvade: 0
     rewardCoins: 500
     rewardGems: 1
+    requiredTowerFloor: 1
     unlocked: 1
     completed: 1
   - difficultyName: "V\u1EEBa"
@@ -39,6 +40,7 @@ MonoBehaviour:
     bossEvade: 0
     rewardCoins: 1200
     rewardGems: 5
+    requiredTowerFloor: 5
     unlocked: 1
     completed: 1
   - difficultyName: "Kh\xF3"
@@ -53,6 +55,7 @@ MonoBehaviour:
     bossEvade: 0
     rewardCoins: 2500
     rewardGems: 15
+    requiredTowerFloor: 10
     unlocked: 1
     completed: 0
   - difficultyName: "Nightmare"
@@ -67,6 +70,7 @@ MonoBehaviour:
     bossEvade: 0
     rewardCoins: 5000
     rewardGems: 30
+    requiredTowerFloor: 15
     unlocked: 0
     completed: 0
   - difficultyName: "Hell"
@@ -81,5 +85,6 @@ MonoBehaviour:
     bossEvade: 0
     rewardCoins: 10000
     rewardGems: 60
+    requiredTowerFloor: 20
     unlocked: 0
     completed: 0

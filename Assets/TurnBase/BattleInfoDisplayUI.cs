@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
 /// </summary>
@@ -18,10 +19,10 @@ public class BattleInfoDisplayUI : MonoBehaviour
         }
     }
 
-    [Header("Shared Info Panel & Text Display")]
+    [Header("Shared Info Panel & Text Display (TextMeshPro)")]
     public GameObject infoPanel;
-    public Text mainInfoText;
-    public Text headerTitleText;
+    public TextMeshProUGUI mainInfoText;
+    public TextMeshProUGUI headerTitleText;
     public Image infoIconImage;
     public Button closeButton;
 
@@ -113,9 +114,7 @@ public class BattleInfoDisplayUI : MonoBehaviour
         info += $"- Weapon: {weapon}";
 
         if (mainInfoText != null)
-        {
             mainInfoText.text = info;
-        }
 
         Debug.Log($"[BattleInfoDisplayUI] Show Slime Info: {slime.gameObject.name}");
     }
@@ -177,9 +176,7 @@ public class BattleInfoDisplayUI : MonoBehaviour
         info += string.IsNullOrEmpty(baseSkill.description) ? "No description available." : baseSkill.description;
 
         if (mainInfoText != null)
-        {
             mainInfoText.text = info;
-        }
 
         Debug.Log($"[BattleInfoDisplayUI] Show Skill Info: {sName}");
     }

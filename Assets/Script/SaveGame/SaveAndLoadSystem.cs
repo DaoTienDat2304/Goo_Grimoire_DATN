@@ -270,6 +270,15 @@ public class SaveAndLoadSystem : MonoBehaviour
         Debug.Log($"[Save] Applied tower cache: floor {completedFloor} completed, currentFloor={towerDatabase.currentFloor}");
     }
 
+    public int GetTowerHighestFloor()
+    {
+        if (towerDatabase != null)
+            return towerDatabase.highestFloorReached;
+        if (_cachedSaveData != null)
+            return _cachedSaveData.towerHighestFloor;
+        return 1;
+    }
+
     void ApplyFarmResultCache()
     {
         if (farmDatabase != null && farmDatabase.hasPendingResult)

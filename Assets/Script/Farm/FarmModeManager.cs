@@ -24,7 +24,9 @@ public class FarmDifficulty
     public int rewardCoins = 500;
     public int rewardGems = 0;
 
-    [Header("Unlock Status")]
+    [Header("Unlock Status (Tower Mode)")]
+    [Tooltip("Yêu cầu tầng Tháp Vô Tận đã vượt qua để mở khóa")]
+    public int requiredTowerFloor = 1;
     public bool unlocked = false;
     public bool completed = false;
 }
@@ -178,29 +180,31 @@ public class FarmModeManager : MonoBehaviour
     private void InitializeDefaultDifficulties()
     {
         FarmDifficulty Make(string name, string desc,
-            int hp, int atk, int magic, int def, int spd, float critRate, float critDmg, int coins, int gems) =>
+            int hp, int atk, int magic, int def, int spd, float critRate, float critDmg, int coins, int gems, int reqFloor) =>
             new FarmDifficulty
             {
-                difficultyName  = name,
-                description     = desc,
-                bossHP          = hp,
-                bossAttack      = atk,
-                bossMagicAttack = magic,
-                bossDefense     = def,
-                bossSpeed       = spd,
-                bossCritRate    = critRate,
-                bossCritDMG     = critDmg,
-                rewardCoins     = coins,
-                rewardGems      = gems,
+                difficultyName     = name,
+                description        = desc,
+                bossHP             = hp,
+                bossAttack         = atk,
+                bossMagicAttack    = magic,
+                bossDefense        = def,
+                bossSpeed          = spd,
+                bossCritRate       = critRate,
+                bossCritDMG        = critDmg,
+                rewardCoins        = coins,
+                rewardGems         = gems,
+                requiredTowerFloor = reqFloor,
+                unlocked           = true
             };
 
         difficulties = new List<FarmDifficulty>
         {
-            Make("Easy",         "Weak boss, low reward",       6000,  180,  360,  780,  90,  0.05f, 1.30f, 500,   0),
-            Make("Normal", "Mid boss, mid reward",      11000, 325,  650,  1480, 105, 0.06f, 1.35f, 1200,  0),
-            Make("Hard",        "Strong boss, high reward",   24000, 640,  1290, 2790, 121, 0.08f, 1.45f, 3000,  2),
-            Make("Extreme",    "Very strong boss, big reward", 46000, 1160, 2325, 5270, 141, 0.10f, 1.55f, 7000,  5),
-            Make("Inferno",   "Ultimate challenge",      87000, 2125, 4250, 9500, 162, 0.13f, 1.70f, 15000, 10),
+            Make("Easy",    "Weak boss, low reward",          6000,  180,  360,  780,  90,  0.05f, 1.30f, 500,   0, 1),
+            Make("Normal",  "Mid boss, mid reward",          11000, 325,  650,  1480, 105, 0.06f, 1.35f, 1200,  0, 5),
+            Make("Hard",    "Strong boss, high reward",      24000, 640,  1290, 2790, 121, 0.08f, 1.45f, 3000,  2, 10),
+            Make("Extreme", "Very strong boss, big reward",  46000, 1160, 2325, 5270, 141, 0.10f, 1.55f, 7000,  5, 15),
+            Make("Inferno", "Ultimate challenge",            87000, 2125, 4250, 9500, 162, 0.13f, 1.70f, 15000, 10, 20),
         };
 
         RefreshDifficultyStats();
@@ -228,7 +232,9 @@ public class FarmModeManager : MonoBehaviour
 
         if (!IsDifficultyUnlocked(difficultyIndex))
         {
-            Debug.LogWarning($"Difficulty {diffList[difficultyIndex].difficultyName} locked!");
+            var diff = diffList[difficultyIndex];
+            Debug.LogWarning($"Difficulty {diff.difficultyName} locked! Requires Tower Floor {diff.requiredTowerFloor}");
+            ShowWarning($"Requires Tower Floor {diff.requiredTowerFloor} to unlock!");
             return;
         }
         
@@ -410,6 +416,23 @@ public class FarmModeManager : MonoBehaviour
         }
     }
 
+    public int GetPlayerHighestTowerFloor()
+    {
+        int floorFromSave = 1;
+        if (SaveAndLoadSystem.Instance != null)
+        {
+            floorFromSave = SaveAndLoadSystem.Instance.GetTowerHighestFloor();
+        }
+
+        int floorFromStats = 1;
+        if (PlayerStatsManager.Instance != null)
+        {
+            floorFromStats = PlayerStatsManager.Instance.HighestTowerFloor;
+        }
+
+        return Mathf.Max(1, floorFromSave, floorFromStats);
+    }
+
     public bool IsDifficultyUnlocked(int difficultyIndex)
     {
         var diffList = GetDifficulties();
@@ -417,8 +440,12 @@ public class FarmModeManager : MonoBehaviour
         {
             return false;
         }
-        if (difficultyIndex == 0) return true;
-        return diffList[difficultyIndex].unlocked;
+
+        var diff = diffList[difficultyIndex];
+        int playerTowerFloor = GetPlayerHighestTowerFloor();
+
+        // Độ khó mở khóa khi tầng tháp cao nhất của người chơi đạt hoặc vượt tầng yêu cầu
+        return playerTowerFloor >= diff.requiredTowerFloor;
     }
     
     public bool IsDifficultyCompleted(int difficultyIndex)
@@ -446,9 +473,16 @@ public class FarmModeManager : MonoBehaviour
         return list != null ? list.Count : 0;
     }
 
-    private void ShowWarning()
+    public void ShowWarning(string customMessage = null)
     {
         if (warningText == null) return;
+
+        if (!string.IsNullOrEmpty(customMessage))
+        {
+            var txt = warningText.GetComponentInChildren<UnityEngine.UI.Text>(true);
+            if (txt != null) txt.text = customMessage;
+        }
+
         StopCoroutine(nameof(HideWarningAfterDelay));
         warningText.SetActive(true);
         StartCoroutine(nameof(HideWarningAfterDelay));

@@ -17,8 +17,11 @@ public class FarmDatabaseSO : ScriptableObject
     public bool IsDifficultyUnlocked(int index)
     {
         if (difficulties == null || index < 0 || index >= difficulties.Count) return false;
-        if (index == 0) return true;
-        return difficulties[index].unlocked;
+        if (FarmModeManager.Instance != null)
+        {
+            return FarmModeManager.Instance.IsDifficultyUnlocked(index);
+        }
+        return index == 0 || difficulties[index].unlocked;
     }
 
     public bool IsDifficultyCompleted(int index)

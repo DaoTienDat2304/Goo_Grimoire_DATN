@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class TowerUIManager : MonoBehaviour
 {
@@ -30,20 +31,20 @@ public class TowerUIManager : MonoBehaviour
     public Sprite globalActiveStarSprite;
     public Sprite globalInactiveStarSprite;
 
-    [Header("Header Info")]
-    public Text headerText;                     // "Tower of Slimes"
-    public Text currentFloorText;               // "Current floor: 3 / 15"
-    public Text highestFloorText;               // "Highest Reached: Floor 2"
+    [Header("Header Info (TextMeshPro)")]
+    public TMP_Text headerText;                     // "Tower of Slimes"
+    public TMP_Text currentFloorText;               // "Current floor: 3 / 15"
+    public TMP_Text highestFloorText;               // "Highest Reached: Floor 2"
 
-    [Header("Warning")]
+    [Header("Warning (TextMeshPro)")]
     public GameObject warningText;
-    public Text warningTextLabel;
+    public TMP_Text warningTextLabel;
 
     private static readonly WaitForSeconds WarningDelay = new(3f);
 
-    [Header("Reward Popup (Optional)")]
+    [Header("Reward Popup (TextMeshPro)")]
     public GameObject rewardPopup;
-    public Text rewardPopupText;
+    public TMP_Text rewardPopupText;
     public Button rewardPopupCloseButton;
 
     private void Awake()

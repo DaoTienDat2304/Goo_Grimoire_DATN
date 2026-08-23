@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using System;
 
 /// <summary>
@@ -8,7 +9,7 @@ public class CollectionGridItem : MonoBehaviour
 {
     [Header("Common UI — yes o tat ca 3 loai item")]
     public Image rarityBorder;
-    public Text itemNameText;
+    public TMP_Text itemNameText;
     public GameObject lockOverlay;
     [Header("Icon")]
     public Image iconImage;
@@ -25,9 +26,9 @@ public class CollectionGridItem : MonoBehaviour
         _btn.onClick.AddListener(OnClicked);
         if (itemNameText != null)
         {
-            itemNameText.resizeTextForBestFit = true;
-            itemNameText.resizeTextMinSize = 8;
-            itemNameText.resizeTextMaxSize = 14;
+            itemNameText.enableAutoSizing = true;
+            itemNameText.fontSizeMin = 8;
+            itemNameText.fontSizeMax = 14;
         }
     }
 

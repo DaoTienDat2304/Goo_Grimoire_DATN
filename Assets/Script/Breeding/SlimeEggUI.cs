@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class SlimeEggUI : MonoBehaviour
 {
@@ -34,9 +37,11 @@ public class SlimeEggUI : MonoBehaviour
     private int selectedEgg = -1;
     private readonly List<Button> visibleEggButtons = new List<Button>();
     private readonly List<TMP_Text> visibleEggTexts = new List<TMP_Text>();
+    private static TMP_FontAsset fontOne;
 
     private void Start()
     {
+        ApplyFontOneToAssignedTexts();
         EnsureDynamicEggList();
         eggHudButton.onClick.AddListener(OpenInventory);
         incubateButton.onClick.AddListener(ConfirmIncubation);
@@ -305,6 +310,7 @@ public class SlimeEggUI : MonoBehaviour
             item.onClick.AddListener(() => SelectEgg(index));
             TMP_Text text = item.transform.Find("Status")?.GetComponent<TMP_Text>();
             if (text == null) text = item.GetComponentInChildren<TMP_Text>(true);
+            ApplyFontOne(text);
             visibleEggButtons.Add(item);
             visibleEggTexts.Add(text);
         }
@@ -356,6 +362,34 @@ public class SlimeEggUI : MonoBehaviour
         }
         Destroy(proxy);
         StartCoroutine(PulseHudButton());
+    }
+
+    private static TMP_FontAsset GetFontOne()
+    {
+        if (fontOne != null) return fontOne;
+#if UNITY_EDITOR
+        fontOne = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Fonts/1.asset");
+#endif
+        return fontOne != null ? fontOne : TMP_Settings.defaultFontAsset;
+    }
+
+    private static void ApplyFontOne(TMP_Text text)
+    {
+        if (text == null) return;
+        TMP_FontAsset font = GetFontOne();
+        if (font != null) text.font = font;
+    }
+
+    private void ApplyFontOneToAssignedTexts()
+    {
+        ApplyFontOne(eggCountText);
+        ApplyFontOne(incubationInfoText);
+        ApplyFontOne(gemCostText);
+        ApplyFontOne(hatchTitleText);
+        ApplyFontOne(hatchStatsText);
+        if (eggSlotTexts == null) return;
+        for (int i = 0; i < eggSlotTexts.Length; i++)
+            ApplyFontOne(eggSlotTexts[i]);
     }
 
     private IEnumerator PulseHudButton()

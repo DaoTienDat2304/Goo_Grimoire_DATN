@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Reflection;
+using System;
 
 public class InventorySlot : MonoBehaviour, IPointerClickHandler
 {
@@ -22,6 +23,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
     public SlimeWorldManager worldManager;
     public bool canselect;
     public bool onselect = false;
+    public event Action<Slime, bool> OnSacrificeSelectionChanged;
 
     private void Start()
     {
@@ -72,9 +74,12 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
 
     public void SetBreedingSelected(bool selected)
     {
+        bool changed = onselect != selected;
         onselect = selected;
         if (backgroundImage != null)
             backgroundImage.color = onselect ? Color.black : Color.white;
+        if (changed)
+            OnSacrificeSelectionChanged?.Invoke(slime, onselect);
     }
 
     public void removedslime()

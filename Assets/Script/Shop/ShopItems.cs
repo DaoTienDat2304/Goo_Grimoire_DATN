@@ -27,6 +27,14 @@ public class ShopItems : ScriptableObject
         public int resourceAmount;
         public bool grantCurrency;
         public CurrencyType currencyGranted;
+
+        [Header("Rewarded Ad")]
+        [Tooltip("Bat = o nay khong ban bang tien, nguoi choi xem quang cao de nhan thuong.")]
+        public bool isRewardedAd;
+        [Tooltip("Chu tren nut khi la o quang cao. De trong = WatchADS.")]
+        public string adButtonLabel;
+        [Tooltip("Chu o o gia khi la o quang cao. De trong = FREE.")]
+        public string adPriceLabel;
     }
 
     [Header("Shop items")]

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="com.google.unity.ads.plugin">
+  <uses-sdk android:minSdkVersion="23" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <application>
+    <uses-library android:required="false" android:name="org.apache.http.legacy" />
+    <!--
+      Game chay landscape (Unity ep bang Screen.autorotate* luc runtime), nhung AdActivity
+      la Activity Android rieng nen khong an theo rang buoc do - no chay theo cam bien/khoa
+      xoay cua may. Cam may doc la quang cao ra portrait trong khi game landscape, nut X roi
+      ra ngoai vung cham -> khong tat duoc ad.
+      Khoa AdActivity theo sensorLandscape cho khop voi game (cho phep ca 2 chieu ngang).
+      Neu sau nay doi game sang portrait thi sua gia tri nay thanh "sensorPortrait".
+    -->
+    <activity android:name="com.google.android.gms.ads.AdActivity" android:screenOrientation="sensorLandscape" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" tools:replace="android:screenOrientation" />
+    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713" />
+    <meta-data android:name="com.google.unity.ads.UNITY_VERSION" android:value="6000.0.47f1" />
+  </application>
+</manifest>

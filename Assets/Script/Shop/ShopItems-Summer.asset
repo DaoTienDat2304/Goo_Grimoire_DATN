@@ -43,12 +43,15 @@ MonoBehaviour:
     icon: {fileID: 402214125035076648, guid: 521e7521687a6264b8a47d654e1063ea, type: 3}
     price: 5
     currencyType: 1
-    priceLabelOverride: 
+    priceLabelOverride:
     isGemPack: 0
     resourceGranted: 0
     resourceAmount: 500
     grantCurrency: 1
     currencyGranted: 0
+    isRewardedAd: 1
+    adButtonLabel: WatchADS
+    adPriceLabel: FREE
   - itemId: gems_5
     itemName: 5 Gems
     description: Gem Pack
@@ -61,6 +64,9 @@ MonoBehaviour:
     resourceAmount: 5
     grantCurrency: 1
     currencyGranted: 1
+    isRewardedAd: 0
+    adButtonLabel:
+    adPriceLabel:
   - itemId: gems_12
     itemName: 12 Gems
     description: Gem Pack
@@ -73,6 +79,9 @@ MonoBehaviour:
     resourceAmount: 12
     grantCurrency: 1
     currencyGranted: 1
+    isRewardedAd: 0
+    adButtonLabel:
+    adPriceLabel:
   - itemId: gems_30
     itemName: 30 Gems
     description: Gem Pack
@@ -85,6 +94,9 @@ MonoBehaviour:
     resourceAmount: 30
     grantCurrency: 1
     currencyGranted: 1
+    isRewardedAd: 0
+    adButtonLabel:
+    adPriceLabel:
   - itemId: gems_80
     itemName: 80 Gems
     description: Gem Pack
@@ -97,3 +109,6 @@ MonoBehaviour:
     resourceAmount: 80
     grantCurrency: 1
     currencyGranted: 1
+    isRewardedAd: 0
+    adButtonLabel:
+    adPriceLabel:

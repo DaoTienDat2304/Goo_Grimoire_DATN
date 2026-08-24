@@ -22,6 +22,7 @@ public class ShopItemsSpawner : MonoBehaviour
 
     private ShopItems.ShopItemData selectedItem;
     private bool confirmButtonsWired;
+    private bool adRequestInFlight;
     private readonly List<ShopItemUI> itemSlots = new List<ShopItemUI>();
     private readonly List<ShopItemUI> gemSlots = new List<ShopItemUI>();
 
@@ -98,6 +99,41 @@ public class ShopItemsSpawner : MonoBehaviour
 
         SaveAndLoadSystem.Instance?.Save();
         Cancel();
+    }
+
+    /// <summary>
+    /// O shop dang "xem quang cao nhan thuong": show rewarded ad, xem xong moi phat thuong.
+    /// Khong di qua popup xac nhan vi khong ton tien.
+    /// </summary>
+    public void WatchAdForItem(ShopItems.ShopItemData itemData)
+    {
+        if (itemData == null || !itemData.isRewardedAd) return;
+        if (adRequestInFlight) return;
+
+        var ads = RewardedAdsManager.Instance;
+        if (ads == null)
+        {
+            Debug.LogWarning("Khong xem duoc quang cao vi thieu RewardedAdsManager.", this);
+            return;
+        }
+
+        adRequestInFlight = true;
+        ads.ShowRewardedAd(
+            onRewardEarned: () =>
+            {
+                adRequestInFlight = false;
+                GrantAdReward(itemData);
+            },
+            onUnavailable: reason =>
+            {
+                adRequestInFlight = false;
+                Debug.LogWarning($"Chua xem duoc quang cao cho {itemData.itemName}: {reason}", this);
+            });
+    }
+
+    private void GrantAdReward(ShopItems.ShopItemData itemData)
+    {
+        ShopRewardGranter.Grant(itemData, "RewardedAd", 0);
     }
 
     public void Cancel()

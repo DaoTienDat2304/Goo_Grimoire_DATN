@@ -9,7 +9,11 @@ public class AdventureBag : MonoBehaviour
     public GameObject slimeCollectionPanel;
     public GameObject showslot;
     public Animator animator;
-    public SidePanelSlider panelSlider;
+
+    [Header("Sidebar motion")]
+    [SerializeField] private float closedX = 720f;
+    [SerializeField] private float openX = 0f;
+    [SerializeField] private float slideDuration = 0.22f;
 
     [Header("Breeding UI")]
     public Sprite slotsprite;
@@ -26,10 +30,14 @@ public class AdventureBag : MonoBehaviour
 
     private List<GameObject> slimeSlots = new List<GameObject>();
     private List<GameObject> collectionSlots = new List<GameObject>();
+    private RectTransform sidebarRect;
+    private Coroutine sidebarRoutine;
+    private bool sidebarInitialized;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Awake()
     {
         ResolveReferences();
+        InitializeSidebar();
     }
 
     private void Start()
@@ -45,14 +53,86 @@ public class AdventureBag : MonoBehaviour
     public void click()
     {
         ResolveReferences();
+        InitializeSidebar();
         open = !open;
+        SlideSidebar(open);
         RefreshAllUI();
-        if (panelSlider != null)
-            panelSlider.SetOpen(open, false);
-        else if (animator != null)
-            animator.SetBool("open",open);
-        else if (slimeCollectionPanel != null)
-            slimeCollectionPanel.SetActive(open);
+    }
+
+    public void InitializeSidebar()
+    {
+        if (sidebarInitialized)
+            return;
+
+        sidebarRect = transform as RectTransform;
+        if (sidebarRect == null)
+        {
+            Debug.LogWarning("[TameSidebar] TameInventory must use a RectTransform.", this);
+            return;
+        }
+
+        if (animator == null)
+            animator = GetComponent<Animator>();
+
+        // These clips were authored for the old layout and overwrite the
+        // RectTransform coordinates used by the current sidebar.
+        if (animator != null)
+            animator.enabled = false;
+
+        gameObject.SetActive(true);
+        CanvasGroup panelGroup = GetComponent<CanvasGroup>();
+        if (panelGroup != null)
+        {
+            panelGroup.alpha = 1f;
+            panelGroup.interactable = true;
+            panelGroup.blocksRaycasts = true;
+        }
+
+        Vector2 position = sidebarRect.anchoredPosition;
+        position.x = closedX;
+        sidebarRect.anchoredPosition = position;
+        open = false;
+        sidebarInitialized = true;
+    }
+
+    private void SlideSidebar(bool shouldOpen)
+    {
+        if (sidebarRect == null)
+            return;
+
+        if (sidebarRoutine != null)
+            StopCoroutine(sidebarRoutine);
+
+        float targetX = shouldOpen ? openX : closedX;
+        if (!gameObject.activeInHierarchy || slideDuration <= 0f)
+        {
+            Vector2 position = sidebarRect.anchoredPosition;
+            position.x = targetX;
+            sidebarRect.anchoredPosition = position;
+            sidebarRoutine = null;
+            return;
+        }
+
+        sidebarRoutine = StartCoroutine(SlideSidebarTo(targetX));
+    }
+
+    private IEnumerator SlideSidebarTo(float targetX)
+    {
+        Vector2 start = sidebarRect.anchoredPosition;
+        Vector2 target = new Vector2(targetX, start.y);
+        float elapsed = 0f;
+
+        while (elapsed < slideDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / slideDuration);
+            t = 1f - Mathf.Pow(1f - t, 3f);
+            sidebarRect.anchoredPosition = Vector2.LerpUnclamped(start, target, t);
+            yield return null;
+        }
+
+        sidebarRect.anchoredPosition = target;
+        sidebarRoutine = null;
     }
     public void RefreshAllUI()
     {
@@ -122,9 +202,6 @@ public class AdventureBag : MonoBehaviour
     {
         if (animator == null)
             animator = GetComponent<Animator>();
-
-        if (panelSlider == null)
-            panelSlider = GetComponent<SidePanelSlider>();
 
         if (slimeCollectionPanel == null)
             slimeCollectionPanel = gameObject;

@@ -11,6 +11,8 @@ public class ThrowingCatcher : MonoBehaviour
     private CapsuleCollider2D col;
     public GameObject tamingPanel;
     [SerializeField] private PlayerMovement playerMovement;
+    private bool hasHitSlime;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -19,6 +21,8 @@ public class ThrowingCatcher : MonoBehaviour
         col = GetComponent<CapsuleCollider2D>();
         col.enabled = false;
         playerMovement = GameObject.FindAnyObjectByType<PlayerMovement>();
+        if (tamingPanel == null)
+            tamingPanel = TamingPanelFlow.GetCanonicalPanel();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -52,29 +56,31 @@ public class ThrowingCatcher : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Slime"))
-        {
-            WildSlimeTraits wildSlimeTraits = collision.gameObject.GetComponent<WildSlimeTraits>();
-            
-            if (wildSlimeTraits != null)
-            {
-                WildSlimeType slimeType = wildSlimeTraits.GetSlimeType();
-                
-                if (slimeType == WildSlimeType.Friendly)
-                {
-                    if (tamingPanel != null)
-                        tamingPanel.SetActive(true);
-                    playerMovement.enabled = false;
-                }
-            }
-            else
-            {
-                if (tamingPanel != null)
-                    tamingPanel.SetActive(true);
-                playerMovement.enabled = false;
-            }
+        if (hasHitSlime || !collision.gameObject.CompareTag("Slime"))
+            return;
 
-            Destroy(gameObject);
+        hasHitSlime = true;
+        WildSlimeTraits wildSlimeTraits = collision.gameObject.GetComponent<WildSlimeTraits>();
+
+        if (wildSlimeTraits != null && wildSlimeTraits.GetSlimeType() == WildSlimeType.Friendly)
+        {
+            bool opened = TamingPanelFlow.OpenFor(wildSlimeTraits);
+            if (!opened)
+                Debug.LogWarning("[TamingPanel] Catcher hit a friendly slime, but no usable TamingPanel was found.", this);
         }
+        else if (wildSlimeTraits == null)
+        {
+            tamingManager manager = tamingPanel != null ? tamingPanel.GetComponent<tamingManager>() : null;
+            if (manager != null)
+                manager.BeginTaming(0, null);
+            else if (tamingPanel != null)
+            {
+                tamingPanel.SetActive(true);
+                if (playerMovement != null)
+                    playerMovement.enabled = false;
+            }
+        }
+
+        Destroy(gameObject);
     }
 }

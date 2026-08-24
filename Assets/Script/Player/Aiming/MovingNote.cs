@@ -13,62 +13,62 @@ public class MovingNote : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        TamingManager = FindAnyObjectByType<tamingManager>();
+        ResolveTamingManager();
         tamingManagerTutorial = FindAnyObjectByType<TamingManagerTutorial>();
-        GameObject obj = GameObject.FindGameObjectWithTag("CheckBar");
-        if (obj != null)
-            checkBar = obj.GetComponent<Collider2D>();
-
-        obj = GameObject.FindGameObjectWithTag("FailBar");
-        if (obj != null)
-            failBar = obj.GetComponent<Collider2D>();
+        ResolveBars();
     }
 
     // Update is called once per frame
     void Update()
-{
-    if (TamingManager == null)
-        TamingManager = FindAnyObjectByType<tamingManager>();
-    if (TamingManager == null)
-        return;
-
-    float difficulty = Mathf.Max(1f, TamingManager.difficulty);
-    if (TamingManager.difficulty == 0) this.transform.position += Vector3.right * noteSpeed * 3 * Time.deltaTime;
-    else this.transform.position += Vector3.right * noteSpeed * difficulty * Time.deltaTime;
-    if (isInCheckBar)
     {
-        MobileDirection correctDirection = MobileDirection.None;
-        switch (typeID)
+        if (TamingManager == null)
+            ResolveTamingManager();
+        if (TamingManager == null)
+            return;
+
+        float difficulty = Mathf.Max(1f, TamingManager.difficulty);
+        if (TamingManager.difficulty == 0)
+            transform.position += Vector3.right * noteSpeed * 3 * Time.deltaTime;
+        else
+            transform.position += Vector3.right * noteSpeed * difficulty * Time.deltaTime;
+
+        if (isInCheckBar)
         {
-            case 1:
-                correctDirection = MobileDirection.Right;
-                break;
-            case 2:
-                correctDirection = MobileDirection.Up;
-                break;
-            case 3:
-                correctDirection = MobileDirection.Left;
-                break;
-            case 4:
-                correctDirection = MobileDirection.Down;
-                break;
-        }
-        if (MobileInput.TryGetDirectionDown(out var pressedDirection))
-        {
-            if (pressedDirection == correctDirection)
+            MobileDirection correctDirection = MobileDirection.None;
+            switch (typeID)
             {
-                TamingManager.curTamingPoint += tamingScore * 8 / difficulty;
-                if (tamingManagerTutorial != null) tamingManagerTutorial.curTamingPoint += 30;
-                Destroy(gameObject);
+                case 1:
+                    correctDirection = MobileDirection.Right;
+                    break;
+                case 2:
+                    correctDirection = MobileDirection.Up;
+                    break;
+                case 3:
+                    correctDirection = MobileDirection.Left;
+                    break;
+                case 4:
+                    correctDirection = MobileDirection.Down;
+                    break;
             }
-            else
+
+            if (MobileInput.TryGetDirectionDown(out var pressedDirection))
             {
-                TamingManager.curTamingPoint -= tamingScore;
-                Destroy(gameObject); 
+                if (pressedDirection == correctDirection)
+                {
+                    TamingManager.curTamingPoint += tamingScore * 8 / difficulty;
+                    if (tamingManagerTutorial != null)
+                        tamingManagerTutorial.curTamingPoint += 30;
+                }
+                else
+                {
+                    TamingManager.curTamingPoint -= tamingScore;
+                }
+
+                Destroy(gameObject);
             }
         }
     }
-}
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision == checkBar)
@@ -77,7 +77,8 @@ public class MovingNote : MonoBehaviour
         }
         else if (collision == failBar)
         {
-            TamingManager.curTamingPoint -= tamingScore;
+            if (TamingManager != null)
+                TamingManager.curTamingPoint -= tamingScore;
             Destroy(gameObject); 
         }
     }
@@ -86,6 +87,41 @@ public class MovingNote : MonoBehaviour
         if (collision == checkBar)
         {
             isInCheckBar = false; 
+        }
+    }
+
+    private void ResolveTamingManager()
+    {
+        TamingManager = GetComponentInParent<tamingManager>(true);
+        if (TamingManager == null)
+            TamingManager = tamingManager.Active;
+    }
+
+    private void ResolveBars()
+    {
+        if (TamingManager != null)
+        {
+            foreach (Collider2D candidate in TamingManager.GetComponentsInChildren<Collider2D>(true))
+            {
+                if (checkBar == null && candidate.CompareTag("CheckBar"))
+                    checkBar = candidate;
+                else if (failBar == null && candidate.CompareTag("FailBar"))
+                    failBar = candidate;
+            }
+        }
+
+        if (checkBar == null)
+        {
+            GameObject obj = GameObject.FindGameObjectWithTag("CheckBar");
+            if (obj != null)
+                checkBar = obj.GetComponent<Collider2D>();
+        }
+
+        if (failBar == null)
+        {
+            GameObject obj = GameObject.FindGameObjectWithTag("FailBar");
+            if (obj != null)
+                failBar = obj.GetComponent<Collider2D>();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SaveAndLoadSystem : MonoBehaviour
 {
@@ -19,16 +20,95 @@ public class SaveAndLoadSystem : MonoBehaviour
 
     private GameSaveData _cachedSaveData;
     private bool allowNextSlimeDecreaseSave;
+    private Coroutine restoreHomeRoutine;
 
 
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        if (Instance == this)
+            Instance = null;
+    }
+
     void Start()
     {
         StartCoroutine(InitializeAsync());
+    }
+
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (!_initialized || scene.name != "firstsave")
+            return;
+
+        if (restoreHomeRoutine != null)
+            StopCoroutine(restoreHomeRoutine);
+
+        restoreHomeRoutine = StartCoroutine(RestoreHomeDataAfterSceneLoad());
+    }
+
+    private IEnumerator RestoreHomeDataAfterSceneLoad()
+    {
+        // Let all firstsave managers finish Awake/Start before applying the save.
+        yield return null;
+
+        RefreshSceneReferences();
+
+        string json = _cachedSaveData != null
+            ? JsonUtility.ToJson(_cachedSaveData, false)
+            : LocalSaveStore.Load(AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest");
+
+        if (!string.IsNullOrEmpty(json))
+            Load(json);
+
+        RefreshSceneReferences();
+        BreedingManager manager = breedingManager != null ? breedingManager : BreedingManager.Instance;
+        bool hasCapturedSlimes = wildSlimes != null
+            && wildSlimes.tamedSlimes != null
+            && wildSlimes.tamedSlimes.Count > 0;
+
+        if (hasCapturedSlimes && manager != null)
+        {
+            manager.GenTamedSlime();
+            MarkSlimeCollectionChanged();
+            Save();
+        }
+        else if (hasCapturedSlimes)
+        {
+            Debug.LogWarning("[Save] Captured slimes are saved, but BreedingManager was not ready for import.");
+        }
+
+        SlimeWorldManager?.RefreshWorldSlimes();
+        breedingUI?.RefreshAllUI();
+        slimeInventory?.RefreshAllUI();
+        restoreHomeRoutine = null;
+    }
+
+    private void RefreshSceneReferences()
+    {
+        breedingManager = BreedingManager.Instance != null
+            ? BreedingManager.Instance
+            : FindAnyObjectByType<BreedingManager>(FindObjectsInactive.Include);
+        breedingUI = FindAnyObjectByType<BreedingUIManager>(FindObjectsInactive.Include);
+        SlimeWorldManager = FindAnyObjectByType<SlimeWorldManager>(FindObjectsInactive.Include);
+        slimeInventory = FindAnyObjectByType<SlimeInventory>(FindObjectsInactive.Include);
     }
 
     /// <summary>
@@ -344,6 +424,13 @@ public class SaveAndLoadSystem : MonoBehaviour
     void ResetGameState()
     {
         if (teamSlime != null) teamSlime.team.Clear();
+        if (wildSlimes != null)
+        {
+            if (wildSlimes.tamedSlimes == null)
+                wildSlimes.tamedSlimes = new List<WildSlimes.WildSlimeTraits>();
+            else
+                wildSlimes.tamedSlimes.Clear();
+        }
 
         var bm = BreedingManager.Instance;
         if (bm != null) bm.SetAllSlimes(new List<Slime>());
@@ -375,13 +462,14 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         if (teamSlime == null) return;
 
+        // Never leave references from the previous account/session in Team.asset.
+        teamSlime.team.Clear();
+
         var bm = BreedingManager.Instance;
         if (bm == null) return;
 
         var all = bm.GetAllSlimes();
         if (all == null || all.Count == 0) return;
-
-        teamSlime.team.Clear();
         if (data.teamSlimeIDs != null && data.teamSlimeIDs.Count > 0)
         {
             foreach (var id in data.teamSlimeIDs)
@@ -1080,11 +1168,18 @@ public class SaveAndLoadSystem : MonoBehaviour
             tamed.slimeType = (WildSlimeType)dto.slimeType;
             tamed.wildSlimeTraits = new TraitSO[3];
             
-            for (int i = 0; i < 3 && i < dto.traitNames.Length; i++)
+            for (int i = 0; i < 3; i++)
             {
-                if (!string.IsNullOrEmpty(dto.traitNames[i]))
+                string traitName = dto.traitNames != null && i < dto.traitNames.Length
+                    ? dto.traitNames[i]
+                    : null;
+                TraitType traitType = dto.traitTypes != null && i < dto.traitTypes.Length
+                    ? dto.traitTypes[i]
+                    : (TraitType)i;
+
+                if (!string.IsNullOrEmpty(traitName))
                 {
-                    tamed.wildSlimeTraits[i] = ResolveTraitSO(dto.traitNames[i], dto.traitTypes[i]);
+                    tamed.wildSlimeTraits[i] = ResolveTraitSO(traitName, traitType);
                 }
             }
             

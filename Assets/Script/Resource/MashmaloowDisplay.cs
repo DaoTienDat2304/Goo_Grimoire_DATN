@@ -1,22 +1,52 @@
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class MashmaloowDisplay : MonoBehaviour
 {
     private ResourceManager resourceManager;
-    public Text count;
+    public TMP_Text count;
 
-    void Start()
+    private void Awake()
     {
+        ResolveText();
         EnsureResourceManager();
     }
 
-    void Update()
+    private void OnValidate()
     {
-        if (count == null) return;
+        ResolveText();
+    }
+
+    private void OnEnable()
+    {
+        ResourceManager.OnResourceChanged -= HandleResourceChanged;
+        ResourceManager.OnResourceChanged += HandleResourceChanged;
+        ResolveText();
         EnsureResourceManager();
-        if (resourceManager == null) return;
-        count.text = resourceManager.GetResource(ResourceType.Marshmallow).ToString();
+        RefreshCount();
+    }
+
+    private void OnDisable()
+    {
+        ResourceManager.OnResourceChanged -= HandleResourceChanged;
+    }
+
+    private void HandleResourceChanged(ResourceType type, int oldAmount, int newAmount)
+    {
+        if (type == ResourceType.Marshmallow && count != null)
+            count.text = newAmount.ToString();
+    }
+
+    private void RefreshCount()
+    {
+        if (count != null && resourceManager != null)
+            count.text = resourceManager.GetResource(ResourceType.Marshmallow).ToString();
+    }
+
+    private void ResolveText()
+    {
+        if (count == null)
+            count = GetComponentInChildren<TMP_Text>(true);
     }
 
     private void EnsureResourceManager()

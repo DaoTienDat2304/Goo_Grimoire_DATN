@@ -1,15 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class tamingManager : MonoBehaviour
 {
     private const string MobileControlsCanvasName = "MobileControlsCanvas";
+    private const float InitialTamingPoint = 30f;
+    private static tamingManager activeManager;
+
+    public static tamingManager Active
+    {
+        get
+        {
+            if (activeManager != null)
+                return activeManager;
+
+            return TamingPanelFlow.CanonicalManager;
+        }
+    }
 
     public float maxTamingPoint = 100;
-    public float curTamingPoint = 30;
+    public float curTamingPoint = InitialTamingPoint;
     [SerializeField] private Spawner spawner;
     [SerializeField] private PlayerMovement playerMovement;
     public int curID;
@@ -29,116 +41,74 @@ public class tamingManager : MonoBehaviour
 
     private GameObject mobileControlsCanvas;
     private bool shouldRestoreMobileControls;
+    private bool encounterFinishing;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Awake()
+    private void Awake()
     {
+        PrepareForRuntime();
+    }
+
+    private void OnEnable()
+    {
+        PrepareForRuntime();
+        HideMobileControlsCanvas();
+    }
+
+    private void OnDisable()
+    {
+        RestoreMobileControlsCanvas();
+        if (playerMovement != null)
+            playerMovement.enabled = true;
+        if (activeManager == this)
+            activeManager = null;
+    }
+
+    private void Update()
+    {
+        if (encounterFinishing)
+            return;
+
+        ResolveReferences();
+        if (wildSlimes == null || wildSlimes.slimes == null || slimeSpawner == null || spawner == null)
+            return;
+
+        WildSlimes.WildSlimeTraits currentSlime = FindCurrentSlime();
+        if (!HasCompleteTraits(currentSlime))
+            return;
+
+        difficulty = CalculateDifficulty(currentSlime);
+        if (curTamingPoint <= 0f)
+            FinishEncounter(currentSlime, false);
+        else if (curTamingPoint >= maxTamingPoint)
+            FinishEncounter(currentSlime, true);
+    }
+
+    public void PrepareForRuntime()
+    {
+        activeManager = this;
         ResolveReferences();
         AutoFindDirectionButtons();
         RegisterDirectionButtons();
     }
 
-    void OnEnable()
+    public void BeginTaming(int slimeId, WildSlimes.WildSlimeTraits slimeData)
     {
-        HideMobileControlsCanvas();
+        bool continuingSameEncounter = gameObject.activeSelf && curID == slimeId;
+        PrepareForRuntime();
+        curID = slimeId;
+        encounterFinishing = false;
+
+        if (!continuingSameEncounter)
+            curTamingPoint = InitialTamingPoint;
+
+        ApplyPreview(slimeData);
+        gameObject.SetActive(true);
+
+        if (playerMovement != null)
+            playerMovement.enabled = false;
     }
 
-    void OnDisable()
-    {
-        RestoreMobileControlsCanvas();
-    }
-
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        ResolveReferences();
-        if (wildSlimes == null || wildSlimes.slimes == null || slimeSpawner == null || spawner == null)
-            return;
-
-        var curSlime = new WildSlimes.WildSlimeTraits();
-        foreach (var s in wildSlimes.slimes)
-        {
-            if (s.slimeID == curID)
-            {
-                curSlime = s;
-                difficulty = curSlime.wildSlimeTraits[0].GenerateInstance().GetRarityMultiplier(curSlime.wildSlimeTraits[0].rarity)
-                    + curSlime.wildSlimeTraits[1].GenerateInstance().GetRarityMultiplier(curSlime.wildSlimeTraits[1].rarity)
-                    + curSlime.wildSlimeTraits[2].GenerateInstance().GetRarityMultiplier(curSlime.wildSlimeTraits[2].rarity);
-                break;
-            }
-        }
-        if (curTamingPoint <= 0)
-        {
-            Debug.Log("Fail");
-            foreach (var note in spawner.notes)
-            {
-                Destroy(note.gameObject);
-            }
-            foreach(var t in slimeSpawner.activeSlimes)
-            {
-                if (t.GetComponent<WildSlimeTraits>().wildSlimeID == curID)
-                {
-                    Destroy(t);
-                    Vector3 spawnPosition = slimeSpawner.GetRandomSpawnPosition();
-                    slimeSpawner.SpawnSingleSlime(spawnPosition);
-                    break;
-                }
-            }
-            wildSlimes.slimes.Remove(curSlime);
-            curTamingPoint = 30;
-            spawner.gameObject.SetActive(false);
-            if (emote != null)
-            {
-                emote.gameObject.SetActive(true);
-                emote.sprite = failcatch;
-            }
-            StartCoroutine(deactive());
-        }
-        if (curTamingPoint >= maxTamingPoint)
-        {
-            Debug.Log("Success");
-            foreach (var note in spawner.notes)
-            {
-                Destroy(note.gameObject);
-            }
-            if (wildSlimes.tamedSlimes == null)
-                wildSlimes.tamedSlimes = new List<WildSlimes.WildSlimeTraits>();
-            wildSlimes.tamedSlimes.Add(curSlime);
-            RefreshAdventureBags();
-            SaveAndLoadSystem.Instance?.Save();
-            PlayerStatsManager.Instance?.RecordCapture(curSlime.wildSlimeTraits);
-            for (int i = slimeSpawner.activeSlimes.Count - 1; i >= 0; i--)
-            {
-                var t = slimeSpawner.activeSlimes[i];
-                if (t.GetComponent<WildSlimeTraits>().wildSlimeID == curID)
-                {
-                    if (t != null)Destroy(t);
-                    slimeSpawner.activeSlimes.RemoveAt(i);
-
-                    Vector3 spawnPosition = slimeSpawner.GetRandomSpawnPosition();
-                    slimeSpawner.SpawnSingleSlime(spawnPosition);
-                    break;
-                }
-            }
-            wildSlimes.slimes.Remove(curSlime);
-            curTamingPoint = 30;
-            spawner.gameObject.SetActive(false);
-            if (emote != null)
-            {
-                emote.gameObject.SetActive(true);
-                emote.sprite = succeedcatch;
-            }
-            StartCoroutine(deactive());
-            
-        }
-    }
-
-    public void hit ()
+    public void hit()
     {
         if (emote != null)
             emote.gameObject.SetActive(true);
@@ -169,6 +139,61 @@ public class tamingManager : MonoBehaviour
         MobileInput.QueueDirection(direction);
     }
 
+    private void FinishEncounter(WildSlimes.WildSlimeTraits slime, bool success)
+    {
+        encounterFinishing = true;
+        Debug.Log(success ? "Success" : "Fail");
+        ClearNotes();
+
+        if (success)
+        {
+            if (wildSlimes.tamedSlimes == null)
+                wildSlimes.tamedSlimes = new List<WildSlimes.WildSlimeTraits>();
+
+            if (!ContainsTamedSlime(slime.slimeID))
+            {
+                wildSlimes.tamedSlimes.Add(slime);
+                PlayerStatsManager.Instance?.RecordCapture(slime.wildSlimeTraits);
+            }
+
+            RefreshAdventureBags();
+            SaveAndLoadSystem.Instance?.Save();
+        }
+
+        ReplaceWorldSlime(slime.slimeID);
+        wildSlimes.slimes.Remove(slime);
+        curTamingPoint = InitialTamingPoint;
+        spawner.gameObject.SetActive(false);
+
+        if (emote != null)
+        {
+            emote.gameObject.SetActive(true);
+            emote.sprite = success ? succeedcatch : failcatch;
+        }
+
+        StartCoroutine(DeactivateAfterResult());
+    }
+
+    private void ReplaceWorldSlime(int slimeId)
+    {
+        if (slimeSpawner == null || slimeSpawner.activeSlimes == null)
+            return;
+
+        for (int i = slimeSpawner.activeSlimes.Count - 1; i >= 0; i--)
+        {
+            GameObject worldSlime = slimeSpawner.activeSlimes[i];
+            WildSlimeTraits traits = worldSlime != null ? worldSlime.GetComponent<WildSlimeTraits>() : null;
+            if (traits == null || traits.wildSlimeID != slimeId)
+                continue;
+
+            if (worldSlime != null)
+                Destroy(worldSlime);
+            slimeSpawner.activeSlimes.RemoveAt(i);
+            slimeSpawner.SpawnSingleSlime(slimeSpawner.GetRandomSpawnPosition());
+            return;
+        }
+    }
+
     private void RegisterDirectionButtons()
     {
         RegisterDirectionButton(rightButton, PressRight);
@@ -181,8 +206,15 @@ public class tamingManager : MonoBehaviour
     {
         if (button == null)
             return;
-        if (button.onClick.GetPersistentEventCount() > 0)
-            return;
+
+        for (int i = 0; i < button.onClick.GetPersistentEventCount(); i++)
+        {
+            if (button.onClick.GetPersistentTarget(i) == this
+                && button.onClick.GetPersistentMethodName(i) == action.Method.Name)
+            {
+                return;
+            }
+        }
 
         button.onClick.RemoveListener(action);
         button.onClick.AddListener(action);
@@ -190,8 +222,8 @@ public class tamingManager : MonoBehaviour
 
     private void AutoFindDirectionButtons()
     {
-        var buttons = GetComponentsInChildren<Button>(true);
-        foreach (var button in buttons)
+        Button[] buttons = GetComponentsInChildren<Button>(true);
+        foreach (Button button in buttons)
         {
             string buttonName = button.name.ToLowerInvariant();
             if (rightButton == null && (buttonName.Contains("right") || buttonName.Contains("phai")))
@@ -208,14 +240,10 @@ public class tamingManager : MonoBehaviour
             return;
 
         var unassignedButtons = new List<Button>();
-        foreach (var button in buttons)
+        foreach (Button button in buttons)
         {
-            if (button == rightButton || button == upButton || button == leftButton || button == downButton)
-                continue;
-            if (button.onClick.GetPersistentEventCount() > 0)
-                continue;
-
-            unassignedButtons.Add(button);
+            if (button != rightButton && button != upButton && button != leftButton && button != downButton)
+                unassignedButtons.Add(button);
         }
 
         if (unassignedButtons.Count < 4)
@@ -226,9 +254,9 @@ public class tamingManager : MonoBehaviour
         Button topMost = null;
         Button bottomMost = null;
 
-        foreach (var button in unassignedButtons)
+        foreach (Button button in unassignedButtons)
         {
-            var rect = button.transform as RectTransform;
+            RectTransform rect = button.transform as RectTransform;
             if (rect == null)
                 continue;
 
@@ -242,14 +270,10 @@ public class tamingManager : MonoBehaviour
                 bottomMost = button;
         }
 
-        if (leftButton == null)
-            leftButton = leftMost;
-        if (rightButton == null)
-            rightButton = rightMost;
-        if (upButton == null)
-            upButton = topMost;
-        if (downButton == null)
-            downButton = bottomMost;
+        if (leftButton == null) leftButton = leftMost;
+        if (rightButton == null) rightButton = rightMost;
+        if (upButton == null) upButton = topMost;
+        if (downButton == null) downButton = bottomMost;
     }
 
     private void HideMobileControlsCanvas()
@@ -272,51 +296,149 @@ public class tamingManager : MonoBehaviour
         shouldRestoreMobileControls = false;
     }
 
-    IEnumerator hitdeactive()
+    private IEnumerator DeactivateAfterResult()
     {
-        yield return new WaitForSeconds(0.5f);
-        emote.gameObject.SetActive(false);
-    }
-
-
-
-    IEnumerator deactive()
-    {
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(3f);
         if (spawner != null)
             spawner.gameObject.SetActive(true);
         if (emote != null)
             emote.gameObject.SetActive(false);
-        this.gameObject.SetActive(false);
+
+        gameObject.SetActive(false);
         if (playerMovement != null)
             playerMovement.enabled = true;
+        encounterFinishing = false;
     }
 
     private void ResolveReferences()
     {
         if (spawner == null)
+            spawner = GetComponentInChildren<Spawner>(true);
+        if (spawner == null)
             spawner = FindAnyObjectByType<Spawner>(FindObjectsInactive.Include);
         if (playerMovement == null)
             playerMovement = FindAnyObjectByType<PlayerMovement>(FindObjectsInactive.Include);
+        if (wildSlimes == null && SaveAndLoadSystem.Instance != null)
+            wildSlimes = SaveAndLoadSystem.Instance.wildSlimes;
         if (wildSlimes == null)
             wildSlimes = FindAnyObjectByType<WildSlimes>(FindObjectsInactive.Include);
         if (slimeSpawner == null)
             slimeSpawner = FindAnyObjectByType<SlimeSpawner>(FindObjectsInactive.Include);
         if (emote == null)
         {
-            Transform emoteTransform = transform.Find("Emote");
+            Transform emoteTransform = FindChild(transform, "Emote");
             if (emoteTransform != null)
                 emote = emoteTransform.GetComponent<Image>();
         }
     }
 
+    private WildSlimes.WildSlimeTraits FindCurrentSlime()
+    {
+        foreach (WildSlimes.WildSlimeTraits slime in wildSlimes.slimes)
+        {
+            if (slime != null && slime.slimeID == curID)
+                return slime;
+        }
+
+        return null;
+    }
+
+    private void ApplyPreview(WildSlimes.WildSlimeTraits slimeData)
+    {
+        if (slimeData == null || slimeData.wildSlimeTraits == null)
+            return;
+
+        foreach (TraitSO trait in slimeData.wildSlimeTraits)
+        {
+            if (trait == null)
+                continue;
+
+            string targetName = null;
+            if (trait.type == TraitType.Body) targetName = "BodySprite";
+            else if (trait.type == TraitType.Armor) targetName = "ArmorSprite";
+            else if (trait.type == TraitType.Weapon) targetName = "WeaponSprite";
+            if (targetName == null)
+                continue;
+
+            Transform target = FindChild(transform, targetName);
+            Image image = target != null ? target.GetComponent<Image>() : null;
+            if (image != null)
+                image.sprite = trait.sprite;
+        }
+    }
+
+    private float CalculateDifficulty(WildSlimes.WildSlimeTraits slime)
+    {
+        float total = 0f;
+        foreach (TraitSO trait in slime.wildSlimeTraits)
+        {
+            if (trait != null)
+                total += trait.GenerateInstance().GetRarityMultiplier(trait.rarity);
+        }
+
+        return Mathf.Max(1f, total);
+    }
+
+    private bool ContainsTamedSlime(int slimeId)
+    {
+        if (wildSlimes == null || wildSlimes.tamedSlimes == null)
+            return false;
+
+        foreach (WildSlimes.WildSlimeTraits slime in wildSlimes.tamedSlimes)
+        {
+            if (slime != null && slime.slimeID == slimeId)
+                return true;
+        }
+
+        return false;
+    }
+
+    private void ClearNotes()
+    {
+        if (spawner == null || spawner.notes == null)
+            return;
+
+        foreach (GameObject note in spawner.notes)
+        {
+            if (note != null)
+                Destroy(note);
+        }
+
+        spawner.notes.Clear();
+    }
+
     private void RefreshAdventureBags()
     {
-        var bags = FindObjectsByType<AdventureBag>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach (var bag in bags)
+        AdventureBag[] bags = FindObjectsByType<AdventureBag>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (AdventureBag bag in bags)
         {
             if (bag != null)
                 bag.RefreshAllUI();
         }
+    }
+
+    private static bool HasCompleteTraits(WildSlimes.WildSlimeTraits slime)
+    {
+        if (slime == null || slime.wildSlimeTraits == null || slime.wildSlimeTraits.Length < 3)
+            return false;
+
+        return slime.wildSlimeTraits[0] != null
+            && slime.wildSlimeTraits[1] != null
+            && slime.wildSlimeTraits[2] != null;
+    }
+
+    private static Transform FindChild(Transform root, string objectName)
+    {
+        if (root.name == objectName)
+            return root;
+
+        foreach (Transform child in root)
+        {
+            Transform found = FindChild(child, objectName);
+            if (found != null)
+                return found;
+        }
+
+        return null;
     }
 }

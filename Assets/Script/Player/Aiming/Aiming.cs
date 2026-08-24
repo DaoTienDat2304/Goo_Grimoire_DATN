@@ -211,11 +211,7 @@ public class Aiming : MonoBehaviour
         if (aimingarea == null)
             aimingarea = FindAnyObjectByType<aimingArea>(FindObjectsInactive.Include);
         if (tamingUI == null)
-        {
-            GameObject panel = GameObject.Find("TamingPanel");
-            if (panel != null)
-                tamingUI = panel;
-        }
+            tamingUI = TamingPanelFlow.GetCanonicalPanel();
         if (playerMovement == null)
             playerMovement = FindAnyObjectByType<PlayerMovement>(FindObjectsInactive.Include);
         if (gameplayCamera == null)
@@ -252,6 +248,12 @@ public class Aiming : MonoBehaviour
 
         if (lineRenderer != null)
             lineRenderer.enabled = false;
+    }
+
+    public void SetTamingPanel(GameObject panel)
+    {
+        if (panel != null)
+            tamingUI = panel;
     }
 
     private ThrowingCatcher CreateFallbackCatcher(Vector3 position)

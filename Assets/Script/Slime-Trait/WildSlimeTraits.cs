@@ -52,20 +52,24 @@ public class WildSlimeTraits : MonoBehaviour
     }
     public Slime GenerateWildSlime(string name)
     {
-        
         var bodySo = RollWildTrait(TraitType.Body);
         var armorSo = RollWildTrait(TraitType.Armor);
         var weaponSo = RollWildTrait(TraitType.Weapon);
+
+        if (bodySo == null || armorSo == null || weaponSo == null)
+            return null;
+
+        if (newSlime == null)
+            newSlime = new WildSlimes.WildSlimeTraits();
+        if (newSlime.wildSlimeTraits == null || newSlime.wildSlimeTraits.Length < 3)
+            newSlime.wildSlimeTraits = new TraitSO[3];
+
         newSlime.wildSlimeTraits[0] = bodySo;
         newSlime.wildSlimeTraits[1] = armorSo;
         newSlime.wildSlimeTraits[2] = weaponSo;
-        tamingDifficulty = bodySo.GenerateInstance().GetRarityMultiplier(bodySo.rarity) + armorSo.GenerateInstance().GetRarityMultiplier(armorSo.rarity) + weaponSo.GenerateInstance().GetRarityMultiplier(weaponSo.rarity);
-
-        if (bodySo == null || armorSo == null || weaponSo == null)
-        {
-
-            return null;
-        }
+        tamingDifficulty = bodySo.GenerateInstance().GetRarityMultiplier(bodySo.rarity)
+            + armorSo.GenerateInstance().GetRarityMultiplier(armorSo.rarity)
+            + weaponSo.GenerateInstance().GetRarityMultiplier(weaponSo.rarity);
 
         Slime s = new Slime();
         s.slimeName = name;
@@ -147,19 +151,11 @@ public class WildSlimeTraits : MonoBehaviour
 
     IEnumerator MenuSetup()
     {
-        bodyRender = GameObject.Find("BodySprite").GetComponent<Image>();
-        armorRender = GameObject.Find("ArmorSprite").GetComponent<Image>();
-        weaponRender = GameObject.Find("WeaponSprite").GetComponent<Image>();
-        taming = GameObject.Find("TamingPanel").GetComponent<tamingManager>();
-        taming.curID = wildSlimeID;
-        yield return new WaitForSeconds(0.03f);
-        foreach (var t in newSlime.wildSlimeTraits)
-        {
-            
-            if (t.type == TraitType.Body) bodyRender.sprite = t.sprite;
-            if (t.type == TraitType.Armor) armorRender.sprite = t.sprite;
-            if (t.type == TraitType.Weapon) weaponRender.sprite = t.sprite;
-        }
+        if (!TamingPanelFlow.OpenFor(this))
+            Debug.LogWarning("[TamingPanel] Could not open the taming UI for the caught slime.", this);
+
+        taming = TamingPanelFlow.CanonicalManager;
+        yield return null;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

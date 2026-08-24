@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
-using NUnit.Framework;
 
 public class Spawner : MonoBehaviour
 {
@@ -14,8 +13,7 @@ public class Spawner : MonoBehaviour
 
     void Update()
     {
-        if (TamingManager == null)
-            TamingManager = FindAnyObjectByType<tamingManager>(FindObjectsInactive.Include);
+        ResolveManager();
         if (TamingManager == null)
             return;
 
@@ -24,10 +22,12 @@ public class Spawner : MonoBehaviour
     }
     private void OnEnable()
     {
-        if (TamingManager == null)
-            TamingManager = FindAnyObjectByType<tamingManager>(FindObjectsInactive.Include);
+        ResolveManager();
         if (notePrefab == null || spawnPoint == null || spawnpanel == null)
             return;
+
+        if (notes == null)
+            notes = new List<GameObject>();
 
         foreach (var note in notes)
         {
@@ -45,30 +45,45 @@ public class Spawner : MonoBehaviour
             note.transform.SetParent(spawnpanel);
             notes.Add(note);
             note.transform.localScale = Vector3.one * 1.8f;
+            MovingNote movingNote = note.GetComponent<MovingNote>();
+            if (movingNote == null)
+            {
+                Destroy(note);
+                yield break;
+            }
+
             int rand = Random.Range(1, 5); // 1 -> 4
             switch (rand)
             {
                 case 1:
-                    note.GetComponent<MovingNote>().typeID = 1;
+                    movingNote.typeID = 1;
                     break;
 
                 case 2:
-                    note.GetComponent<MovingNote>().typeID = 2;
+                    movingNote.typeID = 2;
                     note.transform.rotation = Quaternion.Euler(0, 0, 90);
                     break;
 
                 case 3:
-                    note.GetComponent<MovingNote>().typeID = 3;
+                    movingNote.typeID = 3;
                     note.transform.rotation = Quaternion.Euler(0, 0, 180);
                     break;
 
                 case 4:
-                    note.GetComponent<MovingNote>().typeID = 4;
+                    movingNote.typeID = 4;
                     note.transform.rotation = Quaternion.Euler(0, 0, 270);
                     break;
             }
 
             yield return new WaitForSeconds(spd); 
         }
+    }
+
+    private void ResolveManager()
+    {
+        if (TamingManager == null)
+            TamingManager = GetComponentInParent<tamingManager>(true);
+        if (TamingManager == null)
+            TamingManager = tamingManager.Active;
     }
 }

@@ -47,7 +47,7 @@ public static class TameSidebarUIAssembler
 
         CollectExistingTeamSlots(tame.transform, teamUi);
         EnsureAdventureBagRefs(tameInventory);
-        EnsurePanelSliders(tame, tameInventory);
+        EnsureSidebarFlow(tame, tameInventory);
         EnsureToggleButtons(canvas.transform, tame, tameInventory);
 
         tame.SetActive(true);
@@ -97,7 +97,7 @@ public static class TameSidebarUIAssembler
         BuildInventoryPanel(tameInventory.transform);
         BuildTamingPanel(sidebarRoot);
         EnsureAdventureBagRefs(tameInventory);
-        EnsurePanelSliders(tame, tameInventory);
+        EnsureSidebarFlow(tame, tameInventory);
         EnsureToggleButtons(sidebarRoot, tame, tameInventory);
 
         tame.SetActive(true);
@@ -244,40 +244,49 @@ public static class TameSidebarUIAssembler
         EditorUtility.SetDirty(bag);
     }
 
-    private static void EnsurePanelSliders(GameObject tame, GameObject tameInventory)
+    private static void EnsureSidebarFlow(GameObject tame, GameObject tameInventory)
     {
-        SidePanelSlider teamSlider = tame.GetComponent<SidePanelSlider>();
-        if (teamSlider == null) teamSlider = tame.AddComponent<SidePanelSlider>();
-        teamSlider.Configure(SidePanelSlider.SlideSide.Left, true);
-
         showteam teamUi = tame.GetComponent<showteam>();
         if (teamUi == null) teamUi = tame.AddComponent<showteam>();
-        teamUi.panelSlider = teamSlider;
-
-        SidePanelSlider inventorySlider = tameInventory.GetComponent<SidePanelSlider>();
-        if (inventorySlider == null) inventorySlider = tameInventory.AddComponent<SidePanelSlider>();
-        inventorySlider.Configure(SidePanelSlider.SlideSide.Right, true);
 
         AdventureBag bag = tameInventory.GetComponent<AdventureBag>();
         if (bag == null) bag = tameInventory.AddComponent<AdventureBag>();
-        bag.panelSlider = inventorySlider;
 
-        EditorUtility.SetDirty(teamSlider);
-        EditorUtility.SetDirty(inventorySlider);
         EditorUtility.SetDirty(teamUi);
         EditorUtility.SetDirty(bag);
     }
 
     private static void EnsureToggleButtons(Transform canvas, GameObject tame, GameObject tameInventory)
     {
-        Button teamButton = EnsureButton(canvas, "ButtonTeam", new Vector2(-345f, 0f), new Vector2(30f, 64f), Sprite("03_Image_13.png"));
+        Button teamButton = FindExistingButton("TameButton", "ButtonTame", "ButtonTeam", "TeamButton");
+        if (teamButton == null)
+            teamButton = EnsureButton(canvas, "TameButton", new Vector2(-345f, 0f), new Vector2(30f, 64f), Sprite("03_Image_13.png"));
+
         Button inventoryButton = EnsureButton(canvas, "ButtonTameInventory", new Vector2(345f, 0f), new Vector2(30f, 64f), Sprite("03_Image_13.png"));
+        KeepButtonAlwaysOpenInEditor(teamButton, canvas);
+        KeepButtonAlwaysOpenInEditor(inventoryButton, canvas);
 
         showteam teamUi = tame.GetComponent<showteam>();
         AdventureBag bag = tameInventory.GetComponent<AdventureBag>();
 
         WireButton(teamButton, teamUi, nameof(showteam.OpenCloseTeam));
         WireButton(inventoryButton, bag, nameof(AdventureBag.click));
+    }
+
+    private static Button FindExistingButton(params string[] names)
+    {
+        foreach (string name in names)
+        {
+            GameObject obj = FindSceneObject(name);
+            if (obj == null)
+                continue;
+
+            Button button = obj.GetComponent<Button>();
+            if (button != null)
+                return button;
+        }
+
+        return null;
     }
 
     private static Button EnsureButton(Transform parent, string name, Vector2 anchoredPosition, Vector2 size, Sprite sprite)
@@ -311,6 +320,29 @@ public static class TameSidebarUIAssembler
         if (button == null) button = go.AddComponent<Button>();
         button.targetGraphic = image;
         return button;
+    }
+
+    private static void KeepButtonAlwaysOpenInEditor(Button button, Transform canvas)
+    {
+        if (button == null || canvas == null)
+            return;
+
+        button.gameObject.SetActive(true);
+        button.interactable = true;
+
+        Image image = button.GetComponent<Image>();
+        if (image != null)
+            image.raycastTarget = true;
+
+        CanvasGroup group = button.GetComponent<CanvasGroup>();
+        if (group == null)
+            group = button.gameObject.AddComponent<CanvasGroup>();
+
+        group.alpha = 1f;
+        group.interactable = true;
+        group.blocksRaycasts = true;
+        group.ignoreParentGroups = true;
+        EditorUtility.SetDirty(button.gameObject);
     }
 
     private static void CollectExistingTeamSlots(Transform tame, showteam teamUi)

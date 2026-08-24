@@ -3,10 +3,24 @@ using UnityEngine.SceneManagement;
 
 public class AimingBootstrap : MonoBehaviour
 {
+    private static bool sceneHookInstalled;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        sceneHookInstalled = false;
+    }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void EnsureAimingAfterSceneLoad()
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        if (!sceneHookInstalled)
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            sceneHookInstalled = true;
+        }
+
         EnsureAimingExists();
     }
 
@@ -41,6 +55,7 @@ public class AimingBootstrap : MonoBehaviour
             null,
             playerMovement,
             Camera.main != null ? Camera.main : FindAnyObjectByType<Camera>());
+        aiming.SetTamingPanel(TamingPanelFlow.GetCanonicalPanel());
 
         Debug.Log($"AimingBootstrap ready in {SceneManager.GetActiveScene().name}.", aiming);
     }
@@ -77,5 +92,172 @@ public class AimingBootstrap : MonoBehaviour
         line.useWorldSpace = true;
         line.enabled = false;
         return line;
+    }
+}
+
+public static class TamingPanelFlow
+{
+    private static tamingManager canonicalManager;
+    private static bool sceneHookInstalled;
+
+    public static tamingManager CanonicalManager
+    {
+        get
+        {
+            Scene activeScene = SceneManager.GetActiveScene();
+            if (canonicalManager == null || canonicalManager.gameObject.scene != activeScene)
+                PrepareScene(activeScene);
+
+            return canonicalManager;
+        }
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        canonicalManager = null;
+        sceneHookInstalled = false;
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Install()
+    {
+        if (!sceneHookInstalled)
+        {
+            SceneManager.sceneLoaded += HandleSceneLoaded;
+            sceneHookInstalled = true;
+        }
+
+        PrepareScene(SceneManager.GetActiveScene());
+    }
+
+    public static GameObject GetCanonicalPanel()
+    {
+        tamingManager manager = CanonicalManager;
+        return manager != null ? manager.gameObject : null;
+    }
+
+    public static bool OpenFor(WildSlimeTraits wildSlime)
+    {
+        if (wildSlime == null)
+            return false;
+
+        tamingManager manager = CanonicalManager;
+        if (manager == null)
+            return false;
+
+        manager.BeginTaming(wildSlime.wildSlimeID, wildSlime.newSlime);
+        return true;
+    }
+
+    private static void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        PrepareScene(scene);
+    }
+
+    private static void PrepareScene(Scene scene)
+    {
+        canonicalManager = null;
+        if (!IsAdventureScene(scene.name))
+            return;
+
+        tamingManager[] managers = Object.FindObjectsByType<tamingManager>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        Transform sidebarRoot = FindSceneTransform(scene, "TameSidebarRoot");
+        if (sidebarRoot != null)
+        {
+            foreach (tamingManager manager in sidebarRoot.GetComponentsInChildren<tamingManager>(true))
+            {
+                if (manager != null && manager.gameObject.name == "TamingPanel")
+                {
+                    canonicalManager = manager;
+                    break;
+                }
+            }
+        }
+
+        if (canonicalManager == null)
+        {
+            foreach (tamingManager manager in managers)
+            {
+                if (manager != null
+                    && manager.gameObject.scene == scene
+                    && manager.gameObject.name == "TamingPanel")
+                {
+                    canonicalManager = manager;
+                    break;
+                }
+            }
+        }
+
+        if (canonicalManager == null)
+        {
+            Debug.LogWarning($"[TamingPanel] No tamingManager found in {scene.name}.");
+            return;
+        }
+
+        foreach (tamingManager manager in managers)
+        {
+            if (manager == null || manager.gameObject.scene != scene || manager == canonicalManager)
+                continue;
+
+            manager.enabled = false;
+            manager.gameObject.SetActive(false);
+        }
+
+        canonicalManager.enabled = true;
+        canonicalManager.PrepareForRuntime();
+        canonicalManager.gameObject.SetActive(false);
+
+        Debug.Log($"[TamingPanel] Using {GetHierarchyPath(canonicalManager.transform)} in {scene.name}.", canonicalManager);
+    }
+
+    private static Transform FindSceneTransform(Scene scene, string objectName)
+    {
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            Transform found = FindChild(root.transform, objectName);
+            if (found != null)
+                return found;
+        }
+
+        return null;
+    }
+
+    private static Transform FindChild(Transform root, string objectName)
+    {
+        if (root.name == objectName)
+            return root;
+
+        foreach (Transform child in root)
+        {
+            Transform found = FindChild(child, objectName);
+            if (found != null)
+                return found;
+        }
+
+        return null;
+    }
+
+    private static string GetHierarchyPath(Transform target)
+    {
+        string path = target.name;
+        while (target.parent != null)
+        {
+            target = target.parent;
+            path = target.name + "/" + path;
+        }
+
+        return path;
+    }
+
+    private static bool IsAdventureScene(string sceneName)
+    {
+        return sceneName == "Map1_IceMap"
+            || sceneName == "Map2_Fantasymap"
+            || sceneName == "Map3_DungeonMap";
     }
 }

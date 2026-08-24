@@ -1670,13 +1670,13 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 9218039154614563149}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
+      - m_Target: {fileID: 5698423942551403102}
+        m_TargetAssemblyTypeName: ShopItemsSpawner, Assembly-CSharp
+        m_MethodName: CloseShop
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -3881,7 +3881,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shopItemsDatabase: {fileID: 11400000, guid: e61e91834442a5b468627e7767a439ea, type: 2}
   summerShopItemsDatabase: {fileID: 11400000, guid: 59404d0984b3a174e90ce7759f0692f0, type: 2}
-  shopItemPrefab: {fileID: 8145019176706037026, guid: 12bf467897b2b2146a1bd9bf0eb21517, type: 3}
   itemsParent: {fileID: 2991185249359074457}
   gemPacksParent: {fileID: 5236899636597680771}
   confirmPopUp: {fileID: 5992799300102190322}

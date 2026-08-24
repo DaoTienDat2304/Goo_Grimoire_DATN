@@ -1,9 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-
-/// <summary>
-/// </summary>
 public class ShopItemUI : MonoBehaviour
 {
     [Header("UI References")]
@@ -16,9 +13,6 @@ public class ShopItemUI : MonoBehaviour
 
     public ShopItemsSpawner shopItemsSpawner;
     private ShopItems.ShopItemData data;
-
-    /// <summary>
-    /// </summary>
     public void Setup(ShopItems.ShopItemData itemData)
     {
         AutoWire();

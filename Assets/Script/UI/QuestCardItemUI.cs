@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System;
 
@@ -56,9 +56,6 @@ public class QuestCardItemUI : MonoBehaviour
             actionButton.onClick.AddListener(OnActionButtonClicked);
         }
     }
-
-    /// <summary>
-    /// </summary>
     public void Setup(
         string title,
         string description,
@@ -194,9 +191,6 @@ public class QuestCardItemUI : MonoBehaviour
     {
         _onClaimCallback?.Invoke();
     }
-
-    /// <summary>
-    /// </summary>
     private void SetText(GameObject obj, string text)
     {
         if (obj == null) return;

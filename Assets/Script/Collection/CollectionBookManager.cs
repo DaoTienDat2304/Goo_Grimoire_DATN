@@ -1,9 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-
-/// <summary>
-/// </summary>
 public class CollectionBookManager : MonoBehaviour
 {
     public static CollectionBookManager Instance { get; private set; }
@@ -27,9 +24,6 @@ public class CollectionBookManager : MonoBehaviour
     {
         RefreshFromSave();
     }
-
-    /// <summary>
-    /// </summary>
     public void RefreshFromSave()
     {
         _unlockedTraitNames.Clear();
@@ -116,9 +110,6 @@ public class CollectionBookManager : MonoBehaviour
 
     public List<SkillSO> GetAllSkills() =>
         allSkillsDatabase.Where(s => s != null).ToList();
-
-    /// <summary>
-    /// </summary>
     public Slime GetBestSlimeForBodyTrait(TraitSO bodyTrait)
     {
         if (bodyTrait == null) return null;

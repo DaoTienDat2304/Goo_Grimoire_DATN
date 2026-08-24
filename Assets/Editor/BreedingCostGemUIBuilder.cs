@@ -1,14 +1,10 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
-/// <summary>
-/// Menu: Tools/Goo Grimoire/Build Breeding Cost + Gem UI
-/// </summary>
 public static class BreedingCostGemUIBuilder
 {
     private const string ScenePath = "Assets/Scenes/firstsave.unity";

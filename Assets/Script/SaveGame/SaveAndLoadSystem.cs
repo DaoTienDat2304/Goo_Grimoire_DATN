@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
@@ -110,9 +110,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         SlimeWorldManager = FindAnyObjectByType<SlimeWorldManager>(FindObjectsInactive.Include);
         slimeInventory = FindAnyObjectByType<SlimeInventory>(FindObjectsInactive.Include);
     }
-
-    /// <summary>
-    /// </summary>
     IEnumerator InitializeAsync()
     {
         Debug.Log("[Save] Waiting for Auth...");
@@ -327,9 +324,6 @@ public class SaveAndLoadSystem : MonoBehaviour
     }
 
     public Team GetTeam() => teamSlime;
-
-    /// <summary>
-    /// </summary>
     void ApplyTowerResultCache()
     {
         if (towerDatabase == null || !towerDatabase.hasPendingResult) return;
@@ -1384,9 +1378,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         
         Debug.Log($"DeserializeFarmDifficulties: Loaded {data.farmDifficulties.Count} difficulty progress");
     }
-    
-    /// <summary>
-    /// </summary>
     public void LoadFarmDifficulties()
     {
         string json = CloudSaveProvider.Instance?.GetCachedJson();

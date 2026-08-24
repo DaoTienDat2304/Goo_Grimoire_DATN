@@ -1,14 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
-/// <summary>
-///
-///
-/// </summary>
 public static class FrozenMapBuilder
 {
     const string AdventureScenePath = "Assets/Scenes/adventureSence.unity";
@@ -98,9 +93,6 @@ public static class FrozenMapBuilder
             "4. Add Frozen_Map button in firstsave (MapSelection.MapIndex = 5).",
             "OK");
     }
-
-    /// <summary>
-    /// </summary>
     [MenuItem("Tools/Goo Grimoire/Log Frozen Map Roots")]
     public static void LogFrozenMapRoots()
     {

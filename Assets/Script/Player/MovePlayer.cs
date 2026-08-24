@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using Spine;
 using Spine.Unity;
@@ -91,9 +91,6 @@ public class MovePlayer : MonoBehaviour
     void Update()
     {
     }
-
-    /// <summary>
-    /// </summary>
     private void UpdateAnimations()
     {
         if (idleAnimation == null && runAnimation == null) return;

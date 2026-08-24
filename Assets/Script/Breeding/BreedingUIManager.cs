@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -678,9 +678,6 @@ public class BreedingUIManager : MonoBehaviour
         }
         UpdatePagination(pageCount);
     }
-
-    /// <summary>
-    /// </summary>
     private static void SetSelectedSlime(Image fallback, Image body, Image armor, Image weapon, Slime slime)
     {
         if (body != null)

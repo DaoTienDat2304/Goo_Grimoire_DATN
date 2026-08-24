@@ -1,8 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-
-/// <summary>
-/// </summary>
 public static class QuestUIEffects
 {
     private const string OverlayName = "__DimOverlay";

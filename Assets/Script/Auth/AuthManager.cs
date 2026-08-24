@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // AuthManager.cs
 //
 //                           "Google Sign-In for Unity" plugin)
@@ -28,9 +28,6 @@ public class AuthManager : MonoBehaviour
     public string CurrentUserId { get; private set; }
     public string DisplayName   { get; private set; }
     public string Email         { get; private set; }
-
-    /// <summary>
-    /// </summary>
     public string LocalSaveId =>
         (IsAnonymous || string.IsNullOrEmpty(CurrentUserId)) ? "guest" : CurrentUserId;
 

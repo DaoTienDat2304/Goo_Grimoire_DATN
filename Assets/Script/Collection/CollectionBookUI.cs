@@ -1,9 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
-/// <summary>
-/// </summary>
 public class CollectionBookUI : MonoBehaviour
 {
     [Header("Tab Buttons (Top)")]

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 public class MissionDef
 {
@@ -18,9 +18,6 @@ public class MissionDef
         GoldReward = gold; PrereqId = prereqId; RarityTarget = rarityTarget;
     }
 }
-
-/// <summary>
-/// </summary>
 public static class MissionCatalog
 {
     private static List<MissionDef> _all;

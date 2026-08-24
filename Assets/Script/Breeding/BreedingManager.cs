@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Xsl;
@@ -112,13 +112,12 @@ public class BreedingManager : MonoBehaviour
             }
 
             Slime slime = new Slime();
-            slime.slimeName = slimeTraits.wildSlimeTraits[0].traitName + " " + slimeTraits.wildSlimeTraits[1].traitName + " " + slimeTraits.wildSlimeTraits[2].traitName;
+            slime.slimeName = SlimeNameGenerator.GetRandomSlimeName();
             slime.body = slimeTraits.wildSlimeTraits[0].GenerateInstance();
             slime.armor = slimeTraits.wildSlimeTraits[1].GenerateInstance();
             slime.weapon = slimeTraits.wildSlimeTraits[2].GenerateInstance();
             slime.CalculateStats();
             slime.RollRandomSkillsMatchingRarity();
-            slime.AssignCompactName();
             allSlimes.Add(slime);
         }
         wildSlimes.tamedSlimes.Clear();
@@ -445,9 +444,6 @@ public class BreedingManager : MonoBehaviour
     {
         return allSlimes.Where(s => s.canBreed && !s.breedingLocked && !HasSecretBodyTrait(s)).ToList();
     }
-
-    /// <summary>
-    /// </summary>
     private bool HasSecretBodyTrait(Slime slime)
     {
         if (slime == null || slime.body == null) return false;

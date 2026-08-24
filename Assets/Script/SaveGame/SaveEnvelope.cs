@@ -1,7 +1,4 @@
-using System;
-
-/// <summary>
-/// </summary>
+﻿using System;
 [Serializable]
 public class SaveEnvelope
 {

@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // RemoteConfigManager.cs
 //
 //
@@ -18,9 +18,6 @@ using Firebase.Extensions;
 public class RemoteConfigManager : MonoBehaviour
 {
     public static RemoteConfigManager Instance { get; private set; }
-
-    /// <summary>
-    /// </summary>
     public bool IsReady { get; private set; } = false;
 
     public bool IsFirebaseReady { get; private set; } = false;
@@ -52,9 +49,6 @@ public class RemoteConfigManager : MonoBehaviour
     }
 
     public string ActiveShopId => GetString(RemoteConfigKeys.ActiveShopId, "default");
-
-    /// <summary>
-    /// </summary>
     public string SaveHmacSalt => GetString(RemoteConfigKeys.SaveHmacSalt, RemoteConfigKeys.DefaultSaveHmacSalt);
 
     public string DevAccountEmail => GetString(RemoteConfigKeys.DevAccountEmail, "");
@@ -205,9 +199,6 @@ public class RemoteConfigManager : MonoBehaviour
 
     // -------------------------------------------------------
     // -------------------------------------------------------
-
-    /// <summary>
-    /// </summary>
     public void ReapplyBalance()
     {
         _jsonCache.Clear();
@@ -337,9 +328,6 @@ public class RemoteConfigManager : MonoBehaviour
         return fallback;
 #endif
     }
-
-    /// <summary>
-    /// </summary>
     public T GetJson<T>(string key) where T : class
     {
         if (_jsonCache.TryGetValue(key, out var cached)) return cached as T;

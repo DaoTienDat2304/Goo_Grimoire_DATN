@@ -51,32 +51,22 @@ public class Slime
 
     public void AssignCompactName()
     {
-        slimeName = CreateCompactName(this);
+        if (string.IsNullOrWhiteSpace(slimeName) || slimeName.Contains("_") || slimeName.Length > 8)
+        {
+            slimeName = SlimeNameGenerator.GetRandomSlimeName();
+        }
     }
 
     public static string CreateCompactName(Slime slime)
     {
-        if (slime == null) return "Tiny Slime";
-
-        string prefix = RarityPrefix(slime.GetHighestRarity());
-        string bodyName = CleanTraitName(slime.body?.baseTrait != null ? slime.body.baseTrait.traitName : slime.body?.traitname);
-        string armorName = CleanTraitName(slime.armor?.baseTrait != null ? slime.armor.baseTrait.traitName : slime.armor?.traitname);
-        string weaponName = CleanTraitName(slime.weapon?.baseTrait != null ? slime.weapon.baseTrait.traitName : slime.weapon?.traitname);
-
-        string name = $"{prefix} {FirstWord(bodyName)}";
-        if (!string.IsNullOrEmpty(armorName) && !IsEmptyName(armorName))
-            name += $" {FirstWord(armorName)}";
-        if (!string.IsNullOrEmpty(weaponName) && !IsEmptyName(weaponName))
-            name += $" {FirstWord(weaponName)}";
-
-        return LimitWords(string.IsNullOrWhiteSpace(name) ? "Tiny Slime" : name, 5);
+        return SlimeNameGenerator.GetRandomSlimeName();
     }
 
     public static string CompactExistingName(string name)
     {
-        if (string.IsNullOrWhiteSpace(name)) return "Tiny Slime";
-        string cleaned = name.Replace("_", " ").Replace("-", " ").Trim();
-        return LimitWords(cleaned, 5);
+        if (string.IsNullOrWhiteSpace(name)) return SlimeNameGenerator.GetRandomSlimeName();
+        if (name.Length <= 8 && !name.Contains("_")) return name;
+        return SlimeNameGenerator.GetRandomSlimeName();
     }
 
     private static string RarityPrefix(Rarity rarity)

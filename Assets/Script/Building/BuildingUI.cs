@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class BuildingUI : MonoBehaviour
@@ -30,9 +30,6 @@ public class BuildingUI : MonoBehaviour
         //GetComponentInChildren<Image>().sprite = building.sprite;
         if (nameText != null) nameText.text = building.buildingName + "\nPrice: " + building.currencyCosts;
     }
-
-    /// <summary>
-    /// </summary>
     public void SetDimmed(bool dimmed)
     {
         isDimmed = dimmed;

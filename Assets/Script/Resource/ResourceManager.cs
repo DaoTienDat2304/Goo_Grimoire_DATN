@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
 
@@ -34,16 +34,10 @@ public class ResourceManager : MonoBehaviour
         
         Debug.Log($"Resources initialized: {startingMarshmallow} Marshmallow");
     }
-
-    /// <summary>
-    /// </summary>
     public int GetResource(ResourceType type)
     {
         return resources.ContainsKey(type) ? resources[type] : 0;
     }
-
-    /// <summary>
-    /// </summary>
     public void AddResource(ResourceType type, int amount)
     {
         if (amount <= 0) return;
@@ -56,9 +50,6 @@ public class ResourceManager : MonoBehaviour
         
         Debug.Log($"Add {amount} {type}. Total: {resources[type]}");
     }
-
-    /// <summary>
-    /// </summary>
     public bool SpendResource(ResourceType type, int amount)
     {
         if (amount <= 0) return false;
@@ -79,16 +70,10 @@ public class ResourceManager : MonoBehaviour
         Debug.Log($"Spend {amount} {type}. Left: {resources[type]}");
         return true;
     }
-
-    /// <summary>
-    /// </summary>
     public bool HasEnoughResource(ResourceType type, int amount)
     {
         return GetResource(type) >= amount;
     }
-
-    /// <summary>
-    /// </summary>
     public bool HasEnoughResource(List<ResourceData> costs)
     {
         foreach (var cost in costs)
@@ -98,9 +83,6 @@ public class ResourceManager : MonoBehaviour
         }
         return true;
     }
-
-    /// <summary>
-    /// </summary>
     public bool SpendResource(List<ResourceData> costs)
     {
         if (!HasEnoughResource(costs)) return false;
@@ -111,9 +93,6 @@ public class ResourceManager : MonoBehaviour
         }
         return true;
     }
-
-    /// <summary>
-    /// </summary>
     public void SetResource(ResourceType type, int amount)
     {
         int oldAmount = GetResource(type);
@@ -121,9 +100,6 @@ public class ResourceManager : MonoBehaviour
         
         OnResourceChanged?.Invoke(type, oldAmount, resources[type]);
     }
-
-    /// <summary>
-    /// </summary>
     public void ResetAllResources()
     {
         resources[ResourceType.Marshmallow] = startingMarshmallow;

@@ -1,10 +1,7 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
-
-/// <summary>
-/// </summary>
 public static class TowerFloorSetup
 {
     [MenuItem("Tools/Tower/Create 15 Default Floors")]

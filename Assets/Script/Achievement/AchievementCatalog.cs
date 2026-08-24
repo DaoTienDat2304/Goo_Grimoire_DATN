@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-
-/// <summary>
-/// </summary>
+﻿using System.Collections.Generic;
 public enum AchievementMetric
 {
     TotalBred,
@@ -34,9 +31,6 @@ public class AchievementDef
         Metric = metric; Target = target; GemReward = gemReward; RarityTarget = rarityTarget;
     }
 }
-
-/// <summary>
-/// </summary>
 public static class AchievementCatalog
 {
     private static List<AchievementDef> _all;

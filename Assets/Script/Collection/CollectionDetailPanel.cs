@@ -1,10 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Text;
-
-/// <summary>
-/// </summary>
 public class CollectionDetailPanel : MonoBehaviour
 {
     [Header("Slime Avatar (3 layers)")]

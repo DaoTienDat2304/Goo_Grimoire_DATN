@@ -1,7 +1,4 @@
-using UnityEngine;
-
-/// <summary>
-/// </summary>
+﻿using UnityEngine;
 public static class SelectiveBreeding
 {
     // ------------------------------------------------------------------
@@ -106,9 +103,6 @@ public static class SelectiveBreeding
     }
 
     private static float DifferentRarityRollBias => RemoteBalance.BreedingDiffRarityBias;
-
-    /// <summary>
-    /// </summary>
     public static Slime GenerateChild(Slime parent1, Slime parent2, Rarity eggRarity)
     {
         var child = new Slime

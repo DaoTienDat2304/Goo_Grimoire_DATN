@@ -1,13 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
-/// <summary>
-/// Online egg production and incubation. Add once to a persistent scene and wire
-/// StartIncubation/Hatch/FinishWithGems to UI Buttons.
-/// </summary>
 public class SlimeEggSystem : MonoBehaviour
 {
     public static SlimeEggSystem Instance { get; private set; }
@@ -58,7 +53,8 @@ public class SlimeEggSystem : MonoBehaviour
     public LayerMask worldEggObstacleMask;
     
     [Header("Hierarchy Optimization")]
-    [SerializeField] private Transform eggsContainer;
+    [Tooltip("Kéo Empty GameObject chứa Trứng trong nông trại vào đây")]
+    public Transform eggsContainer;
 
     [Header("Incubation (fallback — Remote Config Remote Config override)")]
     [Min(1f)] public float incubationDurationSeconds = 600f;
@@ -225,9 +221,9 @@ public class SlimeEggSystem : MonoBehaviour
             : new GameObject("SlimeEgg");
         if (eggsContainer != null)
         {
-            eggObject.transform.SetParent(eggsContainer, false);
+            eggObject.transform.SetParent(eggsContainer, true);
         }
-        eggObject.name = $"SlimeEgg_{data.id.Substring(0, Mathf.Min(6, data.id.Length))}";
+        eggObject.name = $"Egg_{SlimeNameGenerator.GetShortEggId(data.id)}";
         WorldEggPickup pickup = eggObject.GetComponent<WorldEggPickup>();
         if (pickup == null) pickup = eggObject.AddComponent<WorldEggPickup>();
         pickup.Initialize(data.id, data.position);
@@ -322,13 +318,14 @@ public class SlimeEggSystem : MonoBehaviour
         Rarity rarity = RollRarity();
         if (SlimeGen.Instance == null) return null;
 
-        string name = $"Egg_{rarity}_{BreedingManager.Instance.GetCurrentSlimeCount() + 1}";
+        string name = SlimeNameGenerator.GetRandomSlimeName();
         var slime = SlimeGen.Instance.GenerateSlimeOfRarity(name, rarity);
         if (slime == null)
         {
             Debug.LogError("[Egg] Khong tao duoc slime — SlimeGen has no trait ? Check allTraits.");
             return null;
         }
+        slime.slimeName = name;
 
         StatQuality quality = RollQuality(out float roll);
         StatBalance.Range range = StatBalance.Get(rarity);

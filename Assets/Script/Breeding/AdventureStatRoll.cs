@@ -1,7 +1,4 @@
-using UnityEngine;
-
-/// <summary>
-/// </summary>
+﻿using UnityEngine;
 public static class AdventureStatRoll
 {
     public static float RollQuality()

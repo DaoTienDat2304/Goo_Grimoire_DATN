@@ -1,12 +1,6 @@
-using System;
+﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-
-/// <summary>
-///
-/// Key derivation: SHA256(uid + salt)
-///
-/// </summary>
 public static class SaveIntegrity
 {
     const string FallbackSalt = "GooGrimoire_HmacFallback_v1";
@@ -28,9 +22,6 @@ public static class SaveIntegrity
         using var hmac = new HMACSHA256(key);
         return Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(payload)));
     }
-
-    /// <summary>
-    /// </summary>
     public static bool Verify(string payload, string uid, string sig)
     {
         if (string.IsNullOrEmpty(sig)) return false;

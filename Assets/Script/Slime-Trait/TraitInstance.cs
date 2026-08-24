@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -284,9 +284,6 @@ public class TraitInstance
 
         if (skill != null) skill.power = GetSkillPower();
     }
-
-    /// <summary>
-    /// </summary>
     public float GetSkillPower()
         => GetRarityMultiplier(Rarity) * RemoteBalance.Battle.skillPowerMult;
 
@@ -294,9 +291,6 @@ public class TraitInstance
     {
         return new TraitInstance(this);
     }
-
-    /// <summary>
-    /// </summary>
     public float GetRarityMultiplier(Rarity rarity)
     {
         switch (rarity)

@@ -1,6 +1,4 @@
-/// <summary>
-/// </summary>
-public static class StatBalance
+﻿public static class StatBalance
 {
     public struct Range
     {

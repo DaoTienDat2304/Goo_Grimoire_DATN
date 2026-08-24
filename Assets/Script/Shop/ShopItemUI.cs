@@ -45,7 +45,7 @@ public class ShopItemUI : MonoBehaviour
         SetText(nameTmpText, data.itemName);
         SetText(priceTmpText, ResolvePriceLabel());
         SetText(descriptionTmpText, data.description);
-        SetText(amountTmpText, data.resourceAmount.ToString());
+        SetText(amountTmpText, ResolveAmountLabel());
         ApplyBuyButtonAppearance();
 
         if (buyButton != null)
@@ -87,6 +87,14 @@ public class ShopItemUI : MonoBehaviour
         return !string.IsNullOrWhiteSpace(data.priceLabelOverride)
             ? data.priceLabelOverride
             : $"{data.price} {data.currencyType}";
+    }
+
+    private string ResolveAmountLabel()
+    {
+        if (data.isGemPack && data.grantCurrency)
+            return $"{data.resourceAmount} {data.currencyGranted}";
+
+        return data.resourceAmount.ToString();
     }
 
     private string ResolveAdButtonLabel()

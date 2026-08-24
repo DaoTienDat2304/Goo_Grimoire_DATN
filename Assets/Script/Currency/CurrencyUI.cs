@@ -76,12 +76,7 @@ public class CurrencyUI : MonoBehaviour
 
     private string FormatCurrencyAmount(int amount)
     {
-        if (amount >= 1000000)
-            return (amount / 1000000f).ToString("0.0") + "M";
-        else if (amount >= 1000)
-            return (amount / 1000f).ToString("0.0") + "K";
-        else
-            return amount.ToString();
+        return CurrencyAmountFormatter.Format(amount);
     }
 
     private void PlaySimpleAnimation(CurrencyType type)

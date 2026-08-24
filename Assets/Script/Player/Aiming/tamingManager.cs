@@ -39,6 +39,28 @@ public class tamingManager : MonoBehaviour
     [SerializeField] private Button leftButton;
     [SerializeField] private Button downButton;
 
+    [Header("Taming Note Zones")]
+    [SerializeField] private Collider2D checkBar;
+    [SerializeField] private Collider2D failBar;
+
+    public Collider2D CheckBar
+    {
+        get
+        {
+            ResolveTamingZones();
+            return checkBar;
+        }
+    }
+
+    public Collider2D FailBar
+    {
+        get
+        {
+            ResolveTamingZones();
+            return failBar;
+        }
+    }
+
     private GameObject mobileControlsCanvas;
     private bool shouldRestoreMobileControls;
     private bool encounterFinishing;
@@ -330,6 +352,73 @@ public class tamingManager : MonoBehaviour
             if (emoteTransform != null)
                 emote = emoteTransform.GetComponent<Image>();
         }
+
+        ResolveTamingZones();
+    }
+
+    private void ResolveTamingZones()
+    {
+        if (checkBar != null && !checkBar.transform.IsChildOf(transform))
+            checkBar = null;
+        if (failBar != null && !failBar.transform.IsChildOf(transform))
+            failBar = null;
+
+        Collider2D[] colliders = GetComponentsInChildren<Collider2D>(true);
+        if (checkBar == null)
+            checkBar = FindZoneCollider(colliders, "CheckBar", "CheckBar");
+        if (failBar == null)
+            failBar = FindZoneCollider(colliders, "FailBar", "FailBar");
+
+        PrepareZoneCollider(checkBar);
+        PrepareZoneCollider(failBar);
+    }
+
+    private static Collider2D FindZoneCollider(
+        Collider2D[] colliders,
+        string compactName,
+        string tagName)
+    {
+        foreach (Collider2D candidate in colliders)
+        {
+            if (HasCompactName(candidate, compactName))
+                return candidate;
+        }
+
+        foreach (Collider2D candidate in colliders)
+        {
+            if (candidate != null && candidate.CompareTag(tagName))
+                return candidate;
+        }
+
+        return null;
+    }
+
+    private static bool HasCompactName(Collider2D candidate, string compactName)
+    {
+        if (candidate == null)
+            return false;
+
+        string candidateName = candidate.gameObject.name.Replace(" ", "").Replace("_", "");
+        return string.Equals(
+            candidateName,
+            compactName,
+            System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void PrepareZoneCollider(Collider2D zone)
+    {
+        if (zone == null)
+            return;
+
+        zone.isTrigger = true;
+        if (zone is not BoxCollider2D box || zone.transform is not RectTransform rect)
+            return;
+
+        bool hasDefaultSize = Mathf.Approximately(box.size.x, 1f)
+            && Mathf.Approximately(box.size.y, 1f);
+        Vector2 rectSize = rect.rect.size;
+        if (hasDefaultSize && rectSize.x > 1f && rectSize.y > 1f)
+            box.size = rectSize;
     }
 
     private WildSlimes.WildSlimeTraits FindCurrentSlime()

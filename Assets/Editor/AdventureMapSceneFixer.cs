@@ -121,6 +121,13 @@ public static class AdventureMapSceneFixer
             changed |= SetSerializedReference(manager, "spawner", spawner);
             changed |= SetSerializedReference(manager, "playerMovement", playerMovement);
 
+            Collider2D checkBar = FindZoneCollider(manager.transform, "CheckBar", "CheckBar");
+            Collider2D failBar = FindZoneCollider(manager.transform, "FailBar", "FailBar");
+            changed |= ConfigureZoneCollider(checkBar, "CheckBar");
+            changed |= ConfigureZoneCollider(failBar, "FailBar");
+            changed |= SetSerializedReference(manager, "checkBar", checkBar);
+            changed |= SetSerializedReference(manager, "failBar", failBar);
+
             if (slimeSpawner != null && manager.slimeSpawner != slimeSpawner)
             {
                 manager.slimeSpawner = slimeSpawner;
@@ -137,6 +144,64 @@ public static class AdventureMapSceneFixer
         if (aiming != null && manager != null)
             changed |= SetSerializedReference(aiming, "tamingUI", manager.gameObject);
 
+        return changed;
+    }
+
+    private static Collider2D FindZoneCollider(
+        Transform panel,
+        string compactName,
+        string tagName)
+    {
+        Collider2D[] colliders = panel.GetComponentsInChildren<Collider2D>(true);
+        foreach (Collider2D candidate in colliders)
+        {
+            string candidateName = candidate.gameObject.name.Replace(" ", "").Replace("_", "");
+            if (string.Equals(candidateName, compactName, System.StringComparison.OrdinalIgnoreCase))
+                return candidate;
+        }
+
+        foreach (Collider2D candidate in colliders)
+        {
+            if (candidate.CompareTag(tagName))
+                return candidate;
+        }
+
+        return null;
+    }
+
+    private static bool ConfigureZoneCollider(Collider2D zone, string tagName)
+    {
+        if (zone == null)
+            return false;
+
+        bool changed = false;
+        if (!zone.CompareTag(tagName))
+        {
+            zone.gameObject.tag = tagName;
+            EditorUtility.SetDirty(zone.gameObject);
+            changed = true;
+        }
+
+        if (!zone.isTrigger)
+        {
+            zone.isTrigger = true;
+            changed = true;
+        }
+
+        if (zone is BoxCollider2D box && zone.transform is RectTransform rect)
+        {
+            bool hasDefaultSize = Mathf.Approximately(box.size.x, 1f)
+                && Mathf.Approximately(box.size.y, 1f);
+            Vector2 rectSize = rect.rect.size;
+            if (hasDefaultSize && rectSize.x > 1f && rectSize.y > 1f)
+            {
+                box.size = rectSize;
+                changed = true;
+            }
+        }
+
+        if (changed)
+            EditorUtility.SetDirty(zone);
         return changed;
     }
 
@@ -373,7 +438,7 @@ public static class AdventureMapSceneFixer
 public static class AdventureMashmallowTmpConverter
 {
     private const string FontPath = "Assets/TextMesh Pro/Fonts/1.asset";
-    private const string AutoRunSessionKey = "GooGrimoire.AdventureMashmallowTmpConverter.v3";
+    private const string AutoRunSessionKey = "GooGrimoire.AdventureMashmallowTmpConverter.v4";
 
     private static readonly string[] ScenePaths =
     {
@@ -389,6 +454,12 @@ public static class AdventureMashmallowTmpConverter
 
     [MenuItem("Tools/Goo Grimoire/Convert Adventure Mashmallow Count To TMP")]
     public static void ConvertAllFromMenu()
+    {
+        ConvertAll(true);
+    }
+
+    [MenuItem("Tools/Goo Grimoire/Repair Adventure Taming References")]
+    public static void RepairTamingReferencesFromMenu()
     {
         ConvertAll(true);
     }

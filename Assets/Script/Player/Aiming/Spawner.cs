@@ -52,6 +52,11 @@ public class Spawner : MonoBehaviour
                 yield break;
             }
 
+            movingNote.Configure(
+                TamingManager,
+                TamingManager != null ? TamingManager.CheckBar : null,
+                TamingManager != null ? TamingManager.FailBar : null);
+
             int rand = Random.Range(1, 5); // 1 -> 4
             switch (rand)
             {

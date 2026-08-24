@@ -18,6 +18,16 @@ public class MovingNote : MonoBehaviour
         ResolveBars();
     }
 
+    public void Configure(
+        tamingManager manager,
+        Collider2D runtimeCheckBar,
+        Collider2D runtimeFailBar)
+    {
+        TamingManager = manager;
+        checkBar = runtimeCheckBar;
+        failBar = runtimeFailBar;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -71,12 +81,14 @@ public class MovingNote : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision == checkBar)
+        if (collision == checkBar || MatchesBar(collision, "CheckBar", "CheckBar"))
         {
+            checkBar = collision;
             isInCheckBar = true;
         }
-        else if (collision == failBar)
+        else if (collision == failBar || MatchesBar(collision, "FailBar", "FailBar"))
         {
+            failBar = collision;
             if (TamingManager != null)
                 TamingManager.curTamingPoint -= tamingScore;
             Destroy(gameObject); 
@@ -84,7 +96,7 @@ public class MovingNote : MonoBehaviour
     }
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision == checkBar)
+        if (collision == checkBar || MatchesBar(collision, "CheckBar", "CheckBar"))
         {
             isInCheckBar = false; 
         }
@@ -101,27 +113,50 @@ public class MovingNote : MonoBehaviour
     {
         if (TamingManager != null)
         {
+            if (checkBar == null)
+                checkBar = TamingManager.CheckBar;
+            if (failBar == null)
+                failBar = TamingManager.FailBar;
+
             foreach (Collider2D candidate in TamingManager.GetComponentsInChildren<Collider2D>(true))
             {
-                if (checkBar == null && candidate.CompareTag("CheckBar"))
+                if (checkBar == null && MatchesBar(candidate, "CheckBar", "CheckBar"))
                     checkBar = candidate;
-                else if (failBar == null && candidate.CompareTag("FailBar"))
+                else if (failBar == null && MatchesBar(candidate, "FailBar", "FailBar"))
                     failBar = candidate;
             }
         }
 
         if (checkBar == null)
         {
-            GameObject obj = GameObject.FindGameObjectWithTag("CheckBar");
+            GameObject obj = GameObject.Find("CheckBar");
+            if (obj == null)
+                obj = GameObject.FindGameObjectWithTag("CheckBar");
             if (obj != null)
                 checkBar = obj.GetComponent<Collider2D>();
         }
 
         if (failBar == null)
         {
-            GameObject obj = GameObject.FindGameObjectWithTag("FailBar");
+            GameObject obj = GameObject.Find("failbar");
+            if (obj == null)
+                obj = GameObject.Find("FailBar");
+            if (obj == null)
+                obj = GameObject.FindGameObjectWithTag("FailBar");
             if (obj != null)
                 failBar = obj.GetComponent<Collider2D>();
         }
+    }
+
+    private static bool MatchesBar(Collider2D candidate, string compactName, string tagName)
+    {
+        if (candidate == null)
+            return false;
+
+        string candidateName = candidate.gameObject.name.Replace(" ", "").Replace("_", "");
+        if (string.Equals(candidateName, compactName, System.StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return candidate.CompareTag(tagName);
     }
 }

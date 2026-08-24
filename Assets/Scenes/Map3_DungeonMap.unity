@@ -1219,6 +1219,8 @@ MonoBehaviour:
   upButton: {fileID: 1084393889}
   leftButton: {fileID: 390673971}
   downButton: {fileID: 1876888308}
+  checkBar: {fileID: 0}
+  failBar: {fileID: 0}
 --- !u!114 &144384650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52227,6 +52229,8 @@ MonoBehaviour:
   upButton: {fileID: 343102298}
   leftButton: {fileID: 43400995}
   downButton: {fileID: 2093317178}
+  checkBar: {fileID: 1473817822}
+  failBar: {fileID: 1565483277}
 --- !u!114 &1474253265
 MonoBehaviour:
   m_ObjectHideFlags: 0

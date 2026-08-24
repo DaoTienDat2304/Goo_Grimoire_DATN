@@ -109,6 +109,7 @@ public class tamingManager : MonoBehaviour
             if (wildSlimes.tamedSlimes == null)
                 wildSlimes.tamedSlimes = new List<WildSlimes.WildSlimeTraits>();
             wildSlimes.tamedSlimes.Add(curSlime);
+            RefreshAdventureBags();
             SaveAndLoadSystem.Instance?.Save();
             PlayerStatsManager.Instance?.RecordCapture(curSlime.wildSlimeTraits);
             for (int i = slimeSpawner.activeSlimes.Count - 1; i >= 0; i--)
@@ -306,6 +307,16 @@ public class tamingManager : MonoBehaviour
             Transform emoteTransform = transform.Find("Emote");
             if (emoteTransform != null)
                 emote = emoteTransform.GetComponent<Image>();
+        }
+    }
+
+    private void RefreshAdventureBags()
+    {
+        var bags = FindObjectsByType<AdventureBag>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var bag in bags)
+        {
+            if (bag != null)
+                bag.RefreshAllUI();
         }
     }
 }

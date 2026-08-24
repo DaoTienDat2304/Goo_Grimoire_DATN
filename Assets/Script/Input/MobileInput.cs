@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public enum MobileDirection
 {
@@ -211,6 +212,9 @@ public static class MobileInput
 
                 if (touch.press.wasPressedThisFrame && IsInsideRightAimZone(position))
                 {
+                    if (IsScreenPositionOverUi(position))
+                        continue;
+
                     fallbackAimActive = true;
                     fallbackAimStartPosition = start;
                     Debug.Log("MobileInput fallback aim pressed.");
@@ -239,6 +243,9 @@ public static class MobileInput
         Vector2 mousePosition = Mouse.current.position.ReadValue();
         if (Mouse.current.leftButton.wasPressedThisFrame && IsInsideRightAimZone(mousePosition))
         {
+            if (IsScreenPositionOverUi(mousePosition))
+                return false;
+
             fallbackAimActive = true;
             fallbackAimStartPosition = mousePosition;
             Debug.Log("MobileInput fallback aim pressed.");
@@ -280,6 +287,20 @@ public static class MobileInput
         return pointerId >= 0
             ? EventSystem.current.IsPointerOverGameObject(pointerId)
             : EventSystem.current.IsPointerOverGameObject();
+    }
+
+    private static bool IsScreenPositionOverUi(Vector2 screenPosition)
+    {
+        if (EventSystem.current == null)
+            return false;
+
+        var data = new PointerEventData(EventSystem.current)
+        {
+            position = screenPosition
+        };
+        var results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(data, results);
+        return results.Count > 0;
     }
 
     private static MobileDirection VectorToDirection(Vector2 vector)

@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AdventureBag : MonoBehaviour
 {
     public GameObject slimeCollectionPanel;
     public GameObject showslot;
     public Animator animator;
+    public SidePanelSlider panelSlider;
 
     [Header("Breeding UI")]
     public Sprite slotsprite;
@@ -18,6 +21,8 @@ public class AdventureBag : MonoBehaviour
     public Transform collectionGridParent;
     public GameObject collectionSlotPrefab;
     public WildSlimes wildSlimes;
+    public TMP_Text tamedCountText;
+    [SerializeField] private GameObject hierarchySlotTemplate;
 
     private List<GameObject> slimeSlots = new List<GameObject>();
     private List<GameObject> collectionSlots = new List<GameObject>();
@@ -42,7 +47,9 @@ public class AdventureBag : MonoBehaviour
         ResolveReferences();
         open = !open;
         RefreshAllUI();
-        if (animator != null)
+        if (panelSlider != null)
+            panelSlider.SetOpen(open, false);
+        else if (animator != null)
             animator.SetBool("open",open);
         else if (slimeCollectionPanel != null)
             slimeCollectionPanel.SetActive(open);
@@ -66,38 +73,58 @@ public class AdventureBag : MonoBehaviour
 
     private void RefreshCollectionGrid()
     {
-        // Clear existing slots
+        ClearRuntimeCollectionSlots();
+
         foreach (var slot in collectionSlots)
         {
-            Destroy(slot);
+            if (slot != null)
+                Destroy(slot);
         }
         collectionSlots.Clear();
 
-        // Get all slimes
-        if (wildSlimes == null || wildSlimes.tamedSlimes == null || collectionGridParent == null || collectionSlotPrefab == null)
+        if (wildSlimes == null || wildSlimes.tamedSlimes == null || collectionGridParent == null)
+        {
+            UpdateTamedCountText(0);
             return;
+        }
+
+        EnsureGridLayout();
+        GameObject template = GetSlotTemplate();
+        if (template == null)
+        {
+            UpdateTamedCountText(wildSlimes.tamedSlimes.Count);
+            return;
+        }
+
+        HideHierarchyTemplates();
 
         var allSlimes = wildSlimes.tamedSlimes;
+        int shownCount = 0;
 
-        // Create new slots
         foreach (var WildSlimeTraits in allSlimes)
         {
-            GameObject slot = Instantiate(collectionSlotPrefab, collectionGridParent);
-            var slotScript = slot.GetComponent<tameslimeslot>();
+            if (WildSlimeTraits == null)
+                continue;
+
+            GameObject slot = Instantiate(template, collectionGridParent);
+            slot.name = $"TamedSlime_{WildSlimeTraits.slimeID}";
+            slot.SetActive(true);
             collectionSlots.Add(slot);
-            if (slotScript != null)
-            {
-                if (slotScript.wildSlimes == null)
-                    slotScript.wildSlimes = wildSlimes;
-                slotScript.SetupSlime(WildSlimeTraits.slimeID);
-            }
+
+            SetupCollectionSlot(slot, WildSlimeTraits);
+            shownCount++;
         }
+
+        UpdateTamedCountText(shownCount);
     }
 
     private void ResolveReferences()
     {
         if (animator == null)
             animator = GetComponent<Animator>();
+
+        if (panelSlider == null)
+            panelSlider = GetComponent<SidePanelSlider>();
 
         if (slimeCollectionPanel == null)
             slimeCollectionPanel = gameObject;
@@ -108,11 +135,138 @@ public class AdventureBag : MonoBehaviour
             collectionGridParent = content != null ? content : transform;
         }
 
-        if (collectionSlotPrefab == null)
-            collectionSlotPrefab = Resources.Load<GameObject>("tameslime");
+        if (hierarchySlotTemplate == null && collectionGridParent != null && collectionGridParent.childCount > 0)
+            hierarchySlotTemplate = FindChildByName(collectionGridParent, "TameInventorySlot_1")?.gameObject ?? collectionGridParent.GetChild(0).gameObject;
+
+        if (tamedCountText == null)
+            tamedCountText = FindTamedCountText();
 
         if (wildSlimes == null)
-            wildSlimes = FindAnyObjectByType<WildSlimes>();
+        {
+            var save = SaveAndLoadSystem.Instance != null ? SaveAndLoadSystem.Instance : FindAnyObjectByType<SaveAndLoadSystem>(FindObjectsInactive.Include);
+            if (save != null)
+                wildSlimes = save.wildSlimes;
+        }
+
+        if (wildSlimes == null)
+            wildSlimes = FindAnyObjectByType<WildSlimes>(FindObjectsInactive.Include);
+    }
+
+    private GameObject GetSlotTemplate()
+    {
+        if (collectionSlotPrefab != null)
+            return collectionSlotPrefab;
+
+        if (hierarchySlotTemplate == null && collectionGridParent != null)
+            hierarchySlotTemplate = FindChildByName(collectionGridParent, "TameInventorySlot_1")?.gameObject;
+
+        if (hierarchySlotTemplate == null && collectionGridParent != null && collectionGridParent.childCount > 0)
+            hierarchySlotTemplate = collectionGridParent.GetChild(0).gameObject;
+
+        if (hierarchySlotTemplate != null)
+            return hierarchySlotTemplate;
+
+        return null;
+    }
+
+    private void HideHierarchyTemplates()
+    {
+        if (collectionGridParent == null)
+            return;
+
+        for (int i = 0; i < collectionGridParent.childCount; i++)
+        {
+            GameObject child = collectionGridParent.GetChild(i).gameObject;
+            if (!collectionSlots.Contains(child))
+                child.SetActive(false);
+        }
+    }
+
+    private void EnsureGridLayout()
+    {
+        if (collectionGridParent == null)
+            return;
+
+        var grid = collectionGridParent.GetComponent<GridLayoutGroup>();
+        if (grid == null)
+        {
+            grid = collectionGridParent.gameObject.AddComponent<GridLayoutGroup>();
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 3;
+            grid.cellSize = new Vector2(78f, 78f);
+            grid.spacing = new Vector2(12f, 12f);
+            grid.childAlignment = TextAnchor.UpperCenter;
+        }
+
+        if (collectionGridParent.GetComponent<ContentSizeFitter>() == null)
+        {
+            var fitter = collectionGridParent.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        }
+    }
+
+    private void SetupCollectionSlot(GameObject slot, WildSlimes.WildSlimeTraits slime)
+    {
+        var slotScript = slot.GetComponent<tameslimeslot>();
+        if (slotScript == null)
+            slotScript = slot.AddComponent<tameslimeslot>();
+
+        slotScript.wildSlimes = wildSlimes;
+        slotScript.SetupSlime(slime.slimeID);
+
+        SetLayerSprite(slot.transform, "slimeBody", slime.wildSlimeTraits, 0);
+        SetLayerSprite(slot.transform, "SlimeBody", slime.wildSlimeTraits, 0);
+        SetLayerSprite(slot.transform, "SlimeArmor", slime.wildSlimeTraits, 1);
+        SetLayerSprite(slot.transform, "SlimeWeapon", slime.wildSlimeTraits, 2);
+    }
+
+    private void SetLayerSprite(Transform slot, string childName, TraitSO[] traits, int index)
+    {
+        if (traits == null || index < 0 || index >= traits.Length || traits[index] == null)
+            return;
+
+        Transform child = FindChildByName(slot, childName);
+        Image image = child != null ? child.GetComponent<Image>() : null;
+        if (image == null)
+            return;
+
+        image.sprite = traits[index].sprite;
+        image.enabled = image.sprite != null;
+        image.preserveAspect = true;
+    }
+
+    private void ClearRuntimeCollectionSlots()
+    {
+        if (collectionGridParent == null)
+            return;
+
+        for (int i = collectionGridParent.childCount - 1; i >= 0; i--)
+        {
+            Transform child = collectionGridParent.GetChild(i);
+            if (child.name.StartsWith("TamedSlime_"))
+                Destroy(child.gameObject);
+        }
+    }
+
+    private void UpdateTamedCountText(int count)
+    {
+        if (tamedCountText == null)
+            tamedCountText = FindTamedCountText();
+
+        if (tamedCountText != null)
+            tamedCountText.text = $"{count} / 30";
+    }
+
+    private TMP_Text FindTamedCountText()
+    {
+        TMP_Text[] texts = GetComponentsInChildren<TMP_Text>(true);
+        foreach (var text in texts)
+        {
+            if (text != null && (text.name.Contains("Count") || text.text.Contains("/")))
+                return text;
+        }
+
+        return null;
     }
 
     private static Transform FindChildByName(Transform root, string childName)

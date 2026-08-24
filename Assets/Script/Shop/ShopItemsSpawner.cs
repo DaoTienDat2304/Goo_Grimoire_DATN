@@ -46,6 +46,7 @@ public class ShopItemsSpawner : MonoBehaviour
         {
             shopItemsDatabase = summerShopItemsDatabase;
         }
+        IAPManager.RegisterCatalog(shopItemsDatabase);
         SpawnAllItems();
     }
     public void SelectItem(ShopItems.ShopItemData itemData)
@@ -71,6 +72,13 @@ public class ShopItemsSpawner : MonoBehaviour
         if (selectedItem == null && price <= 0 && resourceAmount <= 0)
         {
             Cancel();
+            return;
+        }
+
+        // Goi tra bang tien that: khong tru tien trong game, day sang Google Play.
+        if (selectedItem != null && selectedItem.isIAP)
+        {
+            StartIapPurchase(selectedItem);
             return;
         }
 
@@ -134,6 +142,32 @@ public class ShopItemsSpawner : MonoBehaviour
     private void GrantAdReward(ShopItems.ShopItemData itemData)
     {
         ShopRewardGranter.Grant(itemData, "RewardedAd", 0);
+    }
+
+    /// <summary>
+    /// Day giao dich sang Google Play. Thuong duoc phat trong IAPManager ngay khi don
+    /// chuyen sang pending, nen o day chi lo dong popup va bao loi.
+    /// </summary>
+    private void StartIapPurchase(ShopItems.ShopItemData itemData)
+    {
+        if (itemData == null) return;
+
+        var iap = IAPManager.Instance;
+        if (iap == null)
+        {
+            Debug.LogWarning("Khong mua duoc vi thieu IAPManager.", this);
+            Cancel();
+            return;
+        }
+
+        string productId = itemData.ResolveIapProductId();
+        Cancel();
+
+        iap.Purchase(productId, (success, error) =>
+        {
+            if (!success)
+                Debug.LogWarning($"Mua '{productId}' that bai: {error}", this);
+        });
     }
 
     public void Cancel()

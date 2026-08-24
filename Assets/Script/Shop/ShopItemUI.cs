@@ -62,17 +62,26 @@ public class ShopItemUI : MonoBehaviour
     private void OnEnable()
     {
         RewardedAdsManager.OnAdReadyChanged += HandleAdReadyChanged;
+        IAPManager.OnProductsFetched += HandleIapProductsFetched;
         ApplyBuyButtonAppearance();
     }
 
     private void OnDisable()
     {
         RewardedAdsManager.OnAdReadyChanged -= HandleAdReadyChanged;
+        IAPManager.OnProductsFetched -= HandleIapProductsFetched;
     }
 
     private void HandleAdReadyChanged(bool _)
     {
         ApplyBuyButtonAppearance();
+    }
+
+    /// <summary>Lay duoc gia that tu store roi thi ve lai o gia.</summary>
+    private void HandleIapProductsFetched()
+    {
+        if (data == null) return;
+        SetText(priceTmpText, ResolvePriceLabel());
     }
 
     private string ResolvePriceLabel()
@@ -82,6 +91,15 @@ public class ShopItemUI : MonoBehaviour
             return !string.IsNullOrWhiteSpace(data.adPriceLabel)
                 ? data.adPriceLabel
                 : defaultAdPriceLabel;
+        }
+
+        if (data.isIAP)
+        {
+            // Google Play bat buoc hien gia noi te that cua nguoi choi, khong phai chuoi cung.
+            var iap = IAPManager.Instance;
+            if (iap != null && iap.TryGetLocalizedPrice(data.ResolveIapProductId(), out string storePrice))
+                return storePrice;
+            // Chua ket noi duoc store thi tam dung nhan trong asset ($4.99...).
         }
 
         return !string.IsNullOrWhiteSpace(data.priceLabelOverride)

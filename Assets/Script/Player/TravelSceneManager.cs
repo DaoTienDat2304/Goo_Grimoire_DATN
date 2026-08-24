@@ -39,8 +39,6 @@ public class TravelSceneManager : MonoBehaviour
     
     private void InitializeScene()
     {
-        InitializeFirstTimeResources();
-        
         if (player == null)
         {
             player = FindAnyObjectByType<MovePlayer>();
@@ -78,30 +76,6 @@ public class TravelSceneManager : MonoBehaviour
         
         currentTargetIndex = -1;
     }
-    private void InitializeFirstTimeResources()
-    {
-        bool isFirstTime = CloudSaveProvider.Instance == null
-            || !CloudSaveProvider.Instance.HasCloudSave;
-
-        if (isFirstTime)
-        {
-            Debug.Log("First run: init resources");
-            
-            if (CurrencyManager.Instance != null)
-            {
-                CurrencyManager.Instance.SetCurrency(CurrencyType.Coins, 50);
-                CurrencyManager.Instance.SetCurrency(CurrencyType.Gems, 0);
-                Debug.Log("Initialized: 50 Coins, 0 Gems");
-            }
-            
-            if (ResourceManager.Instance != null)
-            {
-                ResourceManager.Instance.SetResource(ResourceType.Marshmallow, 5);
-                Debug.Log("Initialized: 5 Marshmallow");
-            }
-        }
-    }
-    
     private void OnPlayerReachedTarget(Transform target)
     {
         int targetIndex = targetPoints.IndexOf(target);

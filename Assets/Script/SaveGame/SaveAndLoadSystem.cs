@@ -70,6 +70,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         yield return null;
 
         RefreshSceneReferences();
+        List<WildSlimes.WildSlimeTraits> sceneCapturedSlimes = SnapshotCapturedSlimes();
 
         string json = _cachedSaveData != null
             ? JsonUtility.ToJson(_cachedSaveData, false)
@@ -78,22 +79,9 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (!string.IsNullOrEmpty(json))
             Load(json);
 
+        MergeCapturedSlimes(sceneCapturedSlimes);
         RefreshSceneReferences();
-        BreedingManager manager = breedingManager != null ? breedingManager : BreedingManager.Instance;
-        bool hasCapturedSlimes = wildSlimes != null
-            && wildSlimes.tamedSlimes != null
-            && wildSlimes.tamedSlimes.Count > 0;
-
-        if (hasCapturedSlimes && manager != null)
-        {
-            manager.GenTamedSlime();
-            MarkSlimeCollectionChanged();
-            Save();
-        }
-        else if (hasCapturedSlimes)
-        {
-            Debug.LogWarning("[Save] Captured slimes are saved, but BreedingManager was not ready for import.");
-        }
+        ImportCapturedSlimesAtHome();
 
         SlimeWorldManager?.RefreshWorldSlimes();
         breedingUI?.RefreshAllUI();
@@ -110,6 +98,115 @@ public class SaveAndLoadSystem : MonoBehaviour
         SlimeWorldManager = FindAnyObjectByType<SlimeWorldManager>(FindObjectsInactive.Include);
         slimeInventory = FindAnyObjectByType<SlimeInventory>(FindObjectsInactive.Include);
     }
+
+    private int ImportCapturedSlimesAtHome()
+    {
+        if (SceneManager.GetActiveScene().name != "firstsave"
+            || wildSlimes == null
+            || wildSlimes.tamedSlimes == null
+            || wildSlimes.tamedSlimes.Count == 0)
+        {
+            return 0;
+        }
+
+        BreedingManager manager = breedingManager != null
+            ? breedingManager
+            : BreedingManager.Instance != null
+                ? BreedingManager.Instance
+                : FindAnyObjectByType<BreedingManager>(FindObjectsInactive.Include);
+
+        if (manager == null)
+        {
+            Debug.LogWarning("[Adventure Return] Captured slimes are still pending because BreedingManager is not ready.");
+            return 0;
+        }
+
+        // Both systems must consume the same pending-capture queue.
+        manager.wildSlimes = wildSlimes;
+        int pendingCount = wildSlimes.tamedSlimes.Count;
+        int importedCount = manager.GenTamedSlime();
+
+        MarkSlimeCollectionChanged();
+        Save();
+
+        if (importedCount != pendingCount)
+        {
+            Debug.LogWarning($"[Adventure Return] Imported {importedCount}/{pendingCount} captured slime(s). Invalid entries were removed from the completed trip.");
+        }
+
+        return importedCount;
+    }
+
+    private List<WildSlimes.WildSlimeTraits> SnapshotCapturedSlimes()
+    {
+        var snapshot = new List<WildSlimes.WildSlimeTraits>();
+        if (wildSlimes == null || wildSlimes.tamedSlimes == null)
+            return snapshot;
+
+        foreach (WildSlimes.WildSlimeTraits captured in wildSlimes.tamedSlimes)
+        {
+            if (captured == null)
+                continue;
+
+            snapshot.Add(new WildSlimes.WildSlimeTraits
+            {
+                slimeID = captured.slimeID,
+                slimeType = captured.slimeType,
+                wildSlimeTraits = captured.wildSlimeTraits != null
+                    ? (TraitSO[])captured.wildSlimeTraits.Clone()
+                    : new TraitSO[3]
+            });
+        }
+
+        return snapshot;
+    }
+
+    private void MergeCapturedSlimes(List<WildSlimes.WildSlimeTraits> capturedSlimes)
+    {
+        if (wildSlimes == null || capturedSlimes == null || capturedSlimes.Count == 0)
+            return;
+
+        if (wildSlimes.tamedSlimes == null)
+            wildSlimes.tamedSlimes = new List<WildSlimes.WildSlimeTraits>();
+
+        foreach (WildSlimes.WildSlimeTraits captured in capturedSlimes)
+        {
+            if (captured == null)
+                continue;
+
+            bool alreadyLoaded = wildSlimes.tamedSlimes.Exists(existing => CapturedSlimesMatch(existing, captured));
+            if (!alreadyLoaded)
+                wildSlimes.tamedSlimes.Add(captured);
+        }
+    }
+
+    private static bool CapturedSlimesMatch(
+        WildSlimes.WildSlimeTraits left,
+        WildSlimes.WildSlimeTraits right)
+    {
+        if (left == null || right == null || left.slimeID != right.slimeID || left.slimeType != right.slimeType)
+            return false;
+
+        for (int i = 0; i < 3; i++)
+        {
+            TraitSO leftTrait = left.wildSlimeTraits != null && i < left.wildSlimeTraits.Length
+                ? left.wildSlimeTraits[i]
+                : null;
+            TraitSO rightTrait = right.wildSlimeTraits != null && i < right.wildSlimeTraits.Length
+                ? right.wildSlimeTraits[i]
+                : null;
+
+            if (leftTrait == rightTrait)
+                continue;
+            if (leftTrait == null || rightTrait == null)
+                return false;
+            if (leftTrait.type != rightTrait.type || leftTrait.traitName != rightTrait.traitName)
+                return false;
+        }
+
+        return true;
+    }
+
     IEnumerator InitializeAsync()
     {
         Debug.Log("[Save] Waiting for Auth...");
@@ -144,6 +241,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             chosenJson = !string.IsNullOrEmpty(localJson) ? localJson : cloudJson;
         }
 
+        List<WildSlimes.WildSlimeTraits> sceneCapturedSlimes = SnapshotCapturedSlimes();
         if (!string.IsNullOrEmpty(chosenJson))
         {
             Load(chosenJson);
@@ -166,6 +264,7 @@ public class SaveAndLoadSystem : MonoBehaviour
             DailyMissionManager.Instance?.ApplyLoad(null, null, null, false);
         }
 
+        MergeCapturedSlimes(sceneCapturedSlimes);
         _initialized = true;
 
         ApplyTowerResultCache();
@@ -208,19 +307,7 @@ public class SaveAndLoadSystem : MonoBehaviour
     IEnumerator LoadWorld()
     {
         yield return new WaitForSeconds(0.1f);
-        if (wildSlimes != null && wildSlimes.tamedSlimes != null && wildSlimes.tamedSlimes.Count > 0)
-        {
-            BreedingManager manager = breedingManager != null ? breedingManager : BreedingManager.Instance;
-            if (manager != null)
-            {
-                manager.GenTamedSlime();
-            }
-            else
-            {
-                Debug.LogWarning("[Save] Tamed slimes found, but BreedingManager is missing. Conversion postponed.");
-            }
-            Save();
-        }
+        ImportCapturedSlimesAtHome();
         if (SlimeWorldManager != null) SlimeWorldManager.RefreshWorldSlimes();
         else FindAnyObjectByType<SlimeWorldManager>()?.RefreshWorldSlimes();
         if (breedingUI != null) breedingUI.RefreshAllUI();

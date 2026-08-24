@@ -105,19 +105,32 @@ public class SlimeWorldManager : MonoBehaviour
             slimesContainer.rotation = Quaternion.identity;
         }
 
-        worldSlimes = new GameObject[maxWorldSlimes];
-        slimePositions = new Vector3[maxWorldSlimes];
-        slimeTargets = new Vector3[maxWorldSlimes];
-        slimeBounceOffsets = new float[maxWorldSlimes];
-        slimeBounceTimes = new float[maxWorldSlimes];
-        slimeData = new Slime[maxWorldSlimes];
-
-        CreateInitialPositions();
+        int ownedSlimeCount = BreedingManager.Instance != null && BreedingManager.Instance.GetAllSlimes() != null
+            ? BreedingManager.Instance.GetAllSlimes().Count
+            : 0;
+        EnsureWorldCapacity(Mathf.Max(maxWorldSlimes, ownedSlimeCount));
     }
 
-    private void CreateInitialPositions()
+    private void EnsureWorldCapacity(int requiredCapacity)
     {
-        for (int i = 0; i < maxWorldSlimes; i++)
+        requiredCapacity = Mathf.Max(1, requiredCapacity);
+        int currentCapacity = worldSlimes != null ? worldSlimes.Length : 0;
+        if (currentCapacity >= requiredCapacity)
+            return;
+
+        System.Array.Resize(ref worldSlimes, requiredCapacity);
+        System.Array.Resize(ref slimePositions, requiredCapacity);
+        System.Array.Resize(ref slimeTargets, requiredCapacity);
+        System.Array.Resize(ref slimeBounceOffsets, requiredCapacity);
+        System.Array.Resize(ref slimeBounceTimes, requiredCapacity);
+        System.Array.Resize(ref slimeData, requiredCapacity);
+
+        CreateInitialPositions(currentCapacity);
+    }
+
+    private void CreateInitialPositions(int startIndex)
+    {
+        for (int i = startIndex; i < worldSlimes.Length; i++)
         {
             Vector3 position = GetRandomPointInArea();
             slimePositions[i] = position;
@@ -291,9 +304,9 @@ public class SlimeWorldManager : MonoBehaviour
             return;
         }
 
+        EnsureWorldCapacity(Mathf.Max(maxWorldSlimes, allSlimes.Count));
 
-
-        int slimeCount = Mathf.Min(allSlimes.Count, maxWorldSlimes);
+        int slimeCount = Mathf.Min(allSlimes.Count, worldSlimes.Length);
         for (int i = 0; i < slimeCount; i++)
         {
             if (allSlimes[i] == null)

@@ -78935,7 +78935,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 10
+    m_Left: 50
     m_Right: 0
     m_Top: 0
     m_Bottom: 40
@@ -78943,7 +78943,7 @@ MonoBehaviour:
   m_StartCorner: 0
   m_StartAxis: 0
   m_CellSize: {x: 125, y: 175}
-  m_Spacing: {x: 20, y: 0}
+  m_Spacing: {x: 50, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2
 --- !u!1 &1060773875
@@ -99551,7 +99551,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: -320, y: 0}
-  m_SizeDelta: {x: 294.7754, y: 984}
+  m_SizeDelta: {x: 294.7754, y: 932.1014}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1849090839
 MonoBehaviour:

@@ -94,9 +94,16 @@ public class BreedingManager : MonoBehaviour
         var ui = FindAnyObjectByType<BreedingUIManager>();
         if (ui != null) ui.RefreshAllUI();
     }
-    public void GenTamedSlime()
+    public int GenTamedSlime()
     {
-        if (wildSlimes == null || wildSlimes.tamedSlimes == null) return;
+        if (wildSlimes == null || wildSlimes.tamedSlimes == null)
+            return 0;
+
+        if (allSlimes == null)
+            allSlimes = new List<Slime>();
+
+        int pendingCount = wildSlimes.tamedSlimes.Count;
+        int importedCount = 0;
 
         foreach (var slimeTraits in wildSlimes.tamedSlimes)
         {
@@ -118,9 +125,14 @@ public class BreedingManager : MonoBehaviour
             slime.weapon = slimeTraits.wildSlimeTraits[2].GenerateInstance();
             slime.CalculateStats();
             slime.RollRandomSkillsMatchingRarity();
+            slime.AssignCompactName();
             allSlimes.Add(slime);
+            importedCount++;
         }
+
         wildSlimes.tamedSlimes.Clear();
+        Debug.Log($"[Adventure Return] Imported {importedCount}/{pendingCount} captured slime(s) into the home collection.");
+        return importedCount;
     }
 
     public void CreateInitialSlimes()

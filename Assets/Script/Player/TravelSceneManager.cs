@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -78,9 +78,6 @@ public class TravelSceneManager : MonoBehaviour
         
         currentTargetIndex = -1;
     }
-    
-    /// <summary>
-    /// </summary>
     private void InitializeFirstTimeResources()
     {
         bool isFirstTime = CloudSaveProvider.Instance == null

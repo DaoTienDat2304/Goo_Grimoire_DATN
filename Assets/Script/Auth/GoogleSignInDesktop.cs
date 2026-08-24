@@ -1,4 +1,4 @@
-// GoogleSignInDesktop.cs
+﻿// GoogleSignInDesktop.cs
 // OAuth2 Authorization Code + PKCE flow cho Windows/Mac/Linux.
 //
 //   Google Cloud Console → APIs & Services → Credentials
@@ -27,9 +27,6 @@ public static class GoogleSignInDesktop
     const int    TimeoutSeconds = 120;
 
     // ── Public API ────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// </summary>
     public static async Task<string> GetIdTokenAsync()
     {
         // 1. PKCE

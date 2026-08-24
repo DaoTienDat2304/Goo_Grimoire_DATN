@@ -1,9 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
-
-/// <summary>
-/// </summary>
 public static class MobileTilemapOptimizer
 {
     private const int CachedChunkCount = 32;
@@ -41,9 +38,6 @@ public static class MobileTilemapOptimizer
         OptimizeObstacleColliders();
         OptimizePlayerPhysics();
     }
-
-    /// <summary>
-    /// </summary>
     private static void OptimizeObstacleColliders()
     {
         TilemapCollider2D[] tilemapColliders = Object.FindObjectsByType<TilemapCollider2D>(

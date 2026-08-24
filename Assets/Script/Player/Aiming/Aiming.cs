@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Aiming : MonoBehaviour
@@ -22,9 +22,6 @@ public class Aiming : MonoBehaviour
     private ThrowingCatcher spawnedCatcher;
     private bool spriteFacesRight = true;
     private bool dragAttackFrameShown;
-    
-    /// <summary>
-    /// </summary>
     private bool IsFreeThrowScene()
     {
         string sceneName = SceneManager.GetActiveScene().name;

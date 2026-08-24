@@ -1,9 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-
-/// <summary>
-/// </summary>
 public class DailyMissionManager : MonoBehaviour
 {
     public static int DailyCount => RemoteBalance.Reward.dailyCount;

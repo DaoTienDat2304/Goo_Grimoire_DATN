@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // CloudSaveProvider.cs
 //
 //
@@ -50,8 +50,6 @@ public class CloudSaveProvider : MonoBehaviour
     }
 
     // ── Cloud check ──────────────────────────────────────────
-    /// <summary>
-    /// </summary>
     public IEnumerator InitCloudCheck(string uid)
     {
         HasCloudSave     = false;
@@ -110,8 +108,6 @@ public class CloudSaveProvider : MonoBehaviour
     }
 
     // ── Save ─────────────────────────────────────────────────
-    /// <summary>
-    /// </summary>
     public void StartSave(string uid, string json)
     {
         if (!string.IsNullOrEmpty(json))
@@ -121,9 +117,6 @@ public class CloudSaveProvider : MonoBehaviour
         }
         StartCoroutine(SaveToCloud(uid, json));
     }
-
-    /// <summary>
-    /// </summary>
     public IEnumerator SaveToCloud(string uid, string json)
     {
 #if FIREBASE_FIRESTORE
@@ -180,8 +173,6 @@ public class CloudSaveProvider : MonoBehaviour
     }
 
     // ── Load ─────────────────────────────────────────────────
-    /// <summary>
-    /// </summary>
     public IEnumerator LoadFromCloud(string uid, Action<string, long> onComplete)
     {
 #if FIREBASE_FIRESTORE
@@ -229,8 +220,6 @@ public class CloudSaveProvider : MonoBehaviour
     }
 
     // ── HMAC Integrity ───────────────────────────────────────
-    /// <summary>
-    /// </summary>
     string UnwrapAndVerify(string raw, string uid)
     {
         var envelope = JsonUtility.FromJson<SaveEnvelope>(raw);

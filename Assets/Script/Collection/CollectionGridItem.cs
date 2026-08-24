@@ -1,10 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
-
-/// <summary>
-/// </summary>
 public class CollectionGridItem : MonoBehaviour
 {
     [Header("Common UI — yes o tat ca 3 loai item")]

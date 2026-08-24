@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Spine.Unity;
@@ -33,6 +33,8 @@ public class SlimeWorldManager : MonoBehaviour
     public GameObject breedingUIButton;
     public GameObject inventory;
     public Button worldViewButton;
+    [Tooltip("Kéo Toggle UI để bật/tắt hiển thị Container Slime vào đây")]
+    public Toggle slimeDisplayToggle;
 
     private GameObject[] worldSlimes;
     private Vector3[] slimePositions;
@@ -44,7 +46,8 @@ public class SlimeWorldManager : MonoBehaviour
     public Button traitCollection;
     
     [Header("Hierarchy Optimization")]
-    [SerializeField] private Transform slimesContainer;
+    [Tooltip("Kéo Empty GameObject chứa Slime trong nông trại vào đây")]
+    public Transform slimesContainer;
 
     public bool isWorldViewActive = false;
     private Camera mainCamera;
@@ -90,6 +93,16 @@ public class SlimeWorldManager : MonoBehaviour
         {
             areaCircleCollider = movementArea.GetComponent<CircleCollider2D>();
             areaBoxCollider = movementArea.GetComponent<BoxCollider2D>();
+        }
+
+        if (slimesContainer != null)
+        {
+            if (slimesContainer.GetComponentInParent<Canvas>() != null)
+            {
+                slimesContainer.SetParent(null, true);
+            }
+            slimesContainer.localScale = Vector3.one;
+            slimesContainer.rotation = Quaternion.identity;
         }
 
         worldSlimes = new GameObject[maxWorldSlimes];
@@ -156,7 +169,36 @@ public class SlimeWorldManager : MonoBehaviour
             worldViewButton.onClick.AddListener(StartWorldView);
         }
 
+        if (slimeDisplayToggle != null)
+        {
+            slimeDisplayToggle.isOn = showSlimesInWorld;
+            slimeDisplayToggle.onValueChanged.RemoveListener(SetSlimeContainerActive);
+            slimeDisplayToggle.onValueChanged.AddListener(SetSlimeContainerActive);
+        }
+    }
+    public void SetSlimeContainerActive(bool isVisible)
+    {
+        showSlimesInWorld = isVisible;
 
+        if (slimesContainer != null)
+        {
+            slimesContainer.gameObject.SetActive(isVisible);
+        }
+        else if (worldSlimes != null)
+        {
+            for (int i = 0; i < worldSlimes.Length; i++)
+            {
+                if (worldSlimes[i] != null)
+                {
+                    worldSlimes[i].SetActive(isVisible);
+                }
+            }
+        }
+    }
+    public void ToggleSlimeContainer()
+    {
+        bool currentState = slimesContainer != null ? slimesContainer.gameObject.activeSelf : showSlimesInWorld;
+        SetSlimeContainerActive(!currentState);
     }
 
 
@@ -267,11 +309,12 @@ public class SlimeWorldManager : MonoBehaviour
     {
 
         GameObject slimeGO = new GameObject($"WorldSlime_{index}");
+        slimeGO.transform.position = slimePositions[index];
+        slimeGO.transform.localScale = Vector3.one * 0.08f;
         if (slimesContainer != null)
         {
-            slimeGO.transform.SetParent(slimesContainer, false);
+            slimeGO.transform.SetParent(slimesContainer, true);
         }
-        slimeGO.transform.position = slimePositions[index];
 
         var animationController = slimeGO.AddComponent<SlimeAnimationController>();
         

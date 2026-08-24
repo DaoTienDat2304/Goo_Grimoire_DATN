@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "Building", menuName = "Buildings/Building")]
 public class Building : ScriptableObject
@@ -13,9 +13,6 @@ public class Building : ScriptableObject
     public string description;
     public int slimeRequirement;
     public bool buildable = false;
-
-    /// <summary>
-    /// </summary>
     public bool CanAfford()
     {
         if (BuildingManager.FreeBuildMode) return true;
@@ -24,9 +21,6 @@ public class Building : ScriptableObject
 
         return CurrencyManager.Instance.HasEnoughCurrency(currencyCosts.rewards);
     }
-
-    /// <summary>
-    /// </summary>
     public bool Purchase()
     {
         if (BuildingManager.FreeBuildMode) return true;
@@ -35,9 +29,6 @@ public class Building : ScriptableObject
 
         return CurrencyManager.Instance.SpendCurrency(currencyCosts.rewards);
     }
-
-    /// <summary>
-    /// </summary>
     public string GetCostDescription()
     {
         if (currencyCosts == null) return "Free";

@@ -1,8 +1,4 @@
-using UnityEngine;
-
-/// <summary>
-///
-/// </summary>
+﻿using UnityEngine;
 public static class LocalSaveStore
 {
     const string Prefix = "localsave_";

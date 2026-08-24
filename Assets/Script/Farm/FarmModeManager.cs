@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -66,8 +66,6 @@ public class FarmModeManager : MonoBehaviour
     public GameObject rewardPopup;              // Panel hiện khi claim phần thưởng
     public TMP_Text rewardPopupText; // Text hiển thị nội dung phần thưởng
     public UnityEngine.UI.Button rewardPopupCloseButton; // Nút đóng popup
-
-    /// <summary>Tên độ khó đang được chọn — dùng cho analytics.</summary>
     public string SelectedDifficultyName => selectedDifficulty?.difficultyName ?? "none";
 
     void Awake()

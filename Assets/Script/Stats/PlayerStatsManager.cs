@@ -1,10 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-
-/// <summary>
-///
-/// </summary>
 public class PlayerStatsManager : MonoBehaviour
 {
     private static PlayerStatsManager _instance;

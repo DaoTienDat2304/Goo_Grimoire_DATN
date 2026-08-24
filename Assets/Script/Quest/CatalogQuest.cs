@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public enum MissionMetric
 {
@@ -10,9 +10,6 @@ public enum MissionMetric
     FarmWins,
     RarityAtLeast
 }
-
-/// <summary>
-/// </summary>
 public class CatalogQuest : Quest
 {
     public MissionMetric metric;

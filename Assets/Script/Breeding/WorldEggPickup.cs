@@ -1,7 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
-
-/// <summary>A clickable egg that waits on the world map until the player collects it.</summary>
 public class WorldEggPickup : MonoBehaviour, IPointerClickHandler
 {
     private const int WorldEggSortingOrder = -99;

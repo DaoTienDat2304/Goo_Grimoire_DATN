@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -17,9 +17,6 @@ public class BuildingDraggable : MonoBehaviour, IBeginDragHandler, IDragHandler,
     {
         building = b;
     }
-
-    /// <summary>
-    /// </summary>
     public void SetDraggable(bool draggable)
     {
         isDraggable = draggable;

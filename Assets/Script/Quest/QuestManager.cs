@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class QuestManager : MonoBehaviour
@@ -56,9 +56,6 @@ public class QuestManager : MonoBehaviour
 
         if (autoLoadMissionCatalog) LoadMissionCatalog();
     }
-
-    /// <summary>
-    /// </summary>
     public void LoadMissionCatalog()
     {
         if (clearExistingOnLoad && allQuests != null)

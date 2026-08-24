@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
@@ -45,9 +45,6 @@ public class SelectDifficulties : MonoBehaviour
     {
         if (rewardPopup != null) rewardPopup.SetActive(false);
     }
-    
-    /// <summary>
-    /// </summary>
     private void UpdateButtonStates()
     {
         if (farmModeManager == null) return;
@@ -58,9 +55,6 @@ public class SelectDifficulties : MonoBehaviour
         UpdateButtonState(extremeButton, 3);
         UpdateButtonState(hellButton, 4);
     }
-    
-    /// <summary>
-    /// </summary>
     private void UpdateButtonState(Button button, int difficultyIndex)
     {
         if (button == null) return;

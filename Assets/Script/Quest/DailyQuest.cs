@@ -1,7 +1,4 @@
-using UnityEngine;
-
-/// <summary>
-/// </summary>
+﻿using UnityEngine;
 public class DailyQuest : Quest
 {
     public DailyMetric metric;

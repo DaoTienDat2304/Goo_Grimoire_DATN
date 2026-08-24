@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 public enum DailyMetric
 {
@@ -25,9 +25,6 @@ public class DailyDef
         Id = id; Name = name; Description = desc; Metric = metric; Target = target; GoldReward = gold;
     }
 }
-
-/// <summary>
-/// </summary>
 public static class DailyCatalog
 {
     private static List<DailyDef> _all;

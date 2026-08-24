@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
 
@@ -49,16 +49,10 @@ public class CurrencyManager : MonoBehaviour
         
         Debug.Log($"Currency loaded: {GetCurrency(CurrencyType.Coins)} Coins, {GetCurrency(CurrencyType.Gems)} Gems");
     }
-
-    /// <summary>
-    /// </summary>
     public int GetCurrency(CurrencyType type)
     {
         return currencies.ContainsKey(type) ? currencies[type] : 0;
     }
-
-    /// <summary>
-    /// </summary>
     public void AddCurrency(CurrencyType type, int amount)
     {
         if (amount <= 0) return;
@@ -73,9 +67,6 @@ public class CurrencyManager : MonoBehaviour
         
         Debug.Log($"Add {amount} {type}. Total: {currencies[type]}");
     }
-
-    /// <summary>
-    /// </summary>
     public bool SpendCurrency(CurrencyType type, int amount)
     {
         if (amount <= 0) return false;
@@ -98,16 +89,10 @@ public class CurrencyManager : MonoBehaviour
         Debug.Log($"Spend {amount} {type}. Left: {currencies[type]}");
         return true;
     }
-
-    /// <summary>
-    /// </summary>
     public bool HasEnoughCurrency(CurrencyType type, int amount)
     {
         return GetCurrency(type) >= amount;
     }
-
-    /// <summary>
-    /// </summary>
     public bool HasEnoughCurrency(List<CurrencyData> costs)
     {
         foreach (var cost in costs)
@@ -117,9 +102,6 @@ public class CurrencyManager : MonoBehaviour
         }
         return true;
     }
-
-    /// <summary>
-    /// </summary>
     public bool SpendCurrency(List<CurrencyData> costs)
     {
         if (!HasEnoughCurrency(costs)) return false;
@@ -130,9 +112,6 @@ public class CurrencyManager : MonoBehaviour
         }
         return true;
     }
-
-    /// <summary>
-    /// </summary>
     public void SetCurrency(CurrencyType type, int amount)
     {
         int oldAmount = GetCurrency(type);
@@ -141,9 +120,6 @@ public class CurrencyManager : MonoBehaviour
         OnCurrencyChanged?.Invoke(type, oldAmount, currencies[type]);
         SaveCurrencyData();
     }
-
-    /// <summary>
-    /// </summary>
     public void SaveCurrencyData()
     {
         foreach (var currency in currencies)
@@ -152,9 +128,6 @@ public class CurrencyManager : MonoBehaviour
         }
         PlayerPrefs.Save();
     }
-
-    /// <summary>
-    /// </summary>
     private void LoadCurrencyData()
     {
         foreach (CurrencyType type in System.Enum.GetValues(typeof(CurrencyType)))
@@ -166,9 +139,6 @@ public class CurrencyManager : MonoBehaviour
             }
         }
     }
-
-    /// <summary>
-    /// </summary>
     public void ResetAllCurrency()
     {
         currencies[CurrencyType.Coins] = startingCoins;

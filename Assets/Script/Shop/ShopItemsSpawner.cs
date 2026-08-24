@@ -31,6 +31,11 @@ public class ShopItemsSpawner : MonoBehaviour
         WireConfirmButtons();
     }
 
+    private void OnDisable()
+    {
+        RestoreSlimes();
+    }
+
     private void Start()
     {
         AutoWire();
@@ -42,10 +47,6 @@ public class ShopItemsSpawner : MonoBehaviour
         }
         SpawnAllItems();
     }
-
-    /// <summary>
-    /// </summary>
-    /// 
     public void SelectItem(ShopItems.ShopItemData itemData)
     {
         if (itemData == null) return;
@@ -152,6 +153,22 @@ public class ShopItemsSpawner : MonoBehaviour
             {
                 Debug.LogWarning($"ShopItemsSpawner: Missing hierarchy ShopItemUI slot for {itemData.itemName}.", this);
             }
+        }
+    }
+
+    public void CloseShop()
+    {
+        Cancel();
+        gameObject.SetActive(false);
+        RestoreSlimes();
+    }
+
+    public void RestoreSlimes()
+    {
+        var worldManager = SlimeWorldManager.Instance ?? Object.FindFirstObjectByType<SlimeWorldManager>();
+        if (worldManager != null)
+        {
+            worldManager.StartWorldView();
         }
     }
 

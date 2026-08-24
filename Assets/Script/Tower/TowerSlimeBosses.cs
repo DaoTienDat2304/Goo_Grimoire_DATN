@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using static TowerTurnSystem;
 
@@ -219,9 +219,6 @@ public class TowerSlimeBosses : ScriptableObject
         currentFloor = 0;
         highestFloorReached = 0;
     }
-
-    /// <summary>
-    /// </summary>
     public bool HasNextFloor()
     {
         if (floors == null || floors.Count == 0) return false;

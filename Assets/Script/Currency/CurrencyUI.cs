@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class CurrencyUI : MonoBehaviour
@@ -144,9 +144,6 @@ public class CurrencyUI : MonoBehaviour
         
         // NotificationManager.ShowMessage(message);
     }
-    
-    /// <summary>
-    /// </summary>
     private void CheckAndClaimTowerRewards()
     {
         if (towerDatabase == null)
@@ -233,9 +230,6 @@ public class CurrencyUI : MonoBehaviour
             Debug.Log($"Claimed {floorsClaimed} tower floors: Total {totalCoinsClaimed} Coins, {totalGemsClaimed} Gems");
         }
     }
-    
-    /// <summary>
-    /// </summary>
     public void RefreshTowerRewards()
     {
         CheckAndClaimTowerRewards();

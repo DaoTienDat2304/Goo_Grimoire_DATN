@@ -1,10 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-
-/// <summary>
-///
-///
-/// </summary>
 public static class StatStandardMigration
 {
     public static int NormalizeAll(IEnumerable<Slime> slimes)

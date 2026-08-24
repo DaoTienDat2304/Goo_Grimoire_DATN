@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -107,9 +107,6 @@ public class BuildingMenuManager : MonoBehaviour
             spawnedItems.Add(go);
         }
     }
-
-    /// <summary>
-    /// </summary>
     private bool IsBuildingAlreadyPlaced(Building building)
     {
         if (building == null) return false;

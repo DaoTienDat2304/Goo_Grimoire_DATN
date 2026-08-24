@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -171,9 +171,6 @@ public class TowerUIManager : MonoBehaviour
 
         StartCoroutine(LoadBattleScene());
     }
-
-    /// <summary>
-    /// </summary>
     public static void GrantAndShowReward(int floorLevel)
     {
         GetFloorReward(floorLevel,
@@ -495,9 +492,6 @@ public class TowerUIManager : MonoBehaviour
     {
         if (rewardPopup != null) rewardPopup.SetActive(false);
     }
-
-    /// <summary>
-    /// </summary>
     public static void GetFloorReward(int level,
         out int gold, out int gem, out int marshmallowCount, out float marshmallowChance,
         out float commonChance, out float uncommonChance, out float rareChance,

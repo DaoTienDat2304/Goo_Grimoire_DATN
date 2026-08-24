@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // RemoteConfigSchema.cs
 //
 //
@@ -58,10 +58,6 @@ public class RcBreedTierTable
 {
     public List<RcBreedTierRow> rows = new List<RcBreedTierRow>();
 }
-
-
-/// <summary>
-/// </summary>
 [Serializable]
 public class RcQualityBand
 {
@@ -122,9 +118,6 @@ public class RcTowerGrowth
     public float rewardGrowthPerFloor = 1.08f;
     public int gemEveryNFloors = 5;
     public int gemAmount = 5;
-
-    /// <summary>
-    /// </summary>
     public bool applyToAuthoredFloors = false;
 }
 
@@ -145,9 +138,6 @@ public class RcFeatureFlags
     public bool shop = true;
     public bool adventureCapture = true;
 }
-
-/// <summary>
-/// </summary>
 public static class RemoteConfigKeys
 {
     public const string ConfigVersion       = "config_version";
@@ -277,9 +267,6 @@ public static class RemoteConfigKeys
         "{\"rarity\":\"SuperRare\",\"weight\":5}," +
         "{\"rarity\":\"UltraRare\",\"weight\":1}" +
         "]}";
-
-    /// <summary>
-    /// </summary>
     public const string DefaultFarmDifficultyTable =
         "{\"rows\":[" +
         "{\"key\":\"easy\",\"name\":\"Easy\",\"hp\":6000,\"atk\":180,\"magic\":360,\"def\":780,\"speed\":90,\"critRate\":0.05,\"critDmg\":1.30,\"coins\":500,\"gems\":0}," +

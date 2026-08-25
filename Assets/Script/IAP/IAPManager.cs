@@ -21,7 +21,28 @@ public class IAPManager : MonoBehaviour
         new Dictionary<string, ShopItems.ShopItemData>();
 
     // Don ve truoc khi catalog kip dang ky (vd don treo luc khoi dong) - giu lai phat sau.
-    private static readonly List<string> deferredGrants = new List<string>();
+    private static readonly List<PendingGrant> deferredGrants = new List<PendingGrant>();
+
+    // Google gui lai don PENDING o moi lan mo game cho den khi ConfirmPurchase thanh cong.
+    // Neu khong nho lai don nao da phat thuong thi nguoi choi se nhan gem nhieu lan cho
+    // mot lan tra tien. Luu bang PlayerPrefs de doc lap voi save game.
+    private const string ProcessedOrdersKey = "IAP_ProcessedOrders";
+    private const int MaxRememberedOrders = 64;
+    private static readonly List<string> processedOrders = new List<string>();
+    private static bool processedOrdersLoaded;
+
+    /// <summary>Don cho phat thuong: giu ca transaction id de con chan trung.</summary>
+    private readonly struct PendingGrant
+    {
+        public readonly string ProductId;
+        public readonly string TransactionId;
+
+        public PendingGrant(string productId, string transactionId)
+        {
+            ProductId = productId;
+            TransactionId = transactionId;
+        }
+    }
 
     private StoreController storeController;
     private bool connected;
@@ -194,7 +215,8 @@ public class IAPManager : MonoBehaviour
     {
         // Phat thuong TRUOC khi confirm: neu game tat giua chung, don van con treo
         // va se duoc phat lai o lan chay sau thay vi mat trang.
-        GrantProduct(GetProductId(order));
+        // Doi lai, don treo se ve lai moi lan mo game -> chan trung bang TransactionID.
+        GrantProduct(GetProductId(order), GetTransactionId(order));
         storeController.ConfirmPurchase(order);
     }
 
@@ -216,17 +238,29 @@ public class IAPManager : MonoBehaviour
             : "Khong ro ly do.");
     }
 
-    private void GrantProduct(string productId)
+    private void GrantProduct(string productId, string transactionId)
     {
         if (string.IsNullOrWhiteSpace(productId)) return;
 
+        if (IsOrderProcessed(transactionId))
+        {
+            Debug.Log($"[IAP] Bo qua don '{transactionId}' vi da phat thuong tu truoc.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(transactionId) && !Application.isEditor)
+            Debug.LogWarning($"[IAP] Don '{productId}' khong co TransactionID - khong chan duoc phat trung.");
+
         if (!catalog.TryGetValue(productId, out var itemData))
         {
-            deferredGrants.Add(productId);
+            deferredGrants.Add(new PendingGrant(productId, transactionId));
             return;
         }
 
         ShopRewardGranter.Grant(itemData, "IAP", 0);
+
+        // Chi danh dau SAU khi thuong da vao tay nguoi choi.
+        MarkOrderProcessed(transactionId);
     }
 
     private void FlushDeferredGrants()
@@ -236,8 +270,46 @@ public class IAPManager : MonoBehaviour
         // Clear truoc roi moi phat lai: id nao van chua co trong catalog se tu quay lai hang doi.
         var pending = deferredGrants.ToArray();
         deferredGrants.Clear();
-        foreach (var productId in pending)
-            GrantProduct(productId);
+        foreach (var grant in pending)
+            GrantProduct(grant.ProductId, grant.TransactionId);
+    }
+
+    private static void LoadProcessedOrders()
+    {
+        if (processedOrdersLoaded) return;
+        processedOrdersLoaded = true;
+
+        string raw = PlayerPrefs.GetString(ProcessedOrdersKey, string.Empty);
+        if (string.IsNullOrEmpty(raw)) return;
+
+        foreach (string id in raw.Split('|'))
+            if (!string.IsNullOrEmpty(id))
+                processedOrders.Add(id);
+    }
+
+    private static bool IsOrderProcessed(string transactionId)
+    {
+        if (string.IsNullOrWhiteSpace(transactionId)) return false;
+
+        LoadProcessedOrders();
+        return processedOrders.Contains(transactionId);
+    }
+
+    private static void MarkOrderProcessed(string transactionId)
+    {
+        if (string.IsNullOrWhiteSpace(transactionId)) return;
+
+        LoadProcessedOrders();
+        if (processedOrders.Contains(transactionId)) return;
+
+        processedOrders.Add(transactionId);
+
+        // Don da confirm thi khong bao gio quay lai nua, giu vai chuc id gan nhat la du.
+        while (processedOrders.Count > MaxRememberedOrders)
+            processedOrders.RemoveAt(0);
+
+        PlayerPrefs.SetString(ProcessedOrdersKey, string.Join("|", processedOrders));
+        PlayerPrefs.Save();
     }
 
     private void CompleteActivePurchase(bool success, string error)
@@ -250,5 +322,14 @@ public class IAPManager : MonoBehaviour
     private static string GetProductId(Order order)
     {
         return order?.CartOrdered?.Items()?.FirstOrDefault()?.Product?.definition?.id;
+    }
+
+    /// <summary>
+    /// Id dinh danh don hang. Voi consumable, Unity IAP chi tra ve gia tri nay khi don
+    /// con o trang thai PendingOrder - dung luc chung ta can no de chan phat trung.
+    /// </summary>
+    private static string GetTransactionId(Order order)
+    {
+        return order?.Info?.TransactionID;
     }
 }

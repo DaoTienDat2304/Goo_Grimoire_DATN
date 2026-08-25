@@ -77,6 +77,11 @@ mono_crash.*
 *.unitypackage.meta
 *.app
 
+# Keystore ky app - LO RA LA MAT QUYEN UPDATE APP TREN GOOGLE PLAY
+*.keystore
+*.jks
+user.keystore
+
 # Crashlytics generated file
 crashlytics-build.properties
 

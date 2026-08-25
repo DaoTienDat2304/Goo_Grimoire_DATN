@@ -868,11 +868,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 0bfbf037-b959-43bc-a518-9319c3803002
+  cloudProjectId: a662d348-7466-4c1f-8a17-24453a6f9d0f
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: Fix Goo
-  organizationId: ddnmajor
+  organizationId: soraitsuki16
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}

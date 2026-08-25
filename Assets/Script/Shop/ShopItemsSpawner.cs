@@ -17,6 +17,12 @@ public class ShopItemsSpawner : MonoBehaviour
     [SerializeField] private TMP_Text coinsBalanceText;
     [SerializeField] private TMP_Text gemsBalanceText;
 
+    [Header("Confirm Popup")]
+    [Tooltip("Dong chu trong popup xac nhan. De trong = tu tim 'NoticeText' trong popup.")]
+    [SerializeField] private TMP_Text confirmNoticeText;
+    [Tooltip("{0} = phan thuong nhan duoc, {1} = gia phai tra.")]
+    [SerializeField] private string confirmMessageFormat = "Buy {0} for {1}?";
+
     [Header("Chosen Item")]
     public int price;                  
     public CurrencyType currencyType;
@@ -76,10 +82,47 @@ public class ShopItemsSpawner : MonoBehaviour
         grantCurrency = itemData.grantCurrency;
         currencyGranted = itemData.currencyGranted;
 
+        // Popup dung chung cho moi o, nen phai viet ro dang mua goi nao -
+        // nguoi choi tra tien that thi khong duoc de ho doan.
+        SetText(confirmNoticeText, BuildConfirmMessage(itemData));
+
         if (confirmPopUp != null)
             confirmPopUp.SetActive(true);
         else
             Debug.LogWarning($"{nameof(ShopItemsSpawner)} cannot open confirm popup because confirmPopUp is missing.", this);
+    }
+
+    /// <summary>
+    /// Cau xac nhan cho dung goi vua bam. Voi o IAP thi uu tien gia noi te that
+    /// lay tu store, vi do moi la so tien Google Play se tru cua nguoi choi.
+    /// </summary>
+    private string BuildConfirmMessage(ShopItems.ShopItemData itemData)
+    {
+        string reward = itemData.grantCurrency
+            ? $"{itemData.resourceAmount} {itemData.currencyGranted}"
+            : $"{itemData.resourceAmount} {itemData.resourceGranted}";
+
+        string cost = null;
+
+        if (itemData.isIAP)
+        {
+            var iap = IAPManager.Instance;
+            if (iap != null)
+                iap.TryGetLocalizedPrice(itemData.ResolveIapProductId(), out cost);
+
+            // Chua noi duoc store thi tam dung nhan trong asset ($4.99...).
+            if (string.IsNullOrWhiteSpace(cost))
+                cost = itemData.priceLabelOverride;
+        }
+        else
+        {
+            cost = $"{itemData.price} {itemData.currencyType}";
+        }
+
+        if (string.IsNullOrWhiteSpace(cost))
+            cost = "?";
+
+        return string.Format(confirmMessageFormat, reward, cost);
     }
 
     public void Confirmed()
@@ -166,6 +209,17 @@ public class ShopItemsSpawner : MonoBehaviour
     private void GrantAdReward(ShopItems.ShopItemData itemData)
     {
         ShopRewardGranter.Grant(itemData, "RewardedAd", 0);
+    }
+
+    /// <summary>
+    /// O IAP: bam la mua luon, khong qua popup xac nhan. Google Play da co man
+    /// xac nhan thanh toan rieng cua no, hoi hai lan la thua va de nguoi choi bo giua chung.
+    /// </summary>
+    public void BuyIapItem(ShopItems.ShopItemData itemData)
+    {
+        if (itemData == null || !itemData.isIAP) return;
+
+        StartIapPurchase(itemData);
     }
 
     /// <summary>
@@ -278,6 +332,12 @@ public class ShopItemsSpawner : MonoBehaviour
             if (confirm != null) confirmPopUp = confirm.gameObject;
         }
 
+        if (confirmNoticeText == null && confirmPopUp != null)
+        {
+            confirmNoticeText = (FindChildRecursive(confirmPopUp.transform, "NoticeText")
+                                 ?? FindChildRecursive(confirmPopUp.transform, "Notice"))?.GetComponent<TMP_Text>();
+        }
+
         AutoWireCurrencyBar();
     }
 
@@ -323,6 +383,12 @@ public class ShopItemsSpawner : MonoBehaviour
     {
         if (target != null)
             target.text = CurrencyAmountFormatter.Format(amount);
+    }
+
+    private static void SetText(TMP_Text target, string value)
+    {
+        if (target != null)
+            target.text = value;
     }
 
     private void WireConfirmButtons()

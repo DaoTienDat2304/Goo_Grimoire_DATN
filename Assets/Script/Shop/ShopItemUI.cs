@@ -278,6 +278,14 @@ public class ShopItemUI : MonoBehaviour
             return;
         }
 
+        // O IAP cung bo qua popup: Google Play tu hien man xac nhan thanh toan.
+        if (IsIapSlot)
+        {
+            shopItemsSpawner.BuyIapItem(data);
+            ApplyBuyButtonAppearance();
+            return;
+        }
+
         shopItemsSpawner.SelectItem(data);
     }
 

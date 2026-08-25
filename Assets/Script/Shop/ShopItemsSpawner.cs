@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 public class ShopItemsSpawner : MonoBehaviour
@@ -11,6 +12,10 @@ public class ShopItemsSpawner : MonoBehaviour
     public Transform itemsParent;
     public Transform gemPacksParent;
     public GameObject confirmPopUp;
+
+    [Header("Currency Bar")]
+    [SerializeField] private TMP_Text coinsBalanceText;
+    [SerializeField] private TMP_Text gemsBalanceText;
 
     [Header("Chosen Item")]
     public int price;                  
@@ -32,8 +37,17 @@ public class ShopItemsSpawner : MonoBehaviour
         WireConfirmButtons();
     }
 
+    private void OnEnable()
+    {
+        CurrencyManager.OnCurrencyChanged -= HandleCurrencyChanged;
+        CurrencyManager.OnCurrencyChanged += HandleCurrencyChanged;
+        AutoWireCurrencyBar();
+        RefreshCurrencyBar();
+    }
+
     private void OnDisable()
     {
+        CurrencyManager.OnCurrencyChanged -= HandleCurrencyChanged;
         RestoreSlimes();
     }
 
@@ -48,6 +62,7 @@ public class ShopItemsSpawner : MonoBehaviour
         }
         IAPManager.RegisterCatalog(shopItemsDatabase);
         SpawnAllItems();
+        RefreshCurrencyBar();
     }
     public void SelectItem(ShopItems.ShopItemData itemData)
     {
@@ -69,20 +84,39 @@ public class ShopItemsSpawner : MonoBehaviour
 
     public void Confirmed()
     {
-        if (selectedItem == null && price <= 0 && resourceAmount <= 0)
+        ShopItems.ShopItemData itemData = selectedItem;
+        if (itemData == null)
         {
             Cancel();
             return;
         }
 
         // Goi tra bang tien that: khong tru tien trong game, day sang Google Play.
-        if (selectedItem != null && selectedItem.isIAP)
+        if (itemData.isIAP)
         {
-            StartIapPurchase(selectedItem);
+            StartIapPurchase(itemData);
             return;
         }
 
-        if (price > 0)
+        if (itemData.resourceAmount <= 0)
+        {
+            Debug.LogWarning($"Shop purchase blocked because {itemData.itemName} has no reward amount.", this);
+            return;
+        }
+
+        if (itemData.grantCurrency && CurrencyManager.Instance == null)
+        {
+            Debug.LogWarning("Shop purchase blocked because the currency reward manager is missing.", this);
+            return;
+        }
+
+        if (!itemData.grantCurrency && ResourceManager.Instance == null)
+        {
+            Debug.LogWarning("Shop purchase blocked because the resource reward manager is missing.", this);
+            return;
+        }
+
+        if (itemData.price > 0)
         {
             if (CurrencyManager.Instance == null)
             {
@@ -90,22 +124,12 @@ public class ShopItemsSpawner : MonoBehaviour
                 return;
             }
 
-            if (!CurrencyManager.Instance.SpendCurrency(currencyType, price))
+            if (!CurrencyManager.Instance.SpendCurrency(itemData.currencyType, itemData.price))
                 return;
         }
 
-        if (grantCurrency)
-            CurrencyManager.Instance?.AddCurrency(currencyGranted, resourceAmount);
-        else
-            ResourceManager.Instance?.AddResource(resourceGranted, resourceAmount);
-
-        FirebaseAnalyticsManager.LogShopPurchase(
-            currencyType.ToString(),
-            price,
-            grantCurrency ? currencyGranted.ToString() : resourceGranted.ToString(),
-            resourceAmount);
-
-        SaveAndLoadSystem.Instance?.Save();
+        ShopRewardGranter.Grant(itemData, itemData.currencyType.ToString(), itemData.price);
+        RefreshCurrencyBar();
         Cancel();
     }
 
@@ -253,6 +277,52 @@ public class ShopItemsSpawner : MonoBehaviour
             var confirm = FindChildRecursive(transform, "ConfirmPopup") ?? FindChildRecursive(transform, "ConfirmPopUp") ?? FindChildRecursive(transform, "confirm");
             if (confirm != null) confirmPopUp = confirm.gameObject;
         }
+
+        AutoWireCurrencyBar();
+    }
+
+    public void RefreshCurrencyBar()
+    {
+        AutoWireCurrencyBar();
+        if (CurrencyManager.Instance == null)
+            return;
+
+        SetCurrencyText(coinsBalanceText, CurrencyManager.Instance.GetCurrency(CurrencyType.Coins));
+        SetCurrencyText(gemsBalanceText, CurrencyManager.Instance.GetCurrency(CurrencyType.Gems));
+    }
+
+    private void HandleCurrencyChanged(CurrencyType type, int oldAmount, int newAmount)
+    {
+        switch (type)
+        {
+            case CurrencyType.Coins:
+                SetCurrencyText(coinsBalanceText, newAmount);
+                break;
+            case CurrencyType.Gems:
+                SetCurrencyText(gemsBalanceText, newAmount);
+                break;
+        }
+    }
+
+    private void AutoWireCurrencyBar()
+    {
+        if (coinsBalanceText != null && gemsBalanceText != null)
+            return;
+
+        Transform currencyBar = FindChildRecursive(transform, "CurrencyBar");
+        if (currencyBar == null)
+            return;
+
+        if (coinsBalanceText == null)
+            coinsBalanceText = FindChildRecursive(currencyBar, "Coin")?.GetComponent<TMP_Text>();
+        if (gemsBalanceText == null)
+            gemsBalanceText = FindChildRecursive(currencyBar, "Gem")?.GetComponent<TMP_Text>();
+    }
+
+    private static void SetCurrencyText(TMP_Text target, int amount)
+    {
+        if (target != null)
+            target.text = CurrencyAmountFormatter.Format(amount);
     }
 
     private void WireConfirmButtons()

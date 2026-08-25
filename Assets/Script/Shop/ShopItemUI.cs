@@ -202,8 +202,9 @@ public class ShopItemUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Nut chi bam duoc khi that su mua duoc. O IAP phai co store va khong co
-    /// giao dich nao dang chay - Google Play chi cho mot don mot luc.
+    /// Chi khoa nut khi dang co giao dich chay - Google Play chi cho mot don mot luc.
+    /// Chua noi duoc store thi VAN cho bam: IAPManager se bao ro ly do va thu ket noi lai,
+    /// nut chet cung khong phan hoi la thu te nhat cho nguoi choi.
     /// </summary>
     private void RefreshInteractable()
     {
@@ -216,7 +217,7 @@ public class ShopItemUI : MonoBehaviour
         }
 
         var iap = IAPManager.Instance;
-        buyButton.interactable = iap != null && iap.StoreConnected && !iap.PurchaseInProgress;
+        buyButton.interactable = iap == null || !iap.PurchaseInProgress;
     }
 
     /// <summary>

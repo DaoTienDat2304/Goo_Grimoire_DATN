@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -28,6 +29,12 @@ public class IAPManager : MonoBehaviour
     /// </summary>
     public static event Action<string, bool, string> OnPurchaseFinished;
 
+    /// <summary>
+    /// Bat = ve dong trang thai IAP len man hinh. Shop tu bat luc mo, tat luc dong,
+    /// de con biet vi sao khong mua duoc khi chay tren may that (khong co console).
+    /// </summary>
+    public static bool ShowStatusOverlay;
+
     // productId -> du lieu item. Do ShopItemsSpawner dang ky luc mo shop.
     private static readonly Dictionary<string, ShopItems.ShopItemData> catalog =
         new Dictionary<string, ShopItems.ShopItemData>();
@@ -42,6 +49,12 @@ public class IAPManager : MonoBehaviour
     private const int MaxRememberedOrders = 64;
     private static readonly List<string> processedOrders = new List<string>();
     private static bool processedOrdersLoaded;
+
+    // Google Play co the chua san sang ngay luc mo game (dang cap nhat, chua dang nhap...).
+    private const int MaxConnectAttempts = 4;
+    private const float ConnectRetryDelaySeconds = 6f;
+    private const int MaxFetchAttempts = 4;
+    private const float FetchRetryDelaySeconds = 6f;
 
     /// <summary>Don cho phat thuong: giu ca transaction id de con chan trung.</summary>
     private readonly struct PendingGrant
@@ -58,9 +71,15 @@ public class IAPManager : MonoBehaviour
 
     private StoreController storeController;
     private bool connected;
+    private bool connecting;
     private bool productsFetched;
+    private bool fetchInFlight;
+    private int connectAttempts;
+    private int fetchAttempts;
     private Action<bool, string> activeCallback;
     private string activeProductId;
+    private string statusMessage = "IAP: chua khoi tao.";
+    private GUIStyle overlayStyle;
 
     /// <summary>Da lay xong danh sach san pham va gia tu store.</summary>
     public bool ProductsReady => productsFetched;
@@ -70,6 +89,9 @@ public class IAPManager : MonoBehaviour
 
     /// <summary>Dang co mot giao dich chay do.</summary>
     public bool PurchaseInProgress => activeCallback != null;
+
+    /// <summary>Mo ta ngan gon tinh trang IAP hien tai - dung de chan doan tren may that.</summary>
+    public string StatusMessage => statusMessage;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -91,31 +113,22 @@ public class IAPManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    private async void Start()
+    private void Start()
     {
         storeController = UnityIAPServices.StoreController();
+
+        // Phai dang ky het su kien TRUOC khi Connect: don treo tu lan choi truoc
+        // co the ban ve ngay trong luc ket noi.
+        storeController.OnStoreConnected += HandleStoreConnected;
+        storeController.OnStoreDisconnected += HandleStoreDisconnected;
         storeController.OnPurchasePending += HandlePurchasePending;
         storeController.OnPurchaseConfirmed += HandlePurchaseConfirmed;
         storeController.OnPurchaseFailed += HandlePurchaseFailed;
+        storeController.OnPurchaseDeferred += HandlePurchaseDeferred;
         storeController.OnProductsFetched += HandleProductsFetched;
         storeController.OnProductsFetchFailed += HandleProductsFetchFailed;
 
-        try
-        {
-            await storeController.Connect();
-            connected = true;
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"[IAP] Khong ket noi duoc cua hang: {e.Message}");
-            OnStoreStateChanged?.Invoke();
-            return;
-        }
-
-        // Bao UI mo khoa cac nut mua bang tien that.
-        OnStoreStateChanged?.Invoke();
-
-        FetchRegisteredProducts();
+        ConnectToStore();
     }
 
     private void OnDestroy()
@@ -124,9 +137,12 @@ public class IAPManager : MonoBehaviour
 
         if (storeController != null)
         {
+            storeController.OnStoreConnected -= HandleStoreConnected;
+            storeController.OnStoreDisconnected -= HandleStoreDisconnected;
             storeController.OnPurchasePending -= HandlePurchasePending;
             storeController.OnPurchaseConfirmed -= HandlePurchaseConfirmed;
             storeController.OnPurchaseFailed -= HandlePurchaseFailed;
+            storeController.OnPurchaseDeferred -= HandlePurchaseDeferred;
             storeController.OnProductsFetched -= HandleProductsFetched;
             storeController.OnProductsFetchFailed -= HandleProductsFetchFailed;
         }
@@ -185,27 +201,36 @@ public class IAPManager : MonoBehaviour
             return;
         }
 
-        if (!connected)
-        {
-            ReportPurchaseFailed(productId, onComplete, "Chua ket noi duoc Google Play.");
-            return;
-        }
-
         if (PurchaseInProgress)
         {
             ReportPurchaseFailed(productId, onComplete, "Dang co giao dich khac chua xong.");
             return;
         }
 
+        if (!connected || storeController == null)
+        {
+            // Thu noi lai ngay: nhieu khi Google Play chi ban luc mo game.
+            ConnectToStore();
+            ReportPurchaseFailed(productId, onComplete,
+                "Chua ket noi duoc Google Play. Dang thu ket noi lai, doi vai giay roi bam lai.");
+            return;
+        }
+
         var product = storeController.GetProducts().FirstOrDefault(p => p.definition.id == productId);
         if (product == null)
         {
-            ReportPurchaseFailed(productId, onComplete, $"Cua hang khong co san pham '{productId}'.");
+            // Chua fetch duoc thi khong the mua - keo lai danh sach san pham.
+            fetchAttempts = 0;
+            FetchRegisteredProducts();
+            ReportPurchaseFailed(productId, onComplete,
+                $"Google Play khong tra ve san pham '{productId}'. Kiem tra product ID va trang thai Active tren Play Console.");
             return;
         }
 
         activeCallback = onComplete;
         activeProductId = productId;
+
+        SetStatus($"Dang mo giao dien thanh toan cho '{productId}'...");
 
         // Khoa nut ngay truoc khi mo giao dien Google Play, dung de bam them lan nua.
         OnStoreStateChanged?.Invoke();
@@ -213,34 +238,144 @@ public class IAPManager : MonoBehaviour
         storeController.PurchaseProduct(product);
     }
 
-    /// <summary>Giao dich hong truoc khi kip bat dau: bao ca callback lan UI.</summary>
-    private static void ReportPurchaseFailed(string productId, Action<bool, string> onComplete, string reason)
+    /// <summary>Buoc nguoi choi thu noi lai store (vd nut "Thu lai" trong shop).</summary>
+    public void RetryConnection()
     {
+        connectAttempts = 0;
+        fetchAttempts = 0;
+        ConnectToStore();
+    }
+
+    /// <summary>Giao dich hong truoc khi kip bat dau: bao ca callback lan UI.</summary>
+    private void ReportPurchaseFailed(string productId, Action<bool, string> onComplete, string reason)
+    {
+        SetStatus($"Mua that bai: {reason}");
+        Debug.LogWarning($"[IAP] Mua '{productId}' that bai: {reason}");
+
         onComplete?.Invoke(false, reason);
         OnPurchaseFinished?.Invoke(productId, false, reason);
     }
 
+    private async void ConnectToStore()
+    {
+        if (storeController == null || connected || connecting) return;
+
+        connecting = true;
+        connectAttempts++;
+        SetStatus($"Dang ket noi Google Play... (lan {connectAttempts})");
+
+        try
+        {
+            // Luu y: Task nay hoan tat CA khi ket noi hong. Trang thai that chi den
+            // tu OnStoreConnected / OnStoreDisconnected, khong duoc suy ra tu day.
+            await storeController.Connect();
+        }
+        catch (Exception e)
+        {
+            SetStatus($"Loi khi ket noi Google Play: {e.Message}");
+            Debug.LogWarning($"[IAP] Khong ket noi duoc cua hang: {e}");
+        }
+        finally
+        {
+            connecting = false;
+        }
+    }
+
+    private void HandleStoreConnected()
+    {
+        connected = true;
+        connecting = false;
+        connectAttempts = 0;
+        SetStatus("Da ket noi Google Play. Dang lay danh sach san pham...");
+
+        // Bao UI mo khoa cac nut mua bang tien that.
+        OnStoreStateChanged?.Invoke();
+
+        fetchAttempts = 0;
+        FetchRegisteredProducts();
+    }
+
+    private void HandleStoreDisconnected(StoreConnectionFailureDescription description)
+    {
+        connected = false;
+        connecting = false;
+        productsFetched = false;
+
+        string reason = string.IsNullOrWhiteSpace(description?.message)
+            ? "khong ro ly do"
+            : description.message;
+        SetStatus($"Mat ket noi Google Play: {reason}");
+        Debug.LogWarning($"[IAP] Store disconnected: {reason}");
+
+        OnStoreStateChanged?.Invoke();
+
+        if (connectAttempts < MaxConnectAttempts)
+            StartCoroutine(RetryConnectAfterDelay());
+        else
+            SetStatus($"Khong ket noi duoc Google Play sau {connectAttempts} lan: {reason}");
+    }
+
+    private IEnumerator RetryConnectAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(ConnectRetryDelaySeconds);
+        ConnectToStore();
+    }
+
     private void FetchRegisteredProducts()
     {
-        if (!connected || catalog.Count == 0) return;
+        if (!connected || storeController == null) return;
+
+        if (catalog.Count == 0)
+        {
+            SetStatus("Chua co san pham IAP nao duoc dang ky (mo Shop de dang ky).");
+            return;
+        }
+
+        if (fetchInFlight) return;
+
+        fetchInFlight = true;
+        fetchAttempts++;
 
         // Gem pack la consumable: mua lai duoc nhieu lan.
         var definitions = catalog.Keys
             .Select(id => new ProductDefinition(id, ProductType.Consumable))
             .ToList();
 
+        SetStatus($"Dang lay {definitions.Count} san pham tu Google Play... (lan {fetchAttempts})");
         storeController.FetchProducts(definitions);
     }
 
     private void HandleProductsFetched(List<Product> products)
     {
+        fetchInFlight = false;
         productsFetched = true;
+        fetchAttempts = 0;
+
+        SetStatus($"San sang. Lay duoc {products?.Count ?? 0} san pham tu Google Play.");
         OnProductsFetched?.Invoke();
+        OnStoreStateChanged?.Invoke();
     }
 
     private void HandleProductsFetchFailed(ProductFetchFailed failure)
     {
-        Debug.LogWarning($"[IAP] Lay danh sach san pham that bai: {failure?.FailureReason}");
+        fetchInFlight = false;
+
+        string missing = failure?.FailedFetchProducts == null
+            ? string.Empty
+            : string.Join(", ", failure.FailedFetchProducts.Select(p => p.id));
+        SetStatus($"Google Play tu choi tra san pham ({failure?.FailureReason}). Thieu: {missing}");
+        Debug.LogWarning($"[IAP] Lay danh sach san pham that bai: {failure?.FailureReason} - {missing}");
+
+        OnStoreStateChanged?.Invoke();
+
+        if (fetchAttempts < MaxFetchAttempts)
+            StartCoroutine(RetryFetchAfterDelay());
+    }
+
+    private IEnumerator RetryFetchAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(FetchRetryDelaySeconds);
+        FetchRegisteredProducts();
     }
 
     private void HandlePurchasePending(PendingOrder order)
@@ -266,8 +401,18 @@ public class IAPManager : MonoBehaviour
     private void HandlePurchaseFailed(FailedOrder failedOrder)
     {
         CompleteActivePurchase(false, failedOrder != null
-            ? failedOrder.FailureReason.ToString()
+            ? $"{failedOrder.FailureReason} ({failedOrder.Details})"
             : "Khong ro ly do.");
+    }
+
+    /// <summary>
+    /// Don cho duyet (Ask-to-Buy, tra sau qua cua hang tien loi). Chua duoc phat thuong -
+    /// khi nao duyet xong thi don se quay lai o OnPurchasePending.
+    /// </summary>
+    private void HandlePurchaseDeferred(DeferredOrder order)
+    {
+        SetStatus("Giao dich dang cho duyet, chua tru tien. Se nhan thuong khi duoc duyet.");
+        CompleteActivePurchase(false, "Giao dich dang cho duyet.");
     }
 
     private void GrantProduct(string productId, string transactionId)
@@ -290,6 +435,7 @@ public class IAPManager : MonoBehaviour
         }
 
         ShopRewardGranter.Grant(itemData, "IAP", 0);
+        SetStatus($"Da phat thuong cho '{productId}'.");
 
         // Chi danh dau SAU khi thuong da vao tay nguoi choi.
         MarkOrderProcessed(transactionId);
@@ -353,10 +499,21 @@ public class IAPManager : MonoBehaviour
         activeCallback = null;
         activeProductId = null;
 
+        if (success)
+            SetStatus($"Mua '{productId}' thanh cong.");
+        else if (!string.IsNullOrEmpty(error))
+            SetStatus($"Giao dich '{productId}' khong hoan tat: {error}");
+
         callback?.Invoke(success, error);
 
         OnPurchaseFinished?.Invoke(productId, success, error);
         OnStoreStateChanged?.Invoke();
+    }
+
+    private void SetStatus(string message)
+    {
+        statusMessage = $"IAP: {message}";
+        Debug.Log($"[IAP] {message}");
     }
 
     private static string GetProductId(Order order)
@@ -371,5 +528,35 @@ public class IAPManager : MonoBehaviour
     private static string GetTransactionId(Order order)
     {
         return order?.Info?.TransactionID;
+    }
+
+    /// <summary>
+    /// Tren may that khong co console, day la cach duy nhat thay duoc vi sao khong mua duoc.
+    /// Chi ve khi Shop dang mo.
+    /// </summary>
+    private void OnGUI()
+    {
+        if (!ShowStatusOverlay) return;
+
+        if (overlayStyle == null)
+        {
+            overlayStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = Mathf.Max(14, Screen.height / 45),
+                wordWrap = true,
+                alignment = TextAnchor.UpperLeft
+            };
+            overlayStyle.normal.textColor = Color.yellow;
+        }
+
+        float width = Screen.width * 0.9f;
+        var rect = new Rect(Screen.width * 0.05f, Screen.height * 0.02f, width, Screen.height * 0.2f);
+
+        var previous = GUI.color;
+        GUI.color = new Color(0f, 0f, 0f, 0.6f);
+        GUI.Box(rect, GUIContent.none);
+        GUI.color = previous;
+
+        GUI.Label(rect, statusMessage, overlayStyle);
     }
 }

@@ -19,9 +19,15 @@ public class ShopItemUI : MonoBehaviour
     public string adLoadingLabel = "Loading...";
     [Tooltip("Chu mac dinh o o gia khi la o quang cao.")]
     public string defaultAdPriceLabel = "FREE";
-    [Tooltip("Co chu 'WatchADS' = co chu 'Buy' goc nhan he so nay. Chu dai hon nen de nho lai cho vua nut.")]
+    [Tooltip("Chu dai ('WatchADS', 'Processing...') = co chu 'Buy' goc nhan he so nay cho vua nut.")]
     [Range(0.2f, 1f)]
     public float adLabelFontSizeScale = 0.6f;
+
+    [Header("In-App Purchase Look")]
+    [Tooltip("Chu tren nut khi dang cho Google Play xu ly giao dich.")]
+    public string iapProcessingLabel = "Processing...";
+    [Tooltip("Chu tren nut khi chua ket noi duoc Google Play.")]
+    public string iapUnavailableLabel = "Unavailable";
 
     public ShopItemsSpawner shopItemsSpawner;
     private ShopItems.ShopItemData data;
@@ -34,6 +40,9 @@ public class ShopItemUI : MonoBehaviour
     private bool defaultLabelAutoSize;
 
     private bool IsRewardedAdSlot => data != null && data.isRewardedAd;
+
+    /// <summary>O ban bang tien that qua Google Play (cac goi gem $4.99 - $49.99).</summary>
+    private bool IsIapSlot => data != null && data.isIAP;
 
     public void Setup(ShopItems.ShopItemData itemData)
     {
@@ -63,6 +72,8 @@ public class ShopItemUI : MonoBehaviour
     {
         RewardedAdsManager.OnAdReadyChanged += HandleAdReadyChanged;
         IAPManager.OnProductsFetched += HandleIapProductsFetched;
+        IAPManager.OnStoreStateChanged += HandleStoreStateChanged;
+        IAPManager.OnPurchaseFinished += HandlePurchaseFinished;
         ApplyBuyButtonAppearance();
     }
 
@@ -70,6 +81,8 @@ public class ShopItemUI : MonoBehaviour
     {
         RewardedAdsManager.OnAdReadyChanged -= HandleAdReadyChanged;
         IAPManager.OnProductsFetched -= HandleIapProductsFetched;
+        IAPManager.OnStoreStateChanged -= HandleStoreStateChanged;
+        IAPManager.OnPurchaseFinished -= HandlePurchaseFinished;
     }
 
     private void HandleAdReadyChanged(bool _)
@@ -82,6 +95,29 @@ public class ShopItemUI : MonoBehaviour
     {
         if (data == null) return;
         SetText(priceTmpText, ResolvePriceLabel());
+    }
+
+    /// <summary>
+    /// Cua hang doi trang thai (vua noi duoc store, hoac co giao dich bat dau / ket thuc).
+    /// Moi o deu phai ve lai vi giao dich o o nay khoa luon nut o cac o khac.
+    /// </summary>
+    private void HandleStoreStateChanged()
+    {
+        ApplyBuyButtonAppearance();
+    }
+
+    /// <summary>
+    /// Chi quan tam giao dich cua chinh o nay. Loi da duoc ShopItemsSpawner ghi log,
+    /// o day chi lo ve lai giao dien.
+    /// </summary>
+    private void HandlePurchaseFinished(string productId, bool success, string error)
+    {
+        if (!IsIapSlot) return;
+        if (productId != data.ResolveIapProductId()) return;
+
+        // Mua xong store co the tra ve gia khac (doi noi te, khuyen mai) nen ve lai o gia.
+        SetText(priceTmpText, ResolvePriceLabel());
+        ApplyBuyButtonAppearance();
     }
 
     private string ResolvePriceLabel()
@@ -129,29 +165,83 @@ public class ShopItemUI : MonoBehaviour
     private void ApplyBuyButtonAppearance()
     {
         CaptureLabelDefaults();
+        RefreshInteractable();
         if (buyButtonLabel == null) return;
 
         if (IsRewardedAdSlot)
         {
-            buyButtonLabel.text = ResolveAdButtonLabel();
+            ApplyLongLabel(ResolveAdButtonLabel());
+            return;
+        }
 
-            // "WatchADS" dai hon "Buy" nhieu nen ha tran co chu xuong cho vua nut.
-            // San co auto-size cua prefab lam luoi an toan, va khong cho nho hon muc san co cua prefab.
-            float targetSize = Mathf.Max(1f, defaultLabelFontSize * adLabelFontSizeScale);
-            buyButtonLabel.fontSize = targetSize;
-            buyButtonLabel.enableAutoSizing = true;
-            buyButtonLabel.fontSizeMax = targetSize;
-            buyButtonLabel.fontSizeMin = Mathf.Min(defaultLabelFontSizeMin, targetSize);
-        }
-        else
+        string iapLabel = ResolveIapButtonLabel();
+        if (iapLabel != null)
         {
-            buyButtonLabel.enableAutoSizing = defaultLabelAutoSize;
-            buyButtonLabel.fontSizeMin = defaultLabelFontSizeMin;
-            buyButtonLabel.fontSizeMax = defaultLabelFontSizeMax;
-            buyButtonLabel.fontSize = defaultLabelFontSize;
-            if (!string.IsNullOrEmpty(defaultLabelText))
-                buyButtonLabel.text = defaultLabelText;
+            ApplyLongLabel(iapLabel);
+            return;
         }
+
+        RestoreDefaultLabel();
+    }
+
+    /// <summary>
+    /// Chu rieng cho o IAP luc dang ban hoac chua co store.
+    /// Tra null = khong co gi dac biet, dung chu goc cua prefab.
+    /// </summary>
+    private string ResolveIapButtonLabel()
+    {
+        if (!IsIapSlot) return null;
+
+        var iap = IAPManager.Instance;
+        if (iap == null) return iapUnavailableLabel;
+
+        if (iap.PurchaseInProgress) return iapProcessingLabel;
+        if (!iap.StoreConnected) return iapUnavailableLabel;
+
+        return null;
+    }
+
+    /// <summary>
+    /// Nut chi bam duoc khi that su mua duoc. O IAP phai co store va khong co
+    /// giao dich nao dang chay - Google Play chi cho mot don mot luc.
+    /// </summary>
+    private void RefreshInteractable()
+    {
+        if (buyButton == null) return;
+
+        if (!IsIapSlot)
+        {
+            buyButton.interactable = true;
+            return;
+        }
+
+        var iap = IAPManager.Instance;
+        buyButton.interactable = iap != null && iap.StoreConnected && !iap.PurchaseInProgress;
+    }
+
+    /// <summary>
+    /// Chu dai hon "Buy" ("WatchADS", "Processing...") nen ha tran co chu xuong cho vua nut.
+    /// San co auto-size cua prefab lam luoi an toan, va khong cho nho hon muc san co cua prefab.
+    /// </summary>
+    private void ApplyLongLabel(string text)
+    {
+        buyButtonLabel.text = text;
+
+        float targetSize = Mathf.Max(1f, defaultLabelFontSize * adLabelFontSizeScale);
+        buyButtonLabel.fontSize = targetSize;
+        buyButtonLabel.enableAutoSizing = true;
+        buyButtonLabel.fontSizeMax = targetSize;
+        buyButtonLabel.fontSizeMin = Mathf.Min(defaultLabelFontSizeMin, targetSize);
+    }
+
+    private void RestoreDefaultLabel()
+    {
+        buyButtonLabel.enableAutoSizing = defaultLabelAutoSize;
+        buyButtonLabel.fontSizeMin = defaultLabelFontSizeMin;
+        buyButtonLabel.fontSizeMax = defaultLabelFontSizeMax;
+        buyButtonLabel.fontSize = defaultLabelFontSize;
+        if (!string.IsNullOrEmpty(defaultLabelText))
+            buyButtonLabel.text = defaultLabelText;
     }
 
     private void CaptureLabelDefaults()

@@ -16,6 +16,18 @@ public class IAPManager : MonoBehaviour
     /// <summary>Ban ra khi da lay duoc gia that tu store, de UI ve lai o gia.</summary>
     public static event Action OnProductsFetched;
 
+    /// <summary>
+    /// Ban ra moi khi trang thai cua hang doi (noi duoc store, bat dau / ket thuc giao dich).
+    /// UI dung tin hieu nay de khoa hoac mo lai nut mua.
+    /// </summary>
+    public static event Action OnStoreStateChanged;
+
+    /// <summary>
+    /// Ban ra khi mot giao dich ket thuc: (productId, thanh cong, ly do that bai).
+    /// That bai ngay tu dau (chua noi duoc store, sai product ID...) cung ban qua day.
+    /// </summary>
+    public static event Action<string, bool, string> OnPurchaseFinished;
+
     // productId -> du lieu item. Do ShopItemsSpawner dang ky luc mo shop.
     private static readonly Dictionary<string, ShopItems.ShopItemData> catalog =
         new Dictionary<string, ShopItems.ShopItemData>();
@@ -48,9 +60,13 @@ public class IAPManager : MonoBehaviour
     private bool connected;
     private bool productsFetched;
     private Action<bool, string> activeCallback;
+    private string activeProductId;
 
     /// <summary>Da lay xong danh sach san pham va gia tu store.</summary>
     public bool ProductsReady => productsFetched;
+
+    /// <summary>Da noi duoc voi Google Play chua. Chua noi duoc thi khong mua duoc.</summary>
+    public bool StoreConnected => connected;
 
     /// <summary>Dang co mot giao dich chay do.</summary>
     public bool PurchaseInProgress => activeCallback != null;
@@ -92,8 +108,12 @@ public class IAPManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogWarning($"[IAP] Khong ket noi duoc cua hang: {e.Message}");
+            OnStoreStateChanged?.Invoke();
             return;
         }
+
+        // Bao UI mo khoa cac nut mua bang tien that.
+        OnStoreStateChanged?.Invoke();
 
         FetchRegisteredProducts();
     }
@@ -161,31 +181,43 @@ public class IAPManager : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(productId))
         {
-            onComplete?.Invoke(false, "Item nay chua khai product ID.");
+            ReportPurchaseFailed(productId, onComplete, "Item nay chua khai product ID.");
             return;
         }
 
         if (!connected)
         {
-            onComplete?.Invoke(false, "Chua ket noi duoc Google Play.");
+            ReportPurchaseFailed(productId, onComplete, "Chua ket noi duoc Google Play.");
             return;
         }
 
         if (PurchaseInProgress)
         {
-            onComplete?.Invoke(false, "Dang co giao dich khac chua xong.");
+            ReportPurchaseFailed(productId, onComplete, "Dang co giao dich khac chua xong.");
             return;
         }
 
         var product = storeController.GetProducts().FirstOrDefault(p => p.definition.id == productId);
         if (product == null)
         {
-            onComplete?.Invoke(false, $"Cua hang khong co san pham '{productId}'.");
+            ReportPurchaseFailed(productId, onComplete, $"Cua hang khong co san pham '{productId}'.");
             return;
         }
 
         activeCallback = onComplete;
+        activeProductId = productId;
+
+        // Khoa nut ngay truoc khi mo giao dien Google Play, dung de bam them lan nua.
+        OnStoreStateChanged?.Invoke();
+
         storeController.PurchaseProduct(product);
+    }
+
+    /// <summary>Giao dich hong truoc khi kip bat dau: bao ca callback lan UI.</summary>
+    private static void ReportPurchaseFailed(string productId, Action<bool, string> onComplete, string reason)
+    {
+        onComplete?.Invoke(false, reason);
+        OnPurchaseFinished?.Invoke(productId, false, reason);
     }
 
     private void FetchRegisteredProducts()
@@ -315,8 +347,16 @@ public class IAPManager : MonoBehaviour
     private void CompleteActivePurchase(bool success, string error)
     {
         var callback = activeCallback;
+        string productId = activeProductId;
+
+        // Xoa truoc khi goi callback: PurchaseInProgress phai la false ngay luc UI ve lai.
         activeCallback = null;
+        activeProductId = null;
+
         callback?.Invoke(success, error);
+
+        OnPurchaseFinished?.Invoke(productId, success, error);
+        OnStoreStateChanged?.Invoke();
     }
 
     private static string GetProductId(Order order)

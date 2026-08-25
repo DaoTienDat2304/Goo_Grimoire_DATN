@@ -14,6 +14,6 @@
     -->
     <activity android:name="com.google.android.gms.ads.AdActivity" android:screenOrientation="sensorLandscape" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" tools:replace="android:screenOrientation" />
     <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713" />
-    <meta-data android:name="com.google.unity.ads.UNITY_VERSION" android:value="6000.0.47f1" />
+    <meta-data android:name="com.google.unity.ads.UNITY_VERSION" android:value="6000.0.82f1" />
   </application>
 </manifest>

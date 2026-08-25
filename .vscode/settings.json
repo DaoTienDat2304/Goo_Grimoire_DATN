@@ -66,5 +66,5 @@
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj"
     },
-    "dotnet.defaultSolution": "Goo_Grimoire_DATN.sln"
+    "dotnet.defaultSolution": "Goo_Grimoire_DATN.slnx"
 }

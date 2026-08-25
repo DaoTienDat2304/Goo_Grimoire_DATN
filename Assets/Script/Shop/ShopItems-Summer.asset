@@ -67,6 +67,8 @@ MonoBehaviour:
     isRewardedAd: 0
     adButtonLabel:
     adPriceLabel:
+    isIAP: 1
+    iapProductId: gems_5
   - itemId: gems_12
     itemName: 12 Gems
     description: Gem Pack
@@ -82,6 +84,8 @@ MonoBehaviour:
     isRewardedAd: 0
     adButtonLabel:
     adPriceLabel:
+    isIAP: 1
+    iapProductId: gems_12
   - itemId: gems_30
     itemName: 30 Gems
     description: Gem Pack
@@ -97,6 +101,8 @@ MonoBehaviour:
     isRewardedAd: 0
     adButtonLabel:
     adPriceLabel:
+    isIAP: 1
+    iapProductId: gems_30
   - itemId: gems_80
     itemName: 80 Gems
     description: Gem Pack
@@ -112,3 +118,5 @@ MonoBehaviour:
     isRewardedAd: 0
     adButtonLabel:
     adPriceLabel:
+    isIAP: 1
+    iapProductId: gems_80

@@ -35,6 +35,18 @@ public class ShopItems : ScriptableObject
         public string adButtonLabel;
         [Tooltip("Chu o o gia khi la o quang cao. De trong = FREE.")]
         public string adPriceLabel;
+
+        [Header("In-App Purchase")]
+        [Tooltip("Bat = o nay tra bang tien that qua Google Play, khong phai tien trong game.")]
+        public bool isIAP;
+        [Tooltip("Product ID khai trong Play Console. De trong = dung itemId.")]
+        public string iapProductId;
+
+        /// <summary>Product ID thuc te dung voi store; mac dinh lay theo itemId.</summary>
+        public string ResolveIapProductId()
+        {
+            return !string.IsNullOrWhiteSpace(iapProductId) ? iapProductId.Trim() : itemId;
+        }
     }
 
     [Header("Shop items")]

@@ -68,7 +68,7 @@ MonoBehaviour:
     adButtonLabel:
     adPriceLabel:
     isIAP: 1
-    iapProductId: gems_5
+    iapProductId: 4.99
   - itemId: gems_12
     itemName: 12 Gems
     description: Gem Pack
@@ -85,7 +85,7 @@ MonoBehaviour:
     adButtonLabel:
     adPriceLabel:
     isIAP: 1
-    iapProductId: gems_12
+    iapProductId: 9.99
   - itemId: gems_30
     itemName: 30 Gems
     description: Gem Pack
@@ -102,7 +102,7 @@ MonoBehaviour:
     adButtonLabel:
     adPriceLabel:
     isIAP: 1
-    iapProductId: gems_30
+    iapProductId: 19.99
   - itemId: gems_80
     itemName: 80 Gems
     description: Gem Pack
@@ -119,4 +119,4 @@ MonoBehaviour:
     adButtonLabel:
     adPriceLabel:
     isIAP: 1
-    iapProductId: gems_80
+    iapProductId: 49.99

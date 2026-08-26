@@ -57,6 +57,14 @@ public class SlimeInventory : MonoBehaviour
     [Tooltip("(Optional) Template item trong ScrollView, se duoc clone theo so slime duoc chon.")]
     public GameObject selectedSacrificeItemTemplate;
 
+    [Header("Fusion Cost")]
+    [Min(1)]
+    [Tooltip("Coin cost for each selected slime. Set this in the Inspector to rebalance Fusion.")]
+    [SerializeField] private int coinCostPerSlime = 100;
+    [SerializeField] private TMP_Text goldRequirementText;
+    [SerializeField] private Text goldRequirementLegacyText;
+    [SerializeField] private Button dismantleButton;
+
     /// <summary>
     /// Common 1 · Uncommon 3 · Rare 5 · SuperRare 15 · UltraRare 30 · Legendary 50 · Mythic 100 · Secret 1.
     /// </summary>
@@ -78,8 +86,11 @@ public class SlimeInventory : MonoBehaviour
 
     private void Awake()
     {
+        coinCostPerSlime = Mathf.Max(1, coinCostPerSlime);
         EnsureRuntimeFallbacks();
         EnsureFusionBackdrop();
+        EnsureFusionCostUIRefs();
+        UpdateFusionCostUI();
     }
 
     private void Start()
@@ -90,13 +101,17 @@ public class SlimeInventory : MonoBehaviour
 
     private void OnEnable()
     {
+        CurrencyManager.OnCurrencyChanged -= HandleCurrencyChanged;
+        CurrencyManager.OnCurrencyChanged += HandleCurrencyChanged;
         EnsureFusionBackdrop();
         SetFusionBackdropVisible(true);
         RefreshAllUI();
+        UpdateFusionCostUI();
     }
 
     private void OnDisable()
     {
+        CurrencyManager.OnCurrencyChanged -= HandleCurrencyChanged;
         SetFusionBackdropVisible(false);
     }
 
@@ -266,6 +281,58 @@ public class SlimeInventory : MonoBehaviour
 
         if (selectedSacrificeCounterText != null)
             selectedSacrificeCounterText.text = $"SELECTED ({previewSlimes.Count})";
+
+        UpdateFusionCostUI();
+    }
+
+    public int GetSelectedSacrificeCoinCost()
+    {
+        int selectedCount = selectedSacrificeSlimes.Count(slime => slime != null);
+        long total = (long)Mathf.Max(0, coinCostPerSlime) * selectedCount;
+        return total > int.MaxValue ? int.MaxValue : (int)total;
+    }
+
+    private void EnsureFusionCostUIRefs()
+    {
+        if (goldRequirementText == null && goldRequirementLegacyText == null)
+        {
+            Transform goldTextTransform = FindChildRecursive(transform, "GoldText");
+            if (goldTextTransform != null)
+            {
+                goldRequirementText = goldTextTransform.GetComponent<TMP_Text>();
+                goldRequirementLegacyText = goldTextTransform.GetComponent<Text>();
+            }
+        }
+
+        if (dismantleButton == null)
+            dismantleButton = FindChildRecursive(transform, "DismantleButton")?.GetComponent<Button>();
+    }
+
+    private void UpdateFusionCostUI()
+    {
+        EnsureFusionCostUIRefs();
+
+        int selectedCount = selectedSacrificeSlimes.Count(slime => slime != null);
+        int cost = GetSelectedSacrificeCoinCost();
+        string value = $"GOLD x{CurrencyAmountFormatter.Format(cost)}";
+
+        if (goldRequirementText != null)
+            goldRequirementText.text = value;
+        if (goldRequirementLegacyText != null)
+            goldRequirementLegacyText.text = value;
+
+        if (dismantleButton != null)
+        {
+            bool canAfford = cost == 0 ||
+                (CurrencyManager.Instance != null && CurrencyManager.Instance.HasEnoughCurrency(CurrencyType.Coins, cost));
+            dismantleButton.interactable = selectedCount > 0 && canAfford;
+        }
+    }
+
+    private void HandleCurrencyChanged(CurrencyType type, int oldAmount, int newAmount)
+    {
+        if (type == CurrencyType.Coins)
+            UpdateFusionCostUI();
     }
 
     private void RebuildSelectedSacrificeScrollItems()
@@ -423,6 +490,7 @@ public class SlimeInventory : MonoBehaviour
             if (i != null) i.SetBreedingSelected(false);
         }
         RefreshCollectionGrid();
+        UpdateSelectedSacrificePreview();
     }
     public void ondelete()
     {
@@ -430,10 +498,33 @@ public class SlimeInventory : MonoBehaviour
 
         if (selectedSlimes.Count == 0) return;
 
+        var breedingManager = BreedingManager.Instance != null ? BreedingManager.Instance : FindAnyObjectByType<BreedingManager>();
+        if (breedingManager == null)
+        {
+            Debug.LogWarning("Fusion canceled because BreedingManager is missing.", this);
+            return;
+        }
+
+        int coinCost = GetSelectedSacrificeCoinCost();
+        if (coinCost > 0)
+        {
+            if (CurrencyManager.Instance == null)
+            {
+                Debug.LogWarning("Fusion canceled because CurrencyManager is missing.", this);
+                return;
+            }
+
+            if (!CurrencyManager.Instance.SpendCurrency(CurrencyType.Coins, coinCost))
+            {
+                UpdateFusionCostUI();
+                return;
+            }
+        }
+
         selectedSacrificeSlimes.Clear();
 
         foreach (var slime in selectedSlimes)
-            SacrificeSlime(slime);
+            SacrificeSlime(slime, breedingManager);
 
         RefreshCollectionGrid();
         CheckAndRefreshIfNeeded();
@@ -443,12 +534,9 @@ public class SlimeInventory : MonoBehaviour
         SaveAndLoadSystem.Instance?.Save();
     }
 
-    private void SacrificeSlime(Slime slime)
+    private void SacrificeSlime(Slime slime, BreedingManager breedingManager)
     {
-        if (slime == null) return;
-
-        var breedingManager = BreedingManager.Instance != null ? BreedingManager.Instance : FindAnyObjectByType<BreedingManager>();
-        if (breedingManager == null) return;
+        if (slime == null || breedingManager == null) return;
 
         sacrifice += SacrificePoints(SelectiveBreeding.GetSlimeRarity(slime));
         RemoveSacrificedSlimeFromTeams(slime);

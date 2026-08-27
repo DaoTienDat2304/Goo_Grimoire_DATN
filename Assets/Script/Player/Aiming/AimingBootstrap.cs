@@ -57,7 +57,6 @@ public class AimingBootstrap : MonoBehaviour
             Camera.main != null ? Camera.main : FindAnyObjectByType<Camera>());
         aiming.SetTamingPanel(TamingPanelFlow.GetCanonicalPanel());
 
-        Debug.Log($"AimingBootstrap ready in {SceneManager.GetActiveScene().name}.", aiming);
     }
 
     private static bool IsAimingScene(string sceneName)
@@ -212,7 +211,6 @@ public static class TamingPanelFlow
         canonicalManager.PrepareForRuntime();
         canonicalManager.gameObject.SetActive(false);
 
-        Debug.Log($"[TamingPanel] Using {GetHierarchyPath(canonicalManager.transform)} in {scene.name}.", canonicalManager);
     }
 
     private static Transform FindSceneTransform(Scene scene, string objectName)

@@ -80,7 +80,6 @@ public static class MobileControlsPrefabCreator
 
         AssetDatabase.Refresh();
         Selection.activeObject = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
-        Debug.Log("Created mobile controls prefab: " + PrefabPath + " and " + ResourcesPrefabPath);
     }
 
     private static GameObject CreateRect(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)

@@ -126,7 +126,6 @@ public class BattleSystemManager : MonoBehaviour
         int energyGain = skill.energyGain > 0 ? skill.energyGain : (skill.type == SkillType.BasicAttack ? 20 : 25);
         caster?.AddEnergy(energyGain);
 
-        Debug.Log($"[BP] {caster?.name} casts {skill.skillName}. BP left: {teamBattlePoints}/{maxBattlePoints}");
     }
 
     /// <summary>

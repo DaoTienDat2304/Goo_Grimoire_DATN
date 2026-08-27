@@ -1,12 +1,4 @@
-﻿// ============================================================
-// RemoteConfigManager.cs
-//
-//
-//
-//
-// ============================================================
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 #if FIREBASE_REMOTE_CONFIG
@@ -22,14 +14,17 @@ public class RemoteConfigManager : MonoBehaviour
 
     public bool IsFirebaseReady { get; private set; } = false;
 
+    /// IsReady chi bao "da co default de doc". IsFetchComplete bao "da fetch xong tu server
+    /// (hoac da chac chan khong fetch nua)". Cac gia tri chi ton tai tren Console —
+    /// vi du dev_account_email — chi dang tin cay sau khi co dat cai nay.
+    public bool IsFetchComplete { get; private set; } = false;
+
     [Header("Dev Settings")]
     [Tooltip("Bat khi dev: ignore cache 12h, luon fetch tu server each lan chay game.")]
     public bool forceFetchOnStart = true;
     [Tooltip("Editor Windows can crash with Firebase SDK 13.5.0 during automatic network fetches. Enable only when testing Remote Config in Editor.")]
     public bool fetchRemoteConfigInEditor = false;
 
-    // -------------------------------------------------------
-    // -------------------------------------------------------
 
     public int ConfigVersion => GetInt(RemoteConfigKeys.ConfigVersion, 1);
 
@@ -53,9 +48,6 @@ public class RemoteConfigManager : MonoBehaviour
 
     public string DevAccountEmail => GetString(RemoteConfigKeys.DevAccountEmail, "");
 
-    // -------------------------------------------------------
-    // -------------------------------------------------------
-
     public int MaxSlimes => GetInt(RemoteConfigKeys.BreedingMaxSlimes, 30);
 
     private readonly Dictionary<string, float> _floats = new Dictionary<string, float>();
@@ -65,9 +57,6 @@ public class RemoteConfigManager : MonoBehaviour
 
     private readonly Dictionary<string, object> _jsonCache = new Dictionary<string, object>();
 
-    // -------------------------------------------------------
-    // Lifecycle
-    // -------------------------------------------------------
     void Awake()
     {
         if (Instance == null)
@@ -85,6 +74,7 @@ public class RemoteConfigManager : MonoBehaviour
         InitializeFirebase();
 #else
         IsReady = true;
+        IsFetchComplete = true;
         ReapplyBalance();
         Debug.Log("[RemoteConfig] Offline mode — using code defaults.");
 #endif
@@ -96,8 +86,6 @@ public class RemoteConfigManager : MonoBehaviour
     }
 
 #if FIREBASE_REMOTE_CONFIG
-    // -------------------------------------------------------
-    // -------------------------------------------------------
     void InitializeFirebase()
     {
         Debug.Log("[RemoteConfig] Checking Firebase dependencies...");
@@ -107,6 +95,7 @@ public class RemoteConfigManager : MonoBehaviour
             {
                 Debug.LogError($"[RemoteConfig] CheckDependencies error: {checkTask.Exception}. Using defaults.");
                 IsReady = true;
+                IsFetchComplete = true;
                 ReapplyBalance();
                 return;
             }
@@ -116,6 +105,7 @@ public class RemoteConfigManager : MonoBehaviour
             {
                 Debug.LogError($"[RemoteConfig] Firebase init failed: {status}. Using defaults.");
                 IsReady = true;
+                IsFetchComplete = true;
                 ReapplyBalance();
                 return;
             }
@@ -145,6 +135,8 @@ public class RemoteConfigManager : MonoBehaviour
                 if (!fetchRemoteConfigInEditor)
                 {
                     Debug.LogWarning("[RemoteConfig] Skipping FetchAndActivate in Editor to avoid Firebase native crash. Player builds still fetch normally.");
+                    Debug.LogWarning("[RemoteConfig] Vi khong fetch, cac key chi co tren Console (dev_account_email, ...) se rong.");
+                    IsFetchComplete = true;
                     return;
                 }
 #endif
@@ -191,14 +183,13 @@ public class RemoteConfigManager : MonoBehaviour
                 }
 
                 IsReady = true;
+                IsFetchComplete = true;
                 OnConfigFetched();
             });
         });
     }
 #endif
 
-    // -------------------------------------------------------
-    // -------------------------------------------------------
     public void ReapplyBalance()
     {
         _jsonCache.Clear();
@@ -233,6 +224,7 @@ public class RemoteConfigManager : MonoBehaviour
 
         Debug.Log("[RemoteConfig] ══════════ Current values ══════════");
         Debug.Log($"[RemoteConfig] [Meta]     config_version={ConfigVersion} | maintenance={MaintenanceEnabled} | min_version=\"{MinSupportedVersion}\" | shop=\"{ActiveShopId}\"");
+        Debug.Log($"[RemoteConfig] [Dev]      dev_account_email=\"{DevAccountEmail}\" (rong = tat dev account)");
         Debug.Log($"[RemoteConfig] [Battle]   critRateCap={b.critRateCap:P0} critDmgCap={b.critDmgCap:F2} defPerPoint={b.defReductionPerPoint} maxDefRed={b.maxDefReduction:P0} overflow→ATK={b.critOverflowToAtk} skillPower={b.skillPowerMult}");
         Debug.Log($"[RemoteConfig] [Breeding] maxSlimes={MaxSlimes} gemPerMinute={RemoteBalance.BreedingGemPerMinute} diffBias={RemoteBalance.BreedingDiffRarityBias}");
         Debug.Log($"[RemoteConfig] [Egg]      interval={GetFloat(RemoteConfigKeys.EggCheckInterval, 60f)}s chance={GetFloat(RemoteConfigKeys.EggChance, 0.5f):P0} max={GetInt(RemoteConfigKeys.EggMaxUnhatched, 3)} required={GetInt(RemoteConfigKeys.EggRequiredSlimes, 2)} incubation={GetFloat(RemoteConfigKeys.EggIncubationSecs, 600f)}s gemPer={GetFloat(RemoteConfigKeys.EggSecondsPerGem, 60f)}s");
@@ -248,9 +240,6 @@ public class RemoteConfigManager : MonoBehaviour
         Debug.Log("[RemoteConfig] ════════════════════════════════════");
     }
 
-    // -------------------------------------------------------
-    // Recalculate slime stats
-    // -------------------------------------------------------
     public void RecalculateAllSlimes()
     {
         var bm = BreedingManager.Instance;
@@ -279,8 +268,6 @@ public class RemoteConfigManager : MonoBehaviour
         Debug.Log($"[RemoteConfig] ✓ Recalculated {allSlimes.Count} slimes.");
     }
 
-    // -------------------------------------------------------
-    // -------------------------------------------------------
     public float GetFloat(string key, float fallback)
     {
         if (_floats.TryGetValue(key, out var over)) return over;

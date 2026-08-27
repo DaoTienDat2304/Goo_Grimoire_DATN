@@ -162,7 +162,6 @@ public class DailyMissionManager : MonoBehaviour
         {
             streakClaimed = true;
             CurrencyManager.Instance?.AddCurrency(CurrencyType.Coins, StreakBonusGold);
-            Debug.Log($"[Daily] Completed all {DailyCount} missions daily → bonus {StreakBonusGold} gold!");
             SaveAndLoadSystem.Instance?.Save();
         }
     }

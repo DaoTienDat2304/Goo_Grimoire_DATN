@@ -8,8 +8,6 @@ public static class StatStandardMigration
         int changed = 0;
         foreach (var s in slimes)
             if (s != null && Normalize(s)) changed++;
-        if (changed > 0)
-            Debug.Log($"[StatMigration] Normalized {changed} old slimes to GDD.");
         return changed;
     }
 

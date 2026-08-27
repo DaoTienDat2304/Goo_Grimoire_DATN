@@ -5,6 +5,9 @@ TextureImporter:
   - first:
       213: 9165731319381142587
     second: CosmicSlime_0
+  - first:
+      213: -3077277949567316128
+    second: uncommon/cosmicslime
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -177,7 +180,7 @@ TextureImporter:
       tessellationDetail: -1
       bones: []
       spriteID: 00000000000000000800000000000000
-      internalID: 0
+      internalID: -3077277949567316128
       vertices: []
       indices: 
       edges: []
@@ -197,7 +200,7 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       CosmicSlime_0: 9165731319381142587
-      uncommon/cosmicslime: 0
+      uncommon/cosmicslime: -3077277949567316128
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

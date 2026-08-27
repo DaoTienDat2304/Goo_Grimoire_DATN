@@ -133,7 +133,6 @@ public class SlimeSpawner : MonoBehaviour
 
         SpawnSlimes();
 
-        Debug.Log("SlimeSpawner initialized!");
     }
 
     void Update()
@@ -166,7 +165,6 @@ public class SlimeSpawner : MonoBehaviour
         int targetSlimeCount = maxSlimeCount;
         int slimeCountToSpawn = Mathf.Max(0, targetSlimeCount - activeSlimes.Count);
 
-        Debug.Log($"Keeping {activeSlimes.Count} slimes, spawning {slimeCountToSpawn} more...");
 
         int spawnedThisFrame = 0;
         for (int i = 0; i < slimeCountToSpawn; i++)
@@ -185,7 +183,6 @@ public class SlimeSpawner : MonoBehaviour
             }
         }
 
-        Debug.Log($"Active slimes after spawn: {activeSlimes.Count}");
         spawnRoutine = null;
     }
 
@@ -290,7 +287,6 @@ public class SlimeSpawner : MonoBehaviour
                 );
             }
 
-            Debug.Log($"Slime spawned at {position}");
         }
         else
         {
@@ -374,7 +370,6 @@ public class SlimeSpawner : MonoBehaviour
 
         activeSlimes.Clear();
 
-        Debug.Log("Cleared old slimes");
     }
 
     public void ForceSpawnSlimes()

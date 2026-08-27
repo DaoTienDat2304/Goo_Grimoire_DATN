@@ -107,12 +107,10 @@ public class TravelSceneManager : MonoBehaviour
     
     private void OnPlayerStartedMoving()
     {
-        Debug.Log("Player started moving");
     }
     
     private void OnPlayerStoppedMoving()
     {
-        Debug.Log("Player stopped moving");
     }
     
     

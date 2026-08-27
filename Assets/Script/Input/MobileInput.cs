@@ -217,7 +217,6 @@ public static class MobileInput
 
                     fallbackAimActive = true;
                     fallbackAimStartPosition = start;
-                    Debug.Log("MobileInput fallback aim pressed.");
                 }
 
                 if (!fallbackAimActive)
@@ -248,7 +247,6 @@ public static class MobileInput
 
             fallbackAimActive = true;
             fallbackAimStartPosition = mousePosition;
-            Debug.Log("MobileInput fallback aim pressed.");
         }
 
         if (!fallbackAimActive)

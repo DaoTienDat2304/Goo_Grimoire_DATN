@@ -40,7 +40,7 @@
     "dev_account_email": {
       "defaultValue": { "value": "" },
       "valueType": "STRING",
-      "description": "Email tai khoan dev. Rong = khong co dev account"
+      "description": "Email tai khoan dev - lan dau tao save duoc 30 slime + 999999 vang + 999999 gem. CO HIEU LUC CA TRONG BAN RELEASE. Rong = tat dev account"
     },
 
     "stat_balance_table": {

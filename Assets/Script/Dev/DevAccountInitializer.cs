@@ -1,10 +1,16 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+// LUU Y BAO MAT: class nay KHONG con bi strip khoi ban release.
+// Bat cu ai dang nhap dung email trong remote key `dev_account_email` deu duoc
+// full slime + 999999 vang/gem. De tat hoan toan: xoa rong `dev_account_email`
+// tren Firebase Console (Remote Config) roi Publish.
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public static class DevAccountInitializer
 {
+    public const int DevCoins = 999999;
+    public const int DevGems  = 999999;
+
     private static readonly (Rarity rarity, int count, string prefix)[] Distribution =
     {
         (Rarity.Common,    4, "Dev_Common"),
@@ -19,9 +25,31 @@ public static class DevAccountInitializer
 
     public static bool IsDevAccount()
     {
-        var devEmail = RemoteConfigManager.Instance?.DevAccountEmail;
-        if (string.IsNullOrEmpty(devEmail)) return false;
-        return AuthManager.Instance?.Email == devEmail;
+        var rc = RemoteConfigManager.Instance;
+        if (rc == null) return false;
+
+        var devEmail = rc.DevAccountEmail;
+        if (string.IsNullOrEmpty(devEmail))
+        {
+            if (!rc.IsFetchComplete)
+                Debug.LogWarning("[DevInit] dev_account_email rong vi Remote Config chua fetch xong — coi nhu KHONG phai dev account.");
+            return false;
+        }
+
+        // Email tren Console co the lech hoa/thuong hoac thua khoang trang.
+        var userEmail = AuthManager.Instance?.Email;
+        if (string.IsNullOrEmpty(userEmail)) return false;
+
+        bool match = string.Equals(userEmail.Trim(), devEmail.Trim(),
+                                   System.StringComparison.OrdinalIgnoreCase);
+        return match;
+    }
+
+    /// Cap toan bo quyen loi dev: 30 slime + 999999 vang + 999999 gem.
+    public static void InitializeDevAccount()
+    {
+        InitializeDevSlimes();
+        InitializeDevCurrency();
     }
 
     public static void InitializeDevSlimes()
@@ -31,10 +59,20 @@ public static class DevAccountInitializer
             Debug.LogError("[DevInit] SlimeGen or BreedingManager not ready.");
             return;
         }
-        Debug.Log("[DevInit] Dev account: creating 30 slimes...");
         var devSlimes = BuildDevSlimeList();
         BreedingManager.Instance.SetAllSlimes(devSlimes);
-        Debug.Log($"[DevInit] Done. Created {devSlimes.Count} slimes.");
+    }
+
+    public static void InitializeDevCurrency()
+    {
+        var cm = CurrencyManager.Instance;
+        if (cm == null)
+        {
+            Debug.LogError("[DevInit] CurrencyManager not ready — khong cap duoc vang/gem.");
+            return;
+        }
+        cm.SetCurrency(CurrencyType.Coins, DevCoins);
+        cm.SetCurrency(CurrencyType.Gems,  DevGems);
     }
 
     private static List<Slime> BuildDevSlimeList()
@@ -106,4 +144,3 @@ public static class DevAccountInitializer
         return pool?.Count > 0 ? pool[Random.Range(0, pool.Count)] : null;
     }
 }
-#endif

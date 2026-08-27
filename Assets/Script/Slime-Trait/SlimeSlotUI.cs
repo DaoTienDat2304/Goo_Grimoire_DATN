@@ -53,11 +53,9 @@ public class SlimeSlotUI : MonoBehaviour, IPointerClickHandler
             }
             else
             {
-                Debug.Log("Max member");
             }
             foreach (var item in teamSlime.team)
             {
-                Debug.Log($"{item.slimeName} + {teamSlime.team.Count}");
             }
         }
         else

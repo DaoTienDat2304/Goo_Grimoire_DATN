@@ -24,12 +24,10 @@ public static class FirebaseSessionCleaner
             {
                 string uid = auth.CurrentUser.UserId;
                 auth.SignOut();
-                Debug.Log($"[FirebaseSessionCleaner] Signed out uid={uid} on play exit.");
             }
         }
         catch (System.Exception e)
         {
-            Debug.Log($"[FirebaseSessionCleaner] Cannot sign out (Firebase not init): {e.Message}");
         }
     }
 }

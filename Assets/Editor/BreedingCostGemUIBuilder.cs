@@ -73,8 +73,6 @@ public static class BreedingCostGemUIBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[BreedingUI] Built Cost + Gem UI in " + ScenePath +
-                  ". Select 'BreedCostGroup' (overflowoi breedingPanel) va 'FinishWithGemsButton' (overflowoi breedingProgressPanel) trong Hierarchy to adjust position/size.");
     }
 
     private static void DestroyChild(Transform parent, string name)

@@ -40,7 +40,6 @@ public static class GoogleSignInDesktop
         string state   = Guid.NewGuid().ToString("N");
         string authUrl = BuildAuthUrl(redirectUri, codeChallenge, state);
         Application.OpenURL(authUrl);
-        Debug.Log("[GoogleSignInDesktop] Opening browser for Google login...");
 
         string code = await ListenForCodeAsync(port, state);
         if (string.IsNullOrEmpty(code))

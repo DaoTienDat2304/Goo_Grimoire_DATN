@@ -213,7 +213,6 @@ public class OpeningDialogueSetup : MonoBehaviour
         if (dialogueSystem != null)
         {
             dialogueSystem.dialogueSequences.Clear();
-            Debug.Log("All dialogue sequences cleared!");
         }
     }
 }

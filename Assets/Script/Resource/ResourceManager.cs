@@ -32,7 +32,6 @@ public class ResourceManager : MonoBehaviour
     {
         resources[ResourceType.Marshmallow] = startingMarshmallow;
         
-        Debug.Log($"Resources initialized: {startingMarshmallow} Marshmallow");
     }
     public int GetResource(ResourceType type)
     {
@@ -48,7 +47,6 @@ public class ResourceManager : MonoBehaviour
         OnResourceChanged?.Invoke(type, oldAmount, resources[type]);
         OnResourceAdded?.Invoke(type, amount);
         
-        Debug.Log($"Add {amount} {type}. Total: {resources[type]}");
     }
     public bool SpendResource(ResourceType type, int amount)
     {
@@ -67,7 +65,6 @@ public class ResourceManager : MonoBehaviour
         OnResourceChanged?.Invoke(type, oldAmount, resources[type]);
         OnResourceSpent?.Invoke(type, amount);
         
-        Debug.Log($"Spend {amount} {type}. Left: {resources[type]}");
         return true;
     }
     public bool HasEnoughResource(ResourceType type, int amount)

@@ -29,7 +29,6 @@ public class traitCollectionslot : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log("AAAAAAAAAAAAAok");
         GetComponentInParent<TraitCollectionManager>().traitinfo(Trait, this.gameObject.transform);
     }
 

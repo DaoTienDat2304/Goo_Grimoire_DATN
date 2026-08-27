@@ -164,7 +164,6 @@ public class tamingManager : MonoBehaviour
     private void FinishEncounter(WildSlimes.WildSlimeTraits slime, bool success)
     {
         encounterFinishing = true;
-        Debug.Log(success ? "Success" : "Fail");
         ClearNotes();
 
         if (success)

@@ -42,7 +42,6 @@ public class AutoSetupTraitAnimations
         
         EditorPrefs.SetBool("TraitAnimationsSetup", true);
         
-        Debug.Log("AutoSetupTraitAnimations: Successfully setup animations for Body traits");
     }
     
     private static void SetupBodyTraitsWithAnimation(SkeletonDataAsset animationAsset)
@@ -69,7 +68,6 @@ public class AutoSetupTraitAnimations
         {
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"AutoSetupTraitAnimations: Updated {updatedCount} Body traits with animation");
         }
     }
     
@@ -77,7 +75,6 @@ public class AutoSetupTraitAnimations
     public static void ResetSetupFlag()
     {
         EditorPrefs.DeleteKey("TraitAnimationsSetup");
-        Debug.Log("Trait animation setup flag has been reset. Will run auto-setup on next project load.");
     }
 }
 

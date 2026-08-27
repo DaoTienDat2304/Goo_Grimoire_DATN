@@ -213,7 +213,6 @@ public class LoginUIManager : MonoBehaviour
     // ── Auth event handlers ──────────────────────────────────
     void HandleLoginSuccess(string uid)
     {
-        Debug.Log($"[LoginUI] Login OK: {uid}");
         HideAllPanels();
     }
 
@@ -231,7 +230,6 @@ public class LoginUIManager : MonoBehaviour
 
     void HandlePasswordResetSent(string email)
     {
-        Debug.Log($"[LoginUI] Reset email sent to: {email}");
         if (forgotStatusText != null)
             forgotStatusText.text = $"Sent. Check inbox: {email}";
     }

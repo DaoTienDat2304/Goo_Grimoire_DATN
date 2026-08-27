@@ -345,7 +345,6 @@ public class TowerTurnSystem : TurnSystem
         if (bStats == null) bStats = enemyGo.AddComponent<SlimeBattleStats>();
         bStats.ReinitializeFromBaseStats();
 
-        Debug.Log($"[TowerTurnSystem] Spawned Clone: {enemyGo.name} | HP: {stats.HP} | ATK: {stats.Attack} | MATK: {stats.MagicAttack} | DEF: {stats.Defense} | SPD: {stats.Speed}");
 
         if (stats.hpbar != null)
         {
@@ -715,7 +714,6 @@ public class TowerTurnSystem : TurnSystem
             {
                 float critMult = attacker.GetFinalCritDMG();
                 damage = Mathf.RoundToInt(damage * critMult);
-                Debug.Log("Critical Hit!");
             }
 
             if (target != null)
@@ -741,7 +739,6 @@ public class TowerTurnSystem : TurnSystem
 
             if (target.CurrentHP <= 0)
             {
-                Debug.Log($"{boss.name} died!");
                 CheckWinLoseAfterEnemyDeath();
             }
 
@@ -804,14 +801,12 @@ public class TowerTurnSystem : TurnSystem
                         {
                             float critMult = attacker.GetFinalCritDMG();
                             finalDamage = Mathf.RoundToInt(finalDamage * critMult);
-                            Debug.Log("Critical Hit!");
                         }
                         targetStats.TakeDamage(finalDamage);
                         if (isCrit)
                         {
                             CreateDamagePopup(targetGo.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
                         }
-                        Debug.Log($"{currentSlime.name} uses {skill.baseSkill.skillName} on {targetGo.name}: {finalDamage} damage");
                         var hitAnim = targetGo.GetComponent<SimpleCombatAnimation>();
                         if (hitAnim != null && hitAnim.gameObject.activeInHierarchy)
                         {

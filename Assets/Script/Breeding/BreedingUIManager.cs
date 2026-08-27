@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -960,7 +960,7 @@ public class BreedingUIManager : MonoBehaviour
         if (breedingPreviewText != null)
         {
             breedingPreviewText.text = show
-                ? $"Trung {BreedingManager.Instance.PreviewEggRarity(selectedSlime1, selectedSlime2)}  |  {FormatTime(BreedingManager.Instance.PreviewDurationSeconds(selectedSlime1, selectedSlime2))}"
+                ? $"Egg {BreedingManager.Instance.PreviewEggRarity(selectedSlime1, selectedSlime2)}  |  {FormatTime(BreedingManager.Instance.PreviewDurationSeconds(selectedSlime1, selectedSlime2))}"
                 : "Select 2 slimes from the list";
         }
     }

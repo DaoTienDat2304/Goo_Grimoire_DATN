@@ -200,7 +200,6 @@ public class showteam : MonoBehaviour
             i++;
         }
 
-        Debug.Log($"Team display refresh completed. Displayed {i} slimes.");
     }
 
     private void ResolveReferences()

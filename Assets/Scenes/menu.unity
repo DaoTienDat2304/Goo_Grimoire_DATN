@@ -1459,7 +1459,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   forceFetchOnStart: 1
-  fetchRemoteConfigInEditor: 0
+  fetchRemoteConfigInEditor: 1
 --- !u!4 &654558442
 Transform:
   m_ObjectHideFlags: 0

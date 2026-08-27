@@ -39,7 +39,6 @@ public static class BreedingTextMeshProSceneConverter
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         AssetDatabase.SaveAssets();
-        Debug.Log($"[BreedingUI TMP] Converted {converted} legacy Text components under BreedingUI to TextMeshProUGUI.");
     }
 
     private static void ConvertText(Text legacy, TMP_FontAsset font)

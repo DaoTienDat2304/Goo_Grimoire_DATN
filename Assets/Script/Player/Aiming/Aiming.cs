@@ -127,7 +127,6 @@ public class Aiming : MonoBehaviour
                     dir = transform.localScale.x < 0f ? Vector2.left : Vector2.right;
 
                 spawnedCatcher.throwCatcher(dir, force);
-                Debug.Log($"Aiming released catcher. dir={dir}, force={force}");
                 spawnedCatcher = null;
 
                 // Play catcher throw sound effect
@@ -183,7 +182,6 @@ public class Aiming : MonoBehaviour
             : CreateFallbackCatcher(idlePosition.position);
         spawnedCatcher.tamingPanel = tamingUI;
         spawnedCatcher.transform.localScale = catcherPrefab != null ? Vector3.one * 0.15f : Vector3.one;
-        Debug.Log($"Aiming spawned catcher. prefabLinked={catcherPrefab != null}", spawnedCatcher);
     }
     private void CatcherRotation()
     {

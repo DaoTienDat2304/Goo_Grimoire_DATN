@@ -63,7 +63,6 @@ public class SlimeBattleClickHandler : MonoBehaviour, IPointerClickHandler
     {
         EnsureClickable();
 
-        Debug.Log($"[SlimeBattleClickHandler] Slime clicked: {gameObject.name}");
 
         if (slimeStats != null && slimeStats.isEnemy && turnSystem != null)
         {

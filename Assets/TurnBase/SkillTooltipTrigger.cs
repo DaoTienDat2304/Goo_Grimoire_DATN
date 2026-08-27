@@ -39,7 +39,6 @@ public class SkillTooltipTrigger : MonoBehaviour, IPointerDownHandler, IPointerU
         isPointerDown = true;
         pointerDownTime = Time.unscaledTime;
         isTooltipShown = false;
-        Debug.Log($"[SkillTooltipTrigger] PointerDown on button: {gameObject.name}");
     }
 
     private void Update()
@@ -53,7 +52,6 @@ public class SkillTooltipTrigger : MonoBehaviour, IPointerDownHandler, IPointerU
 
                 if (skillToDisplay != null && skillToDisplay.baseSkill != null)
                 {
-                    Debug.Log($"[SkillTooltipTrigger] Show skill: {skillToDisplay.baseSkill.skillName}");
                     if (BattleInfoDisplayUI.Instance != null)
                     {
                         BattleInfoDisplayUI.Instance.ShowSkillInfo(skillToDisplay, currentBattleStats);

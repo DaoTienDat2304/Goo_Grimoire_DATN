@@ -252,9 +252,6 @@ public static class RemoteBalance
 
         IsApplied = true;
 
-        Debug.Log($"[RemoteBalance] Loaded overrides — stat:{statRanges.Count} boss:{bossMults.Count} " +
-                  $"breed:{breedTiers.Count} farm:{(FarmRows != null ? FarmRows.Count : 0)} " +
-                  $"tower:{(TowerGrowth != null ? "yes" : "no")}");
     }
 
     public static void Clear()

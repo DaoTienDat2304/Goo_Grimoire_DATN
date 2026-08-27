@@ -40,8 +40,40 @@ public class SlimeStats : MonoBehaviour
 
     public void SetDeadVisual()
     {
-        if (skeletonGraphic != null) skeletonGraphic.color = Color.gray;
-        if (armor != null) armor.color = Color.gray;
-        if (weapon != null) weapon.color = Color.gray;
+        Color deadColor = new Color(0.25f, 0.25f, 0.25f, 0.65f);
+
+        if (skeletonGraphic != null)
+        {
+            skeletonGraphic.color = deadColor;
+        }
+
+        if (armor != null)
+        {
+            armor.color = deadColor;
+        }
+
+        if (weapon != null)
+        {
+            weapon.color = deadColor;
+        }
+
+        var allImages = GetComponentsInChildren<Image>(true);
+        foreach (var img in allImages)
+        {
+            if (hpbar != null && (img.transform == hpbar.transform || img.transform.IsChildOf(hpbar.transform)))
+                continue;
+            img.color = deadColor;
+        }
+
+        var allSprites = GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (var sr in allSprites)
+        {
+            sr.color = deadColor;
+        }
+
+        if (turnHalo != null)
+        {
+            turnHalo.SetActive(false);
+        }
     }
 }

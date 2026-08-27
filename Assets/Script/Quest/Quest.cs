@@ -40,13 +40,11 @@ public abstract class Quest : ScriptableObject
     public virtual void StartQuest()
     {
         state = QuestState.InProgress;
-        Debug.Log("Start quest: " + questName);
     }
 
     public virtual void CompleteQuest()
     {
         state = QuestState.Completed;
-        Debug.Log("Done quest: " + questName);
     }
 
     public virtual void ClaimReward()
@@ -61,12 +59,10 @@ public abstract class Quest : ScriptableObject
             if (currencyReward != null)
             {
                 currencyReward.GiveRewards();
-                Debug.Log($"Claim quest: {questName} - {currencyReward.GetRewardDescription()}");
             }
             
             if (reward != null)
             {
-                Debug.Log($"Get quest reward {questName}: {reward.amount} {reward.rewardType}");
                 ApplyReward();
             }
 
@@ -79,13 +75,10 @@ public abstract class Quest : ScriptableObject
         switch (reward.rewardType.ToLower())
         {
             case "coins":
-                Debug.Log($"Get {reward.amount} coins");
                 break;
             case "slime":
-                Debug.Log($"Get {reward.amount} slime");
                 break;
             default:
-                Debug.Log($"Get reward: {reward.description}");
                 break;
         }
     }

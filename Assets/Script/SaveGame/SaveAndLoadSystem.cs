@@ -44,13 +44,85 @@ public class SaveAndLoadSystem : MonoBehaviour
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= HandleSceneLoaded;
+
+        if (_authBound && AuthManager.Instance != null)
+        {
+            AuthManager.Instance.OnBeforeSignOut -= HandleBeforeSignOut;
+            AuthManager.Instance.OnLoggedOut     -= HandleLoggedOut;
+            AuthManager.Instance.OnLoginSuccess  -= HandleLoginSuccess;
+            _authBound = false;
+        }
+
         if (Instance == this)
             Instance = null;
     }
 
     void Start()
     {
-        StartCoroutine(InitializeAsync());
+        StartCoroutine(BindAuthEvents());
+        _initRoutine = StartCoroutine(InitializeAsync());
+    }
+
+    /// AuthManager sinh ra o scene `menu` va co the chua ton tai luc nay,
+    /// nen doi den khi co roi moi dang ky.
+    IEnumerator BindAuthEvents()
+    {
+        while (AuthManager.Instance == null) yield return null;
+
+        AuthManager.Instance.OnBeforeSignOut += HandleBeforeSignOut;
+        AuthManager.Instance.OnLoggedOut     += HandleLoggedOut;
+        AuthManager.Instance.OnLoginSuccess  += HandleLoginSuccess;
+        _authBound = true;
+    }
+
+    /// Day not tien trinh cua tai khoan dang choi xuong local + cloud
+    /// truoc khi phien dang nhap bi xoa.
+    void HandleBeforeSignOut()
+    {
+        if (_initialized) Save();
+    }
+
+    /// Logout = tra game ve trang thai trang. KHONG xoa save cua bat ky uid nao:
+    /// moi uid giu slot rieng, dang nhap lai la nap lai dung slot do.
+    void HandleLoggedOut()
+    {
+        if (_autoSaveRoutine != null)
+        {
+            StopCoroutine(_autoSaveRoutine);
+            _autoSaveRoutine = null;
+        }
+
+        if (restoreHomeRoutine != null)
+        {
+            StopCoroutine(restoreHomeRoutine);
+            restoreHomeRoutine = null;
+        }
+
+        // Logout co the roi dung luc InitializeAsync da qua vong cho dang nhap nhung
+        // chua xong (con doi cloud check / remote config). De no chay tiep thi no se
+        // set _initialized va _loadedUid bang du lieu cua phien vua bi huy.
+        if (_initRoutine != null)
+        {
+            StopCoroutine(_initRoutine);
+            _initRoutine = null;
+        }
+        _initRunning = false;
+
+        // Xoa het dau vet tai khoan cu khoi RAM truoc khi nguoi khac dang nhap,
+        // neu khong Save() dau tien cua tai khoan moi se ghi de bang du lieu cu.
+        _initialized    = false;
+        _cachedSaveData = null;
+        _loadedUid      = null;
+
+        ResetGameState();
+    }
+
+    /// Dang nhap lai trong cung phien choi: chay lai toan bo luong nap theo uid moi.
+    /// Lan dang nhap dau tien da co coroutine tu Start() dang cho san nen bo qua.
+    void HandleLoginSuccess(string uid)
+    {
+        if (_initRunning || _initialized) return;
+        _initRoutine = StartCoroutine(InitializeAsync());
     }
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -209,14 +281,36 @@ public class SaveAndLoadSystem : MonoBehaviour
 
     IEnumerator InitializeAsync()
     {
-        Debug.Log("[Save] Waiting for Auth...");
-        yield return new WaitUntil(() =>
-            AuthManager.Instance != null && AuthManager.Instance.IsLoggedIn);
+        _initRunning = true;
 
-        Debug.Log($"[Save] Auth xong. uid={AuthManager.Instance.CurrentUserId}");
+        // AuthManager/RemoteConfigManager/CloudSaveProvider la singleton DontDestroyOnLoad
+        // chi duoc tao trong scene `menu`. Play thang scene gameplay thi chung khong ton tai
+        // va vong cho nay treo vinh vien, khong load save, khong kiem tra dev account.
+        // Khong doi hanh vi — chi keu to len de con biet duong ma sua.
+        float authWarnAt = Time.realtimeSinceStartup + 5f;
+        bool authWarned = false;
+        while (AuthManager.Instance == null || !AuthManager.Instance.IsLoggedIn)
+        {
+            if (!authWarned && Time.realtimeSinceStartup >= authWarnAt)
+            {
+                authWarned = true;
+                if (AuthManager.Instance == null)
+                    Debug.LogError("[Save] Khong tim thay AuthManager sau 5s. Ban dang Play thang scene gameplay? " +
+                                   "Auth/RemoteConfig/CloudSave chi sinh ra tu scene `menu` — hay Play `Assets/Scenes/menu.unity` va dang nhap truoc.");
+                else
+                    Debug.LogWarning("[Save] Da co AuthManager nhung chua dang nhap sau 5s — dang cho nguoi choi dang nhap.");
+            }
+            yield return null;
+        }
+
 
         yield return new WaitUntil(() =>
             CloudSaveProvider.Instance == null || CloudSaveProvider.Instance.CloudCheckDone);
+
+        // Phai co dev_account_email THAT tu server truoc khi quyet dinh tai khoan moi
+        // la dev hay nguoi choi thuong. CloudCheckDone chi cho IsReady (moi co default),
+        // fetch tu Console co the ve sau — khong cho o day thi dev account luon truot.
+        yield return StartCoroutine(WaitForRemoteConfigFetch(remoteConfigWaitTimeout));
 
         if (CurrencyManager.Instance != null)
             CurrencyManager.Instance.firstLoadDone = false;
@@ -234,7 +328,6 @@ public class SaveAndLoadSystem : MonoBehaviour
 
             bool localBetter = localTime >= cloudTime;
             chosenJson = localBetter ? localJson : cloudJson;
-            Debug.Log($"[Save] Cloud and local found. Using {(localBetter ? "local" : "cloud")} (Local time: {localTime}, Cloud time: {cloudTime}).");
         }
         else
         {
@@ -248,15 +341,12 @@ public class SaveAndLoadSystem : MonoBehaviour
         }
         else
         {
-            Debug.Log("[Save] Tai khoan moi — bat dau game voi du lieu default.");
             ResetGameState();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (DevAccountInitializer.IsDevAccount())
             {
-                DevAccountInitializer.InitializeDevSlimes();
+                DevAccountInitializer.InitializeDevAccount();
             }
             else
-#endif
             {
                 if (BreedingManager.Instance != null)
                     BreedingManager.Instance.CreateInitialSlimes();
@@ -267,13 +357,38 @@ public class SaveAndLoadSystem : MonoBehaviour
         MergeCapturedSlimes(sceneCapturedSlimes);
         _initialized = true;
 
+        // Ghi nho khoi du lieu vua nap la cua ai — Save() dua vao day de tu choi
+        // ghi de khi uid da doi.
+        _loadedUid   = AuthManager.Instance.LocalSaveId;
+        _initRunning = false;
+        _initRoutine = null;
+
         ApplyTowerResultCache();
         ApplyFarmResultCache();
 
         // 5. Load world
         yield return StartCoroutine(LoadWorld());
 
-        if (autoSaveEnabled) StartCoroutine(AutoSaveLoop());
+        // Dang nhap lai lan hai khong duoc de sinh them mot vong autosave nua.
+        if (autoSaveEnabled && _autoSaveRoutine == null)
+            _autoSaveRoutine = StartCoroutine(AutoSaveLoop());
+    }
+
+    [Header("Remote Config")]
+    [Tooltip("So giay toi da cho Remote Config fetch xong truoc khi vao game. Het gio thi chay tiep bang default.")]
+    [SerializeField] private float remoteConfigWaitTimeout = 8f;
+
+    IEnumerator WaitForRemoteConfigFetch(float timeoutSeconds)
+    {
+        var rc = RemoteConfigManager.Instance;
+        if (rc == null || rc.IsFetchComplete) yield break;
+
+        float deadline = Time.realtimeSinceStartup + Mathf.Max(0f, timeoutSeconds);
+        yield return new WaitUntil(() =>
+            rc.IsFetchComplete || Time.realtimeSinceStartup >= deadline);
+
+        if (!rc.IsFetchComplete)
+            Debug.LogWarning($"[Save] Remote Config chua fetch xong sau {timeoutSeconds}s — vao game bang default.");
     }
 
     // ---------- Auto Save ----------
@@ -283,6 +398,14 @@ public class SaveAndLoadSystem : MonoBehaviour
     [SerializeField] private float autoSaveInterval = 60f;
 
     private bool _initialized;
+
+    /// InitializeAsync dang chay (ke ca luc dang cho dang nhap) — chan chay chong hai lan.
+    private bool _initRunning;
+    /// uid ma khoi du lieu trong RAM thuoc ve. Save() tu choi ghi neu uid hien tai khac cai nay.
+    private string _loadedUid;
+    private Coroutine _autoSaveRoutine;
+    private Coroutine _initRoutine;
+    private bool _authBound;
 
     IEnumerator AutoSaveLoop()
     {
@@ -315,6 +438,14 @@ public class SaveAndLoadSystem : MonoBehaviour
     public void Save()
     {
         string localId = AuthManager.Instance != null ? AuthManager.Instance.LocalSaveId : "guest";
+
+        // Chot an toan cuoi cung: neu uid da doi ma state trong RAM van la cua nguoi truoc
+        // thi ghi xuong se de len save cua nguoi moi, ca local lan Firestore.
+        if (_loadedUid != null && localId != _loadedUid)
+        {
+            Debug.LogWarning($"[Save] Bo qua Save(): uid hien tai '{localId}' khac uid da nap '{_loadedUid}'.");
+            return;
+        }
 
         if (_cachedSaveData == null)
         {
@@ -358,7 +489,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         {
             CloudSaveProvider.Instance.StartSave(
                 AuthManager.Instance.CurrentUserId, json);
-            Debug.Log($"[Save] Saving cloud. savedAt={data.lastSavedAt}");
         }
     }
 
@@ -371,7 +501,6 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         if (string.IsNullOrEmpty(json))
         {
-            Debug.Log("[Save] Load: empty json, ignored.");
             return;
         }
 
@@ -407,7 +536,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (SlimeWorldManager != null) SlimeWorldManager.RefreshWorldSlimes();
         if (slimeInventory != null) slimeInventory.RefreshAllUI();
 
-        Debug.Log($"[Save] Game loaded. Slimes count: {data.slimes?.Count ?? 0}, Placed Buildings count: {data.placedBuildings?.Count ?? 0}");
     }
 
     public Team GetTeam() => teamSlime;
@@ -428,7 +556,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         towerDatabase.cachedCompletedFloorNumber = 0;
 
         Save();
-        Debug.Log($"[Save] Applied tower cache: floor {completedFloor} completed, currentFloor={towerDatabase.currentFloor}");
     }
 
     public int GetTowerHighestFloor()
@@ -466,7 +593,6 @@ public class SaveAndLoadSystem : MonoBehaviour
 
             farmDatabase.ClearPendingResult();
             Save();
-            Debug.Log($"[Save] Applied farm result cache from FarmDatabaseSO: completedIndex={completedIndex}, coins={pCoins}, gems={pGems}");
             return;
         }
 
@@ -498,7 +624,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
 
             Save();
-            Debug.Log($"[Save] Applied farm result cache from PlayerPrefs fallback: completedIndex={completedIndex}");
         }
     }
 
@@ -515,6 +640,10 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         var bm = BreedingManager.Instance;
         if (bm != null) bm.SetAllSlimes(new List<Slime>());
+
+        // Tien luu trong PlayerPrefs dung chung, khong theo uid. Khong reset o day thi
+        // tai khoan moi dang thua ke so vang/gem cua tai khoan dang nhap truoc do.
+        CurrencyManager.Instance?.ResetToStartingValues();
 
         PlayerStatsManager.Instance?.ResetAll();
     }
@@ -734,7 +863,6 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         if (data.slimes == null || data.slimes.Count == 0)
         {
-            Debug.Log("[Save] Save has 0 slimes. Keep current or create starter.");
             if (bm.GetAllSlimes() == null || bm.GetAllSlimes().Count == 0)
             {
                 bm.CreateInitialSlimes();
@@ -1267,7 +1395,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             wildSlimes.tamedSlimes.Add(tamed);
         }
         
-        Debug.Log($"DeserializeTamedSlimes: Loaded {wildSlimes.tamedSlimes.Count} tamed slimes");
     }
 
     // ---------- Tower Floors ----------
@@ -1285,7 +1412,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                     towerDatabase = field.GetValue(turnSystem) as TowerSlimeBosses;
                     if (towerDatabase != null)
                     {
-                        Debug.Log("Found TowerDatabase from TurnSystem");
                     }
                 }
             }
@@ -1296,7 +1422,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                 if (allTowers != null && allTowers.Length > 0)
                 {
                     towerDatabase = allTowers[0];
-                    Debug.Log("Found TowerDatabase from Resources");
                 }
             }
         }
@@ -1333,7 +1458,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             });
         }
 
-        Debug.Log($"SerializeTowerFloors: {data.towerFloors.Count} floors, highest={data.towerHighestFloor}, current={data.towerCurrentFloor}, claimed={claimedCount}");
     }
     
     void DeserializeTowerFloors(GameSaveData data)
@@ -1350,7 +1474,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                     towerDatabase = field.GetValue(turnSystem) as TowerSlimeBosses;
                     if (towerDatabase != null)
                     {
-                        Debug.Log("Found TowerDatabase from TurnSystem");
                     }
                 }
             }
@@ -1361,7 +1484,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                 if (allTowers != null && allTowers.Length > 0)
                 {
                     towerDatabase = allTowers[0];
-                    Debug.Log("Found TowerDatabase from Resources");
                 }
             }
         }
@@ -1380,7 +1502,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         
         if (data.towerFloors == null)
         {
-            Debug.Log("No tower floor data in save.");
             return;
         }
         
@@ -1412,7 +1533,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
         }
         
-        Debug.Log($"DeserializeTowerFloors: Loaded {data.towerFloors.Count} floor progress (claimed: {loadedClaimed})");
     }
 
     // ---------- Farm Difficulties ----------
@@ -1437,7 +1557,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
         }
 
-        Debug.Log($"SerializeFarmDifficulties: Save {data.farmDifficulties.Count} difficulties");
     }
 
     void DeserializeFarmDifficulties(GameSaveData data)
@@ -1454,7 +1573,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                 difficulties[dto.difficultyIndex].unlocked = dto.unlocked;
                 difficulties[dto.difficultyIndex].completed = dto.completed;
                 
-                Debug.Log($"Deserialize Farm Difficulty {dto.difficultyIndex}: unlocked={dto.unlocked}, completed={dto.completed}");
             }
         }
         
@@ -1463,14 +1581,12 @@ public class SaveAndLoadSystem : MonoBehaviour
             difficulties[0].unlocked = true;
         }
         
-        Debug.Log($"DeserializeFarmDifficulties: Loaded {data.farmDifficulties.Count} difficulty progress");
     }
     public void LoadFarmDifficulties()
     {
         string json = CloudSaveProvider.Instance?.GetCachedJson();
         if (string.IsNullOrEmpty(json))
         {
-            Debug.Log("[Save] LoadFarmDifficulties: no cloud JSON.");
             return;
         }
 

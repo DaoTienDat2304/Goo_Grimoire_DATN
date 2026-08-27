@@ -31,7 +31,12 @@ thay đổi cân bằng ngoài Farm.
 5. **Publish changes**.
 6. Xoá thủ công 47 key cũ ở [§5](#5-danh-sách-key-cũ-cần-xoá-trên-console).
 
-Chạy game rồi tìm log `[RemoteConfig]` — dòng `[Meta] config_version=1` xác nhận đã ăn config.
+Chạy game rồi tìm log `[RemoteConfig]` — dòng `[Meta] config_version=1` xác nhận đã ăn config,
+dòng `[Dev] dev_account_email="..."` xác nhận key dev đã về tới máy.
+
+> **Test trong Unity Editor:** `RemoteConfigManager.fetchRemoteConfigInEditor` phải bật, nếu không
+> Editor chỉ dùng default trong code và mọi key chỉ tồn tại trên Console (`dev_account_email`, …)
+> sẽ rỗng. `CloudSaveProvider.useFirestoreInEditor` vẫn để tắt — save trong Editor chỉ ghi local.
 
 ---
 
@@ -48,7 +53,7 @@ Chạy game rồi tìm log `[RemoteConfig]` — dòng `[Meta] config_version=1` 
 | `feature_flags` | JSON | `{"eggSystem":true,"tower":true,"dailyMissions":true,"shop":true,"adventureCapture":true}` | Bật/tắt từng hệ thống. Đọc qua `RemoteBalance.Flags`. **Chưa gắn vào luồng game** — sẵn sàng cho bước sau. |
 | `active_shop_id` | string | `"default"` | Chọn database shop. `"summer"` cần gán `summerShopItemsDatabase` trong Inspector `ShopItemsSpawner`. |
 | `save_hmac_salt` | string | `"GooGrimoire_HmacFallback_v1"` | **BÍ MẬT** — salt derive HMAC key cho save data. Bắt buộc đổi trên Console. |
-| `dev_account_email` | string | `""` | Email tài khoản dev (`DevAccountInitializer.IsDevAccount`). |
+| `dev_account_email` | string | `""` | Email tài khoản dev (`DevAccountInitializer.IsDevAccount`). Tài khoản khớp email này, **ngay lần đầu tạo save**, được 30 slime đủ 8 độ hiếm + 999999 vàng + 999999 gem. So khớp không phân biệt hoa/thường và bỏ khoảng trắng thừa. ⚠️ Có hiệu lực **cả trong bản release** — để tắt hoàn toàn thì xoá rỗng key này rồi Publish. |
 
 ### Nhóm 1 — Chỉ số & chiến đấu (12 key)
 

@@ -75,8 +75,12 @@ public class BattleInfoDisplayUI : MonoBehaviour
 
 
 
+        string displayName = !string.IsNullOrEmpty(slime.slimeName)
+            ? slime.slimeName
+            : slime.gameObject.name.Replace("(Clone)", "").Replace("TeamSlime_", "Slime ").Trim();
+
         if (headerTitleText != null)
-            headerTitleText.text = $"--- SLIME: {slime.gameObject.name.ToUpper()} ---";
+            headerTitleText.text = $"--- SLIME: {displayName.ToUpper()} ---";
 
         if (infoIconImage != null)
         {
@@ -87,7 +91,7 @@ public class BattleInfoDisplayUI : MonoBehaviour
             infoIconImage.gameObject.SetActive(infoIconImage.sprite != null);
         }
 
-        string info = $"[Name]: {slime.gameObject.name}  |  [Level]: {(slime.id > 0 ? $"Lv. {slime.id}" : "Lv. 1")}\n";
+        string info = $"[Name]: {displayName}\n";
 
         if (battleStats != null)
         {
@@ -116,7 +120,6 @@ public class BattleInfoDisplayUI : MonoBehaviour
         if (mainInfoText != null)
             mainInfoText.text = info;
 
-        Debug.Log($"[BattleInfoDisplayUI] Show Slime Info: {slime.gameObject.name}");
     }
 
     /// <summary>
@@ -178,7 +181,6 @@ public class BattleInfoDisplayUI : MonoBehaviour
         if (mainInfoText != null)
             mainInfoText.text = info;
 
-        Debug.Log($"[BattleInfoDisplayUI] Show Skill Info: {sName}");
     }
 
     public void HideInfo()

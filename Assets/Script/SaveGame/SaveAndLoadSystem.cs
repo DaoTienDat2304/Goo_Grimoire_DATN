@@ -73,6 +73,10 @@ public class SaveAndLoadSystem : MonoBehaviour
         AuthManager.Instance.OnLoggedOut     += HandleLoggedOut;
         AuthManager.Instance.OnLoginSuccess  += HandleLoginSuccess;
         _authBound = true;
+
+        // The login event may have fired before this component found AuthManager.
+        if (_initialized && _loadedUid == "guest" && AuthManager.Instance.IsLoggedIn)
+            HandleLoginSuccess(AuthManager.Instance.CurrentUserId);
     }
 
     /// Day not tien trinh cua tai khoan dang choi xuong local + cloud
@@ -121,7 +125,24 @@ public class SaveAndLoadSystem : MonoBehaviour
     /// Lan dang nhap dau tien da co coroutine tu Start() dang cho san nen bo qua.
     void HandleLoginSuccess(string uid)
     {
-        if (_initRunning || _initialized) return;
+        if (_initRunning) return;
+
+        if (_initialized)
+        {
+            if (_loadedUid != "guest") return;
+
+            if (_autoSaveRoutine != null)
+            {
+                StopCoroutine(_autoSaveRoutine);
+                _autoSaveRoutine = null;
+            }
+
+            _initialized = false;
+            _cachedSaveData = null;
+            _loadedUid = null;
+            ResetGameState();
+        }
+
         _initRoutine = StartCoroutine(InitializeAsync());
     }
 
@@ -283,42 +304,49 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         _initRunning = true;
 
-        // AuthManager/RemoteConfigManager/CloudSaveProvider la singleton DontDestroyOnLoad
-        // chi duoc tao trong scene `menu`. Play thang scene gameplay thi chung khong ton tai
-        // va vong cho nay treo vinh vien, khong load save, khong kiem tra dev account.
-        // Khong doi hanh vi — chi keu to len de con biet duong ma sua.
-        float authWarnAt = Time.realtimeSinceStartup + 5f;
-        bool authWarned = false;
-        while (AuthManager.Instance == null || !AuthManager.Instance.IsLoggedIn)
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        bool isLoginScene = string.Equals(activeSceneName, "menu", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(activeSceneName, "MenuScene", StringComparison.OrdinalIgnoreCase);
+        bool useLocalGuest = AuthManager.Instance == null && !isLoginScene;
+
+        if (useLocalGuest)
         {
-            if (!authWarned && Time.realtimeSinceStartup >= authWarnAt)
-            {
-                authWarned = true;
-                if (AuthManager.Instance == null)
-                    Debug.LogError("[Save] Khong tim thay AuthManager sau 5s. Ban dang Play thang scene gameplay? " +
-                                   "Auth/RemoteConfig/CloudSave chi sinh ra tu scene `menu` — hay Play `Assets/Scenes/menu.unity` va dang nhap truoc.");
-                else
-                    Debug.LogWarning("[Save] Da co AuthManager nhung chua dang nhap sau 5s — dang cho nguoi choi dang nhap.");
-            }
-            yield return null;
+            Debug.LogWarning($"[Save] Play thang scene '{activeSceneName}': dung save local 'guest'; cloud save tam tat.");
         }
+        else
+        {
+            float authWarnAt = Time.realtimeSinceStartup + 5f;
+            bool authWarned = false;
+            while (AuthManager.Instance == null || !AuthManager.Instance.IsLoggedIn)
+            {
+                if (!authWarned && Time.realtimeSinceStartup >= authWarnAt)
+                {
+                    authWarned = true;
+                    if (AuthManager.Instance == null)
+                        Debug.LogError("[Save] Khong tim thay AuthManager sau 5s trong scene dang nhap.");
+                    else
+                        Debug.LogWarning("[Save] Da co AuthManager nhung chua dang nhap sau 5s — dang cho nguoi choi dang nhap.");
+                }
+                yield return null;
+            }
 
+            yield return new WaitUntil(() =>
+                CloudSaveProvider.Instance == null || CloudSaveProvider.Instance.CloudCheckDone);
 
-        yield return new WaitUntil(() =>
-            CloudSaveProvider.Instance == null || CloudSaveProvider.Instance.CloudCheckDone);
-
-        // Phai co dev_account_email THAT tu server truoc khi quyet dinh tai khoan moi
-        // la dev hay nguoi choi thuong. CloudCheckDone chi cho IsReady (moi co default),
-        // fetch tu Console co the ve sau — khong cho o day thi dev account luon truot.
-        yield return StartCoroutine(WaitForRemoteConfigFetch(remoteConfigWaitTimeout));
+            // Phai co dev_account_email THAT tu server truoc khi quyet dinh tai khoan moi
+            // la dev hay nguoi choi thuong. CloudCheckDone chi cho IsReady (moi co default),
+            // fetch tu Console co the ve sau — khong cho o day thi dev account luon truot.
+            yield return StartCoroutine(WaitForRemoteConfigFetch(remoteConfigWaitTimeout));
+        }
 
         if (CurrencyManager.Instance != null)
             CurrencyManager.Instance.firstLoadDone = false;
 
-        string cloudJson = (CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.HasCloudSave)
+        string localSaveId = useLocalGuest ? "guest" : AuthManager.Instance.LocalSaveId;
+        string cloudJson = (!useLocalGuest && CloudSaveProvider.Instance != null && CloudSaveProvider.Instance.HasCloudSave)
             ? CloudSaveProvider.Instance.GetCachedJson()
             : null;
-        string localJson = LocalSaveStore.Load(AuthManager.Instance.LocalSaveId);
+        string localJson = LocalSaveStore.Load(localSaveId);
 
         string chosenJson;
         if (!string.IsNullOrEmpty(cloudJson) && !string.IsNullOrEmpty(localJson))
@@ -342,7 +370,7 @@ public class SaveAndLoadSystem : MonoBehaviour
         else
         {
             ResetGameState();
-            if (DevAccountInitializer.IsDevAccount())
+            if (!useLocalGuest && DevAccountInitializer.IsDevAccount())
             {
                 DevAccountInitializer.InitializeDevAccount();
             }
@@ -359,7 +387,7 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         // Ghi nho khoi du lieu vua nap la cua ai — Save() dua vao day de tu choi
         // ghi de khi uid da doi.
-        _loadedUid   = AuthManager.Instance.LocalSaveId;
+        _loadedUid   = localSaveId;
         _initRunning = false;
         _initRoutine = null;
 

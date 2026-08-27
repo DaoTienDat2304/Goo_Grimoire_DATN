@@ -131,7 +131,6 @@ public class BreedingManager : MonoBehaviour
         }
 
         wildSlimes.tamedSlimes.Clear();
-        Debug.Log($"[Adventure Return] Imported {importedCount}/{pendingCount} captured slime(s) into the home collection.");
         return importedCount;
     }
 

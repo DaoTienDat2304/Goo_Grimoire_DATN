@@ -46,7 +46,6 @@ public class BattleExitUI : MonoBehaviour
     {
         if (confirmPopup != null) confirmPopup.SetActive(false);
 
-        Debug.Log("[BattleExitUI] Player quit, count as loss.");
         
         TurnSystem turnSystem = FindObjectOfType<TurnSystem>();
         if (turnSystem != null)

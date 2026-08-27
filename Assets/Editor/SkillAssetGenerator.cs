@@ -285,7 +285,6 @@ public static class SkillAssetGenerator
         S(BODY_DIR, "B_Sec_Sing", Psv, "Singularity Field", "Passive [EXCLUSIVE] · All enemy −15% all stats & no the tu tang stats bang buff/passive (aura).", 0, 0, 0, 0, (dbAtkA, 0.15f, 0, 0, 100), (dbSpdA, 15f, 0, 0, 100));
 
         AssetDatabase.SaveAssets(); AssetDatabase.Refresh();
-        Debug.Log("<color=green>[SkillGen] HOAN TAT! All bo Database Skill tu Spec da duoc tao thanh cong!</color>");
     }
 
     static SkillEffectSO E(string n, EffectType t, TargetSide s, AoEShape a, AnchorType an = AnchorType.AttackTarget, BuffStat b = BuffStat.Defense)

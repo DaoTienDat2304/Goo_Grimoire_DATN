@@ -25,7 +25,6 @@ public static class LandscapeUIEditorFixer
                 EditorSceneManager.MarkSceneDirty(scene);
         }
 
-        Debug.Log($"Landscape UI bake finished for open scenes. Updated {changed} CanvasScaler component(s).");
     }
 
     [MenuItem("Goo Grimoire/UI/Bake Landscape Canvas Settings In Project Scenes And Prefabs")]
@@ -74,7 +73,6 @@ public static class LandscapeUIEditorFixer
         if (!string.IsNullOrEmpty(activeScenePath))
             EditorSceneManager.OpenScene(activeScenePath, OpenSceneMode.Single);
 
-        Debug.Log($"Landscape UI bake finished for project scenes and prefabs. Updated {changed} CanvasScaler component(s).");
     }
 
     private static int ConfigureCanvasesIn(GameObject root)

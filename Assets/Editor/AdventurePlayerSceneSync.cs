@@ -60,12 +60,10 @@ public static class AdventurePlayerSceneSync
 
             EditorSceneManager.MarkSceneDirty(targetScene);
             EditorSceneManager.SaveScene(targetScene);
-            Debug.Log($"AdventurePlayerSceneSync: Synced Player into {scenePath}");
         }
 
         AssetDatabase.DeleteAsset(TempPrefabPath);
         EditorSceneManager.OpenScene(SourceScenePath, OpenSceneMode.Single);
-        Debug.Log("AdventurePlayerSceneSync: Done.");
     }
 
     private static GameObject FindRootPlayer()

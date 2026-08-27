@@ -94,7 +94,6 @@ public static class SlimeEggUIBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[EggUI] Built and saved UI hierarchy in " + ScenePath);
     }
 
     private static Canvas FindMainCanvas()
@@ -156,7 +155,6 @@ public static class SlimeEggUIBuilder
         EditorUtility.SetDirty(ui);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[EggUI] Added missing ExitButton objects without rebuilding existing UI.");
     }
 
     private static void EnsureExitButton(GameObject panel, UnityEngine.Events.UnityAction closeAction)

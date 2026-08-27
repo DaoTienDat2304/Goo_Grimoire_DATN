@@ -55,7 +55,6 @@ public static class TameSidebarUIAssembler
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[TameSidebarUI] Wired existing Tame and TameInventory UI without rebuilding layout.");
     }
 
     [MenuItem("Tools/Goo Grimoire/Rebuild Tame Sidebar UI From UI_sidebar")]
@@ -105,7 +104,6 @@ public static class TameSidebarUIAssembler
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[TameSidebarUI] Rebuilt Tame and TameInventory UI in Map1_IceMap using UI_sidebar assets.");
     }
 
     private static void BuildTeamPanel(Transform parent, showteam teamUi)

@@ -62,7 +62,6 @@ public class TraitAnimationSetup : EditorWindow
                 if (skeletonAnimation != null)
                 {
                     slimeAnimationAsset = skeletonAnimation.skeletonDataAsset;
-                    Debug.Log($"Loaded SlimeAnimation asset: {slimeAnimationAsset.name}");
                 }
                 else
                 {
@@ -100,14 +99,12 @@ public class TraitAnimationSetup : EditorWindow
                 EditorUtility.SetDirty(trait);
                 updatedCount++;
                 
-                Debug.Log($"Updated trait: {trait.name}");
             }
         }
         
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         
-        Debug.Log($"Updated {updatedCount} Body traits with animation");
         EditorUtility.DisplayDialog("Animation Setup Complete", 
             $"Successfully updated {updatedCount} Body traits with animation.", "OK");
     }

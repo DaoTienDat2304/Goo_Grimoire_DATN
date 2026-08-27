@@ -35,7 +35,6 @@ public class SkillTestHelper : MonoBehaviour
     [ContextMenu("Reset All Cooldowns")] void ResetAllCooldowns()
     {
         for (int i = 0; i < _cooldowns.Length; i++) _cooldowns[i] = 0;
-        Debug.Log("[SkillTest] Cooldowns reset.");
     }
 
     void FireSkill(int index)
@@ -61,7 +60,6 @@ public class SkillTestHelper : MonoBehaviour
         }
 
         var boss = turnSystem.boss;
-        Debug.Log($"[SkillTest] Skill [{index}] '{skill.skillName}' (power={testSkillPower}) — {skill.effects.Count} effect(s):");
 
         foreach (var entry in skill.effects)
         {
@@ -71,7 +69,6 @@ public class SkillTestHelper : MonoBehaviour
 
             if (targets.Count == 0)
             {
-                Debug.Log($"  Effect '{entry.effect.name}': no target .");
                 continue;
             }
 
@@ -82,7 +79,6 @@ public class SkillTestHelper : MonoBehaviour
                 // Roll applyChance
                 if (Random.Range(0f, 100f) > entry.applyChance)
                 {
-                    Debug.Log($"  {go.name}: miss (chance {entry.applyChance}%)");
                     continue;
                 }
 
@@ -93,28 +89,23 @@ public class SkillTestHelper : MonoBehaviour
                     case EffectType.Damage:
                         int dmg = Mathf.RoundToInt(stats.BattleAttack * testSkillPower * entry.value);
                         stats.TakeDamage(dmg);
-                        Debug.Log($"  {go.name}: Damage {dmg} | HP {hpBefore} → {stats.CurrentHP}");
                         break;
 
                     case EffectType.Heal:
                         int heal = Mathf.RoundToInt(stats.MaxHP * testSkillPower * entry.value);
                         stats.Heal(heal);
-                        Debug.Log($"  {go.name}: Heal {heal} | HP {hpBefore} → {stats.CurrentHP}");
                         break;
 
                     case EffectType.Buff:
                         stats.ApplyBuff(entry.effect.buffStat, testSkillPower * entry.value, entry.duration, false);
-                        Debug.Log($"  {go.name}: Buff {entry.effect.buffStat} x{testSkillPower * entry.value:F2} ({entry.duration} turn)");
                         break;
 
                     case EffectType.Debuff:
                         stats.ApplyBuff(entry.effect.buffStat, testSkillPower * entry.value, entry.duration, true);
-                        Debug.Log($"  {go.name}: Debuff {entry.effect.buffStat} x{testSkillPower * entry.value:F2} ({entry.duration} turn)");
                         break;
 
                     case EffectType.Stun:
                         stats.ApplyStun(entry.duration);
-                        Debug.Log($"  {go.name}: Stun {entry.duration} turn");
                         break;
                 }
             }

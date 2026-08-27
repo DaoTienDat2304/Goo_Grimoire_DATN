@@ -10,7 +10,6 @@ public static class LocalSaveStore
         if (string.IsNullOrEmpty(json)) return;
         PlayerPrefs.SetString(Key(uid), json);
         PlayerPrefs.Save();
-        Debug.Log($"[LocalSave] Saved PlayerPrefs for uid={uid}");
     }
 
     public static bool Has(string uid) => PlayerPrefs.HasKey(Key(uid));
@@ -23,7 +22,6 @@ public static class LocalSaveStore
         if (!Has(uid)) return;
         PlayerPrefs.DeleteKey(Key(uid));
         PlayerPrefs.Save();
-        Debug.Log($"[LocalSave] Da remove PlayerPrefs cho uid={uid}");
     }
 
     public static long GetSavedAt(string json)

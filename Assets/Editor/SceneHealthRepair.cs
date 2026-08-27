@@ -31,7 +31,6 @@ public static class SceneHealthRepair
         }
 
         EnableSceneInBuildSettings("Assets/Scenes/travelSence.unity");
-        Debug.Log($"Scene health repair finished. Removed {removedMissingPrefabs} missing prefab instance(s).");
     }
 
     private static int RemoveMissingPrefabInstances(Scene scene)

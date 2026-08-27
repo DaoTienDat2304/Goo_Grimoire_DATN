@@ -138,7 +138,6 @@ public class TowerUIManager : MonoBehaviour
         if (SaveAndLoadSystem.Instance != null)
         {
             SaveAndLoadSystem.Instance.Save();
-            Debug.Log("[TowerUIManager] Da luu du lieu truoc khi vao battle dau chinh.");
         }
         StartCoroutine(LoadBattleScene());
     }
@@ -252,7 +251,6 @@ public class TowerUIManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[TowerReward] {msg}");
         }
     }
 

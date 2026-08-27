@@ -28,7 +28,6 @@ public class AchievementCurrencyReward
             
             if (showNotification)
             {
-                Debug.Log($"Achievement Reward: {currencyReward.GetRewardDescription()}");
             }
         }
     }

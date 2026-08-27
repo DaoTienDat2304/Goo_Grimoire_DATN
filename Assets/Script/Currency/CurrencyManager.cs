@@ -47,7 +47,6 @@ public class CurrencyManager : MonoBehaviour
         SaveCurrencyData();
         firstLoadDone = true;
         
-        Debug.Log($"Currency loaded: {GetCurrency(CurrencyType.Coins)} Coins, {GetCurrency(CurrencyType.Gems)} Gems");
     }
     /// Dat lai vang/gem ve moc khoi dau (uu tien starting_coins / starting_gems tu Remote Config).
     /// Goi khi bat dau mot tai khoan moi hoan toan, vi PlayerPrefs khong tach theo uid.
@@ -60,7 +59,6 @@ public class CurrencyManager : MonoBehaviour
         SetCurrency(CurrencyType.Gems, gems);
         firstLoadDone = true;
 
-        Debug.Log($"Currency reset for new account: {coins} Coins, {gems} Gems");
     }
 
     public int GetCurrency(CurrencyType type)
@@ -79,7 +77,6 @@ public class CurrencyManager : MonoBehaviour
         
         SaveCurrencyData();
         
-        Debug.Log($"Add {amount} {type}. Total: {currencies[type]}");
     }
     public bool SpendCurrency(CurrencyType type, int amount)
     {
@@ -100,7 +97,6 @@ public class CurrencyManager : MonoBehaviour
         
         SaveCurrencyData();
         
-        Debug.Log($"Spend {amount} {type}. Left: {currencies[type]}");
         return true;
     }
     public bool HasEnoughCurrency(CurrencyType type, int amount)

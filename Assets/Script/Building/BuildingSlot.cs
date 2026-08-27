@@ -122,7 +122,6 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
                         slotID = building.buildingID;
                         RefreshBuildingCollider();
 
-                        Debug.Log($"Built {building.buildingName} cost: {building.GetCostDescription()}");
 
                         if (buildingMenuManager != null)
                         {
@@ -134,12 +133,10 @@ public class BuildingSlot : MonoBehaviour, IPointerClickHandler, IDropHandler
                 }
                 else
                 {
-                    Debug.Log($"Cannot build {building.buildingName}: Not enough money!");
                 }
             }
             else
             {
-                Debug.Log($"Cannot build {building.buildingName}: Not enough money! Need: {building.GetCostDescription()}");
             }
         }
         else return;

@@ -203,9 +203,6 @@ public class SlimeBattleStats : MonoBehaviour
     public void AddEnergy(int amount)
     {
         currentEnergy = Mathf.Clamp(currentEnergy + amount, 0, MAX_ENERGY);
-#if UNITY_EDITOR
-        Debug.Log($"{name} heal {amount} Energy. Current: {currentEnergy}/100");
-#endif
     }
 
     public void AddShield(int amount)
@@ -216,9 +213,6 @@ public class SlimeBattleStats : MonoBehaviour
         {
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.2f, $"+{amount} SHIELD!", Color.cyan);
         }
-#if UNITY_EDITOR
-        Debug.Log($"{name} taken {amount} Shield. Shield: {currentShield}");
-#endif
     }
 
     public void UseEnergy(int amount)
@@ -293,9 +287,6 @@ public class SlimeBattleStats : MonoBehaviour
             if (currentShield >= finalDmgInt)
             {
                 currentShield -= finalDmgInt;
-#if UNITY_EDITOR
-                Debug.Log($"{name} hit for {finalDmgInt} but shield blocked it!");
-#endif
                 return;
             }
             else
@@ -308,21 +299,22 @@ public class SlimeBattleStats : MonoBehaviour
         CurrentHP -= finalDmgInt;
         CurrentHP = Mathf.Max(0, CurrentHP);
 
+        if (baseStats == null)
+            baseStats = GetComponent<SlimeStats>();
+
         if (baseStats != null)
         {
             baseStats.HP = CurrentHP;
             if (baseStats.hpbar != null)
                 baseStats.hpbar.value = CurrentHP;
-            if (CurrentHP <= 0) baseStats.SetDeadVisual();
+            if (CurrentHP <= 0) 
+                baseStats.SetDeadVisual();
         }
 
         var turnSys = GetTurnSys();
         if (turnSys != null)
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, $"-{finalDmgInt}", Color.red);
 
-#if UNITY_EDITOR
-        Debug.Log($"{name} takes {finalDmgInt} damage! HP: {CurrentHP}/{MaxHP}");
-#endif
     }
 
     public void ModifyActionValue(float percentage, bool isAdvance)
@@ -333,16 +325,10 @@ public class SlimeBattleStats : MonoBehaviour
         if (isAdvance)
         {
             currentAV = Mathf.Max(0, currentAV - changeAmount);
-#if UNITY_EDITOR
-            Debug.Log($"{name} pulled {percentage}%, AV now {currentAV}");
-#endif
         }
         else
         {
             currentAV += changeAmount;
-#if UNITY_EDITOR
-            Debug.Log($"{name} pushed {percentage}%, AV tang on {currentAV}");
-#endif
         }
     }
 
@@ -362,9 +348,6 @@ public class SlimeBattleStats : MonoBehaviour
         if (turnSys != null)
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.5f, $"+{healAmount} HP", Color.green);
 
-#if UNITY_EDITOR
-        Debug.Log($"{name} heals for {healAmount}! HP: {CurrentHP}/{MaxHP}");
-#endif
     }
 
     public void ApplyBuff(BuffStat stat, float multiplier, int duration, bool isDebuff = false)
@@ -441,17 +424,12 @@ public class SlimeBattleStats : MonoBehaviour
         if (turnSys != null)
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 1.8f, "STUNNED!", Color.magenta);
 
-#if UNITY_EDITOR
-        Debug.Log($"{name} bi stun {duration} turn!");
-#endif
     }
 
     public void TickStun()
     {
         if (StunTurns <= 0) return;
         StunTurns--;
-        if (StunTurns == 0)
-            Debug.Log($"{name} thoat khoi stun.");
     }
 
     public void TickBuffs()
@@ -463,7 +441,6 @@ public class SlimeBattleStats : MonoBehaviour
             if (buff.turnsLeft <= 0)
             {
                 SetStat(buff.stat, buff.originalValue);
-                Debug.Log($"{name}: {buff.stat} buff het han, restore ve {buff.originalValue}");
                 activeBuffs.RemoveAt(i);
             }
             else
@@ -503,9 +480,6 @@ public class SlimeBattleStats : MonoBehaviour
             Color color = type == EffectType.Poison ? Color.green : new Color(0.6f, 0f, 0f);
             turnSys.CreateDamagePopup(transform.position + Vector3.up * 2.0f, effectName, color);
         }
-#if UNITY_EDITOR
-        Debug.Log($"{name} bi taken {type} deals {damagePerTurn} damage per turn for {duration} turn!");
-#endif
     }
 
     public void TickDoTs()
@@ -527,7 +501,6 @@ public class SlimeBattleStats : MonoBehaviour
 
             if (dot.turnsLeft <= 0)
             {
-                Debug.Log($"{name}: {dot.type} ended.");
                 activeDoTs.RemoveAt(i);
             }
             else

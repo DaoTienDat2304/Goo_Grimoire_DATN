@@ -175,7 +175,6 @@ public class NewGameManager : MonoBehaviour
     {
         PlayerPrefs.DeleteAll();
         PlayerPrefs.Save();
-        Debug.Log("[NewGame] Save reset (PlayerPrefs cleared).");
     }
     
     public async void LoadMainGame()

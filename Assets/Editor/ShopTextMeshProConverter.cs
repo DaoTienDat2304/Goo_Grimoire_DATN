@@ -27,7 +27,6 @@ public static class ShopTextMeshProConverter
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         AssetDatabase.SaveAssets();
-        Debug.Log("[Shop] Converted shop legacy Text components to TextMeshProUGUI without changing RectTransforms.");
     }
 
     private static void ConvertPrefab(string path)

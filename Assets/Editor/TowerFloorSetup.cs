@@ -43,7 +43,6 @@ public static class TowerFloorSetup
             $"Created {db.floors.Count} floors for '{db.name}'.\nAssign Body/Armor/Weapon TraitSO per floor.",
             "OK");
 
-        Debug.Log($"[TowerFloorSetup] Created {db.floors.Count} floors at {path}");
     }
 
     // ── Floor data ─────────────────────────────────────────────────────

@@ -1,12 +1,4 @@
-﻿// ============================================================
-// RemoteConfigManager.cs
-//
-//
-//
-//
-// ============================================================
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 #if FIREBASE_REMOTE_CONFIG
@@ -33,8 +25,6 @@ public class RemoteConfigManager : MonoBehaviour
     [Tooltip("Editor Windows can crash with Firebase SDK 13.5.0 during automatic network fetches. Enable only when testing Remote Config in Editor.")]
     public bool fetchRemoteConfigInEditor = false;
 
-    // -------------------------------------------------------
-    // -------------------------------------------------------
 
     public int ConfigVersion => GetInt(RemoteConfigKeys.ConfigVersion, 1);
 
@@ -58,9 +48,6 @@ public class RemoteConfigManager : MonoBehaviour
 
     public string DevAccountEmail => GetString(RemoteConfigKeys.DevAccountEmail, "");
 
-    // -------------------------------------------------------
-    // -------------------------------------------------------
-
     public int MaxSlimes => GetInt(RemoteConfigKeys.BreedingMaxSlimes, 30);
 
     private readonly Dictionary<string, float> _floats = new Dictionary<string, float>();
@@ -70,9 +57,6 @@ public class RemoteConfigManager : MonoBehaviour
 
     private readonly Dictionary<string, object> _jsonCache = new Dictionary<string, object>();
 
-    // -------------------------------------------------------
-    // Lifecycle
-    // -------------------------------------------------------
     void Awake()
     {
         if (Instance == null)
@@ -102,8 +86,6 @@ public class RemoteConfigManager : MonoBehaviour
     }
 
 #if FIREBASE_REMOTE_CONFIG
-    // -------------------------------------------------------
-    // -------------------------------------------------------
     void InitializeFirebase()
     {
         Debug.Log("[RemoteConfig] Checking Firebase dependencies...");
@@ -208,8 +190,6 @@ public class RemoteConfigManager : MonoBehaviour
     }
 #endif
 
-    // -------------------------------------------------------
-    // -------------------------------------------------------
     public void ReapplyBalance()
     {
         _jsonCache.Clear();
@@ -260,9 +240,6 @@ public class RemoteConfigManager : MonoBehaviour
         Debug.Log("[RemoteConfig] ════════════════════════════════════");
     }
 
-    // -------------------------------------------------------
-    // Recalculate slime stats
-    // -------------------------------------------------------
     public void RecalculateAllSlimes()
     {
         var bm = BreedingManager.Instance;
@@ -291,8 +268,6 @@ public class RemoteConfigManager : MonoBehaviour
         Debug.Log($"[RemoteConfig] ✓ Recalculated {allSlimes.Count} slimes.");
     }
 
-    // -------------------------------------------------------
-    // -------------------------------------------------------
     public float GetFloat(string key, float fallback)
     {
         if (_floats.TryGetValue(key, out var over)) return over;

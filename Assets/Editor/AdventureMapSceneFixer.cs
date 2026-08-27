@@ -32,7 +32,6 @@ public static class AdventureMapSceneFixer
         foreach (string targetPath in TargetScenePaths)
             FixTargetScene(targetPath);
 
-        Debug.Log("[AdventureMapSceneFixer] Finished syncing adventure map runtime roots from Map4_T.");
     }
 
     private static void FixTargetScene(string targetPath)
@@ -61,7 +60,6 @@ public static class AdventureMapSceneFixer
         SceneManager.SetActiveScene(targetScene);
         EditorSceneManager.MarkSceneDirty(targetScene);
         EditorSceneManager.SaveScene(targetScene);
-        Debug.Log("[AdventureMapSceneFixer] Fixed " + targetPath);
     }
 
     private static void EnsurePlayerAnimations(
@@ -513,9 +511,6 @@ public static class AdventureMashmallowTmpConverter
         AssetDatabase.SaveAssets();
         if (logResult || repaired > 0)
         {
-            Debug.Log(
-                $"[Mashmallow TMP] Updated {repaired} scene(s), converted {converted} legacy Text component(s), " +
-                "and preserved all RectTransforms.");
         }
     }
 

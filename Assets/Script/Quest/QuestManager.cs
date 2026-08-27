@@ -91,7 +91,6 @@ public class QuestManager : MonoBehaviour
             AddQuest(q);
         }
 
-        Debug.Log($"[Mission] Loaded {MissionCatalog.All.Count} main missions.");
     }
     
     void Update()
@@ -132,7 +131,6 @@ public class QuestManager : MonoBehaviour
             if (quest.state == Quest.QuestState.Locked && CanUnlockQuest(quest))
             {
                 quest.state = Quest.QuestState.Available;
-                Debug.Log($"Quest '{quest.questName}' unlocked!");
 
                 string unlockType = quest is TimeQuest ? "time"
                     : quest is BreedingQuest ? "breeding"
@@ -235,7 +233,6 @@ public class QuestManager : MonoBehaviour
         if (questCompleted && quest.state == Quest.QuestState.InProgress)
         {
             quest.CompleteQuest();
-            Debug.Log($"Quest '{quest.questName}' completed!");
 
             string completeType = quest is TimeQuest ? "time"
                     : quest is BreedingQuest ? "breeding"

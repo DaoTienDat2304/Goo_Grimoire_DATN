@@ -72,7 +72,6 @@ public class SimpleCombatAnimation : MonoBehaviour
             slimeAnimationController.PlayAnimation("animation");
         }
         
-        Debug.Log($"{gameObject.name} initialized - Position: {originalPosition}, Scale: {originalScale}, Formation: {formationPosition}, IsEnemy: {isEnemy}");
     }
     
     private Vector3 GetFormationPosition()
@@ -143,7 +142,6 @@ public class SimpleCombatAnimation : MonoBehaviour
         float elapsedTime = 0f;
         Vector3 targetScale = lockedOriginalScale * scaleMultiplier;
         
-        Debug.Log($"{gameObject.name} PrepareAttack - From: {lockedOriginalScale} To: {targetScale}");
         
         while (elapsedTime < prepareTime)
         {
@@ -207,7 +205,6 @@ public class SimpleCombatAnimation : MonoBehaviour
         float elapsedTime = 0f;
         float duration = scaleBackTime;
         
-        Debug.Log($"{gameObject.name} ScaleBackToOriginal - From: {currentScale} To: {targetScale} (original: {lockedOriginalScale})");
         
         while (elapsedTime < duration)
         {
@@ -230,7 +227,6 @@ public class SimpleCombatAnimation : MonoBehaviour
             skeletonGraphic.color = originalColor;
         }
         
-        Debug.Log($"{gameObject.name} scaled back to smaller size: {targetScale} (was {lockedOriginalScale})");
     }
     
     private IEnumerator ReturnToFormationPosition()
@@ -290,7 +286,6 @@ public class SimpleCombatAnimation : MonoBehaviour
             Debug.LogWarning($"{gameObject.name} had to force reset color");
         }
         
-        Debug.Log($"{gameObject.name} final reset - Position: {targetPos}, Scale: {transform.localScale}");
     }
     
     public bool IsAnimating()
@@ -307,7 +302,6 @@ public class SimpleCombatAnimation : MonoBehaviour
     public void ForceResetScale()
     {
         transform.localScale = originalScale;
-        Debug.Log($"{gameObject.name} force reset scale to {originalScale}");
     }
     
     public void ForceSetOriginalScale()
@@ -323,7 +317,6 @@ public class SimpleCombatAnimation : MonoBehaviour
         }
         
         transform.localScale = originalScale;
-        Debug.Log($"{gameObject.name} force set original scale to {originalScale} (isEnemy: {isEnemy})");
     }
     
     [ContextMenu("Check And Fix Scale")]
@@ -332,12 +325,6 @@ public class SimpleCombatAnimation : MonoBehaviour
         var isEnemy = GetComponent<SlimeStats>()?.isEnemy ?? false;
         Vector3 expectedScale = isEnemy ? Vector3.one : Vector3.one * 1.3f;
         
-        Debug.Log($"=== {gameObject.name} Scale Check ===");
-        Debug.Log($"Current Scale: {transform.localScale}");
-        Debug.Log($"Original Scale: {originalScale}");
-        Debug.Log($"Locked Original Scale: {lockedOriginalScale}");
-        Debug.Log($"Expected Scale: {expectedScale}");
-        Debug.Log($"Is Enemy: {isEnemy}");
         
         if (Vector3.Distance(lockedOriginalScale, expectedScale) > 0.01f)
         {
@@ -348,7 +335,6 @@ public class SimpleCombatAnimation : MonoBehaviour
         }
         else
         {
-            Debug.Log("Scale is correct!");
         }
     }
     
@@ -363,7 +349,6 @@ public class SimpleCombatAnimation : MonoBehaviour
             originalPosition = newFormationPos;
         }
         
-        Debug.Log($"{gameObject.name} updated formation position to {newFormationPos} (isEnemy: {isEnemy})");
     }
     
     public void OnDroppedToFormation()
@@ -385,18 +370,6 @@ public class SimpleCombatAnimation : MonoBehaviour
         var slimeStats = GetComponent<SlimeStats>();
         var currentFormationPos = GetFormationPosition();
         
-        Debug.Log($"=== {gameObject.name} Formation Debug ===");
-        Debug.Log($"Current Position: {transform.position}");
-        Debug.Log($"Current Scale: {transform.localScale}");
-        Debug.Log($"Original Position: {originalPosition}");
-        Debug.Log($"Original Scale: {originalScale}");
-        Debug.Log($"Formation Position: {formationPosition}");
-        Debug.Log($"Calculated Formation Position: {currentFormationPos}");
-        Debug.Log($"Is Enemy: {slimeStats?.isEnemy ?? false}");
-        Debug.Log($"Has DropZone Parent: {dropZone != null}");
-        Debug.Log($"Has Member Parent: {member != null}");
-        if (dropZone != null) Debug.Log($"DropZone Position: {dropZone.transform.position}");
-        if (member != null) Debug.Log($"Member Position: {member.transform.position}");
     }
     
     [ContextMenu("Test Scale Animation")]
@@ -410,15 +383,12 @@ public class SimpleCombatAnimation : MonoBehaviour
     
     private IEnumerator TestScaleAnimationCoroutine()
     {
-        Debug.Log($"{gameObject.name} starting scale test - Original: {originalScale}");
         
         yield return StartCoroutine(PrepareAttack());
-        Debug.Log($"{gameObject.name} after prepare attack - Scale: {transform.localScale}");
         
         yield return new WaitForSeconds(0.5f);
         
         yield return StartCoroutine(ScaleBackToOriginal());
-        Debug.Log($"{gameObject.name} after scale back - Scale: {transform.localScale}");
     }
     
     void OnDestroy()

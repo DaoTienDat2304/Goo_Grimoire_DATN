@@ -28,7 +28,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
         FirebaseAnalytics.LogEvent(FirebaseAnalytics.EventLogin,
             new Parameter(FirebaseAnalytics.ParameterMethod, method));
 #else
-        Debug.Log($"[Analytics] login | method={method}");
 #endif
     }
 
@@ -38,7 +37,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
         FirebaseAnalytics.LogEvent(FirebaseAnalytics.EventSignUp,
             new Parameter(FirebaseAnalytics.ParameterMethod, method));
 #else
-        Debug.Log($"[Analytics] sign_up | method={method}");
 #endif
     }
 
@@ -47,7 +45,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
 #if FIREBASE_ANALYTICS
         FirebaseAnalytics.LogEvent("logout");
 #else
-        Debug.Log("[Analytics] logout");
 #endif
     }
 
@@ -62,7 +59,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("cost_coins",     (long)costCoins),
             new Parameter("slime_count",    (long)slimeCount));
 #else
-        Debug.Log($"[Analytics] breed_start | p1={parent1Rarity} p2={parent2Rarity} cost={costCoins} count={slimeCount}");
 #endif
     }
 
@@ -74,7 +70,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("had_mutation",      hadMutation ? 1L : 0L),
             new Parameter("slime_count",       (long)slimeCount));
 #else
-        Debug.Log($"[Analytics] breed_complete | rarity={offspringRarity} mutation={hadMutation} count={slimeCount}");
 #endif
     }
 
@@ -85,7 +80,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("stat_boosted",  statBoosted),
             new Parameter("bonus_amount",  (long)bonusAmount));
 #else
-        Debug.Log($"[Analytics] breed_mutation | stat={statBoosted} bonus=+{bonusAmount}");
 #endif
     }
 
@@ -99,7 +93,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("difficulty",  difficulty),
             new Parameter("team_size",   (long)teamSize));
 #else
-        Debug.Log($"[Analytics] battle_start | mode={battleMode} diff={difficulty} team={teamSize}");
 #endif
     }
 
@@ -112,7 +105,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("turns_taken",  (long)turnsTaken),
             new Parameter("coins_earned", (long)coinsEarned));
 #else
-        Debug.Log($"[Analytics] battle_win | mode={battleMode} diff={difficulty} turns={turnsTaken} coins={coinsEarned}");
 #endif
     }
 
@@ -124,7 +116,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("difficulty",  difficulty),
             new Parameter("turns_taken", (long)turnsTaken));
 #else
-        Debug.Log($"[Analytics] battle_lose | mode={battleMode} diff={difficulty} turns={turnsTaken}");
 #endif
     }
 
@@ -139,7 +130,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("resource_granted", resourceGranted),
             new Parameter("resource_amount",  (long)resourceAmount));
 #else
-        Debug.Log($"[Analytics] shop_purchase | currency={currencyType} price={price} resource={resourceGranted} x{resourceAmount}");
 #endif
     }
 
@@ -153,7 +143,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("quest_name", questName),
             new Parameter("quest_type", questType));
 #else
-        Debug.Log($"[Analytics] quest_unlock | id={questId} name={questName} type={questType}");
 #endif
     }
 
@@ -165,7 +154,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("quest_name", questName),
             new Parameter("quest_type", questType));
 #else
-        Debug.Log($"[Analytics] quest_complete | id={questId} name={questName} type={questType}");
 #endif
     }
 
@@ -178,7 +166,6 @@ public class FirebaseAnalyticsManager : MonoBehaviour
             new Parameter("difficulty_name",  difficultyName),
             new Parameter("difficulty_index", (long)difficultyIndex));
 #else
-        Debug.Log($"[Analytics] farm_difficulty_select | name={difficultyName} index={difficultyIndex}");
 #endif
     }
 }

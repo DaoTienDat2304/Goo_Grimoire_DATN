@@ -105,7 +105,6 @@ public static class FusionRightPanelUIBuilder
         EditorUtility.SetDirty(scroll);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("Fusion Right panel rebuilt under Right.");
     }
 
     private static RectTransform Rect(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax, Vector2 pos, Vector2 size)

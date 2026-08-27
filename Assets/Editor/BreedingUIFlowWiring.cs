@@ -58,7 +58,6 @@ public static class BreedingUIFlowWiring
         EditorSceneManager.SaveScene(scene, ScenePath);
         AssetDatabase.SaveAssets();
         Selection.activeGameObject = manager.gameObject;
-        Debug.Log("[BreedingUI] Edited hierarchy wired. Collection page size: 9.");
     }
 
     private static GameObject CreateCollectionPrefab(Transform grid)

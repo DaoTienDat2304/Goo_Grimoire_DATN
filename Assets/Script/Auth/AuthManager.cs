@@ -55,7 +55,6 @@ public class AuthManager : MonoBehaviour
 #if FIREBASE_AUTH
         InitFirebase();
 #else
-        Debug.Log("[Auth] Offline dev mode: fake uid.");
         ApplyOfflineUser();
 #endif
     }
@@ -69,11 +68,9 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator WaitForFirebaseAndInit()
     {
-        Debug.Log("[Auth] Waiting for Firebase...");
 
         if (RemoteConfigManager.Instance == null)
         {
-            Debug.Log("[Auth] RemoteConfigManager missing — checking dependencies.");
             bool done = false;
             FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
             {
@@ -96,16 +93,13 @@ public class AuthManager : MonoBehaviour
     {
         _auth = FirebaseAuth.DefaultInstance;
         _firebaseReady = true;
-        Debug.Log("[Auth] ✓ Firebase Auth ready.");
 
         if (_auth.CurrentUser != null)
         {
-            Debug.Log($"[Auth] Existing session: {_auth.CurrentUser.UserId}");
             ApplyUser(_auth.CurrentUser);
         }
         else
         {
-            Debug.Log("[Auth] Not logged in. Show login.");
         }
     }
 
@@ -113,7 +107,6 @@ public class AuthManager : MonoBehaviour
     public void SignInAnonymously()
     {
         if (!_firebaseReady) { OnLoginFailed?.Invoke("Firebase not ready."); return; }
-        Debug.Log("[Auth] Signing in anonymously...");
 
         _auth.SignInAnonymouslyAsync().ContinueWithOnMainThread(task =>
         {
@@ -124,7 +117,6 @@ public class AuthManager : MonoBehaviour
                 OnLoginFailed?.Invoke(err);
                 return;
             }
-            Debug.Log("[Auth] ✓ Anonymous login OK.");
             FirebaseAnalyticsManager.LogLogin("anonymous");
             ApplyUser(task.Result.User);
         });
@@ -138,7 +130,6 @@ public class AuthManager : MonoBehaviour
             OnLoginFailed?.Invoke("Email and password required.");
             return;
         }
-        Debug.Log($"[Auth] Email login: {email}");
 
         _auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWithOnMainThread(task =>
         {
@@ -149,7 +140,6 @@ public class AuthManager : MonoBehaviour
                 OnLoginFailed?.Invoke(err);
                 return;
             }
-            Debug.Log($"[Auth] ✓ Email login OK: {email}");
             FirebaseAnalyticsManager.LogLogin("email");
             ApplyUser(task.Result.User);
         });
@@ -163,7 +153,6 @@ public class AuthManager : MonoBehaviour
             OnLoginFailed?.Invoke("Email and password required.");
             return;
         }
-        Debug.Log($"[Auth] Registering: {email}");
 
         _auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWithOnMainThread(task =>
         {
@@ -174,7 +163,6 @@ public class AuthManager : MonoBehaviour
                 OnLoginFailed?.Invoke(err);
                 return;
             }
-            Debug.Log($"[Auth] ✓ Register OK: {email}");
             FirebaseAnalyticsManager.LogSignUp("email");
             FirebaseAnalyticsManager.LogLogin("email");
             ApplyUser(task.Result.User);
@@ -190,7 +178,6 @@ public class AuthManager : MonoBehaviour
         Debug.LogWarning("[Auth] Google Sign-In unsupported trong Unity Editor.");
         OnLoginFailed?.Invoke("Google Sign-In unsupported trong here.");
 #elif UNITY_ANDROID || UNITY_IOS
-        Debug.Log("[Auth] Google login (mobile)...");
         GoogleSignIn.Configuration = new GoogleSignInConfiguration
         {
             RequestIdToken = true,
@@ -198,7 +185,6 @@ public class AuthManager : MonoBehaviour
         };
         SignInWithGoogleMobileAsync();
 #elif UNITY_STANDALONE
-        Debug.Log("[Auth] Google login (desktop PKCE)...");
         SignInWithGoogleDesktopAsync();
 #else
         Debug.LogWarning("[Auth] Google Sign-In unsupported on this platform.");
@@ -214,7 +200,6 @@ public class AuthManager : MonoBehaviour
             var googleUser = await GoogleSignIn.DefaultInstance.SignIn();
             var credential = GoogleAuthProvider.GetCredential(googleUser.IdToken, null);
             var result     = await _auth.SignInAndRetrieveDataWithCredentialAsync(credential);
-            Debug.Log("[Auth] ✓ Google login OK.");
             FirebaseAnalyticsManager.LogLogin("google");
             ApplyUser(result.User);
         }
@@ -235,7 +220,6 @@ public class AuthManager : MonoBehaviour
             string idToken = await GoogleSignInDesktop.GetIdTokenAsync();
             var credential = GoogleAuthProvider.GetCredential(idToken, null);
             var result     = await _auth.SignInWithCredentialAsync(credential);
-            Debug.Log("[Auth] ✓ Google desktop login OK.");
             FirebaseAnalyticsManager.LogLogin("google");
             ApplyUser(result);
         }
@@ -264,7 +248,6 @@ public class AuthManager : MonoBehaviour
             OnPasswordResetFailed?.Invoke("Email required.");
             return;
         }
-        Debug.Log($"[Auth] Sending reset email to: {email}");
 
         _auth.SendPasswordResetEmailAsync(email).ContinueWithOnMainThread(task =>
         {
@@ -275,7 +258,6 @@ public class AuthManager : MonoBehaviour
                 OnPasswordResetFailed?.Invoke(err);
                 return;
             }
-            Debug.Log($"[Auth] ✓ Reset email sent to: {email}");
             OnPasswordResetSent?.Invoke(email);
         });
     }
@@ -294,7 +276,6 @@ public class AuthManager : MonoBehaviour
         CurrentUserId = null;
         DisplayName   = null;
         Email         = null;
-        Debug.Log("[Auth] Signed out.");
         FirebaseAnalyticsManager.LogLogout();
         OnLoggedOut?.Invoke();
     }
@@ -308,7 +289,6 @@ public class AuthManager : MonoBehaviour
         DisplayName   = string.IsNullOrEmpty(user.DisplayName) ? (user.IsAnonymous ? "Guest" : user.Email) : user.DisplayName;
         Email         = user.Email;
 
-        Debug.Log($"[Auth] User: uid={CurrentUserId} | name={DisplayName} | anonymous={IsAnonymous}");
         OnLoginSuccess?.Invoke(CurrentUserId);
     }
 

@@ -619,7 +619,6 @@ public class TurnSystem : MonoBehaviour
         if (remainingAV.ContainsKey(slime))
         {
             remainingAV[slime] = remainingAV[slime] * (oldSpeed / newSpeed);
-            Debug.Log($"{slime.name}: Speed changed from {oldSpeed} to {newSpeed}. Re-calculated AV to {remainingAV[slime]}");
         }
     }
 
@@ -740,7 +739,6 @@ public class TurnSystem : MonoBehaviour
 
         if (battleStats != null && battleStats.IsStunned)
         {
-            Debug.Log($"{currentSlime.name} is stunned, skips turn!");
             yield return new WaitForSeconds(0.8f);
             StartCoroutine(NextTurn());
             yield break;
@@ -866,7 +864,6 @@ public class TurnSystem : MonoBehaviour
             {
                 float critMult = attacker.GetFinalCritDMG();
                 damage = Mathf.RoundToInt(damage * critMult);
-                Debug.Log("Critical Hit!");
             }
 
             // Apply damage (TakeDamage in target applies defense and popup)
@@ -878,9 +875,6 @@ public class TurnSystem : MonoBehaviour
                 CreateDamagePopup(target.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
             }
 
-#if UNITY_EDITOR
-            Debug.Log($"{currentSlime.name} attacks {boss.name} for {damage} damage!");
-#endif
 
             if (targetAnimController != null && targetAnimController.gameObject.activeInHierarchy)
             {
@@ -889,9 +883,6 @@ public class TurnSystem : MonoBehaviour
 
             if (target.CurrentHP <= 0)
             {
-#if UNITY_EDITOR
-                Debug.Log($"{boss.name} died!");
-#endif
                 var nextAlive = formationManager.GetAllAliveEnemies(boss).FirstOrDefault();
                 if (nextAlive != null) SelectTarget(nextAlive);
             }
@@ -963,7 +954,6 @@ public class TurnSystem : MonoBehaviour
     {
         if (skillInstance == null || skillInstance.baseSkill == null)
         {
-            Debug.Log("No skill.");
             return;
         }
 
@@ -980,7 +970,6 @@ public class TurnSystem : MonoBehaviour
         {
             if (!BattleSystemManager.Instance.CanUseSkill(skillInstance.baseSkill, caster))
             {
-                Debug.Log($"Not enough points for {skillInstance.baseSkill.skillName}");
                 return;
             }
 
@@ -1038,14 +1027,12 @@ public class TurnSystem : MonoBehaviour
                         {
                             float critMult = attacker.GetFinalCritDMG();
                             finalDamage = Mathf.RoundToInt(finalDamage * critMult);
-                            Debug.Log("Critical Hit!");
                         }
                         targetStats.TakeDamage(finalDamage, currentSlime, isCrit, entry.effect.aoeShape != AoEShape.Single);
                         if (isCrit)
                         {
                             CreateDamagePopup(targetGo.transform.position + Vector3.up * 2.2f, "CRIT!", Color.yellow);
                         }
-                        Debug.Log($"{currentSlime.name} uses {skill.baseSkill.skillName} on {targetGo.name}: {finalDamage} damage");
                         var hitAnim = targetGo.GetComponent<SimpleCombatAnimation>();
                         if (hitAnim != null)
                             yield return StartCoroutine(hitAnim.PlayHitAnimation());
@@ -1059,22 +1046,18 @@ public class TurnSystem : MonoBehaviour
                     case EffectType.Heal:
                         int healAmount = Mathf.RoundToInt(targetStats.MaxHP * skill.power * entry.value);
                         targetStats.Heal(healAmount);
-                        Debug.Log($"{currentSlime.name} heal {targetGo.name} {healAmount} HP");
                         break;
 
                     case EffectType.Buff:
                         targetStats.ApplyBuff(entry.effect.buffStat, skill.power * entry.value, entry.duration, false);
-                        Debug.Log($"{currentSlime.name} buff {entry.effect.buffStat} on {targetGo.name} x{skill.power * entry.value:F2} ({entry.duration} turn)");
                         break;
 
                     case EffectType.Debuff:
                         targetStats.ApplyBuff(entry.effect.buffStat, skill.power * entry.value, entry.duration, true);
-                        Debug.Log($"{currentSlime.name} debuff {entry.effect.buffStat} on {targetGo.name} x{skill.power * entry.value:F2} ({entry.duration} turn)");
                         break;
 
                     case EffectType.Stun:
                         targetStats.ApplyStun(entry.duration);
-                        Debug.Log($"{currentSlime.name} stun {targetGo.name} {entry.duration} turn");
                         break;
                 }
 
@@ -1183,7 +1166,6 @@ public class TurnSystem : MonoBehaviour
                 {
                     float critMult = bossStats.GetFinalCritDMG();
                     damage = Mathf.RoundToInt(damage * critMult);
-                    Debug.Log("Boss Critical Hit!");
                 }
 
                 if (targetStats != null)
@@ -1202,7 +1184,6 @@ public class TurnSystem : MonoBehaviour
                 // Boss đánh thường hồi +25 Năng Lượng
                 bossStats.AddEnergy(25);
 
-                Debug.Log($"{boss.name} attacks {target.name} for {damage} damage! Energy: {bossStats.CurrentEnergy}/100");
 
                 if (targetAnimController != null)
                 {
@@ -1212,7 +1193,6 @@ public class TurnSystem : MonoBehaviour
                 int currentHP = targetStats != null ? targetStats.CurrentHP : target.GetComponent<SlimeStats>().HP;
                 if (currentHP <= 0)
                 {
-                    Debug.Log($"{target.name} died!");
                 }
             }
         }
@@ -1407,7 +1387,6 @@ public class TurnSystem : MonoBehaviour
             }
 
             yield return new WaitForSeconds(2f);
-            Debug.Log("Farm won, return firstsave");
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
             yield break;
         }
@@ -1421,7 +1400,6 @@ public class TurnSystem : MonoBehaviour
 
                 if (isReplay)
                 {
-                    Debug.Log($"Replay floor {towerBosses.replayFloor} refund thanh, no cong thuong.");
                     towerBosses.replayFloor = 0;
                 }
                 else
@@ -1435,7 +1413,6 @@ public class TurnSystem : MonoBehaviour
                         if (newStars > currentFloor.stars) currentFloor.stars = newStars;
                         if (currentFloor.bestTurnCount == 0 || turnCount < currentFloor.bestTurnCount) currentFloor.bestTurnCount = turnCount;
 
-                        Debug.Log($"Da refund thanh man {currentFloor.floorNumber}: {currentFloor.floorName} trong {turnCount} turn ({newStars} stars)");
 
                         towerBosses.cachedCompletedFloorNumber = currentFloor.floorNumber;
                         towerBosses.cachedCurrentFloor = towerBosses.currentFloor;
@@ -1457,7 +1434,6 @@ public class TurnSystem : MonoBehaviour
 
             yield return new WaitForSeconds(2f);
 
-            Debug.Log("Tower won, return firstsave");
             yield return SceneLoader.LoadSceneWithLoadingCoroutine("firstsave");
 
             yield break;

@@ -42,7 +42,6 @@ public class FormationManager : MonoBehaviour
     {
         int index = row * cols + col;
         if (index < 0 || index >= gridParent.childCount) return null;
-        Debug.Log(gridParent.GetChild(index).name);
         return gridParent.GetChild(index);
     }
 

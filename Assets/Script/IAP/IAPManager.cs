@@ -421,7 +421,6 @@ public class IAPManager : MonoBehaviour
 
         if (IsOrderProcessed(transactionId))
         {
-            Debug.Log($"[IAP] Bo qua don '{transactionId}' vi da phat thuong tu truoc.");
             return;
         }
 
@@ -513,7 +512,6 @@ public class IAPManager : MonoBehaviour
     private void SetStatus(string message)
     {
         statusMessage = $"IAP: {message}";
-        Debug.Log($"[IAP] {message}");
     }
 
     private static string GetProductId(Order order)

@@ -42,7 +42,6 @@ public static class DevAccountInitializer
 
         bool match = string.Equals(userEmail.Trim(), devEmail.Trim(),
                                    System.StringComparison.OrdinalIgnoreCase);
-        Debug.Log($"[DevInit] Kiem tra dev account: user=\"{userEmail}\" vs remote=\"{devEmail}\" -> {match}");
         return match;
     }
 
@@ -60,10 +59,8 @@ public static class DevAccountInitializer
             Debug.LogError("[DevInit] SlimeGen or BreedingManager not ready.");
             return;
         }
-        Debug.Log("[DevInit] Dev account: creating 30 slimes...");
         var devSlimes = BuildDevSlimeList();
         BreedingManager.Instance.SetAllSlimes(devSlimes);
-        Debug.Log($"[DevInit] Done. Created {devSlimes.Count} slimes.");
     }
 
     public static void InitializeDevCurrency()
@@ -76,7 +73,6 @@ public static class DevAccountInitializer
         }
         cm.SetCurrency(CurrencyType.Coins, DevCoins);
         cm.SetCurrency(CurrencyType.Gems,  DevGems);
-        Debug.Log($"[DevInit] Done. Cap {DevCoins} vang + {DevGems} gem.");
     }
 
     private static List<Slime> BuildDevSlimeList()

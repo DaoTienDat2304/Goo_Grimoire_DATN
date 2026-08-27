@@ -33,7 +33,6 @@ public class SkillTagUpdater : EditorWindow
         }
 
         AssetDatabase.SaveAssets();
-        Debug.Log($"<color=green>Auto-tagged {count} Skill!</color>");
     }
 }
 #endif

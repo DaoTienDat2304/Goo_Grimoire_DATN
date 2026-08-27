@@ -70,18 +70,15 @@ public class QuestUIManager : MonoBehaviour
 
             if (texts.Length >= 5 && quest.reward != null)
             {
-                Debug.Log($"Reward: {quest.reward.amount} {quest.reward.rewardType}");
                 texts[3].text = $"Reward: {quest.reward.amount} {quest.reward.rewardType}";
             }
             else
             {
-                Debug.Log($"Quest '{quest.questName}' - texts.Length: {texts.Length}, reward: {(quest.reward != null ? "exists" : "null")}");
                 if (texts.Length >= 5)
                 {
                     texts[3].text = "No Reward Set";
                 }
             }
-            if (rewardIcon == questBackground) Debug.Log("rewardIcon is questBackground");
             rewardIcon.sprite = quest.rewardIcon;
             UpdateQuestDisplay(quest, texts, progression, questBackground, progressBar, claimButton);
         }

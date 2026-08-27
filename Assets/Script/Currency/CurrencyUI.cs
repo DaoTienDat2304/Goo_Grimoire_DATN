@@ -52,9 +52,7 @@ public class CurrencyUI : MonoBehaviour
         if (CurrencyManager.Instance != null)
         {
             UpdateCurrencyDisplay(CurrencyType.Coins, CurrencyManager.Instance.GetCurrency(CurrencyType.Coins));
-            Debug.Log("Updating Coins Display: " + CurrencyManager.Instance.GetCurrency(CurrencyType.Coins));
             UpdateCurrencyDisplay(CurrencyType.Gems, CurrencyManager.Instance.GetCurrency(CurrencyType.Gems));
-            Debug.Log("Updating Gems Display: " + CurrencyManager.Instance.GetCurrency(CurrencyType.Gems));
         }
     }
 
@@ -211,7 +209,6 @@ public class CurrencyUI : MonoBehaviour
                 floor.claimed = true;
                 floorsClaimed++;
                 
-                Debug.Log($"Claimed floor {floor.floorNumber}: {coinsReward} Coins, {gemsReward} Gems");
             }
         }
         
@@ -222,7 +219,6 @@ public class CurrencyUI : MonoBehaviour
                 SaveAndLoadSystem.Instance.Save();
             }
 
-            Debug.Log($"Claimed {floorsClaimed} tower floors: Total {totalCoinsClaimed} Coins, {totalGemsClaimed} Gems");
         }
     }
     public void RefreshTowerRewards()

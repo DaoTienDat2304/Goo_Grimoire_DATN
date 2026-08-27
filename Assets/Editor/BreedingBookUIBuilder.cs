@@ -115,7 +115,6 @@ public static class BreedingBookUIBuilder
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene, ScenePath);
         Selection.activeGameObject = root;
-        Debug.Log("[BreedingUI] Clean two-page UI rebuilt. Root: BreedingUI/BreedingBookRoot");
     }
 
     private static void BuildHeader(Transform parent, BreedingUIManager manager, out Button close)

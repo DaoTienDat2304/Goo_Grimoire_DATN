@@ -89,12 +89,10 @@ public class CloudSaveProvider : MonoBehaviour
             {
                 _cachedCloudJson = localJson;
                 HasCloudSave     = true;
-                Debug.Log("[CloudSave] No cloud save. Using local save.");
             }
         }
 
         CloudCheckDone = true;
-        Debug.Log($"[CloudSave] InitCloudCheck xong. HasCloudSave={HasCloudSave}");
     }
 
     public string GetCachedJson() => _cachedCloudJson;
@@ -104,7 +102,6 @@ public class CloudSaveProvider : MonoBehaviour
         HasCloudSave     = false;
         CloudCheckDone   = false;
         _cachedCloudJson = null;
-        Debug.Log("[CloudSave] Cloud check reset.");
     }
 
     // ── Save ─────────────────────────────────────────────────
@@ -122,7 +119,6 @@ public class CloudSaveProvider : MonoBehaviour
 #if FIREBASE_FIRESTORE
         if (IsFirestoreDisabledInEditor())
         {
-            Debug.Log("[CloudSave] Firestore save skipped in Editor. Local save is already written.");
             yield break;
         }
 
@@ -162,12 +158,10 @@ public class CloudSaveProvider : MonoBehaviour
             Debug.LogWarning($"[CloudSave] ✗ Cloud save failed: {error}");
         else
         {
-            Debug.Log("[CloudSave] ✓ Saved to Firestore (HMAC).");
             _cachedCloudJson = json;
             HasCloudSave = true;
         }
 #else
-        Debug.Log("[CloudSave] Firestore off. Skip cloud save.");
         yield break;
 #endif
     }
@@ -201,11 +195,9 @@ public class CloudSaveProvider : MonoBehaviour
             {
                 rawJson = task.Result.GetValue<string>("json");
                 if (task.Result.TryGetValue("savedAt", out long ts)) savedAt = ts;
-                Debug.Log($"[CloudSave] ✓ Cloud load OK. savedAt={savedAt}");
             }
             else
             {
-                Debug.Log("[CloudSave] No cloud save data.");
             }
             done = true;
         });
@@ -213,7 +205,6 @@ public class CloudSaveProvider : MonoBehaviour
         yield return new WaitUntil(() => done);
         onComplete?.Invoke(rawJson, savedAt);
 #else
-        Debug.Log("[CloudSave] Firestore off.");
         onComplete?.Invoke(null, 0);
         yield break;
 #endif
@@ -228,7 +219,6 @@ public class CloudSaveProvider : MonoBehaviour
         {
             if (SaveIntegrity.Verify(envelope.payload, uid, envelope.sig))
             {
-                Debug.Log("[CloudSave] ✓ HMAC valid.");
                 return envelope.payload;
             }
 

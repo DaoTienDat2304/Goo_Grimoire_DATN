@@ -19,7 +19,6 @@ public class TamingManagerTutorial : MonoBehaviour
         
         if (curTamingPoint <= 0)
         {
-            Debug.Log("Fail");
             foreach (var note in spawner.notes)
             {
                 Destroy(note.gameObject);
@@ -29,7 +28,6 @@ public class TamingManagerTutorial : MonoBehaviour
         }
         if (curTamingPoint >= maxTamingPoint)
         {
-            Debug.Log("Success");
             foreach (var note in spawner.notes)
             {
                 Destroy(note.gameObject);

@@ -158,7 +158,6 @@ public class FarmModeManager : MonoBehaviour
             applied++;
         }
 
-        Debug.Log($"FarmModeManager: Updated {applied} difficulties from Remote Config.");
     }
 
     private static void ApplyRow(FarmDifficulty target, RcFarmRow row)
@@ -273,7 +272,6 @@ public class FarmModeManager : MonoBehaviour
         if (SaveAndLoadSystem.Instance != null)
         {
             SaveAndLoadSystem.Instance.Save();
-            Debug.Log("[FarmModeManager] Saved before Farm battle.");
         }
         
         StartCoroutine(SceneLoader.LoadSceneWithLoadingCoroutine(battleSceneName));

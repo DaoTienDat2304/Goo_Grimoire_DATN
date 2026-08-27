@@ -115,7 +115,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         _loadedUid      = null;
 
         ResetGameState();
-        Debug.Log("[Save] Da logout — reset state, cho dang nhap tai khoan moi.");
     }
 
     /// Dang nhap lai trong cung phien choi: chay lai toan bo luong nap theo uid moi.
@@ -283,7 +282,6 @@ public class SaveAndLoadSystem : MonoBehaviour
     IEnumerator InitializeAsync()
     {
         _initRunning = true;
-        Debug.Log("[Save] Waiting for Auth...");
 
         // AuthManager/RemoteConfigManager/CloudSaveProvider la singleton DontDestroyOnLoad
         // chi duoc tao trong scene `menu`. Play thang scene gameplay thi chung khong ton tai
@@ -305,7 +303,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             yield return null;
         }
 
-        Debug.Log($"[Save] Auth xong. uid={AuthManager.Instance.CurrentUserId}");
 
         yield return new WaitUntil(() =>
             CloudSaveProvider.Instance == null || CloudSaveProvider.Instance.CloudCheckDone);
@@ -331,7 +328,6 @@ public class SaveAndLoadSystem : MonoBehaviour
 
             bool localBetter = localTime >= cloudTime;
             chosenJson = localBetter ? localJson : cloudJson;
-            Debug.Log($"[Save] Cloud and local found. Using {(localBetter ? "local" : "cloud")} (Local time: {localTime}, Cloud time: {cloudTime}).");
         }
         else
         {
@@ -345,7 +341,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         }
         else
         {
-            Debug.Log("[Save] Tai khoan moi — bat dau game voi du lieu default.");
             ResetGameState();
             if (DevAccountInitializer.IsDevAccount())
             {
@@ -494,7 +489,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         {
             CloudSaveProvider.Instance.StartSave(
                 AuthManager.Instance.CurrentUserId, json);
-            Debug.Log($"[Save] Saving cloud. savedAt={data.lastSavedAt}");
         }
     }
 
@@ -507,7 +501,6 @@ public class SaveAndLoadSystem : MonoBehaviour
     {
         if (string.IsNullOrEmpty(json))
         {
-            Debug.Log("[Save] Load: empty json, ignored.");
             return;
         }
 
@@ -543,7 +536,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         if (SlimeWorldManager != null) SlimeWorldManager.RefreshWorldSlimes();
         if (slimeInventory != null) slimeInventory.RefreshAllUI();
 
-        Debug.Log($"[Save] Game loaded. Slimes count: {data.slimes?.Count ?? 0}, Placed Buildings count: {data.placedBuildings?.Count ?? 0}");
     }
 
     public Team GetTeam() => teamSlime;
@@ -564,7 +556,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         towerDatabase.cachedCompletedFloorNumber = 0;
 
         Save();
-        Debug.Log($"[Save] Applied tower cache: floor {completedFloor} completed, currentFloor={towerDatabase.currentFloor}");
     }
 
     public int GetTowerHighestFloor()
@@ -602,7 +593,6 @@ public class SaveAndLoadSystem : MonoBehaviour
 
             farmDatabase.ClearPendingResult();
             Save();
-            Debug.Log($"[Save] Applied farm result cache from FarmDatabaseSO: completedIndex={completedIndex}, coins={pCoins}, gems={pGems}");
             return;
         }
 
@@ -634,7 +624,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
 
             Save();
-            Debug.Log($"[Save] Applied farm result cache from PlayerPrefs fallback: completedIndex={completedIndex}");
         }
     }
 
@@ -874,7 +863,6 @@ public class SaveAndLoadSystem : MonoBehaviour
 
         if (data.slimes == null || data.slimes.Count == 0)
         {
-            Debug.Log("[Save] Save has 0 slimes. Keep current or create starter.");
             if (bm.GetAllSlimes() == null || bm.GetAllSlimes().Count == 0)
             {
                 bm.CreateInitialSlimes();
@@ -1407,7 +1395,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             wildSlimes.tamedSlimes.Add(tamed);
         }
         
-        Debug.Log($"DeserializeTamedSlimes: Loaded {wildSlimes.tamedSlimes.Count} tamed slimes");
     }
 
     // ---------- Tower Floors ----------
@@ -1425,7 +1412,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                     towerDatabase = field.GetValue(turnSystem) as TowerSlimeBosses;
                     if (towerDatabase != null)
                     {
-                        Debug.Log("Found TowerDatabase from TurnSystem");
                     }
                 }
             }
@@ -1436,7 +1422,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                 if (allTowers != null && allTowers.Length > 0)
                 {
                     towerDatabase = allTowers[0];
-                    Debug.Log("Found TowerDatabase from Resources");
                 }
             }
         }
@@ -1473,7 +1458,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             });
         }
 
-        Debug.Log($"SerializeTowerFloors: {data.towerFloors.Count} floors, highest={data.towerHighestFloor}, current={data.towerCurrentFloor}, claimed={claimedCount}");
     }
     
     void DeserializeTowerFloors(GameSaveData data)
@@ -1490,7 +1474,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                     towerDatabase = field.GetValue(turnSystem) as TowerSlimeBosses;
                     if (towerDatabase != null)
                     {
-                        Debug.Log("Found TowerDatabase from TurnSystem");
                     }
                 }
             }
@@ -1501,7 +1484,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                 if (allTowers != null && allTowers.Length > 0)
                 {
                     towerDatabase = allTowers[0];
-                    Debug.Log("Found TowerDatabase from Resources");
                 }
             }
         }
@@ -1520,7 +1502,6 @@ public class SaveAndLoadSystem : MonoBehaviour
         
         if (data.towerFloors == null)
         {
-            Debug.Log("No tower floor data in save.");
             return;
         }
         
@@ -1552,7 +1533,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
         }
         
-        Debug.Log($"DeserializeTowerFloors: Loaded {data.towerFloors.Count} floor progress (claimed: {loadedClaimed})");
     }
 
     // ---------- Farm Difficulties ----------
@@ -1577,7 +1557,6 @@ public class SaveAndLoadSystem : MonoBehaviour
             }
         }
 
-        Debug.Log($"SerializeFarmDifficulties: Save {data.farmDifficulties.Count} difficulties");
     }
 
     void DeserializeFarmDifficulties(GameSaveData data)
@@ -1594,7 +1573,6 @@ public class SaveAndLoadSystem : MonoBehaviour
                 difficulties[dto.difficultyIndex].unlocked = dto.unlocked;
                 difficulties[dto.difficultyIndex].completed = dto.completed;
                 
-                Debug.Log($"Deserialize Farm Difficulty {dto.difficultyIndex}: unlocked={dto.unlocked}, completed={dto.completed}");
             }
         }
         
@@ -1603,14 +1581,12 @@ public class SaveAndLoadSystem : MonoBehaviour
             difficulties[0].unlocked = true;
         }
         
-        Debug.Log($"DeserializeFarmDifficulties: Loaded {data.farmDifficulties.Count} difficulty progress");
     }
     public void LoadFarmDifficulties()
     {
         string json = CloudSaveProvider.Instance?.GetCachedJson();
         if (string.IsNullOrEmpty(json))
         {
-            Debug.Log("[Save] LoadFarmDifficulties: no cloud JSON.");
             return;
         }
 

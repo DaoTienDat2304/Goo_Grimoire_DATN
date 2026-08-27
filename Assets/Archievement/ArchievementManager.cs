@@ -155,7 +155,6 @@ public class ArchievementManager : MonoBehaviour
         if (gem > 0 && CurrencyManager.Instance != null)
             CurrencyManager.Instance.AddCurrency(CurrencyType.Gems, gem);
 
-        Debug.Log($"[Achievement] Unlocked '{row.def.Title}' (+{gem} Gem)");
     }
 
     private long Current(AchievementDef def)

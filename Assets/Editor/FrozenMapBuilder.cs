@@ -30,7 +30,6 @@ public static class FrozenMapBuilder
 
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
         {
-            Debug.Log("[FrozenMapBuilder] Canceled: scene is not saved.");
             return;
         }
 
@@ -79,7 +78,6 @@ public static class FrozenMapBuilder
             $"[FrozenMapBuilder] Xoa {removed} root thua khoi Frozen_Map, " +
             $"dua {moved} nhom he thong tu adventure sang: {string.Join(", ", movedNames)}. " +
             $"Saved={saved}.";
-        Debug.Log(summary);
 
         EditorUtility.DisplayDialog(
             "Build Frozen Map",
@@ -98,6 +96,5 @@ public static class FrozenMapBuilder
     {
         Scene frozenScene = EditorSceneManager.OpenScene(FrozenScenePath, OpenSceneMode.Single);
         var names = frozenScene.GetRootGameObjects().Select(go => go.name);
-        Debug.Log($"[FrozenMapBuilder] Frozen_Map roots: {string.Join(", ", names)}");
     }
 }

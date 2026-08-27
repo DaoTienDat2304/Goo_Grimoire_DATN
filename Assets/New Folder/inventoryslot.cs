@@ -119,7 +119,6 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
                 {
                     team.team.Remove(slime);
                     slime.isPicked = false;
-                    Debug.Log($"Da remove slime {slime.slimeName} from team after sacrifice");
                 }
             }
 

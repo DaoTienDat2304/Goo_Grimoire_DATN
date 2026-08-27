@@ -115,6 +115,15 @@ public class SlimeSpawner : MonoBehaviour
                 player = playerObj.transform;
                 playerMovement = playerObj.GetComponent<PlayerMovement>();
             }
+            else
+            {
+                var pm = FindAnyObjectByType<PlayerMovement>();
+                if (pm != null)
+                {
+                    player = pm.transform;
+                    playerMovement = pm;
+                }
+            }
         }
         else
         {
@@ -235,6 +244,7 @@ public class SlimeSpawner : MonoBehaviour
 
     Vector3 GetFallbackSpawnPosition(Vector3 spawnCenter)
     {
+        spawnCenter.z = 0f;
         if (player == null)
             return spawnCenter;
 
@@ -245,7 +255,9 @@ public class SlimeSpawner : MonoBehaviour
             direction = Vector2.right;
 
         float distance = Mathf.Max(minDistanceFromPlayer, 1f);
-        return player.position + (Vector3)(direction * distance);
+        Vector3 result = player.position + (Vector3)(direction * distance);
+        result.z = 0f;
+        return result;
     }
 
     public void SpawnSingleSlime(Vector3 position)
@@ -256,6 +268,7 @@ public class SlimeSpawner : MonoBehaviour
             return;
         }
 
+        position.z = 0f;
         GameObject newSlime = Instantiate(slimePrefab, position, Quaternion.identity);
 
         spawnedSlimeCount++;
@@ -346,6 +359,14 @@ public class SlimeSpawner : MonoBehaviour
 
     bool IsInsideCameraViewport(Vector3 worldPosition, Camera cam, float padding)
     {
+        if (cam == null) return true;
+
+        // In 2D game with orthographic camera, normalize z to camera front plane to avoid accidental negative z clipping
+        if (cam.orthographic)
+        {
+            worldPosition.z = 0f;
+        }
+
         Vector3 viewportPoint = cam.WorldToViewportPoint(worldPosition);
         if (viewportPoint.z < 0f)
             return false;
@@ -618,10 +639,9 @@ public class SlimeSpawner : MonoBehaviour
 
     Vector3 GetSpawnCenter()
     {
-        if (useSpawnerAsZoneCenter || player == null)
-            return transform.position;
-
-        return player.position;
+        Vector3 pos = (useSpawnerAsZoneCenter || player == null) ? transform.position : player.position;
+        pos.z = 0f;
+        return pos;
     }
 
     void DrawWireRectangle(Vector3 center, Vector2 size)

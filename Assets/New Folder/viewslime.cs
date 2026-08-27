@@ -20,20 +20,48 @@ public class viewslime : MonoBehaviour
         var bodyRenderer = slimeBody?.GetComponent<SpriteRenderer>();
         var armorRenderer = SlimeArmor?.GetComponent<SpriteRenderer>();
         var weaponRenderer = SlimeWeapon?.GetComponent<SpriteRenderer>();
-        bodyRenderer.transform.localScale = Vector3.one * 30;
-        armorRenderer.transform.localScale = Vector3.one;
-        weaponRenderer.transform.localScale = Vector3.one;
-        bodyRenderer.sprite = (slime != null ? slime.body?.sprite : null);
-        bodyRenderer.sortingOrder = 2;
-        armorRenderer.sprite = (slime != null ? slime.armor?.sprite : null);
-        armorRenderer.sortingOrder = 3;
-        weaponRenderer.sprite = (slime != null ? slime.weapon?.sprite : null);
-        weaponRenderer.sortingOrder = 4;
+
+        var bodyImage = slimeBody?.GetComponent<UnityEngine.UI.Image>();
+        var armorImage = SlimeArmor?.GetComponent<UnityEngine.UI.Image>();
+        var weaponImage = SlimeWeapon?.GetComponent<UnityEngine.UI.Image>();
+
+        if (bodyRenderer != null)
+        {
+            bodyRenderer.transform.localScale = Vector3.one * 30;
+            bodyRenderer.sprite = (slime != null ? slime.body?.sprite : null);
+            bodyRenderer.sortingOrder = 200;
+        }
+        else if (bodyImage != null)
+        {
+            bodyImage.sprite = (slime != null ? slime.body?.sprite : null);
+        }
+
+        if (armorRenderer != null)
+        {
+            armorRenderer.transform.localScale = Vector3.one;
+            armorRenderer.sprite = (slime != null ? slime.armor?.sprite : null);
+            armorRenderer.sortingOrder = 201;
+        }
+        else if (armorImage != null)
+        {
+            armorImage.sprite = (slime != null ? slime.armor?.sprite : null);
+        }
+
+        if (weaponRenderer != null)
+        {
+            weaponRenderer.transform.localScale = Vector3.one;
+            weaponRenderer.sprite = (slime != null ? slime.weapon?.sprite : null);
+            weaponRenderer.sortingOrder = 202;
+        }
+        else if (weaponImage != null)
+        {
+            weaponImage.sprite = (slime != null ? slime.weapon?.sprite : null);
+        }
     }
 
     public void deactive()
     {
-        
+        gameObject.SetActive(false);
     }
 
   

@@ -67,6 +67,11 @@ public class TowerTurnSystem : TurnSystem
 
     protected override void Start()
     {
+        if (BattleSystemManager.Instance == null && GetComponent<BattleSystemManager>() == null)
+        {
+            gameObject.AddComponent<BattleSystemManager>();
+        }
+
         if (resultPanel != null) resultPanel.SetActive(false);
         if (boss != null)
         {

@@ -102,9 +102,10 @@ public class loading : MonoBehaviour
         if (canvas == null)
         {
             canvas = gameObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 999;
         }
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.overrideSorting = true;
+        canvas.sortingOrder = 32767;
 
         CanvasScaler scaler = GetComponent<CanvasScaler>();
         if (scaler == null)
@@ -118,8 +119,9 @@ public class loading : MonoBehaviour
         GraphicRaycaster raycaster = GetComponent<GraphicRaycaster>();
         if (raycaster == null)
         {
-            gameObject.AddComponent<GraphicRaycaster>();
+            raycaster = gameObject.AddComponent<GraphicRaycaster>();
         }
+        raycaster.blockingObjects = GraphicRaycaster.BlockingObjects.None;
     }
 
     private void EnsureCanvasGroup()
@@ -175,10 +177,17 @@ public class loading : MonoBehaviour
 
     private async Task PlayLoading(int sceneIndex)
     {
-        if (this == null || gameObject == null)
+        EnsureCanvas();
+        EnsureCanvasGroup();
+        transform.SetParent(null, false);
+        transform.SetAsLastSibling();
+
+        Canvas startCanvas = GetComponent<Canvas>();
+        if (startCanvas != null)
         {
-            SceneLoader.EndSceneLoadRequest();
-            return;
+            startCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            startCanvas.overrideSorting = true;
+            startCanvas.sortingOrder = 32767;
         }
 
         gameObject.SetActive(true);
@@ -299,6 +308,18 @@ public class loading : MonoBehaviour
         while (!scene.isDone)
         {
             await Task.Yield();
+        }
+
+        // Re-enforce topmost status after incoming scene canvases/joysticks have initialized
+        EnsureCanvas();
+        transform.SetParent(null, false);
+        transform.SetAsLastSibling();
+        Canvas postCanvas = GetComponent<Canvas>();
+        if (postCanvas != null)
+        {
+            postCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            postCanvas.overrideSorting = true;
+            postCanvas.sortingOrder = 32767;
         }
 
         Application.backgroundLoadingPriority = ThreadPriority.Normal;

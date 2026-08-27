@@ -57,7 +57,7 @@ public class Member : MonoBehaviour
         GameObject slimeGO = Instantiate(slimePrefab, this.transform);
         slimeGO.name = $"TeamSlime_{s.id}";
         slimeGO.transform.position = transform.position;
-        slimeGO.transform.localScale = Vector3.one * 1.3f;
+        slimeGO.transform.localScale = Vector3.one;
 
         var skeletonGraphic = slimeGO.GetComponentInChildren<SkeletonGraphic>();
 

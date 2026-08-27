@@ -45,19 +45,9 @@ public class SimpleCombatAnimation : MonoBehaviour
         formationPosition = GetFormationPosition();
         
         
-        var isEnemy = GetComponent<SlimeStats>()?.isEnemy ?? false;
-        if (!isEnemy)
-        {
-            originalScale = Vector3.one * 1.3f;
-            lockedOriginalScale = originalScale;
-            transform.localScale = originalScale;
-        }
-        else
-        {
-            originalScale = Vector3.one;
-            lockedOriginalScale = originalScale;
-            transform.localScale = originalScale;
-        }
+        originalScale = Vector3.one;
+        lockedOriginalScale = originalScale;
+        transform.localScale = originalScale;
         
         skeletonGraphic = GetComponentInChildren<SkeletonGraphic>();
         slimeAnimationController = GetComponent<SlimeAnimationController>();
@@ -322,9 +312,7 @@ public class SimpleCombatAnimation : MonoBehaviour
     [ContextMenu("Check And Fix Scale")]
     public void CheckAndFixScale()
     {
-        var isEnemy = GetComponent<SlimeStats>()?.isEnemy ?? false;
-        Vector3 expectedScale = isEnemy ? Vector3.one : Vector3.one * 1.3f;
-        
+        Vector3 expectedScale = Vector3.one;
         
         originalScale = expectedScale;
         lockedOriginalScale = expectedScale;

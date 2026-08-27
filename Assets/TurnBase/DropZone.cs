@@ -32,7 +32,7 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         if (existingSlime != null && existingSlime.gameObject != draggedObject)
         {
             existingSlime.transform.SetParent(existingSlime.unusedSlime, false);
-            existingSlime.transform.localScale = Vector3.one * 1.3f;
+            existingSlime.transform.localScale = Vector3.one;
             existingSlime.transform.localPosition = Vector3.zero;
             existingSlime.isUsed = false;
         }

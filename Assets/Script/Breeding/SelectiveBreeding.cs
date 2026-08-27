@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 public static class SelectiveBreeding
 {
     // ------------------------------------------------------------------
@@ -69,12 +69,20 @@ public static class SelectiveBreeding
 
     public static Rarity GetSlimeRarity(Slime s)
     {
+        if (s == null) return Rarity.Common;
+
+        // Slime Secret (thu được độc quyền từ Fusion) luôn nhận diện là Secret
+        if ((s.body != null && s.body.Rarity == Rarity.Secret) ||
+            (s.armor != null && s.armor.Rarity == Rarity.Secret) ||
+            (s.weapon != null && s.weapon.Rarity == Rarity.Secret))
+        {
+            return Rarity.Secret;
+        }
+
         Rarity best = Rarity.Common;
-        if (s == null) return best;
-        if (s.body != null && s.body.Rarity > best && s.body.Rarity != Rarity.Secret) best = s.body.Rarity;
-        if (s.armor != null && s.armor.Rarity > best && s.armor.Rarity != Rarity.Secret) best = s.armor.Rarity;
-        if (s.weapon != null && s.weapon.Rarity > best && s.weapon.Rarity != Rarity.Secret) best = s.weapon.Rarity;
-        if (best == Rarity.Common && s.body != null && s.body.Rarity == Rarity.Secret) best = Rarity.Secret;
+        if (s.body != null && s.body.Rarity > best) best = s.body.Rarity;
+        if (s.armor != null && s.armor.Rarity > best) best = s.armor.Rarity;
+        if (s.weapon != null && s.weapon.Rarity > best) best = s.weapon.Rarity;
         return best;
     }
 
@@ -82,7 +90,10 @@ public static class SelectiveBreeding
     {
         Rarity r1 = GetSlimeRarity(p1);
         Rarity r2 = GetSlimeRarity(p2);
-        return r1 >= r2 ? r1 : r2;
+        Rarity result = r1 >= r2 ? r1 : r2;
+        // Breeding không bao giờ sinh ra Secret (Secret chỉ có từ Fusion)
+        if (result >= Rarity.Secret) result = Rarity.Mythic;
+        return result;
     }
 
     // ------------------------------------------------------------------

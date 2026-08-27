@@ -50,6 +50,11 @@ public class TurnSystem : MonoBehaviour
 
     protected virtual void Start()
     {
+        if (BattleSystemManager.Instance == null && GetComponent<BattleSystemManager>() == null)
+        {
+            gameObject.AddComponent<BattleSystemManager>();
+        }
+
         // Warm-up Canvas cache ngay khi start
         _cachedCanvas = GetComponentInParent<Canvas>();
         if (_cachedCanvas == null) _cachedCanvas = FindObjectOfType<Canvas>();

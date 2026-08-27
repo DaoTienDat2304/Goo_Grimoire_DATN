@@ -15,7 +15,6 @@ public class SlimeInventory : MonoBehaviour
     public GameObject breedingProgressPanel;
     [Tooltip("(Optional) Anh nen che den ben trong Fusion panel.")]
     public GameObject fusionBackdrop;
-    public Button button;
     public GameObject showslot;
 
     [Header("Breeding UI")]
@@ -135,18 +134,6 @@ public class SlimeInventory : MonoBehaviour
 
     private void Update()
     {
-        /*UpdateSlimeCounter();
-        timer += Time.deltaTime;
-
-        if (timer >= interval)
-        {
-            timer = 0f; // reset
-            RefreshCollectionGrid();
-
-            CheckAndRefreshIfNeeded();
-        }*/
-        if (button != null) button.gameObject.SetActive(sacrifice >= maxsacrifice);
-
         if (Slider != null)
         {
             float target = Mathf.Min(sacrifice + PreviewPoints(), maxsacrifice);
@@ -467,37 +454,7 @@ public class SlimeInventory : MonoBehaviour
         return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
     }
 
-    public void summonbutton()
-    {
-        if (sacrifice < maxsacrifice)
-        {
-            Debug.LogWarning($"[Fusion] Not enough energy to summon. Need {maxsacrifice}, have {sacrifice}.", this);
-            return;
-        }
 
-        BreedingManager breedingManager = BreedingManager.Instance != null
-            ? BreedingManager.Instance
-            : FindAnyObjectByType<BreedingManager>();
-        if (breedingManager == null)
-        {
-            Debug.LogWarning("[Fusion] BreedingManager is missing; summon canceled.", this);
-            return;
-        }
-
-        Slime generatedSlime = breedingManager.TryGenerateFusionSlime();
-        if (generatedSlime == null)
-            return;
-
-        sacrifice = Mathf.Max(0, sacrifice - maxsacrifice);
-        if (Slider != null) Slider.value = sacrifice;
-
-        RefreshAllUI();
-        if (button != null)
-            button.gameObject.SetActive(sacrifice >= maxsacrifice);
-
-        SaveAndLoadSystem.Instance?.MarkSlimeCollectionChanged();
-        SaveAndLoadSystem.Instance?.Save();
-    }
 
 
     public void ondeseclect()
@@ -546,6 +503,13 @@ public class SlimeInventory : MonoBehaviour
         foreach (var slime in selectedSlimes)
             SacrificeSlime(slime, breedingManager);
 
+        // Tự động triệu hồi Slime Secret ngay khi thanh đạt 100%
+        while (sacrifice >= maxsacrifice)
+        {
+            sacrifice -= maxsacrifice;
+            breedingManager.TryGenerateFusionSlime();
+        }
+
         if (Slider != null)
             Slider.value = sacrifice;
 
@@ -556,6 +520,7 @@ public class SlimeInventory : MonoBehaviour
         RefreshCollectionGrid();
         CheckAndRefreshIfNeeded();
         UpdateSelectedSacrificePreview();
+        UpdateFusionCostUI();
     }
 
     private void SacrificeSlime(Slime slime, BreedingManager breedingManager)

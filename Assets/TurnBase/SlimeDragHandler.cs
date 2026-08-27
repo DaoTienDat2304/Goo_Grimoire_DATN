@@ -84,7 +84,7 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
         // Set parent with worldPositionStays = false to prevent scale distortion
         transform.SetParent(targetParent, false);
-        transform.localScale = Vector3.one * 1.3f;
+        transform.localScale = Vector3.one;
         transform.localPosition = Vector3.zero;
         rectTransform.anchoredPosition = Vector2.zero;
         

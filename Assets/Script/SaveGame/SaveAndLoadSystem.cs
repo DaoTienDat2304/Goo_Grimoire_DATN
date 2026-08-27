@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
@@ -1144,7 +1144,19 @@ public class SaveAndLoadSystem : MonoBehaviour
             if (loose != null) return loose;
         }
 
-        // 2. Fallback: load from Resources if set up
+        // 2. Check BreedingManager secret list
+        if (BreedingManager.Instance != null && BreedingManager.Instance.secret != null)
+        {
+            var foundSecret = BreedingManager.Instance.secret.FirstOrDefault(t =>
+                t != null &&
+                (string.Equals(t.traitName, traitName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(t.name, traitName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(t.traitName?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(t.name?.Replace(" ", ""), cleanName, StringComparison.OrdinalIgnoreCase)));
+            if (foundSecret != null) return foundSecret;
+        }
+
+        // 3. Fallback: load from Resources if set up
         var loaded = Resources.LoadAll<TraitSO>(string.Empty);
         if (loaded != null && loaded.Length > 0)
         {

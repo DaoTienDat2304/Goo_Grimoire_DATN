@@ -45,15 +45,27 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler
         if (nameText != null)
             nameText.text = slime.slimeName;
 
-            var bodyRenderer = slimeBody?.GetComponent<Image>();
-            var armorRenderer = SlimeArmor?.GetComponent<Image>();
-            var weaponRenderer = SlimeWeapon?.GetComponent<Image>();
-            bodyRenderer.transform.localScale = Vector3.one * 1.3f;
+        if (worldManager == null)
+            worldManager = SlimeWorldManager.Instance != null ? SlimeWorldManager.Instance : FindAnyObjectByType<SlimeWorldManager>();
+
+        var bodyRenderer = slimeBody?.GetComponent<Image>();
+        var armorRenderer = SlimeArmor?.GetComponent<Image>();
+        var weaponRenderer = SlimeWeapon?.GetComponent<Image>();
+        if (bodyRenderer != null)
+        {
+            bodyRenderer.transform.localScale = Vector3.one;
+            bodyRenderer.sprite = (slime != null ? slime.body?.sprite : null) ?? (worldManager != null ? worldManager.CreateDefaultSlimeSprite() : null);
+        }
+        if (armorRenderer != null)
+        {
             armorRenderer.transform.localScale = Vector3.one;
+            armorRenderer.sprite = (slime != null ? slime.armor?.sprite : null) ?? (worldManager != null ? worldManager.CreateDefaultSlimeSprite() : null);
+        }
+        if (weaponRenderer != null)
+        {
             weaponRenderer.transform.localScale = Vector3.one;
-            bodyRenderer.sprite = (slime != null ? slime.body?.sprite : null) ?? worldManager.CreateDefaultSlimeSprite();
-            armorRenderer.sprite = (slime != null ? slime.armor?.sprite : null) ?? worldManager.CreateDefaultSlimeSprite();
-            weaponRenderer.sprite = (slime != null ? slime.weapon?.sprite : null) ?? worldManager.CreateDefaultSlimeSprite();
+            weaponRenderer.sprite = (slime != null ? slime.weapon?.sprite : null) ?? (worldManager != null ? worldManager.CreateDefaultSlimeSprite() : null);
+        }
        
     }
 

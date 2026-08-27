@@ -322,11 +322,7 @@ public class SlimeInventory : MonoBehaviour
             goldRequirementLegacyText.text = value;
 
         if (dismantleButton != null)
-        {
-            bool canAfford = cost == 0 ||
-                (CurrencyManager.Instance != null && CurrencyManager.Instance.HasEnoughCurrency(CurrencyType.Coins, cost));
-            dismantleButton.interactable = selectedCount > 0 && canAfford;
-        }
+            dismantleButton.interactable = selectedCount > 0;
     }
 
     private void HandleCurrencyChanged(CurrencyType type, int oldAmount, int newAmount)
@@ -473,9 +469,33 @@ public class SlimeInventory : MonoBehaviour
 
     public void summonbutton()
     {
-        sacrifice -= maxsacrifice;
-        if (sacrifice < 0) sacrifice = 0;
+        if (sacrifice < maxsacrifice)
+        {
+            Debug.LogWarning($"[Fusion] Not enough energy to summon. Need {maxsacrifice}, have {sacrifice}.", this);
+            return;
+        }
+
+        BreedingManager breedingManager = BreedingManager.Instance != null
+            ? BreedingManager.Instance
+            : FindAnyObjectByType<BreedingManager>();
+        if (breedingManager == null)
+        {
+            Debug.LogWarning("[Fusion] BreedingManager is missing; summon canceled.", this);
+            return;
+        }
+
+        Slime generatedSlime = breedingManager.TryGenerateFusionSlime();
+        if (generatedSlime == null)
+            return;
+
+        sacrifice = Mathf.Max(0, sacrifice - maxsacrifice);
         if (Slider != null) Slider.value = sacrifice;
+
+        RefreshAllUI();
+        if (button != null)
+            button.gameObject.SetActive(sacrifice >= maxsacrifice);
+
+        SaveAndLoadSystem.Instance?.MarkSlimeCollectionChanged();
         SaveAndLoadSystem.Instance?.Save();
     }
 
@@ -526,12 +546,16 @@ public class SlimeInventory : MonoBehaviour
         foreach (var slime in selectedSlimes)
             SacrificeSlime(slime, breedingManager);
 
+        if (Slider != null)
+            Slider.value = sacrifice;
+
+        // Persist the new collection and partial Fusion energy before rebuilding UI.
+        SaveAndLoadSystem.Instance?.MarkSlimeCollectionChanged();
+        SaveAndLoadSystem.Instance?.Save();
+
         RefreshCollectionGrid();
         CheckAndRefreshIfNeeded();
         UpdateSelectedSacrificePreview();
-
-        SaveAndLoadSystem.Instance?.MarkSlimeCollectionChanged();
-        SaveAndLoadSystem.Instance?.Save();
     }
 
     private void SacrificeSlime(Slime slime, BreedingManager breedingManager)

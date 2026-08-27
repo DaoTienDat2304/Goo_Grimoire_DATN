@@ -214,41 +214,89 @@ public class BreedingManager : MonoBehaviour
 
     public void GenSpecialSlime()
     {
-        var bodySo = secret[Random.Range(0, secret.Length)];
-        TraitSO armorSo = null;
-        TraitSO weaponSo = null;
+        Slime generatedSlime = TryGenerateFusionSlime();
+        if (generatedSlime != null)
+            SaveAndLoadSystem.Instance?.Save();
+    }
+
+    public Slime TryGenerateFusionSlime()
+    {
+        if (!CanBreedMore())
+        {
+            Debug.LogWarning("[Fusion] Slime collection is full; summon canceled.", this);
+            return null;
+        }
+
+        TraitSO bodySo = GetRandomFusionBodyTrait();
+        TraitSO armorSo = SlimeGen.Instance != null
+            ? SlimeGen.Instance.RollTraitOfRarity(TraitType.Armor, Rarity.Secret)
+            : null;
+        TraitSO weaponSo = SlimeGen.Instance != null
+            ? SlimeGen.Instance.RollTraitOfRarity(TraitType.Weapon, Rarity.Secret)
+            : null;
+
+        armorSo ??= fixed1Armor != null ? fixed1Armor : fixed2Armor;
+        weaponSo ??= fixed1Weapon != null ? fixed1Weapon : fixed2Weapon;
+
+        Slime generatedSlime = GetSpecialSlime(
+            SlimeNameGenerator.GetRandomSlimeName(),
+            bodySo,
+            armorSo,
+            weaponSo);
+        if (generatedSlime == null)
+        {
+            Debug.LogError("[Fusion] Cannot create a complete slime. Check Secret body, armor, and weapon traits.", this);
+            return null;
+        }
+
+        generatedSlime.canBreed = false;
+        allSlimes.Add(generatedSlime);
+
+        if (showslot != null)
+        {
+            showslot.SetActive(true);
+            viewslime slotScript = showslot.GetComponentInChildren<viewslime>(true);
+            if (slotScript != null)
+                slotScript.SetupSlime(generatedSlime);
+        }
+
+        PlayerStatsManager.Instance?.RecordSecretObtained(generatedSlime);
+        ArchievementManager.Instance?.GetArchivement(1);
+
+        SlimeWorldManager worldManager = SlimeWorldManager.Instance != null
+            ? SlimeWorldManager.Instance
+            : FindAnyObjectByType<SlimeWorldManager>();
+        worldManager?.RefreshWorldSlimes();
+
+        BreedingUIManager breedingUI = FindAnyObjectByType<BreedingUIManager>();
+        breedingUI?.RefreshAllUI();
+
+        SaveAndLoadSystem.Instance?.MarkSlimeCollectionChanged();
+        return generatedSlime;
+    }
+
+    private TraitSO GetRandomFusionBodyTrait()
+    {
+        if (secret != null)
+        {
+            TraitSO[] configuredTraits = secret.Where(trait => trait != null).ToArray();
+            if (configuredTraits.Length > 0)
+                return configuredTraits[Random.Range(0, configuredTraits.Length)];
+        }
 
         if (SlimeGen.Instance != null)
         {
-            armorSo = SlimeGen.Instance.RollTraitOfRarity(TraitType.Armor, Rarity.Secret);
-            weaponSo = SlimeGen.Instance.RollTraitOfRarity(TraitType.Weapon, Rarity.Secret);
+            TraitSO generatedTrait = SlimeGen.Instance.RollTraitOfRarity(TraitType.special, Rarity.Secret);
+            if (generatedTrait != null)
+                return generatedTrait;
         }
 
-        if (armorSo == null) armorSo = fixed1Armor;
-        if (weaponSo == null) weaponSo = fixed1Weapon;
-
-        var s1 = GetSpecialSlime("", bodySo, armorSo, weaponSo);
-        showslot.SetActive(true);
-        if (s1 != null) allSlimes.Add(s1);
-        PlayerStatsManager.Instance?.RecordSecretObtained(s1);
-        if (s1 != null) s1.canBreed = false;
-        var slotScript = showslot.GetComponentInChildren<viewslime>();
-        if (slotScript != null)
-        {
-            slotScript.SetupSlime(s1);
-        }
-
-        if (ArchievementManager.Instance != null)
-        {
-            ArchievementManager.Instance.GetArchivement(1); // 0 = Breed achievement
-        }
-
-        SaveAndLoadSystem.Instance?.Save();
+        return fixed1Body != null ? fixed1Body : fixed2Body;
     }
 
     public Slime GetSpecialSlime(string name, TraitSO body, TraitSO armor, TraitSO weapon)
     {
-        if (body == null) return null;
+        if (body == null || armor == null || weapon == null) return null;
         var s = new Slime();
         s.slimeName = name;
         s.body = body.GenerateInstance();

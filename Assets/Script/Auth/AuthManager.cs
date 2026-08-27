@@ -34,6 +34,9 @@ public class AuthManager : MonoBehaviour
     // ── Events ───────────────────────────────────────────────
     public Action<string> OnLoginSuccess;
     public Action<string> OnLoginFailed;
+    /// Ban TRUOC khi phien Firebase bi xoa, luc uid va token con dung.
+    /// Cho ai con du lieu chua ghi kip day not xuong save cua tai khoan dang choi.
+    public Action         OnBeforeSignOut;
     public Action         OnLoggedOut;
     public Action<string> OnPasswordResetSent;
     public Action<string> OnPasswordResetFailed;
@@ -280,6 +283,11 @@ public class AuthManager : MonoBehaviour
     public void SignOut()
     {
         if (!_firebaseReady || _auth == null) return;
+
+        // Phai chay truoc SignOut: sau do CurrentUserId ve null va token het hieu luc,
+        // khong con day duoc save cua tai khoan nay len Firestore nua.
+        OnBeforeSignOut?.Invoke();
+
         _auth.SignOut();
         IsLoggedIn    = false;
         IsAnonymous   = false;
@@ -337,7 +345,7 @@ public class AuthManager : MonoBehaviour
 
     public void SignInAnonymously()   => ApplyOfflineUser();
     public void SignInWithGoogle()    => ApplyOfflineUser();
-    public void SignOut()             { IsLoggedIn = false; OnLoggedOut?.Invoke(); }
+    public void SignOut()             { OnBeforeSignOut?.Invoke(); IsLoggedIn = false; OnLoggedOut?.Invoke(); }
     public void SignInWithEmail(string email, string password) => ApplyOfflineUser();
     public void RegisterWithEmail(string email, string password) => ApplyOfflineUser();
     public void SendPasswordResetEmail(string email) => OnPasswordResetSent?.Invoke(email);

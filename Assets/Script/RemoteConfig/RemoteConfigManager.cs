@@ -22,6 +22,11 @@ public class RemoteConfigManager : MonoBehaviour
 
     public bool IsFirebaseReady { get; private set; } = false;
 
+    /// IsReady chi bao "da co default de doc". IsFetchComplete bao "da fetch xong tu server
+    /// (hoac da chac chan khong fetch nua)". Cac gia tri chi ton tai tren Console —
+    /// vi du dev_account_email — chi dang tin cay sau khi co dat cai nay.
+    public bool IsFetchComplete { get; private set; } = false;
+
     [Header("Dev Settings")]
     [Tooltip("Bat khi dev: ignore cache 12h, luon fetch tu server each lan chay game.")]
     public bool forceFetchOnStart = true;
@@ -85,6 +90,7 @@ public class RemoteConfigManager : MonoBehaviour
         InitializeFirebase();
 #else
         IsReady = true;
+        IsFetchComplete = true;
         ReapplyBalance();
         Debug.Log("[RemoteConfig] Offline mode — using code defaults.");
 #endif
@@ -107,6 +113,7 @@ public class RemoteConfigManager : MonoBehaviour
             {
                 Debug.LogError($"[RemoteConfig] CheckDependencies error: {checkTask.Exception}. Using defaults.");
                 IsReady = true;
+                IsFetchComplete = true;
                 ReapplyBalance();
                 return;
             }
@@ -116,6 +123,7 @@ public class RemoteConfigManager : MonoBehaviour
             {
                 Debug.LogError($"[RemoteConfig] Firebase init failed: {status}. Using defaults.");
                 IsReady = true;
+                IsFetchComplete = true;
                 ReapplyBalance();
                 return;
             }
@@ -145,6 +153,8 @@ public class RemoteConfigManager : MonoBehaviour
                 if (!fetchRemoteConfigInEditor)
                 {
                     Debug.LogWarning("[RemoteConfig] Skipping FetchAndActivate in Editor to avoid Firebase native crash. Player builds still fetch normally.");
+                    Debug.LogWarning("[RemoteConfig] Vi khong fetch, cac key chi co tren Console (dev_account_email, ...) se rong.");
+                    IsFetchComplete = true;
                     return;
                 }
 #endif
@@ -191,6 +201,7 @@ public class RemoteConfigManager : MonoBehaviour
                 }
 
                 IsReady = true;
+                IsFetchComplete = true;
                 OnConfigFetched();
             });
         });
@@ -233,6 +244,7 @@ public class RemoteConfigManager : MonoBehaviour
 
         Debug.Log("[RemoteConfig] ══════════ Current values ══════════");
         Debug.Log($"[RemoteConfig] [Meta]     config_version={ConfigVersion} | maintenance={MaintenanceEnabled} | min_version=\"{MinSupportedVersion}\" | shop=\"{ActiveShopId}\"");
+        Debug.Log($"[RemoteConfig] [Dev]      dev_account_email=\"{DevAccountEmail}\" (rong = tat dev account)");
         Debug.Log($"[RemoteConfig] [Battle]   critRateCap={b.critRateCap:P0} critDmgCap={b.critDmgCap:F2} defPerPoint={b.defReductionPerPoint} maxDefRed={b.maxDefReduction:P0} overflow→ATK={b.critOverflowToAtk} skillPower={b.skillPowerMult}");
         Debug.Log($"[RemoteConfig] [Breeding] maxSlimes={MaxSlimes} gemPerMinute={RemoteBalance.BreedingGemPerMinute} diffBias={RemoteBalance.BreedingDiffRarityBias}");
         Debug.Log($"[RemoteConfig] [Egg]      interval={GetFloat(RemoteConfigKeys.EggCheckInterval, 60f)}s chance={GetFloat(RemoteConfigKeys.EggChance, 0.5f):P0} max={GetInt(RemoteConfigKeys.EggMaxUnhatched, 3)} required={GetInt(RemoteConfigKeys.EggRequiredSlimes, 2)} incubation={GetFloat(RemoteConfigKeys.EggIncubationSecs, 600f)}s gemPer={GetFloat(RemoteConfigKeys.EggSecondsPerGem, 60f)}s");

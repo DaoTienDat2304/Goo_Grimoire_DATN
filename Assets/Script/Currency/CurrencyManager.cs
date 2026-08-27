@@ -49,6 +49,20 @@ public class CurrencyManager : MonoBehaviour
         
         Debug.Log($"Currency loaded: {GetCurrency(CurrencyType.Coins)} Coins, {GetCurrency(CurrencyType.Gems)} Gems");
     }
+    /// Dat lai vang/gem ve moc khoi dau (uu tien starting_coins / starting_gems tu Remote Config).
+    /// Goi khi bat dau mot tai khoan moi hoan toan, vi PlayerPrefs khong tach theo uid.
+    public void ResetToStartingValues()
+    {
+        int coins = StartingCoins;
+        int gems = StartingGems;
+
+        SetCurrency(CurrencyType.Coins, coins);
+        SetCurrency(CurrencyType.Gems, gems);
+        firstLoadDone = true;
+
+        Debug.Log($"Currency reset for new account: {coins} Coins, {gems} Gems");
+    }
+
     public int GetCurrency(CurrencyType type)
     {
         return currencies.ContainsKey(type) ? currencies[type] : 0;

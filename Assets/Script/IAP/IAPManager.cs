@@ -527,34 +527,4 @@ public class IAPManager : MonoBehaviour
     {
         return order?.Info?.TransactionID;
     }
-
-    /// <summary>
-    /// Tren may that khong co console, day la cach duy nhat thay duoc vi sao khong mua duoc.
-    /// Chi ve khi Shop dang mo.
-    /// </summary>
-    private void OnGUI()
-    {
-        if (!ShowStatusOverlay) return;
-
-        if (overlayStyle == null)
-        {
-            overlayStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = Mathf.Max(14, Screen.height / 45),
-                wordWrap = true,
-                alignment = TextAnchor.UpperLeft
-            };
-            overlayStyle.normal.textColor = Color.yellow;
-        }
-
-        float width = Screen.width * 0.9f;
-        var rect = new Rect(Screen.width * 0.05f, Screen.height * 0.02f, width, Screen.height * 0.2f);
-
-        var previous = GUI.color;
-        GUI.color = new Color(0f, 0f, 0f, 0.6f);
-        GUI.Box(rect, GUIContent.none);
-        GUI.color = previous;
-
-        GUI.Label(rect, statusMessage, overlayStyle);
-    }
 }

@@ -326,16 +326,9 @@ public class SimpleCombatAnimation : MonoBehaviour
         Vector3 expectedScale = isEnemy ? Vector3.one : Vector3.one * 1.3f;
         
         
-        if (Vector3.Distance(lockedOriginalScale, expectedScale) > 0.01f)
-        {
-            Debug.LogWarning($"Locked scale is wrong! Fixing from {lockedOriginalScale} to {expectedScale}");
-            originalScale = expectedScale;
-            lockedOriginalScale = expectedScale;
-            transform.localScale = expectedScale;
-        }
-        else
-        {
-        }
+        originalScale = expectedScale;
+        lockedOriginalScale = expectedScale;
+        transform.localScale = expectedScale;
     }
     
     public void UpdateFormationPosition()

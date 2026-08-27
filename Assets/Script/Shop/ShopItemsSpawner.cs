@@ -23,10 +23,6 @@ public class ShopItemsSpawner : MonoBehaviour
     [Tooltip("{0} = phan thuong nhan duoc, {1} = gia phai tra.")]
     [SerializeField] private string confirmMessageFormat = "Buy {0} for {1}?";
 
-    [Header("IAP Debug")]
-    [Tooltip("Bat = hien dong trang thai IAP tren dau man hinh khi mo Shop. Tat truoc khi phat hanh.")]
-    [SerializeField] private bool showIapStatusOverlay = true;
-
     [Header("Chosen Item")]
     public int price;                  
     public CurrencyType currencyType;
@@ -53,16 +49,11 @@ public class ShopItemsSpawner : MonoBehaviour
         CurrencyManager.OnCurrencyChanged += HandleCurrencyChanged;
         AutoWireCurrencyBar();
         RefreshCurrencyBar();
-
-        // Chi hien dong trang thai IAP khi dang o trong shop - de con biet vi sao
-        // khong mua duoc khi chay tren may that (khong xem duoc console).
-        IAPManager.ShowStatusOverlay = showIapStatusOverlay;
     }
 
     private void OnDisable()
     {
         CurrencyManager.OnCurrencyChanged -= HandleCurrencyChanged;
-        IAPManager.ShowStatusOverlay = false;
         RestoreSlimes();
     }
 

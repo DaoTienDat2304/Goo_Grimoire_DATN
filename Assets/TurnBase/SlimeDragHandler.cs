@@ -82,13 +82,10 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         canvasGroup.blocksRaycasts = true;
         canvasGroup.alpha = 1f;
 
-        // Set parent to the resolved target parent
-        // Keep worldPositionStays = true to preserve local scale after scale multiplications!
-        transform.SetParent(targetParent, true);
-        if (targetParent == unusedSlime)
-        {
-            transform.localScale = Vector3.one * 1.3f;
-        }
+        // Set parent with worldPositionStays = false to prevent scale distortion
+        transform.SetParent(targetParent, false);
+        transform.localScale = Vector3.one * 1.3f;
+        transform.localPosition = Vector3.zero;
         rectTransform.anchoredPosition = Vector2.zero;
         
         isUsed = (targetParent != unusedSlime);
@@ -108,6 +105,7 @@ public class SlimeDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         var combatAnim = GetComponent<SimpleCombatAnimation>();
         if (combatAnim != null)
         {
+            combatAnim.CheckAndFixScale();
             combatAnim.OnDroppedToFormation();
         }
     }

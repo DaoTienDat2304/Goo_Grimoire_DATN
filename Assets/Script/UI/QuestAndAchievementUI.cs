@@ -230,7 +230,7 @@ public class QuestAndAchievementUI : MonoBehaviour
             }
         }
 
-        SetText(sectionCounterObject, $"{completedCount} / {totalCount} Completed");
+        SetText(sectionCounterObject, $"{completedCount} / {totalCount}");
 
         if (streakSlider != null)
         {
@@ -240,7 +240,7 @@ public class QuestAndAchievementUI : MonoBehaviour
         }
 
         bool allDone = totalCount > 0 && completedCount >= totalCount;
-        SetText(streakTextObject, $"Daily Streak: {completedCount}/{totalCount} Completed  (+{DailyMissionManager.StreakBonusGold} Coins)");
+        SetText(streakTextObject, $"Daily Streak: {completedCount} / {totalCount}  (+{DailyMissionManager.StreakBonusGold} Coins)");
 
         if (streakClaimButton != null)
         {
@@ -317,7 +317,7 @@ public class QuestAndAchievementUI : MonoBehaviour
             }
         }
 
-        SetText(sectionCounterObject, $"{completedCount} / {totalCount} Completed");
+        SetText(sectionCounterObject, $"{completedCount} / {totalCount}");
     }
 
     private Sprite GetQuestRewardSprite(Quest q)
@@ -423,7 +423,7 @@ public class QuestAndAchievementUI : MonoBehaviour
             }
         }
 
-        SetText(sectionCounterObject, $"{unlockedCount} / {totalCount} Unlocked");
+        SetText(sectionCounterObject, $"{unlockedCount} / {totalCount}");
     }
 
     private int GetQuestSortOrder(Quest q)

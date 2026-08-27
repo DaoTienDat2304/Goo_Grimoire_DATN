@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System;
 
@@ -87,8 +87,7 @@ public class QuestCardItemUI : MonoBehaviour
             progressFillImage.color = progressGradient.Evaluate(pct);
         }
 
-        string pctString = $"({Mathf.RoundToInt(pct * 100f)}%)";
-        string progressStr = $"{currentProgress:N0} / {targetProgress:N0}  {pctString}";
+        string progressStr = $"{currentProgress:N0} / {targetProgress:N0}";
         SetText(progressTextObject, progressStr);
 
         // 3. Reward
